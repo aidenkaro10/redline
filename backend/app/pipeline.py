@@ -135,9 +135,12 @@ class WorkerPipeline:
             self.t0 = t
         self.last_t = t if self.last_t is None else max(self.last_t, t)
         events = []
-        while t >= self.t0 + 60 * (self.k + 1):
+        target = math.floor((t - self.t0) / 60)          # the minute time t falls in
+        while self.k < target:
             events += self._close_minute()
             self.k += 1
+            if self.empty_run > config.MAX_GAP_MIN:
+                self.k = target                          # long silence: jump ahead instead of looping
         return events
 
     def _close_minute(self) -> list[dict]:
