@@ -18,7 +18,7 @@ test), C1 in fake mode, planner with `PLANNER_LLM=off`, the database and hazard 
    ```bash
    /Users/Annabelle/Documents/projects/planit-control/.venv/bin/python -m pytest tests/e2e -q
    ```
-3. You should see about `128 passed, 14 xfailed` in about a minute. "xfailed" = a known bug or gap, listed below.
+3. You should see about `142 passed, 19 xfailed`. That takes 2-3 minutes on a quiet laptop (7 min while the ML training runs; the no-LLM briefing alone is ~30-60 s). "xfailed" = a known bug or gap, listed below.
 4. The real-demo test needs `data/sim/sim.npz` and `ml/checkpoints/ens5.pt`. They're gitignored; the tests find them in the main checkout on their own, and skip that one test if they're missing.
 5. To see why one known bug fails, run it with `--runxfail`, for example:
    ```bash
@@ -68,56 +68,60 @@ All in `tests/e2e/fixtures/`, recorded from the real merged backend (sim shift +
 | 3 | **Crashes the demo page.** Reload after a spot check | Snapshot `offsets` use A's flat shape; `live.tsx` stores them as `OffsetUpdate` without `toOffsetUpdate()`; `LearningCard` reads `offset.history.length`. | `test_e2e_contract.py::test_snapshot_offsets_are_offset_updates` | E (or A) | E: map snapshot offsets through `toOffsetUpdate()`. |
 | 4 | **Visible lag.** "Test lightning" | Bands buzz at once, but the crew's site card (stop-work banner, ring, countdown) waits up to ~75 s (C1's 60 s rebuild + bridge's 15 s poll). | `test_e2e_hazards.py::test_demo_test_alert_shows_on_the_site_card_right_away` | A | After `bridge.test_alert`, rebuild C1's picture on a thread, then `bridge.refresh()`. |
 | 5 | Judge waits | No fresh estimate after a spot check; the chart moves at the next minute (6 s at 10x replay, 60 s live). | `test_e2e_spot_check.py::test_fresh_estimate_is_pushed_right_after_a_spot_check` | A | Re-send the last estimate with the new offset. |
-| 6 | Live band only | The line parser accepts impossible values (`TEMP:nan`, `HR:inf`, `HR:-80`, `TEMP:1e9`): one glitched line can poison a minute or the Kalman. | `test_e2e_acceptance.py::test_A01_impossible_values_never_make_readings` | A | Drop non-finite and out-of-range values in `parse_line`. |
-| 7 | None in the UI (it sends numbers) | `POST /api/demo/replay {speed: "fast"}` -> 500 (unguarded `float()`). | `test_A30_demo_replay_bad_speed_is_4xx` | A | Validate with a pydantic model. |
-| 8 | None visible | Spot checks outside 34-42 °C return 200 (contract: 400); they're only rejected as bad readings. | `test_A30_out_of_range_spot_check_is_4xx` | A | `Field(ge=34, le=42)` on `thermometer_c`. |
-| 9 | None visible (privacy) | `GET /api/workers/{id}/history?view=worker&worker_id=me` ignores `worker_id`: any worker view reads anyone's vitals. | `test_A29_worker_view_cannot_read_another_workers_history` | A | 403 unless `worker_id` matches. |
-| 10 | Bare chart page only | Raw `/ws` gets D's `emergency_status` before the `mandown_confirmed` that caused it. | `test_e2e_full_chain.py::test_raw_stream_sends_mandown_confirmed_before_its_escalation` | A | Broadcast before calling listeners. |
+| 6 | **Live demo: misleading card.** If Pulsoid drops | No heart rate for 10+ minutes: the Kalman correctly runs predict-only, but the crew card still says "Normal", green. Nothing says heart rate is missing. | `test_e2e_acceptance.py::test_A05_crew_card_says_heart_rate_is_missing` | A | When no HR for 2+ min: `status_reason` "Heart rate missing" (and not a confident green). |
+| 7 | **Safety gap; breaks the `--no-ack` demo path** | "Red with no button press for 60 s" starts a man-down check on time, but the next reading's movement cancels it in the same second (the overheating worker is still walking), so it can never escalate. | `test_A14_unacknowledged_red_escalates_while_the_worker_still_moves` | A | For `heat_red_unacknowledged` checks, only a button press cancels (movement shouldn't). |
+| 8 | If the server restarts mid-demo | Dashboards lose the alert history (SQLite still has it) and the breaks on worker cards (schedule not saved) until the planner replans. Offsets do come back. | `test_A34_alert_history_comes_back_after_restart`, `test_A34_current_schedule_comes_back_after_restart` | A | Reload recent alerts from SQLite at startup; save/restore `hub.schedule`. |
+| 9 | Live band only | The line parser accepts impossible values (`TEMP:nan`, `HR:inf`, `HR:-80`, `TEMP:1e9`): one glitched line can poison a minute or the Kalman. | `test_A01_impossible_values_never_make_readings` | A | Drop non-finite and out-of-range values in `parse_line`. |
+| 10 | None in the UI (it sends numbers) | `POST /api/demo/replay {speed: "fast"}` -> 500 (unguarded `float()`). | `test_A30_demo_replay_bad_speed_is_4xx` | A | Validate with a pydantic model. |
+| 11 | None visible | Spot checks outside 34-42 °C return 200 (contract: 400); they're only rejected as bad readings. | `test_A30_out_of_range_spot_check_is_4xx` | A | `Field(ge=34, le=42)` on `thermometer_c`. |
+| 12 | None visible (privacy) | `GET /api/workers/{id}/history?view=worker&worker_id=me` ignores `worker_id`: any worker view reads anyone's vitals. | `test_A29_worker_view_cannot_read_another_workers_history` | A | 403 unless `worker_id` matches. |
+| 13 | None visible | `/api/briefing` and `/api/schedule` don't say they were made without the LLM (only chat has `llm: false`). | `test_e2e_planner.py::test_A27_no_key_briefing_is_labeled_no_llm` | B | Add `llm: false` (or a "no-LLM" note) to both. |
+| 14 | Bare chart page only | Raw `/ws` gets D's `emergency_status` before the `mandown_confirmed` that caused it. | `test_e2e_full_chain.py::test_raw_stream_sends_mandown_confirmed_before_its_escalation` | A | Broadcast before calling listeners. |
 
 Contract drift, no demo impact (the UI copes today): `POST /api/workers/{id}/button` returns `{ok}` not `{ok, action}` (A); `POST /api/emergency/cancel` returns `{cancelled}` not `{ok}` (A); `GET /api/results` not served, UI uses its bundled copy (A + ML); C1 site `tech` has `hydro`, `battery`, `biomass_waste` (C1 + E). Tests: `test_e2e_contract.py::test_rest_replies_match_contract[...]`, `test_results_endpoint_is_served`, `test_site_tech_values_are_in_the_contract`.
 
 ## Acceptance items (docs/testing/backend-acceptance.md) -> tests
 
-Tests are named after the items they cover (`test_A12_...`). "Partial" = part of the item is checked.
+Tests are named after the items they cover (`test_A12_...`). All 36 items have tests.
 
-| Item | Status | Tests |
+| Item | Result | Tests |
 | --- | --- | --- |
-| A01 fuzz parser | pass + 1 xfail (#6) | `test_A01_*` |
+| A01 fuzz parser | pass + xfail (#9) | `test_A01_*` |
 | A02 debug/garbage lines | pass | `test_A02_*` (UDP + serial) |
-| A03 laptop timestamps | partial: stamping checked; burst order and duplicates not | `test_A03_*` |
-| A04 two HR sources | not automated here (A's unit tests cover `step_fused`) | |
-| A05 no heart rate | not automated here | |
+| A03 laptop timestamps, bursts, duplicates | pass | `test_A03_*` |
+| A04 two HR sources | pass | `test_A04_*` |
+| A05 no heart rate | pass (predict-only, recovery) + xfail (#6) | `test_A05_*` |
 | A06 SOS vs button | pass | `test_A06_*` |
-| A07 Kalman exactness | partial: `step_fused` one source == `step`; Mendeley column is in `backend/tests/test_kalman_real_data.py` | `test_A07_*` |
+| A07 Kalman exactness | pass (Mendeley `ectemp` to 1e-9, `step_fused` = `step`) | `test_A07_*` |
 | A08 forecaster fallback | pass | `test_A08_*` |
-| A09 forecast sanity | partial: real demo replay + contract check p10 <= mean <= p90 and 30 points; 34-42 °C range not checked | `test_A09_*`, `test_estimates_carry_the_whole_forecast` |
-| A10 offset applied once | pass (other worker unmoved: not checked) | `test_A10_*` |
+| A09 forecast sanity | pass (every minute, every worker, 34-42 °C, ordered, model output used exactly once) | `test_A09_*` |
+| A10 offset applied once | pass | `test_A10_*` |
 | A11 offset safety + restart | pass | `test_A11_*` |
 | A12 exact thresholds | pass | `test_A12_*` |
 | A13 demo threshold | pass | `test_A13_*` |
-| A14 red repeat / ack / timeout | partial: ack in the full chain; unacknowledged-red man-down not | `test_A09_A17_A20_real_demo_*` |
+| A14 red repeat / ack / timeout | pass + xfail (#7) | `test_A14_*` |
 | A15 router priorities | pass | `test_A15_*` |
 | A16 commands on change + 20 s re-send | pass | `test_A16_*` |
 | A17 man-down | pass | `test_A17_*`, full chain |
-| A18 blocked numbers | pass | `test_A18_*` (16 formats) |
+| A18 blocked numbers | pass (16 formats) | `test_A18_*` |
 | A19 dry run by default | pass | `test_A19_*` |
 | A20 one call per incident | pass | `test_A20_*` |
 | A21 facts only | pass | `test_A21_*` |
-| A22 lightning edges | pass (9.9 vs 10.1 mi, 1 flash, bad quality, reset, stale feed) | `test_A22_*` |
+| A22 lightning edges | pass | `test_A22_*` |
 | A23 NWS mapping | pass | `test_A23_*` |
-| A24 offline feeds | partial: whole suite runs offline in fake mode without crashing; live-mode stale marking not checked | |
+| A24 offline feeds | pass (live mode offline: all 9 feeds stale, no crash; last good copy served marked stale) | `test_A24_*` |
 | A25 hazard index range | pass | `test_A25_*` |
 | A26 rule checker gate | pass | `test_A26_*` |
-| A27 no-key mode | partial: schedule works with no LLM; briefing not run (18 s to 2 min) | `test_A26_A27_*` |
-| A28 what-ifs | not automated here | |
-| A29 privacy | pass + 2 xfail (#2, #9) | `test_A29_*` |
-| A30 bad requests | pass + 2 xfail (#7, #8) | `test_A30_*` |
+| A27 no-key mode | pass + xfail (#13) | `test_A26_A27_*`, `test_A27_*` |
+| A28 what-ifs | pass | `test_A28_*` |
+| A29 privacy | pass + 2 xfail (#2, #12) | `test_A29_*` |
+| A30 bad requests | pass + 2 xfail (#10, #11) | `test_A30_*` |
 | A31 CORS | pass | `test_A31_*` |
 | A32 replay determinism | pass | `test_A32_*` |
-| A33 load | partial: 6 workers x 8 h in well under 2 min, history bounded; dropped events not counted | `test_A33_*` |
-| A34 restart | partial: offsets come back; alert history and schedule not checked | `test_A11_A34_*` |
+| A33 load | pass (6 x 8 h, every estimate reaches the dashboard, memory bounded) | `test_A33_*` |
+| A34 restart | pass (offsets, SQLite alert log) + 2 xfail (#8) | `test_A11_A34_*`, `test_A34_*` |
 | A35 config unchanged + no writes | pass | `test_A35_*` |
-| A36 learned parts can't move thresholds | pass (static scan + runtime) | `test_A36_*`, `test_A11_A35_A36_*` |
+| A36 learned parts can't move thresholds | pass | `test_A36_*`, `test_A11_A35_A36_*` |
 
 ## Other things noticed (no test, worth a look)
 
@@ -133,3 +137,4 @@ Tests are named after the items they cover (`test_A12_...`). "Partial" = part of
 - The real Next.js app in a browser (would need Playwright and a browser download: ask Aiden first). The contract tests and fixtures stand in for it.
 - Real hardware, real Pulsoid, live hazard feeds, the LLM planner, live phone calls (all by design).
 - `ml/` tests weren't rerun here (the ML session is training on the CPU).
+- `rest/get_api_briefing.json` is written only with `E2E_WRITE_FIXTURES=1` (the briefing takes ~30-60 s).
