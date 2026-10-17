@@ -30,7 +30,7 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 | `type` | When | Main fields |
 | --- | --- | --- |
 | `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line) |
-| `button` | Band button `BTN:1` | |
+| `button` | Band button (raw input) | `kind`: `press` (`BTN:1`, "I'm OK") or `sos` (`BTN:SOS`, held 3 s) |
 | `estimate` | Once per worker per minute | `minute, hr, skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd, forecast{minutes[1..30], p10[], p50[], p90[]} or null, model, heat_level, true_core_temp` (replay of sim only) |
 | `heat_alert` | Heat level changes | `level` clear/yellow/red, `previous, value, threshold, rule` kalman/forecast, `demo` |
 | `heat_ack` | Button pressed during red | `after_s` |
@@ -41,7 +41,7 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 | `mandown_confirmed` | Not cancelled within `MANDOWN_ESCALATE_S` | see §3 |
 | `mandown_worker_responded` | Button pressed after confirmation (does not cancel) | `by` |
 | `mandown_resolved` | Crew lead closed it | `by` |
-| `sos` | Band `BTN:SOS` (held 3 s) or phone/demo SOS | same who/where/vitals fields as §3 + `pressed_at, source` band/phone/demo |
+| `sos` | Band `BTN:SOS` (held 3 s) or phone/demo SOS. Starts session D's escalation **right away** (no stillness wait). Never cancels a man-down and is never sent to the band | same who/where/vitals fields as §3 + `pressed_at, source` band/phone/demo |
 | `hazard` | Site hazard on/off | `site_id, kind, on, pattern, source, details` |
 | `emergency_status` | Session D's escalation steps (passed through) | D's `EmergencyStatus` |
 | `worker` / `worker_removed` | Worker created / removed | `name, site_id, source` |
@@ -58,7 +58,8 @@ SOS is never sent to the band (the band shows it by itself).
 - With forecaster v1: yellow when the 20-min 90th pct ≥ 38.0; red when the current estimate or the 10-min 90th pct ≥ 38.5.
 - Hysteresis: an alert drops only `ALERT_CLEAR_MARGIN_C` (0.1) below its threshold.
 - Demo thresholds 37.3 / 37.5 switchable live (re-checked immediately).
-- The band repeats the red buzz itself every `HEAT_RED_REPEAT_S`; the laptop sends `BUZZ:HEAT_RED` once.
+- The band repeats the red buzz itself every `HEAT_RED_REPEAT_S` until a short press; the laptop sends `BUZZ:HEAT_RED` on the change.
+- Keep-alive: every `BAND_RESEND_S` (20) real seconds the laptop re-sends each real band its current status (serial/UDP only, not the console, not replay workers), so the band never shows "no connection" (cyan after 60 s). **Firmware must treat a repeat of the command it's already showing as no change**, so a re-sent `BUZZ:HEAT_RED` or `BUZZ:MANDOWN` doesn't restart beeping the worker already silenced with a short press.
 
 ---
 
@@ -154,7 +155,7 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 
 ## 5. Band line protocol (implemented exactly, 115200 baud)
 
-Band → laptop: `TEMP:34.62`, `TILT:1,ACT:7`, `ACC:0.98,0.02,0.11`, `BTN:1`. Accepted extras: `HR:<bpm>` (fake band only; real HR comes from Pulsoid), `BTN:SOS` (button held 3 s, added for session D, **needs firmware support and Aiden's OK**), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`.
+Follows `docs/firmware-contract.md`. Band → laptop: `TEMP:34.62` (every 5 s), `TILT:1,ACT:7` (every 1 s; ACT = tilt switch changes in the last second), `ACC:0.98,0.02,0.11` (later), `BTN:1` (short press) and `BTN:SOS` (held 3 s), both parsed into `ButtonPress` with `kind` `press` / `sos`. Lines starting with `#` are firmware debug prints and are ignored. Accepted extras: `HR:<bpm>` (fake band only; real HR comes from Pulsoid), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`, sent on change plus the 20 s keep-alive.
 
 Every line is timestamped on the laptop when it arrives. UDP listener on `UDP_PORT` (5005) replies BUZZ lines to the band's address from the same port.
 

@@ -31,7 +31,7 @@ Branch `claude/live-system-f3b5f1`. Interface: [docs/interfaces/live-system.md](
 ## Not done / open
 
 - Accelerometer man-down rule (Grove part not here yet) and the ML man-down classifier.
-- `BTN:SOS` is accepted (session D asked for it) but is not in PROJECT.md's protocol table: needs Aiden's OK and firmware support.
+- Firmware contract (Oct 17) implemented: `BTN:SOS` → `ButtonPress(kind="sos")` → `sos` event; `#` lines ignored; 20 s keep-alive. Open for the hardware team: a repeated identical command must not restart beeping that a short press silenced.
 - `Estimate.why` is a simple heart-rate sentence until Phase 5 explainability exists.
 - Not tested against the real Next.js app (running a second `next dev` in E's folder would collide with theirs); tested against the contract shapes instead.
 - Not tested against the real band or Pulsoid (no hardware/token here). Fake band over a pty serial port and UDP both work end to end.
