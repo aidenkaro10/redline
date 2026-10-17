@@ -30,6 +30,7 @@ from collections import deque
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
 
 from backend import config
+from backend.app.planner_bridge import schedule_status
 
 Z90 = 1.2816                      # 90th percentile of a normal distribution, in standard deviations
 HAZARD_KINDS = ("heat", "lightning", "flood", "fire", "soil", "wildlife")
@@ -99,6 +100,10 @@ class FrontendAdapter:
             for e in reversed(self.estimates.get(wid, [])):
                 e["why"] = ev["why"] or e["why"]
                 break
+        elif kind == "schedule":
+            out.append({"type": "schedule", "schedule": ev["schedule"]})   # no body numbers: every view
+            for w in list(self.hub.pipelines):
+                out += self._status_if_changed(w)                         # on_break / break_at changed
         elif kind == "offset_update":
             # Not in E's contract yet: passed through as-is ({worker_id, offset_c, confidence, n_checks, ...}).
             out.append({k: v for k, v in ev.items()})
@@ -198,13 +203,14 @@ class FrontendAdapter:
         else:
             reason = "Normal"
         now = self.hub.now(wid)
+        on_break, break_at = schedule_status(self.hub.schedule, wid, now)
         return {
             "worker_id": wid, "name": info["name"], "role": info["meta"].get("role", "Crew"),
             "site_id": info["site_id"], "status": status, "minutes_to_danger": mins, "status_reason": reason,
             "hazard": "SOS" if incident and incident["reason"] == "sos"
                       else None if p.router.current == "OFF" else p.router.current,
             "alert_acknowledged": p.heat.acknowledged if p.heat.level == "red" else None,
-            "on_break": False, "break_at": None,
+            "on_break": on_break, "break_at": break_at,       # from session B's schedule, if any
             "band_connected": p.last_t is not None and now - p.last_t < BAND_SEEN_S * max(1.0, self.speed()),
             "updated_at": p.last_t or now,
         }
@@ -469,7 +475,15 @@ class FrontendAdapter:
             "emergency": self.emergency, "demo": self.demo_state(), "reports": self.reports,
             "log": list(self.log)[-100:], "history": history,
             "band": list(self.band) if f["view"] != "crew" else [],
+            # Personal offsets (body data): same rule as history, demo view or the worker's own.
+            "offsets": {wid: self.offset_state(wid) for wid in history},
         }
+
+    def offset_state(self, wid: str) -> dict:
+        """A worker's personal offset in the same flat shape as the offset_update event."""
+        p = self.hub.pipelines[wid]
+        return {"type": "offset_update", "worker_id": wid, "timestamp": p.last_t, "accepted": True,
+                **p.offset_status()}
 
     def broadcast(self, msg: dict) -> None:
         for q, f in list(self.subscribers.items()):
@@ -547,7 +561,12 @@ async def sites(request: Request):
 
 @router.get("/api/schedule")
 async def schedule(request: Request):
-    """Latest planner schedule (session B posts it to /api/plans in the contract's Schedule shape)."""
+    """
+    Fallback only: when session B's planner is merged, its router serves /api/schedule (mounted first).
+    Without it: the latest Schedule-shaped plan posted to /api/plans.
+    """
+    if _a(request).hub.schedule:
+        return _a(request).hub.schedule
     for ev in reversed(_a(request).hub.plans):
         if isinstance(ev["plan"], dict) and "rows" in ev["plan"]:
             return ev["plan"]

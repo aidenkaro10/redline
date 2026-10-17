@@ -70,6 +70,7 @@ class Hub:
         self.hazards: dict[str, dict[str, dict]] = {}     # site_id -> kind -> latest hazard event
         self.site_status: dict[str, dict] = {}            # site_id -> full status pushed by session C1
         self.plans: list[dict] = []
+        self.schedule: dict | None = None               # the planner's current verified schedule (session B)
         self.replay = None              # the running Replay, if any
         self.replay_task: asyncio.Task | None = None
         self.real_clock = RealClock()
@@ -325,6 +326,11 @@ class Hub:
                 self.db.save_offset(p.offset.to_dict())
         self.dispatch(events)
         return update
+
+    def set_schedule(self, schedule: dict) -> None:
+        """Session B's current schedule (frontend Schedule shape). Drives on_break / break_at."""
+        self.schedule = schedule
+        self.dispatch([{"type": "schedule", "timestamp": self.real_clock.now(), "schedule": schedule}])
 
     def set_site_status(self, site_id: str, status: dict) -> None:
         """

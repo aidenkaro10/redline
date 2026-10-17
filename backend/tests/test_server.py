@@ -10,7 +10,7 @@ from backend.storage.db import Database
 
 @pytest.fixture
 def client(tmp_path, monkeypatch):
-    settings = main.parse_args(["--source", "none", "--hazards", "off", "--db", str(tmp_path / "t.db"), "--no-forecaster"])
+    settings = main.parse_args(["--source", "none", "--hazards", "off", "--no-planner", "--emergency-log", "", "--db", str(tmp_path / "t.db"), "--no-forecaster"])
     monkeypatch.setattr(main, "SETTINGS", settings)
     with TestClient(main.app) as c:
         yield c
@@ -126,7 +126,7 @@ def test_old_database_gets_new_columns(tmp_path):
 
 def test_spot_check_route_persists_offset(tmp_path, monkeypatch):
     path = tmp_path / "o.db"
-    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--db", str(path), "--no-forecaster"]))
+    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--no-planner", "--emergency-log", "", "--db", str(path), "--no-forecaster"]))
     with TestClient(main.app) as c:
         hub = main.app.state.hub
         add_readings(hub, n=90, hr=130)
