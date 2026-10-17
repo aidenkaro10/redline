@@ -21,7 +21,7 @@ import urllib.request
 from typing import Callable
 
 from backend import config
-from backend.emergency.guard import check_number
+from backend.emergency.guard import check_number, mask
 from backend.emergency.phones import CallResult, DryRunPhone, FakePhone, PhoneBackend
 
 API = "https://api.elevenlabs.io/v1/convai"
@@ -80,7 +80,7 @@ class ElevenLabsPhone(PhoneBackend):
                 raise RuntimeError(f"{key} is missing from .env")
 
         start = self.clock()
-        on_status("calling", f"Calling {number}")
+        on_status("calling", f"Calling {mask(number)}")
         resp = self.send("POST", f"{API}/twilio/outbound-call", {
             "agent_id": config.ELEVENLABS_AGENT_ID,
             "agent_phone_number_id": config.ELEVENLABS_PHONE_NUMBER_ID,
