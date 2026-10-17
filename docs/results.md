@@ -89,3 +89,17 @@ Diagnosis on 19 unseen real people (ens5): per-session mean error SD 0.276 °C (
 | start check fading to person offset | 0.278 | 0.267 |
 
 Implemented as backend/models/personal_offset.py (Bayesian shrinkage toward the average person, more confident with every check, capped at 0.6 °C, bad readings ignored). Needs a cheap ear/oral thermometer and a spot-check step at shift start and on breaks.
+
+## Hyperparameter search: 30 random trials, single models, scored on val (2026-10-17)
+
+`python -m ml.search --trials 30`. Objective = +20 min quantile loss + 0.5 x NOW RMSE. Top 5 (these become the final mixed ensemble):
+
+| rank | NOW RMSE | +20 RMSE | +20 q-loss | p90 cov +20 | red caught | settings |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0.213 | 0.222 | 0.0563 | 0.89 | 75% | 128x1, dropout 0.0, lr 0.0005, w_nll 1.0, w_safety 0.5, w_smooth 0.3, sim.npz |
+| 2 | 0.226 | 0.224 | 0.0565 | 0.91 | 88% | 48x2, dropout 0.2, lr 0.0005, w_nll 0.1, w_safety 0.25, w_smooth 3.0, sim_v2.npz |
+| 3 | 0.225 | 0.226 | 0.0583 | 0.90 | 75% | 128x1, dropout 0.1, lr 0.0005, w_nll 0.3, w_safety 0.5, w_smooth 0.3, sim.npz |
+| 4 | 0.232 | 0.232 | 0.0597 | 0.89 | 75% | 48x1, dropout 0.1, lr 0.0005, w_nll 1.0, w_safety 0.25, w_smooth 1.0, sim_v2.npz |
+| 5 | 0.222 | 0.252 | 0.0650 | 0.96 | 100% | 96x3, dropout 0.0, lr 0.002, w_nll 0.3, w_safety 1.0, w_smooth 1.0, sim.npz |
+
+Worst trial: NOW 0.356, +20 0.263. Best single model beats the 5-model ens5 (0.239 / 0.230). 2 of the top 5 pretrained on sim_v2 (pulse-sensor noise).
