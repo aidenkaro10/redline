@@ -1,0 +1,16 @@
+# Core (MVP)
+numpy            # Kalman filter math
+fastapi          # API server
+uvicorn[standard] # runs FastAPI, includes WebSocket support
+python-dotenv    # loads secrets from .env
+pyserial         # reads the band over USB
+websockets       # Pulsoid heart rate client
+
+# Testing
+pytest
+httpx            # needed by FastAPI's test client
+
+# Later (uncomment when we get there)
+# torch            # GRU forecaster
+# pythermalcomfort # synthetic training data
+# wandb            # experiment tracking

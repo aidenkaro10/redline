@@ -1,0 +1,24 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Data and models (big files stay local)
+*.db
+*.sqlite
+ml/runs/
+ml/checkpoints/
+wandb/
+*.pt
+
+# Frontend
+node_modules/
+.next/
+
+# Mac
+.DS_Store
