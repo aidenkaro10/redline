@@ -1,9 +1,8 @@
 /**
- * More of the frontend contract: model results, personal twins, planner chat.
+ * More of the frontend contract: model results and planner chat.
  * (Kept apart from contract.ts so parallel edits don't collide. Same rules apply.)
  *
  *   GET  /api/results          ModelResults  (ML session: harness output, always next to the Kalman baseline)
- *   GET  /api/twins            TwinReport    (ML session, Phase 6)
  *   POST /api/planner/chat     {message, session_id?} -> ChatReply   (session B, already built)
  */
 
@@ -24,18 +23,20 @@ export interface ModelResults {
   rows: MetricRow[];
   /** RMSE by horizon for the bar chart: minutes_ahead 0 = "now". */
   rmse_by_horizon: { minutes_ahead: number; values: (number | null)[] }[];
+  best: number;                   // index in `models` of our headline model
   notes: string[];
-}
-
-export interface TwinReport {
-  available: boolean;             // false until the twins exist
-  mock: boolean;                  // true = placeholder numbers from the frontend mock
-  note: string;
-  workers: {
-    worker_id: string;
-    name: string;
-    days: { day: number; hr_rmse_bpm: number; core_rmse_c: number | null; kept: boolean }[];  // kept = passed the gate
-  }[];
+  /** Planner safety (session B): same LLM with and without the rule checker. */
+  planner?: {
+    source: string;
+    rows: { name: string; runs_with_violations_pct: number; violations_per_run: number; peak_p90_c: number; throughput: number; note: string }[];
+  };
+  /** Personal offset from thermometer spot checks (backend/models/personal_offset.py). */
+  personalization?: {
+    source: string;
+    rows: { name: string; now_rmse_c: number; plus20_rmse_c: number }[];
+  };
+  /** Result figures (PNG files in docs/figures, copied to /figures by `npm run dev`). */
+  figures?: { file: string; title: string; caption: string }[];
 }
 
 export interface ChatReply {

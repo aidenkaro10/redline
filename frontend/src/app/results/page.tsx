@@ -2,23 +2,23 @@
 
 /**
  * Results: every model next to the Kalman baseline (CLAUDE.md rule), on people
- * the model never trained on. Plus the personal twins panel.
+ * the model never trained on. Plus personalization, the planner's safety result and figures.
  *
- * Data: GET /api/results and GET /api/twins. If the backend doesn't serve
+ * Data: GET /api/results. If the backend doesn't serve
  * results yet, we show the numbers bundled from docs/results.md.
  */
 
-import { Bar, BarChart, CartesianGrid, LabelList, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { useIsDark } from "@/components/Nav";
 import { Card } from "@/components/ui";
-import type { MetricRow, ModelResults, TwinReport } from "@/lib/contract-extra";
+import type { MetricRow, ModelResults } from "@/lib/contract-extra";
 import { useFetch } from "@/lib/live";
 import { RESULTS as BUNDLED } from "@/mock/extras";
 
 export default function ResultsPage() {
   const { data, error } = useFetch<ModelResults>("/results");
-  const { data: twins } = useFetch<TwinReport>("/twins");
   const r = data ?? (error ? BUNDLED : null);
   if (!r) return <main className="p-6 text-muted">Loading results…</main>;
 
@@ -32,9 +32,11 @@ export default function ResultsPage() {
       </div>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <Headline label="Core temp error now" base={r.rows[0].values[0]} ours={r.rows[0].values[1]} unit="°C" />
-        <Headline label="Error 30 min ahead" base={r.rmse_by_horizon[3]?.values[0]} ours={r.rmse_by_horizon[3]?.values[1]} unit="°C" />
-        <Headline label="Heat warning lead time" base={findRow(r, "Yellow warning lead time")?.values[0]} ours={findRow(r, "Yellow warning lead time")?.values[1]} unit="min" higherIsBetter />
+        <Headline label="Forecast error 20 min ahead" base={findRow(r, "+20 min RMSE")?.values[0]} ours={findRow(r, "+20 min RMSE")?.values[r.best]} unit="°C" />
+        <Headline label="Heat danger caught before it happened" base={findRow(r, "Red danger caught")?.values[0]} ours={findRow(r, "Red danger caught")?.values[r.best]} unit="%" higherIsBetter />
+        {r.planner
+          ? <Headline label="Plans that broke a safety rule" base={r.planner.rows.find((x) => x.name.startsWith("AI alone"))?.runs_with_violations_pct} ours={r.planner.rows.find((x) => x.name.startsWith("Our agent"))?.runs_with_violations_pct} unit="%" baseLabel="Same AI without our rule checker" hideChange />
+          : <Headline label="Core temp error now" base={r.rows[0].values[0]} ours={r.rows[0].values[r.best]} unit="°C" />}
       </section>
 
       <Card title="Average error (RMSE) by how far ahead" right="lower is better">
@@ -63,7 +65,38 @@ export default function ResultsPage() {
         {r.notes.map((n) => <li key={n}>{n}</li>)}
       </ul>
 
-      <TwinsPanel twins={twins} />
+      {r.personalization && (
+        <Card title="Learning each body: thermometer spot checks" right="lower is better" bodyClass="p-0">
+          <p className="px-4 pt-3 text-sm text-ink-2">{r.personalization.source} Most of the remaining error is a steady per-person offset, and heart rate can&apos;t see it. One ear-thermometer reading can.</p>
+          <SimpleTable
+            head={["", "Error now (°C)", "Error 20 min ahead (°C)"]}
+            rows={r.personalization.rows.map((x) => [x.name, x.now_rmse_c.toFixed(3), x.plus20_rmse_c.toFixed(3)])}
+            bestCol={[1, 2]} lowerIsBetter
+          />
+        </Card>
+      )}
+
+      {r.planner && (
+        <Card title="The planner: AI suggests, the rule checker decides" bodyClass="p-0">
+          <p className="px-4 pt-3 text-sm text-ink-2">{r.planner.source}</p>
+          <SimpleTable
+            head={["Planner", "Runs with a safety violation", "Violations per run", "Peak 90th pct core (°C)", "Work done"]}
+            rows={r.planner.rows.map((x) => [x.name, `${x.runs_with_violations_pct}%`, x.violations_per_run.toFixed(1), x.peak_p90_c.toFixed(2), `${Math.round(x.throughput * 100)}%`])}
+            highlightRow={r.planner.rows.findIndex((x) => x.name.startsWith("Our agent"))}
+          />
+          <p className="px-4 pb-3 text-xs text-muted">Same AI with and without the code rule checker: 92% of AI-alone runs break a safety rule, 0% with the checker. The AI never makes a safety call.</p>
+        </Card>
+      )}
+
+      {r.figures && r.figures.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-lg font-bold">Figures</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {r.figures.map((f) => <Figure key={f.file} {...f} />)}
+          </div>
+        </section>
+      )}
+
     </main>
   );
 }
@@ -72,15 +105,15 @@ function findRow(r: ModelResults, name: string) {
   return r.rows.find((x) => x.name === name);
 }
 
-function Headline({ label, base, ours, unit, higherIsBetter }: { label: string; base?: number | null; ours?: number | null; unit: string; higherIsBetter?: boolean }) {
-  const change = base && ours ? ((ours - base) / base) * 100 : null;
+function Headline({ label, base, ours, unit, higherIsBetter, baseLabel = "Kalman", hideChange }: { label: string; base?: number | null; ours?: number | null; unit: string; higherIsBetter?: boolean; baseLabel?: string; hideChange?: boolean }) {
+  const change = !hideChange && base && ours !== null && ours !== undefined ? ((ours - base) / base) * 100 : null;
   const good = change !== null && (higherIsBetter ? change > 0 : change < 0);
   return (
     <div className="rounded-xl border border-line bg-surface p-4">
       <p className="text-sm text-ink-2">{label}</p>
       <p className="mt-1 text-4xl font-bold">{ours ?? "--"}<span className="ml-1 text-base font-medium text-ink-2">{unit}</span></p>
       <p className="mt-1 text-sm">
-        <span className="text-muted">Kalman: {base ?? "--"} {unit}</span>
+        <span className="text-muted">{baseLabel}: {base ?? "--"} {unit}</span>
         {change !== null && <span className={`ml-2 font-semibold ${good ? "text-ok-ink" : "text-danger-ink"}`}>{change > 0 ? "+" : ""}{Math.round(change)}%</span>}
       </p>
     </div>
@@ -124,7 +157,7 @@ function GroupRows({ group, rows }: { group: string; rows: MetricRow[] }) {
 function RmseChart({ r }: { r: ModelResults }) {
   const dark = useIsDark();
   const c = dark ? { base: "#898781", ours: "#3987e5", grid: "#2c2c2a", axis: "#898781", ink: "#f0efec" } : { base: "#898781", ours: "#2a78d6", grid: "#e1e0d9", axis: "#898781", ink: "#0b0b0b" };
-  const rows = r.rmse_by_horizon.map((h) => ({ name: h.minutes_ahead === 0 ? "Now" : `+${h.minutes_ahead} min`, kalman: h.values[0], ours: h.values[1] }));
+  const rows = r.rmse_by_horizon.map((h) => ({ name: h.minutes_ahead === 0 ? "Now" : `+${h.minutes_ahead} min`, kalman: h.values[0], ours: h.values[r.best] }));
   return (
     <div className="h-72 w-full">
       <ResponsiveContainer width="100%" height="100%">
@@ -143,7 +176,7 @@ function RmseChart({ r }: { r: ModelResults }) {
           <Bar dataKey="kalman" name={r.models[0]} fill={c.base} radius={[4, 4, 0, 0]} isAnimationActive={false}>
             <LabelList dataKey="kalman" position="top" fill={c.axis} fontSize={11} formatter={(v: unknown) => Number(v).toFixed(2)} />
           </Bar>
-          <Bar dataKey="ours" name={r.models[1]} fill={c.ours} radius={[4, 4, 0, 0]} isAnimationActive={false}>
+          <Bar dataKey="ours" name={r.models[r.best]} fill={c.ours} radius={[4, 4, 0, 0]} isAnimationActive={false}>
             <LabelList dataKey="ours" position="top" fill={c.ink} fontSize={11} fontWeight={700} formatter={(v: unknown) => Number(v).toFixed(2)} />
           </Bar>
         </BarChart>
@@ -152,49 +185,57 @@ function RmseChart({ r }: { r: ModelResults }) {
   );
 }
 
-// Categorical slots 1-3 from the dataviz palette (validated together for up to 3 series).
-const SERIES = { light: ["#2a78d6", "#eb6834", "#1baf7a"], dark: ["#3987e5", "#d95926", "#199e70"] };
-
-function TwinsPanel({ twins }: { twins: TwinReport | null }) {
-  const dark = useIsDark();
-  const colors = dark ? SERIES.dark : SERIES.light;
-  const axis = "#898781";
-  const grid = dark ? "#2c2c2a" : "#e1e0d9";
-  if (!twins || !twins.available) {
-    return (
-      <Card title="Personal twins: learning each worker">
-        <p className="text-sm text-muted">Twins aren&apos;t trained yet. This panel fills in once the ML session serves GET /api/twins.</p>
-      </Card>
-    );
+function SimpleTable({ head, rows, bestCol, lowerIsBetter, highlightRow }: {
+  head: string[]; rows: string[][]; bestCol?: number[]; lowerIsBetter?: boolean; highlightRow?: number;
+}) {
+  // Winner per numeric column (for the personalization table).
+  const best = new Map<number, number>();
+  for (const c of bestCol ?? []) {
+    const vals = rows.map((r) => Number(r[c]));
+    const pick = lowerIsBetter ? Math.min(...vals) : Math.max(...vals);
+    best.set(c, vals.indexOf(pick));
   }
-  const days = twins.workers[0]?.days.map((d) => d.day) ?? [];
-  const rows = days.map((day) => Object.fromEntries([["day", day], ...twins.workers.map((w) => [w.worker_id, w.days.find((d) => d.day === day)?.hr_rmse_bpm ?? null])]));
   return (
-    <Card title="Personal twins: learning each worker" right={twins.mock ? <span className="rounded bg-warn-bg px-1.5 py-0.5 font-bold text-warn-ink">MOCK DATA</span> : "heart rate prediction error, per day"}>
-      <p className="mb-2 text-sm text-ink-2">
-        Each worker&apos;s twin adapts after every shift using heart rate only (core temp is never measured live).
-        An update is kept only if it predicts the end of the shift better. {twins.note}
-      </p>
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
-            <CartesianGrid stroke={grid} vertical={false} />
-            <XAxis dataKey="day" stroke={axis} tick={{ fill: axis, fontSize: 11 }} tickLine={false} tickFormatter={(d: number) => `day ${d}`} />
-            <YAxis stroke={axis} tick={{ fill: axis, fontSize: 11 }} axisLine={false} tickLine={false} width={40} tickFormatter={(v: number) => `${v}`} label={{ value: "bpm", angle: -90, position: "insideLeft", fill: axis, fontSize: 10 }} />
-            <Tooltip isAnimationActive={false} cursor={{ stroke: axis }}
-              content={({ active, payload, label }) => active && payload?.length ? (
-                <div className="rounded-lg border border-line bg-surface px-3 py-2 text-xs shadow-lg">
-                  <p className="font-semibold">Day {label}</p>
-                  {payload.map((p) => <p key={String(p.dataKey)} className="text-ink-2">{p.name}: <b className="text-ink tabular">{Number(p.value).toFixed(1)} bpm</b></p>)}
-                </div>
-              ) : null} />
-            <Legend wrapperStyle={{ fontSize: 12 }} formatter={(v: string) => <span style={{ color: dark ? "#f0efec" : "#0b0b0b" }}>{v}</span>} />
-            {twins.workers.map((w, i) => (
-              <Line key={w.worker_id} dataKey={w.worker_id} name={w.name} stroke={colors[i % 3]} strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </Card>
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-line text-left text-xs text-muted">
+            {head.map((h, i) => <th key={i} className={`px-4 py-2 font-medium ${i ? "text-right" : ""}`}>{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, ri) => (
+            <tr key={ri} className={`border-b border-line last:border-0 ${ri === highlightRow ? "bg-ok-bg" : ""}`}>
+              {r.map((v, ci) => (
+                <td key={ci} className={`px-4 py-2 ${ci ? "text-right tabular" : ""} ${ri === highlightRow || best.get(ci) === ri ? "font-bold" : "text-ink-2"}`}>
+                  {v}{best.get(ci) === ri && " ✓"}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/** One result figure. The PNGs come from docs/figures (copied to /figures when the dev server starts). */
+function Figure({ file, title, caption }: { file: string; title: string; caption: string }) {
+  const [missing, setMissing] = useState(false);
+  return (
+    <figure className="overflow-hidden rounded-xl border border-line bg-surface">
+      {missing ? (
+        <div className="grid h-56 place-items-center bg-surface-2 p-4 text-center text-sm text-muted">
+          Figure {file} not found yet. It shows up once docs/figures (session H) is merged; restart npm run dev.
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/figures/${file}`} alt={title} onError={() => setMissing(true)} className="w-full bg-white" />
+      )}
+      <figcaption className="p-3">
+        <p className="text-sm font-semibold">{title}</p>
+        <p className="text-xs text-ink-2">{caption}</p>
+      </figcaption>
+    </figure>
   );
 }

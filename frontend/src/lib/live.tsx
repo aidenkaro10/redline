@@ -17,7 +17,7 @@ import { usePathname } from "next/navigation";
 
 import type {
   Alert, BandCommand, DemoState, EmergencyCall, Estimate, LiveEvent, LogEntry, ManDown, PhotoReport,
-  SiteStatus, ViewFilter, Vitals, WorkerStatus,
+  SiteStatus, ViewFilter, Vitals, WorkerStatus, OffsetUpdate,
 } from "./contract";
 import { foldEmergencyStatus } from "./emergency.ts";
 
@@ -57,11 +57,12 @@ export interface LiveState {
   log: LogEntry[];
   history: Record<string, { vitals: Vitals[]; estimates: Estimate[] }>;
   band: BandCommand[];
+  offsets: Record<string, OffsetUpdate>;
 }
 
 const EMPTY: LiveState = {
   connected: false, ready: false, clock: { sim: 0, wall: 0, speed: 1 }, workers: {}, sites: {}, alerts: [],
-  mandown: null, emergency: null, demo: null, reports: [], log: [], history: {}, band: [],
+  mandown: null, emergency: null, demo: null, reports: [], log: [], history: {}, band: [], offsets: {},
 };
 
 const MAX_VITALS = 240;      // 20 min at 5 s
@@ -80,7 +81,7 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
           workers: Object.fromEntries(ev.workers.map((w) => [w.worker_id, w])),
           sites: Object.fromEntries(ev.sites.map((x) => [x.site_id, x])),
           alerts: ev.alerts, mandown: ev.mandown, emergency: ev.emergency, demo: ev.demo,
-          reports: ev.reports, log: ev.log, history: ev.history, band: ev.band,
+          reports: ev.reports, log: ev.log, history: ev.history, band: ev.band, offsets: ev.offsets ?? {},
         });
         break;
       case "clock":
@@ -132,6 +133,9 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
         break;
       case "log":
         s.log = [...s.log, ev.entry].slice(-120);
+        break;
+      case "offset_update":
+        s.offsets = { ...s.offsets, [ev.offset.worker_id]: ev.offset };
         break;
     }
   }

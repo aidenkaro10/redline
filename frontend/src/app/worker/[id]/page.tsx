@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CoreChart } from "@/components/Charts";
+import { LearningCard } from "@/components/LearningCard";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
@@ -154,6 +155,11 @@ export default function WorkerPhone() {
         <p className="text-3xl font-black tabular">
           {breakIn === null ? "--" : w.on_break ? `Back to work in ${Math.max(1, Math.ceil(breakIn / 60))} min` : `in ${Math.max(0, Math.round(breakIn / 60))} min`}
         </p>
+      </div>
+
+      {/* Personalization from thermometer spot checks (own data only: this page is view=worker) */}
+      <div className="mt-3">
+        <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
       </div>
 
       <button onClick={() => setShowNumbers(!showNumbers)} className="mt-3 text-sm font-semibold underline opacity-90">

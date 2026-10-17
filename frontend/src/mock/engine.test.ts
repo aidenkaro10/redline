@@ -311,3 +311,31 @@ test("crew lead can cancel by worker_id (session D's route); too late is refused
   const tooLate = late.engine.handle("POST", ["emergency", "cancel"], new URLSearchParams(), { worker_id: "worker-5" });
   assert.deepEqual(tooLate.json, { ok: false, error: "too late to cancel" });
 });
+
+test("spot checks learn a personal offset with shrinkage, cap and bad-reading guard", () => {
+  const { engine, run } = fakeEngine();
+  const evs: LiveEvent[] = [];
+  engine.subscribe({ view: "worker", worker_id: "worker-1" }, (ev) => evs.push(structuredClone(ev)));
+  const crew: LiveEvent[] = [];
+  engine.subscribe({ view: "crew" }, (ev) => crew.push(ev));
+  run(5);
+  const w = engine.workers.get("worker-1")!;
+  // One reading 0.3 °C hotter than the model: offset = -0.3 / (1 + 2) = -0.1, confidence 1/3.
+  const r1 = engine.handle("POST", ["spot-check"], new URLSearchParams(), { worker_id: "worker-1", thermometer_c: w.rawEstimate + 0.3 });
+  const j1 = r1.json as { accepted: boolean; offset: { offset_c: number; confidence: number; checks: number } };
+  assert.equal(j1.accepted, true);
+  assert.ok(Math.abs(j1.offset.offset_c + 0.1) < 0.002);
+  assert.ok(Math.abs(j1.offset.confidence - 1 / 3) < 0.002);
+  // The estimate moves right away (model - offset).
+  const est = w.estimates[w.estimates.length - 1];
+  assert.ok(Math.abs(est.core.mean - (w.rawEstimate + 0.1)) < 0.01);
+  // A crazy reading is ignored.
+  const r2 = engine.handle("POST", ["spot-check"], new URLSearchParams(), { worker_id: "worker-1", thermometer_c: w.rawEstimate + 2.5 });
+  assert.equal((r2.json as { accepted: boolean }).accepted, false);
+  // Many readings 1.4 °C off: offset is capped at 0.6.
+  for (let i = 0; i < 30; i++) engine.handle("POST", ["spot-check"], new URLSearchParams(), { worker_id: "worker-1", thermometer_c: w.rawEstimate - 1.4 });
+  assert.equal(engine.offsetOf("worker-1"), 0.6);
+  // Privacy: the worker gets offset_update, the crew view doesn't.
+  assert.ok(evs.some((e) => e.type === "offset_update"));
+  assert.ok(!crew.some((e) => e.type === "offset_update"));
+});

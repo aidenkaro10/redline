@@ -1,4 +1,4 @@
-# Frontend data contract (draft v2: adds SOS)
+# Frontend data contract (draft v3: adds spot checks, nullable why, C2 hazard index)
 
 Owner: session E (frontend). Status: **draft**, built against the frontend's mock server. Session A (live system) should follow it or tell E what to change.
 
@@ -55,6 +55,7 @@ Exception: the man-down / SOS incident carries `last_vitals` (core temp, HR) for
 | `band_command` | Each command sent to a band (not to `crew`) | `band`: worker_id, command (`"BUZZ:HEAT_RED"`), at |
 | `report` | New crew photo report | `report`: PhotoReport |
 | `log` | Anything worth a line in the event log | `entry`: at, text, source |
+| `offset_update` | After every thermometer spot check (and on reset) | `offset`: OffsetUpdate. Worker + demo views only (biometric) |
 
 ### WorkerStatus (what a crew lead sees)
 
@@ -94,7 +95,33 @@ Exception: the man-down / SOS incident carries `last_vitals` (core temp, HR) for
 
 - `forecast` has all 30 minutes (the forecaster already outputs 1..30). The chart shades p10–p90.
 - `thresholds` are the ones in force (demo or real), so the chart's lines always match the alerts.
-- `why` comes from the explainability step (Phase 5). Until then, a simple rule-based sentence is fine.
+- `why` comes from the explainability step (Phase 5, session H). It **may be `null`** (no explanation this minute); the UI then shows "No explanation for this minute."
+- `offset_applied_c` (optional): the personal offset already subtracted from `core` and `forecast`. 0 or missing = average person.
+
+### Spot checks and the personal offset ("Learning your body")
+
+The demo centerpiece: a judge takes one ear-thermometer reading, types it on the demo view or the worker's phone, and the system personalizes. Math: `backend/models/personal_offset.py` (on main).
+
+`POST /api/spot-check` `{worker_id, thermometer_c}` → `SpotCheckResult {ok, accepted, message, offset: OffsetUpdate | null}`. `accepted: false` when the reading is more than 1.5 °C off the model (probably a bad reading). 400 if `thermometer_c` isn't 34-42 °C.
+`POST /api/spot-check/reset` `{worker_id}`: forget this worker's checks (for repeated demos).
+
+`offset_update` event / `OffsetUpdate`:
+
+```json
+{
+  "worker_id": "worker-1", "timestamp": 1792256640,
+  "offset_c": -0.13,            // + = model reads this worker HOTTER than they are. UI shows "+0.13 °C hotter than average" (= -offset_c)
+  "confidence": 0.5,            // checks / (checks + 2): 0 = average person, toward 1 = own history
+  "checks": 2,
+  "last_check": {"thermometer_c": 37.8, "model_estimate_c": 37.6, "miss_c": -0.2, "accepted": true, "at": 1792256640},
+  "history": [{"timestamp": ..., "offset_c": 0, "confidence": 0, "checks": 0}, {"timestamp": ..., "offset_c": -0.07, "confidence": 0.33, "checks": 1}, ...]
+}
+```
+
+- `offset = sum(misses) / (checks + 2)`, capped at ±0.6 °C; `miss = model estimate - thermometer`.
+- After an accepted check, send a fresh `estimate` right away (with the offset applied) so the chart moves while the judge watches.
+- Snapshot carries `offsets: {worker_id: OffsetUpdate}` for views allowed to see biometrics (optional field).
+- Never changes a safety threshold.
 
 ### Alert
 
@@ -136,6 +163,7 @@ Sent once per press. `escalated: false` means it was ignored because an incident
   "hazards": [ "... one per kind, always 6, in order heat, lightning, flood, fire, soil, wildlife ..." ],
   "index_tomorrow": 7.4,
   "index_drivers": ["Heat index 111 °F tomorrow", "Thunderstorms 50% after 3 PM"],
+  "hazard_index": { "...": "session C2's full predict_index() result, optional (below)" },
   "worker_flag": "heat",               // none | heat | mandown | sos
   "workers_on_site": 4,
   "updated_at": 1792256640
@@ -146,6 +174,9 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 
 - `lightning`: `nearest_miles, last_strike_at, all_clear_at, strikes[{lat, lon, at, miles}]`. `all_clear_at` = last strike within 10 mi + 30 min. The UI shows the 10-mile ring and counts down to `all_clear_at`.
 - `heat`: `wbgt_c, heat_index_f`.
+- Optional per hazard: `stale` (feed down, show greyed with its time) and `fake` (test data, TEST badge), from session C1.
+
+`hazard_index` (optional) is exactly session C2's `predict_index()` JSON (`docs/interfaces/hazard-index.md` on C2's branch): `site_id, date, index, band (low|moderate|high|extreme), climatology_index, p_advisory, p_warning, p_damage, hazards{heat, storm, flood, fire, tropical: {index, p_*, climatology_index}}, top_reasons[{hazard, feature, value, points, text}], cutoff, data_mode, model_version, notes[]`. Keep `index_tomorrow = hazard_index.index` and `index_drivers = top_reasons[].text`. The map colors sites by the index; the hazard panel shows per-hazard bars against a usual day and the reasons. Until C2 is wired, the mock sends the same shape with `data_mode: "mock"` (MOCK badge).
 
 ### DemoState
 
@@ -173,12 +204,11 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 
 `task` in the schedule: `heavy, moderate, light, break, stop_work, off`.
 
-### Results, twins, planner chat (types in `frontend/src/lib/contract-extra.ts`)
+### Results, planner chat (types in `frontend/src/lib/contract-extra.ts`)
 
 | Method | Path | Owner | Returns |
 | --- | --- | --- | --- |
-| GET | `/api/results` | ML session (A serves it) | `ModelResults`: `updated, split, models[]` (first = Kalman baseline), `rows[{group, name, unit, better: lower\|higher\|closer, target?, values[], text?[]}]`, `rmse_by_horizon[{minutes_ahead, values[]}]`, `notes[]`. Until a backend serves it, the page shows a bundled copy of `docs/results.md`. |
-| GET | `/api/twins` | ML session (Phase 6) | `TwinReport`: `available, mock, note, workers[{worker_id, name, days[{day, hr_rmse_bpm, core_rmse_c, kept}]}]`. 404 or `available: false` shows "not trained yet". |
+| GET | `/api/results` | ML session (A serves it) | `ModelResults`: `updated, split, models[]` (first = Kalman baseline), `rows[{group, name, unit, better: lower\|higher\|closer, target?, values[], text?[]}]`, `rmse_by_horizon[{minutes_ahead, values[]}]`, `best` (index of our headline model), `notes[]`, optional `planner{source, rows[{name, runs_with_violations_pct, violations_per_run, peak_p90_c, throughput, note}]}`, `personalization{source, rows[{name, now_rmse_c, plus20_rmse_c}]}`, `figures[{file, title, caption}]`. Until a backend serves it, the page shows a bundled copy of `docs/results.md` (ens5 + planner + spot checks). Figures: PNGs from `docs/figures/`, copied into `frontend/public/figures` by `npm run dev` / `npm run build`. |
 | POST | `/api/planner/chat` | B (already built) | `{message, session_id?}` → `{session_id, reply, tool_calls[{tool, input}], plan, llm, cost_usd}` |
 
 ### Demo controls (one click each)

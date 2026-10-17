@@ -9,7 +9,7 @@
 
 import type { ViewFilter } from "@/lib/contract.ts";
 import { getEngine } from "@/mock/server.ts";
-import { plannerChat, RESULTS, twins } from "@/mock/extras.ts";
+import { plannerChat, RESULTS } from "@/mock/extras.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,6 @@ export async function GET(req: Request, ctx: Ctx) {
   });
 
   if (path[0] === "results") return Response.json(RESULTS);
-  if (path[0] === "twins") return Response.json(twins([...engine.workers.values()].map((w) => w.def)));
 
   const res = engine.handle("GET", path, url.searchParams, {});
   return Response.json(res.json, { status: res.status });

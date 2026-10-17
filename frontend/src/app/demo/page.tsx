@@ -15,6 +15,7 @@ import { Suspense } from "react";
 import { AlertFeed } from "@/components/AlertFeed";
 import { CoreChart, CoreLegend, Sparkline } from "@/components/Charts";
 import { DemoControls } from "@/components/DemoControls";
+import { LearningCard } from "@/components/LearningCard";
 import { Card, StatusBadge, fmtClockSec } from "@/components/ui";
 import type { BandCommand } from "@/lib/contract";
 import { useLive, useSimNow } from "@/lib/live";
@@ -65,7 +66,7 @@ function DemoView() {
         <Stat label="Heart rate" value={lastV?.hr != null ? Math.round(lastV.hr) : "--"} unit="bpm" />
         <Stat label="Skin temp" value={lastV?.skin_temp?.toFixed(1) ?? "--"} unit="°C" />
         <Stat label="Core temp now" value={lastE?.core.mean.toFixed(2) ?? "--"} unit="°C"
-          sub={lastE ? `range ${lastE.core.p10.toFixed(1)}–${lastE.core.p90.toFixed(1)} · Kalman ${lastE.kalman.toFixed(2)}` : ""} />
+          sub={lastE ? `range ${lastE.core.p10.toFixed(1)}–${lastE.core.p90.toFixed(1)} · Kalman ${lastE.kalman.toFixed(2)}${lastE.offset_applied_c ? ` · personal ${lastE.offset_applied_c > 0 ? "−" : "+"}${Math.abs(lastE.offset_applied_c).toFixed(2)}` : ""}` : ""} />
         <Stat label="In 20 min (90th pct)" value={at20?.p90.toFixed(2) ?? "--"} unit="°C" sub={at20 ? `median ${at20.p50.toFixed(2)}` : ""} />
         <Stat label="Predicted danger" value={w ? (w.minutes_to_danger === null ? "none" : w.minutes_to_danger === 0 ? "now" : w.minutes_to_danger) : "--"}
           unit={w?.minutes_to_danger ? "min" : ""} sub="within the next 30 min" />
@@ -77,7 +78,7 @@ function DemoView() {
           <div className="mt-3 flex flex-col gap-2">
             <p className="rounded-lg bg-surface-2 px-3 py-2 text-base font-medium">
               <span className="mr-2 text-xs font-bold uppercase tracking-wider text-muted">Why</span>
-              {lastE?.why ?? "…"}
+              {lastE ? lastE.why ?? <span className="text-muted">No explanation for this minute.</span> : "…"}
             </p>
             <CoreLegend />
             <p className="text-xs text-muted">
@@ -89,6 +90,7 @@ function DemoView() {
         </Card>
 
         <div className="flex flex-col gap-4">
+          {w && <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} />}
           <Card title="Heart rate" right="Apple Watch via Pulsoid, last 15 min">
             <Sparkline vitals={hist.vitals} field="hr" now={now} unit="bpm" height={110} pad={4} />
           </Card>

@@ -16,8 +16,8 @@
 
 import type {
   Alert, AlertKind, BandCommand, Briefing, DemoState, EmergencyCall, EmergencyStage, EmergencyStatus, Estimate, Hazard,
-  HazardKind, HazardLevel, LiveEvent, LogEntry, ManDown, PhotoReport, ReportKind, Schedule, SiteStatus,
-  Snapshot, SosPress, Status, TaskKind, ViewFilter, Vitals, WorkerStatus,
+  HazardIndex, HazardKind, HazardLevel, LiveEvent, LogEntry, ManDown, PhotoReport, ReportKind, Schedule, SiteStatus,
+  OffsetUpdate, Snapshot, SosPress, SpotCheckResult, Status, TaskKind, ViewFilter, Vitals, WorkerStatus,
 } from "../lib/contract.ts";
 import { canSee, HAZARD_ORDER } from "../lib/contract.ts";
 import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
@@ -49,6 +49,9 @@ export const DEMO_TIMINGS = {
   CANCEL_WINDOW_S: 10,       // crew lead can press "cancel, false alarm" (= EMERGENCY_DEMO_CANCEL_WINDOW_S, session D)
   RING_S: 4,                 // phone rings before the dispatcher picks up
 };
+
+// Personal offset (same numbers as backend/models/personal_offset.py).
+export const OFFSET = { PRIOR_CHECKS: 2, MAX_OFFSET_C: 0.6, MAX_CHECK_MISS_C: 1.5 };
 
 const VITALS_EVERY_S = 5;        // Apple Watch sends heart rate about every 5 s
 const HISTORY_VITALS_S = 20 * 60;
@@ -116,15 +119,16 @@ interface WorkerDef {
   restHr: number;
   effort: number;          // how hard this person works on a "heavy" slot (0-1)
   breakOffset: number;     // which half-hour their breaks fall on
+  trueOffset: number;      // how much hotter (+) this body really runs than the model reads (hidden; spot checks find it)
 }
 
 const WORKERS: WorkerDef[] = [
-  { worker_id: "worker-1", name: "Maria Lopez", role: "Lineworker (wearing the band)", site_id: "fl-deerhaven", restHr: 68, effort: 0.3, breakOffset: 0 },
-  { worker_id: "worker-2", name: "Jake Turner", role: "Lineworker", site_id: "fl-deerhaven", restHr: 72, effort: 0.55, breakOffset: 1 },
-  { worker_id: "worker-3", name: "Dev Patel", role: "Electrician", site_id: "fl-deerhaven", restHr: 64, effort: 0.35, breakOffset: 2 },
-  { worker_id: "worker-4", name: "Sam Rivera", role: "Equipment operator", site_id: "fl-deerhaven", restHr: 70, effort: 0.3, breakOffset: 3 },
-  { worker_id: "worker-5", name: "Priya Shah", role: "Technician", site_id: "fl-kelly", restHr: 66, effort: 0.38, breakOffset: 1 },
-  { worker_id: "worker-6", name: "Marcus Bell", role: "Groundworker", site_id: "fl-kelly", restHr: 74, effort: 0.36, breakOffset: 2 },
+  { worker_id: "worker-1", name: "Maria Lopez", role: "Lineworker (wearing the band)", site_id: "fl-deerhaven", restHr: 68, effort: 0.3, breakOffset: 0, trueOffset: 0.25 },
+  { worker_id: "worker-2", name: "Jake Turner", role: "Lineworker", site_id: "fl-deerhaven", restHr: 72, effort: 0.55, breakOffset: 1, trueOffset: 0.1 },
+  { worker_id: "worker-3", name: "Dev Patel", role: "Electrician", site_id: "fl-deerhaven", restHr: 64, effort: 0.35, breakOffset: 2, trueOffset: -0.15 },
+  { worker_id: "worker-4", name: "Sam Rivera", role: "Equipment operator", site_id: "fl-deerhaven", restHr: 70, effort: 0.3, breakOffset: 3, trueOffset: 0 },
+  { worker_id: "worker-5", name: "Priya Shah", role: "Technician", site_id: "fl-kelly", restHr: 66, effort: 0.38, breakOffset: 1, trueOffset: -0.1 },
+  { worker_id: "worker-6", name: "Marcus Bell", role: "Groundworker", site_id: "fl-kelly", restHr: 74, effort: 0.36, breakOffset: 2, trueOffset: 0.2 },
 ];
 
 interface WorkerSim {
@@ -144,6 +148,7 @@ interface WorkerSim {
   estimates: Estimate[];
   lastBand: string;
   heatAlertId: string | null;
+  rawEstimate: number;          // the model's estimate before the personal offset
 }
 
 /** Fake physiology: core temp drifts toward a target set by workload and heat. */
@@ -178,6 +183,7 @@ interface SiteSim {
   index: number;
   drivers: string[];
   wbgt: number;
+  hazardIndex: HazardIndex;
 }
 
 function heatLevel(wbgt: number): HazardLevel {
@@ -250,7 +256,35 @@ function baselineSite(siteId: string, t: number): SiteSim {
   if (hazards.flood.level !== "none") drivers.push(hazards.flood.headline);
   if (hazards.fire.level === "high") drivers.push("Red Flag Warning");
   if (soil >= 80) drivers.push("Saturated soil");
-  return { hazards, index, drivers: drivers.slice(0, 3), wbgt };
+  // Same shape as session C2's predict_index(), with mock numbers.
+  const heatIdx = clamp((wbgt - 27) * 1.15, 0, 7);
+  const stormIdx = clamp(storms * 3.2 + (siteId === "fl-deerhaven" ? 1.5 : 0), 0, 7);
+  const floodIdx = hazards.flood.level === "moderate" ? 2.5 : hazards.flood.level === "low" ? 0.8 : 0.2;
+  const fireIdx = hazards.fire.level === "high" ? 3 : hazards.fire.level === "low" ? 0.6 : 0.1;
+  const tropIdx = s.coastal ? 0.4 : 0.1;
+  const part = (x: number) => ({
+    index: round(x, 1), p_advisory: round(clamp(x / 5, 0, 1), 2), p_warning: round(clamp((x - 3) / 6, 0, 1), 2),
+    p_damage: round(clamp((x - 6) / 10, 0, 1), 2), climatology_index: round(x * 0.55, 1),
+  });
+  const reasons: HazardIndex["top_reasons"] = [
+    { hazard: "heat", feature: "hi_max_today", value: hi + 2, points: round(heatIdx * 0.45, 1), text: `Heat index reached ${hi + 2}°F by 6 PM today` },
+  ];
+  if (storms > 0.5 || siteId === "fl-deerhaven") reasons.push({ hazard: "storm", feature: "spc_day2_cat", value: 2, points: round(stormIdx * 0.4, 1), text: "SPC storm outlook for tomorrow: marginal to slight risk" });
+  if (hazards.flood.level !== "none") reasons.push({ hazard: "flood", feature: "rain_72h", value: 3.1, points: 0.8, text: "3.1 in of rain in the last 3 days" });
+  if (hazards.fire.level === "high") reasons.push({ hazard: "fire", feature: "red_flag", value: 1, points: 1.5, text: "Red Flag Warning in effect into tomorrow" });
+  const tomorrow = new Date(t * 1000 + 86400000);
+  const hazardIndex: HazardIndex = {
+    site_id: siteId, date: tomorrow.toISOString().slice(0, 10), index,
+    band: index < 2 ? "low" : index < 4 ? "moderate" : index < 6 ? "high" : "extreme",
+    climatology_index: round(index * 0.6, 1),
+    p_advisory: round(clamp(index / 5, 0, 1), 2), p_warning: round(clamp((index - 3) / 6, 0, 1), 2), p_damage: round(clamp((index - 6) / 10, 0, 1), 2),
+    hazards: { heat: part(heatIdx), storm: part(stormIdx), flood: part(floodIdx), fire: part(fireIdx), tropical: part(tropIdx) },
+    top_reasons: reasons.sort((a, b) => b.points - a.points).slice(0, 3),
+    cutoff: new Date(todayAt(18, 0, t * 1000) * 1000).toISOString(),
+    data_mode: "mock", model_version: "mock",
+    notes: ["MOCK numbers from the frontend. The real index comes from session C2 (ml/hazard_index)."],
+  };
+  return { hazards, index, drivers: drivers.slice(0, 3), wbgt, hazardIndex };
 }
 
 // ---------------------------------------------------------------------------
@@ -355,7 +389,7 @@ export class MockEngine {
         def, core, intensity: def.effort, scriptedIntensity: null, hr: def.restHr, skin: 34.2,
         collapsed: false, stillSince: null, minuteHr: [], hrByMinute: [],
         kalman: { ct: CFG.KALMAN.ct0, v: 0 }, status: "green", vitals: [], estimates: [],
-        lastBand: "BUZZ:OFF", heatAlertId: null,
+        lastBand: "BUZZ:OFF", heatAlertId: null, rawEstimate: core,
       });
     }
     if (this.reports.length === 0) this.seedReports(t);
@@ -498,27 +532,97 @@ export class MockEngine {
       if (w.hrByMinute.length > 120) w.hrByMinute.shift();
       kalmanStep(w.kalman, avgHr);
 
-      // "Model" estimate = true core + a little error. Calibrated range ±0.15 °C.
-      const mean = w.core + (this.rng() - 0.5) * 0.06;
-      const forecast = this.forecast(w, mean);
-      const est: Estimate = {
-        worker_id: w.def.worker_id,
-        timestamp: this.sim,
-        core: { mean: round(mean), p10: round(mean - 0.15), p90: round(mean + 0.15) },
-        kalman: round(w.kalman.ct),
-        forecast,
-        why: this.why(w, forecast),
-        thresholds: { ...thr, demo: this.demo.demo_threshold },
-        model: "mock forecaster (fake physiology)",
-      };
-      w.estimates.push(est);
-      while (w.estimates.length > HISTORY_ESTIMATES_MIN) w.estimates.shift();
-      this.emit({ type: "estimate", estimate: est });
-      this.updateHeatStatus(w, est);
+      // "Model" estimate = sim core + a little error. Calibrated range ±0.15 °C.
+      w.rawEstimate = w.core + (this.rng() - 0.5) * 0.06;
+      this.pushEstimate(w, thr);
     }
     this.routeAllBands();
     for (const w of this.workers.values()) this.emit({ type: "worker_status", worker: this.workerStatus(w) });
     this.refreshSiteFlags();
+  }
+
+  /** Build this minute's estimate from the raw model value, minus the worker's personal offset. */
+  pushEstimate(w: WorkerSim, thr = this.thresholds()) {
+    const offset = this.offsetOf(w.def.worker_id);
+    const mean = w.rawEstimate - offset;
+    const forecast = this.forecast(w, mean);
+    const est: Estimate = {
+      worker_id: w.def.worker_id,
+      timestamp: this.sim,
+      core: { mean: round(mean), p10: round(mean - 0.15), p90: round(mean + 0.15) },
+      kalman: round(w.kalman.ct),
+      forecast,
+      why: this.why(w, forecast),
+      thresholds: { ...thr, demo: this.demo.demo_threshold },
+      model: "mock forecaster (fake physiology)",
+      offset_applied_c: round(offset),
+    };
+    w.estimates.push(est);
+    while (w.estimates.length > HISTORY_ESTIMATES_MIN) w.estimates.shift();
+    this.emit({ type: "estimate", estimate: est });
+    this.updateHeatStatus(w, est);
+    return est;
+  }
+
+  // ---- personal offset from thermometer spot checks ----------------------
+  // Same math as backend/models/personal_offset.py (Bayesian shrinkage, capped).
+
+  offsets = new Map<string, { misses: number[]; last: OffsetUpdate["last_check"]; history: OffsetUpdate["history"] }>();
+
+  offsetOf(workerId: string) {
+    const o = this.offsets.get(workerId);
+    if (!o || !o.misses.length) return 0;
+    const raw = o.misses.reduce((a, b) => a + b, 0) / (o.misses.length + OFFSET.PRIOR_CHECKS);
+    return clamp(raw, -OFFSET.MAX_OFFSET_C, OFFSET.MAX_OFFSET_C);
+  }
+
+  offsetUpdate(workerId: string): OffsetUpdate {
+    const o = this.offsets.get(workerId) ?? { misses: [], last: null, history: [] };
+    const n = o.misses.length;
+    return {
+      worker_id: workerId, timestamp: this.sim, offset_c: round(this.offsetOf(workerId), 3),
+      confidence: round(n / (n + OFFSET.PRIOR_CHECKS), 3), checks: n, last_check: o.last, history: o.history,
+    };
+  }
+
+  /** A thermometer reading (ear/oral) for this worker. Learns their offset and re-estimates right away. */
+  spotCheck(workerId: string, thermometer: number): SpotCheckResult {
+    const w = this.workers.get(workerId);
+    if (!w) return { ok: false, accepted: false, message: "Unknown worker", offset: null };
+    if (!Number.isFinite(thermometer) || thermometer < 34 || thermometer > 42) {
+      return { ok: false, accepted: false, message: "That doesn't look like a body temperature (34-42 °C).", offset: this.offsetUpdate(workerId) };
+    }
+    const o = this.offsets.get(workerId) ?? { misses: [], last: null, history: [] };
+    this.offsets.set(workerId, o);
+    const miss = w.rawEstimate - thermometer;
+    const accepted = Math.abs(miss) <= OFFSET.MAX_CHECK_MISS_C;
+    o.last = { thermometer_c: thermometer, model_estimate_c: round(w.rawEstimate), miss_c: round(miss), accepted, at: this.sim };
+    if (accepted) {
+      o.misses.push(miss);
+      if (!o.history.length) o.history.push({ timestamp: this.sim - 1, offset_c: 0, confidence: 0, checks: 0 });
+      const u0 = this.offsetUpdate(workerId);
+      o.history.push({ timestamp: this.sim, offset_c: u0.offset_c, confidence: u0.confidence, checks: u0.checks });
+    }
+    const u = this.offsetUpdate(workerId);
+    this.emit({ type: "offset_update", offset: u });
+    const body = -u.offset_c;
+    const message = accepted
+      ? `Learned: ${w.def.name.split(" ")[0]} runs ${Math.abs(body).toFixed(2)} °C ${body >= 0 ? "hotter" : "cooler"} than the average person (${u.checks} check${u.checks === 1 ? "" : "s"}, ${Math.round(u.confidence * 100)}% confident).`
+      : `Ignored: ${thermometer.toFixed(1)} °C is ${Math.abs(miss).toFixed(1)} °C away from the model. Probably a bad reading, try again.`;
+    this.addLog(`Spot check ${w.def.name}: ${thermometer.toFixed(1)} °C. ${message}`, "thermometer");
+    if (accepted) {
+      this.pushEstimate(w);   // the chart moves right away
+      this.routeAllBands();
+      this.emitWorker(w);
+    }
+    return { ok: true, accepted, message, offset: u };
+  }
+
+  /** Mock only: what an ear thermometer would read for this worker right now. */
+  sampleThermometer(workerId: string) {
+    const w = this.workers.get(workerId);
+    if (!w) return null;
+    return round(w.core + w.def.trueOffset + (this.rng() - 0.5) * 0.16, 1);
   }
 
   /** Run the fake physiology forward 30 minutes using the planned workload. */
@@ -1083,7 +1187,7 @@ export class MockEngine {
     else if (here.some((w) => w.status !== "green")) flag = "heat";
     return {
       site_id: siteId, hazards: HAZARD_ORDER.map((k) => s.hazards[k]), index_tomorrow: s.index,
-      index_drivers: s.drivers, worker_flag: flag, workers_on_site: here.length, updated_at: this.sim,
+      index_drivers: s.drivers, hazard_index: s.hazardIndex, worker_flag: flag, workers_on_site: here.length, updated_at: this.sim,
     };
   }
 
@@ -1176,6 +1280,9 @@ export class MockEngine {
       demo: { ...this.demo, scenario: { ...this.demo.scenario } },
       reports: this.reports, log: this.log.slice(-80), history,
       band: filter.view === "crew" ? [] : this.band.slice(-20),
+      offsets: Object.fromEntries([...this.workers.keys()]
+        .filter((id) => id in history)
+        .map((id) => [id, this.offsetUpdate(id)])),
     };
   }
 
@@ -1292,6 +1399,20 @@ export class MockEngine {
       }
       if (a === "workers" && c === "button") return ok(this.buttonPress(b));
       if (a === "workers" && c === "sos") return ok(this.sos(b, "phone"));
+      if (a === "spot-check" && !b) {
+        const r = this.spotCheck(String(body.worker_id ?? ""), Number(body.thermometer_c));
+        return { status: r.ok ? 200 : 400, json: r };
+      }
+      if (a === "spot-check" && b === "reset") {
+        this.offsets.delete(String(body.worker_id ?? ""));
+        const id = String(body.worker_id ?? "");
+        if (this.workers.has(id)) this.emit({ type: "offset_update", offset: this.offsetUpdate(id) });
+        return ok({ ok: true });
+      }
+      if (a === "demo" && b === "sample-thermometer") {
+        const t = this.sampleThermometer(String(body.worker_id ?? ""));
+        return t === null ? bad("unknown worker", 404) : ok({ thermometer_c: t });
+      }
       if (a === "mandown" && c === "resolve") return ok(this.resolveManDown(false));
       // Two ways to cancel: by worker (session D's suggested route, what the UI uses) or by call id.
       if (a === "emergency" && b === "cancel" && !c) return ok(this.cancelEmergencyForWorker(String(body.worker_id ?? "")));

@@ -18,10 +18,14 @@ Next.js + Tailwind + Recharts + Leaflet. Runs on its own with a built-in **mock 
 | `/worker/<id>` | Phone view: giant status color, current hazard, break countdown | The worker |
 | `/briefing` | 6 PM briefing for tomorrow | Crew lead |
 | `/planner` | Chat with the planning agent next to today's schedule | Crew lead |
-| `/results` | Our model next to the Kalman baseline (real numbers from docs/results.md), personal twins panel | Judges |
+| `/results` | Our model vs the Kalman baseline (docs/results.md: ensemble, red alerts caught), spot-check personalization, planner safety (AI alone vs with rule checker), the 5 result figures | Judges |
 | `/report` | Crew photo report form | Workers |
 
 The man-down screen pops up on every page. Demo controls sit at the top of `/` and `/demo`.
+
+## Spot check ("Learning your body")
+
+On `/demo` (right column) or the phone view, type an ear or mouth thermometer reading and press **Add**. The card shows how much hotter or cooler this person runs than average, the confidence bar and how it changed. The core temp chart shifts right away. On mock data, "Mock: fill in a sample reading" fills in a believable number.
 
 ## Play the scripted demo
 

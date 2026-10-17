@@ -5,11 +5,11 @@
  * flood, wildfire, soil, wildlife. Every row shows its source and time.
  */
 
-import type { Hazard, Site, SiteStatus } from "@/lib/contract";
+import type { Hazard, HazardIndex, IndexHazard, Site, SiteStatus } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { siteMeta } from "@/lib/crew";
 import { useSimNow } from "@/lib/live";
-import { HAZARD_TEXT_CLASS, HazardIcon, IndexChip, LevelPill, fmtClock, fmtCountdown } from "./ui";
+import { HAZARD_TEXT_CLASS, HazardIcon, IndexChip, LevelPill, fmtClock, fmtCountdown, indexColor } from "./ui";
 
 export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }) {
   const now = useSimNow(250);
@@ -26,7 +26,7 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
           <p className="mt-0.5 text-[10px] uppercase tracking-wider text-muted">Tomorrow</p>
         </div>
       </div>
-      {status.index_drivers.length > 0 && (
+      {status.hazard_index ? <IndexBreakdown hi={status.hazard_index} /> : status.index_drivers.length > 0 && (
         <p className="text-xs text-ink-2">Index driven by: {status.index_drivers.join(" · ")}</p>
       )}
 
@@ -79,5 +79,44 @@ function LightningBanner({ h, now }: { h: Hazard; now: number }) {
       </div>
       <p className="mt-1 text-[11px] text-muted">The 30-minute clock restarts with every strike within 10 miles.</p>
     </div>
+  );
+}
+
+const INDEX_HAZARDS: { key: IndexHazard; label: string }[] = [
+  { key: "heat", label: "Heat" }, { key: "storm", label: "Storms" }, { key: "flood", label: "Flood" },
+  { key: "fire", label: "Fire" }, { key: "tropical", label: "Tropical" },
+];
+
+/** Session C2's 0-10 index for tomorrow: per-hazard bars vs a usual day, and the top reasons. */
+function IndexBreakdown({ hi }: { hi: HazardIndex }) {
+  return (
+    <details className="rounded-lg border border-line px-3 py-2 text-xs" open>
+      <summary className="cursor-pointer font-semibold">
+        Tomorrow: <span className="capitalize">{hi.band}</span> ({hi.index.toFixed(1)}/10) · a usual day here scores {hi.climatology_index.toFixed(1)}
+        {hi.data_mode === "mock" && <span className="ml-1.5 rounded bg-warn-bg px-1 py-px text-[10px] font-bold text-warn-ink">MOCK</span>}
+      </summary>
+      <ul className="mt-2 space-y-1">
+        {INDEX_HAZARDS.filter((h) => hi.hazards[h.key]).map((h) => {
+          const part = hi.hazards[h.key]!;
+          return (
+            <li key={h.key} className="flex items-center gap-2">
+              <span className="w-14 shrink-0 text-ink-2">{h.label}</span>
+              <span className="relative h-2 flex-1 rounded-full bg-surface-2" title={`${part.index.toFixed(1)} (usual day ${part.climatology_index.toFixed(1)})`}>
+                <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${part.index * 10}%`, background: indexColor(part.index) }} />
+                <span className="absolute -top-0.5 h-3 w-0.5 bg-ink-2" style={{ left: `${part.climatology_index * 10}%` }} aria-label="usual day" />
+              </span>
+              <span className="w-7 text-right tabular">{part.index.toFixed(1)}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-1 text-[10px] text-muted">Bars: tomorrow. Tick: a usual day this month.</p>
+      {hi.top_reasons.length > 0 && (
+        <ul className="mt-2 space-y-0.5 text-ink-2">
+          {hi.top_reasons.map((r) => <li key={r.feature}>{r.text} <span className="text-muted tabular">(+{r.points.toFixed(1)})</span></li>)}
+        </ul>
+      )}
+      <p className="mt-1 text-[10px] text-muted">Uses only what was known by 6 PM the day before. Ranks sites, never makes a safety call.{hi.notes.length ? ` ${hi.notes.join(" ")}` : ""}</p>
+    </details>
   );
 }

@@ -51,3 +51,11 @@ Still open:
 - The UI now accepts D's flat `emergency_status` events straight from session A and folds them into the `EmergencyCall` view (`frontend/src/lib/emergency.ts`). New stage `failed`: huge "Emergency call FAILED. Call 911 yourself now." box on the man-down screen (can't be minimized), and "Automatic call failed. Call 911 now." on the SOS phone screen.
 - "Cancel, false alarm" now calls `POST /api/emergency/cancel {worker_id}` (D's suggested route). The mock supports both cancel routes.
 - Mock: `MOCK_EMERGENCY_EVENTS=status` in `frontend/.env.local` (or `POST /api/demo/emergency {"format": "status"}`) sends D-style events. `{"fail_next": true}` makes the next call fail. 7 new tests.
+
+## Round 5 (2026-10-17): spot checks, nullable why, results for judges, C2 index
+
+- Spot checks: `POST /api/spot-check {worker_id, thermometer_c}` + `offset_update` event (math from backend/models/personal_offset.py). "Learning your body" card on the demo view and phone view: offset, confidence bar, number of checks, step chart of how it changed. The estimate shifts right away. Mock has hidden per-worker offsets and a "fill in a sample reading" helper.
+- `Estimate.why` can be null.
+- /results: ens5 headline (+20 min 0.230 vs 0.456 °C, red caught 88% vs 75%), personalization table, planner safety table (AI alone 92% of runs break a rule, 0% with the rule checker), session H's 5 figures (copied from docs/figures by a predev/prebuild script; shows a placeholder until merged). Removed the heart-rate twins panel (twins were a negative result).
+- C2 hazard index: SiteStatus.hazard_index carries the full predict_index() result; hazard panel shows per-hazard bars vs a usual day + reasons; map tooltip shows band + top reason. Mock data until wired.
+- Fixed: dev server reload loop after the merge (stale .next cache; `rm -rf frontend/.next` fixes it).

@@ -92,6 +92,8 @@ export interface SiteStatus {
   hazards: Hazard[];              // one per HazardKind, always 6
   index_tomorrow: number;         // 0-10 hazard index for tomorrow (session C2)
   index_drivers: string[];        // top reasons, e.g. ["Heat index 108 °F", "Storms 60%"]
+  /** Session C2's full predict_index() result for tomorrow, when available (index_tomorrow = hazard_index.index). */
+  hazard_index?: HazardIndex | null;
   worker_flag: "none" | "heat" | "mandown" | "sos";  // a worker on site has a heat alert, man-down or SOS
   workers_on_site: number;
   updated_at: number;
@@ -144,7 +146,9 @@ export interface Estimate {
   core: { mean: number; p10: number; p90: number };  // NOW head, calibrated range
   kalman: number;                 // ECTemp baseline, shown as a thin line
   forecast: ForecastPoint[];      // 30 points, 1..30 minutes ahead
-  why: string;                    // "Rising because heart rate jumped 18 bpm in 10 min and WBGT is 31 °C."
+  why: string | null;             // "Rising because heart rate jumped 18 bpm in 10 min and WBGT is 31 °C." null = no explanation this minute
+  /** Personal offset already subtracted from core + forecast (see OffsetUpdate). 0 or missing = average person. */
+  offset_applied_c?: number;
   thresholds: { warning: number; danger: number; demo: boolean };
   model: string;                  // e.g. "forecaster v1 + conformal"
 }
@@ -321,6 +325,56 @@ export interface LogEntry {
 // The live connection: every message is one of these
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// 0-10 hazard index (session C2, ml/hazard_index/predict.py: predict_index)
+// ---------------------------------------------------------------------------
+
+export type IndexHazard = "heat" | "storm" | "flood" | "fire" | "tropical";
+
+export interface HazardIndex {
+  site_id: string;
+  date: string;                   // the day being scored ("tomorrow" at 6 PM)
+  index: number;                  // 0-10, expected level on the label ladder
+  band: "low" | "moderate" | "high" | "extreme";   // low <2, moderate <4, high <6, extreme 6+
+  climatology_index: number;      // what a usual day this month scores, for comparison
+  p_advisory: number;
+  p_warning: number;
+  p_damage: number;
+  hazards: Partial<Record<IndexHazard, { index: number; p_advisory: number; p_warning: number; p_damage: number; climatology_index: number }>>;
+  top_reasons: { hazard: IndexHazard; feature: string; value: number; points: number; text: string }[];
+  cutoff: string;                 // latest data the score may use (6 PM the day before)
+  data_mode: "archive" | "live" | "mock";
+  model_version: string;
+  notes: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Personal offset from thermometer spot checks (backend/models/personal_offset.py)
+// ---------------------------------------------------------------------------
+
+/**
+ * "Learning your body". After each ear/oral thermometer spot check:
+ *   miss = model estimate - thermometer;  offset = sum(misses) / (checks + 2), capped at ±0.6 °C
+ * The live estimate then shows (model - offset). Never changes a safety threshold.
+ */
+export interface OffsetUpdate {
+  worker_id: string;
+  timestamp: number;
+  offset_c: number;               // + = the model reads this worker HOTTER than they really are
+  confidence: number;             // 0 = average person only, toward 1 = mostly their own history
+  checks: number;                 // accepted spot checks so far
+  last_check: { thermometer_c: number; model_estimate_c: number; miss_c: number; accepted: boolean; at: number } | null;
+  history: { timestamp: number; offset_c: number; confidence: number; checks: number }[];  // oldest first
+}
+
+/** Reply to POST /api/spot-check {worker_id, thermometer_c}. */
+export interface SpotCheckResult {
+  ok: boolean;
+  accepted: boolean;              // false = looked like a bad reading (more than 1.5 °C off), ignored
+  message: string;
+  offset: OffsetUpdate | null;
+}
+
 export interface Snapshot {
   type: "snapshot";
   view: ViewKind;
@@ -336,6 +390,8 @@ export interface Snapshot {
   /** Only for views allowed to see raw biometrics. Keyed by worker_id. */
   history: Record<string, { vitals: Vitals[]; estimates: Estimate[] }>;
   band: BandCommand[];
+  /** Personal offsets, only for views allowed to see raw biometrics. Optional: older backends omit it. */
+  offsets?: Record<string, OffsetUpdate>;
 }
 
 export type LiveEvent =
@@ -353,7 +409,8 @@ export type LiveEvent =
   | { type: "demo"; demo: DemoState }
   | { type: "band_command"; band: BandCommand }
   | { type: "report"; report: PhotoReport }
-  | { type: "log"; entry: LogEntry };
+  | { type: "log"; entry: LogEntry }
+  | { type: "offset_update"; offset: OffsetUpdate };
 
 /** Who may see what. The server applies this; the UI never receives what it shouldn't. */
 export interface ViewFilter {
@@ -366,8 +423,8 @@ export interface ViewFilter {
  * the worker's own phone and the labeled demo view.
  */
 export function canSee(filter: ViewFilter, ev: LiveEvent): boolean {
-  if (ev.type === "vitals" || ev.type === "estimate") {
-    const id = ev.type === "vitals" ? ev.vitals.worker_id : ev.estimate.worker_id;
+  if (ev.type === "vitals" || ev.type === "estimate" || ev.type === "offset_update") {
+    const id = ev.type === "vitals" ? ev.vitals.worker_id : ev.type === "estimate" ? ev.estimate.worker_id : ev.offset.worker_id;
     if (filter.view === "demo") return true;
     if (filter.view === "worker") return filter.worker_id === id;
     return false;

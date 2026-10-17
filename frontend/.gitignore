@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# copied from docs/figures by scripts/copy-figures.mjs
+/public/figures/
