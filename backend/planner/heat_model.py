@@ -36,6 +36,10 @@ from backend.planner.scenario import INTENSITIES, REST, REST_MET, REST_SHADE, Pl
 
 PHS_STATE = ("t_re", "t_sk", "t_cr", "t_cr_eq", "t_sk_t_cr_wg", "sweat_rate_watt", "evap_load_wm2_min")
 Z90 = 1.2816                 # 90th percentile of a normal distribution, in standard deviations
+# How cautious the optimizer's shortcut table is (in standard deviations). NOT a safety limit:
+# every plan is still verified with the full ensemble. Tuned on 16 TRAINING scenarios (never the test set):
+# 0.0 / 0.3 / 0.6 gave 72% / 72% / 67% of work done with 1.7 / 1.2 / 1.4 solve rounds; 16/16 verified each.
+TABLE_Z = 0.3
 
 # Ensemble spread (how wrong our inputs could be)
 WEATHER_SD_C = 0.8           # forecast air temp error, °C (same as the simulator's forecast error)
@@ -185,44 +189,50 @@ class PHSHeatModel:
     # --- the simple table for the optimizer --------------------------------
     def slot_costs(self, scenario: Scenario) -> CostTable:
         """
-        Fit T_next = (1 - alpha) * T_now + alpha * teq for every (worker, slot, activity)
-        by running 30 min of PHS from two starting temps (37.0 and 38.0 °C).
-        Uses one cautious member: a bit hotter weather, a bit harder work, plus the
-        90th pct of the personal offset. The full-model check catches what this misses.
+        Fit T_next = (1 - alpha) * T_now + alpha * teq for every (worker, slot, activity).
+
+        How: run PHS for 60 min, twice. First 30 min = a warm-up (resting, or very heavy
+        work in the sun) so the body is in a realistic state at two different temps.
+        Last 30 min = the activity. The two (start, end) pairs give alpha and teq.
+        Weather/work/clothes are nudged TABLE_Z standard deviations to the hot side, and the
+        personal offset is taken at its 90th pct. The full-model check catches what this misses.
         """
         acts = [REST] + sorted({(t.intensity, t.outdoor) for t in scenario.tasks})
         sm, n_s = scenario.slot_min, scenario.n_slots
-        lo, hi = 37.0, 38.0
+        warmups = (REST, ("very_heavy", True))
         rows = []
         for w in scenario.crew:
-            for s in range(n_s):
+            for k in range(n_s):
                 for a in acts:
-                    for t0 in (lo, hi):
-                        rows.append((w, s, a, t0))
+                    for wu in warmups:
+                        rows.append((w, k, wu, a))
         groups = {}
         for i, (w, *_rest) in enumerate(rows):
             groups.setdefault((w.weight, w.height, 100 if w.acclim >= 0.5 else 0), []).append(i)
-        end = np.zeros(len(rows))
+        mid, end = np.zeros(len(rows)), np.zeros(len(rows))
         for (weight, height, acc), idx in groups.items():
             g = [rows[i] for i in idx]
-            wx = [scenario.weather[s] for (_, s, _, _) in g]
-            ms = np.array([met_shade(a) for (_, _, a, _) in g])
-            indoor = np.array([0.0 if a == REST else float(not a[1]) for (_, _, a, _) in g])
-            tdb = np.array([x.tdb for x in wx]) + Z90 * WEATHER_SD_C
-            solar = np.array([x.solar for x in wx]) * (1 - indoor)
-            tr = mean_radiant(tdb, solar, ms[:, 1])
-            clo = np.array([w.clo for (w, *_r) in g]) + Z90 * CLO_SD
-            met = ms[:, 0] * (1 + Z90 * MET_SD)
-            t0 = np.array([r[3] for r in g])
-            state = {"t_cr": t0, "t_re": t0}
-            for _ in range(sm):
+            wx = [scenario.weather[k] for (_, k, _, _) in g]
+            tdb = np.array([x.tdb for x in wx]) + TABLE_Z * WEATHER_SD_C
+            v, rh = np.array([x.wind for x in wx]), np.array([x.rh for x in wx])
+            clo = np.array([w.clo for (w, *_r) in g]) + TABLE_Z * CLO_SD
+            phases = []
+            for which in (2, 3):                      # warm-up activity, then the real activity
+                ms = np.array([met_shade(r[which]) for r in g])
+                indoor = np.array([0.0 if r[which] == REST else float(not r[which][1]) for r in g])
+                solar = np.array([x.solar for x in wx]) * (1 - indoor)
+                phases.append((ms[:, 0] * (1 + TABLE_Z * MET_SD), mean_radiant(tdb, solar, ms[:, 1])))
+            state = {}
+            for t in range(2 * sm):
+                met, tr = phases[t // sm]
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    res = phs(tdb=tdb, tr=tr, v=np.array([x.wind for x in wx]), rh=np.array([x.rh for x in wx]),
-                              met=met, clo=clo, posture="standing", round_output=False, limit_inputs=False,
-                              model="7933-2004", weight=weight, height=height, acclimatized=acc,
-                              duration=1, **state)
+                    res = phs(tdb=tdb, tr=tr, v=v, rh=rh, met=met, clo=clo, posture="standing",
+                              round_output=False, limit_inputs=False, model="7933-2004", weight=weight,
+                              height=height, acclimatized=acc, duration=1, **state)
                 state = {k: np.asarray(getattr(res, k), dtype=float) for k in PHS_STATE}
+                if t == sm - 1:
+                    mid[idx] = state["t_re"]
             end[idx] = state["t_re"]
 
         alpha, teq, start = {}, {}, {}
@@ -230,15 +240,16 @@ class PHSHeatModel:
         for w in scenario.crew:
             off = w.core_offset_c + Z90 * w.core_sd_c
             alpha[w.id], teq[w.id] = [], []
-            for s in range(n_s):
+            for k in range(n_s):
                 a_row, t_row = {}, {}
                 for a in acts:
-                    e_lo, e_hi = end[i], end[i + 1]
+                    (s_lo, s_hi), (e_lo, e_hi) = mid[i:i + 2], end[i:i + 2]
                     i += 2
-                    keep = np.clip((e_hi - e_lo) / (hi - lo), 0.02, 0.98)       # = 1 - alpha
+                    keep = float(np.clip((e_hi - e_lo) / (s_hi - s_lo), 0.02, 0.98)) if s_hi - s_lo > 0.05 else 0.1
                     al = 1 - keep
-                    a_row[a] = float(al)
-                    t_row[a] = float((e_lo - keep * lo) / al + off)
+                    a_row[a] = al
+                    # teq from the hotter run (the one that matters near the limit)
+                    t_row[a] = float((e_hi - keep * s_hi) / al + off)
                 alpha[w.id].append(a_row)
                 teq[w.id].append(t_row)
             base = w.start_core_c - w.core_offset_c if w.start_core_c is not None else 36.8

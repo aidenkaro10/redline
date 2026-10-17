@@ -1,0 +1,299 @@
+{
+ "id": "demo-5",
+ "site": {
+  "id": "babcock-solar",
+  "name": "Babcock Ranch Solar Energy Center",
+  "lat": 26.834,
+  "lon": -81.747
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 22.71,
+   "rh": 80.8,
+   "solar": 112.1,
+   "wind": 0.84,
+   "wbgt": 21.28
+  },
+  {
+   "tdb": 23.53,
+   "rh": 77.7,
+   "solar": 212.6,
+   "wind": 1.1,
+   "wbgt": 22.02
+  },
+  {
+   "tdb": 24.34,
+   "rh": 74.6,
+   "solar": 310.1,
+   "wind": 0.7,
+   "wbgt": 22.81
+  },
+  {
+   "tdb": 25.12,
+   "rh": 71.7,
+   "solar": 403.6,
+   "wind": 0.24,
+   "wbgt": 23.62
+  },
+  {
+   "tdb": 25.88,
+   "rh": 68.8,
+   "solar": 491.7,
+   "wind": 0.33,
+   "wbgt": 24.29
+  },
+  {
+   "tdb": 26.6,
+   "rh": 66.1,
+   "solar": 573.2,
+   "wind": 1.09,
+   "wbgt": 24.71
+  },
+  {
+   "tdb": 27.28,
+   "rh": 63.5,
+   "solar": 647.1,
+   "wind": 0.67,
+   "wbgt": 25.39
+  },
+  {
+   "tdb": 27.92,
+   "rh": 61.0,
+   "solar": 712.3,
+   "wind": 0.2,
+   "wbgt": 26.09
+  },
+  {
+   "tdb": 28.51,
+   "rh": 58.8,
+   "solar": 768.1,
+   "wind": 0.59,
+   "wbgt": 26.38
+  },
+  {
+   "tdb": 29.04,
+   "rh": 56.8,
+   "solar": 813.7,
+   "wind": 0.26,
+   "wbgt": 26.92
+  },
+  {
+   "tdb": 29.52,
+   "rh": 55.0,
+   "solar": 848.4,
+   "wind": 0.42,
+   "wbgt": 27.17
+  },
+  {
+   "tdb": 29.93,
+   "rh": 53.4,
+   "solar": 871.7,
+   "wind": 0.47,
+   "wbgt": 27.41
+  },
+  {
+   "tdb": 30.29,
+   "rh": 52.0,
+   "solar": 883.5,
+   "wind": 0.4,
+   "wbgt": 27.63
+  },
+  {
+   "tdb": 30.57,
+   "rh": 51.0,
+   "solar": 883.5,
+   "wind": 0.78,
+   "wbgt": 27.58
+  },
+  {
+   "tdb": 30.79,
+   "rh": 50.1,
+   "solar": 320.1,
+   "wind": 0.59,
+   "wbgt": 26.21
+  },
+  {
+   "tdb": 28.14,
+   "rh": 49.6,
+   "solar": 311.5,
+   "wind": 0.44,
+   "wbgt": 23.76
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Priya",
+   "weight": 90.0,
+   "height": 1.65,
+   "age": 21,
+   "acclim": 1.0,
+   "clo": 0.63,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Ana",
+   "weight": 74.0,
+   "height": 1.85,
+   "age": 26,
+   "acclim": 0.7,
+   "clo": 0.54,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Luis",
+   "weight": 66.0,
+   "height": 1.85,
+   "age": 51,
+   "acclim": 0.7,
+   "clo": 0.6,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Jada",
+   "weight": 74.0,
+   "height": 1.75,
+   "age": 58,
+   "acclim": 0.7,
+   "clo": 0.5,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Kofi (new hire)",
+   "weight": 98.0,
+   "height": 1.85,
+   "age": 38,
+   "acclim": 0.0,
+   "clo": 0.79,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Control room checks",
+   "intensity": "light",
+   "units": 6,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 9,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 3,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "climbing"
+  },
+  {
+   "id": "t4",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 10,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 15,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t6",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 6,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t7",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 17,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 14,
+   "skill": null
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "lightning",
+   "start_slot": 14,
+   "end_slot": 16,
+   "source": "GOES-19 GLM",
+   "note": "2+ flashes within 10 miles"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "storm_2pm",
+  "new_hire"
+ ]
+}

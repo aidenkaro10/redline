@@ -25,7 +25,7 @@ from backend.planner.scenario import HazardWindow, Scenario, SlotWeather, Task, 
 
 HERE = Path(__file__).parent
 TEST_DIR = HERE / "scenarios" / "test"
-DEMO_PATH = HERE / "scenarios" / "demo_heatwave.json"
+DEMO_PATH = HERE / "scenarios" / "demo_day.json"
 TEST_SEEDS = range(1000, 1012)          # 12 held-out scenarios, never learned from
 # Each test seed gets a fixed family mix, so every stress case is covered.
 TEST_TAGS = [["normal"], ["normal", "callout"], ["new_hire"], ["storm_2pm"], ["warning"], ["heat_dome"],
@@ -178,8 +178,8 @@ def make_scenario(seed: int, prefix: str = "train", tags: list[str] | None = Non
 
 
 def demo_scenario() -> Scenario:
-    """The demo heat wave: hot, a 2 pm storm, and a new hire. Used by the briefing and day-1 vs day-14 demo."""
-    return make_scenario(7, prefix="demo", tags=["heat_dome", "storm_2pm", "new_hire"])
+    """The demo day: hot July shift, lightning around 2 pm, and a new hire. Used by the briefing and the demos."""
+    return make_scenario(5, prefix="demo", tags=["storm_2pm", "new_hire"])
 
 
 def train_scenarios(n: int, start_seed: int = 0) -> list[Scenario]:
