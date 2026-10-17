@@ -146,7 +146,7 @@ def build(tokenizer=None, max_tokens: int = 6144) -> dict:
         split = "valid" if run["split"] == "val" else "train"
         for ex in exs:
             if tokenizer is not None:
-                n = len(tokenizer.apply_chat_template(ex["messages"], tokenize=True))
+                n = len(tokenizer.apply_chat_template(ex["messages"], tokenize=True, return_dict=False))
                 if n > max_tokens:
                     stats[f"too_long:{ex['kind']}"] += 1
                     continue
