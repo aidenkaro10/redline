@@ -438,6 +438,21 @@ def test_A24_live_feeds_offline_serve_stale_and_never_crash():
         store.set_mode("fake")
 
 
+def test_A24_a_feed_that_goes_down_serves_its_last_good_copy_marked_stale():
+    """The cache every live feed goes through (C1's FeedCache): good fetch, then the network dies."""
+    from backend.hazards.cache import FeedCache
+    cache = FeedCache("e2e_test_feed", max_age_s=60)
+    t = datetime(2026, 7, 20, 18, 0, tzinfo=timezone.utc)
+    good = cache.get(lambda: {"alerts": ["Heat Advisory"]}, now=t)
+    assert good.data == {"alerts": ["Heat Advisory"]} and not good.stale
+
+    def offline():
+        raise OSError("network is down")
+    later = cache.get(offline, now=t + timedelta(minutes=5))
+    assert later.data == good.data and later.stale and "network is down" in later.error
+    assert later.fetched_at == good.fetched_at                  # says how old the copy is
+
+
 def test_A25_hazard_index_is_0_to_10_or_none_everywhere():
     from backend.hazards import contract, picture, store
     store.set_mode("fake")
