@@ -191,7 +191,19 @@ The PlanIT Control track brief asks for more than the original spec. Sources and
 | 0-10 hazard index | Trained on IEM warnings, Storm Events, OSHA, Open-Meteo archive | C2 |
 | 6 PM briefing | Forecasts + index + past incidents near the site | B |
 
-**Parallel sessions (each on its own branch):** A = live system (Phase 0 rest), B = planner (Phase 7) + 6 PM briefing, C1 = site hazards live, C2 = hazard index ML. This session keeps the worker-layer ML.
+**Parallel sessions (each on its own branch, each owns its own folders):**
+
+| Session | Builds | Owns |
+| --- | --- | --- |
+| This one | Worker-layer ML: calibration, ensemble, twins, curriculum, explainability | `ml/`, `backend/models/` |
+| A. Live system | Phase 0 rest: alerts, pipeline, replay, FastAPI + chart page, Pulsoid/USB/WiFi, fake band, SQLite | `backend/app`, `alerts`, `replay`, `ingest`, `storage` |
+| B. Planner | Phase 7 + 6 PM briefing | `backend/planner/` |
+| C1. Site hazards, live | 50+ sites, all live hazard feeds, Liljegren WBGT, lightning 10-mile rule | `backend/sites/`, `backend/hazards/` |
+| C2. Hazard index ML | Historical data pipeline + 0-10 index model | `ml/hazard_index/` |
+| D. Emergency escalation | Confirmed man-down → call order, cancel window, ElevenLabs voice agent calling a test number | `backend/emergency/` |
+| E. Frontend | Next.js dashboard shell on mock data: site map, worker cards, forecast chart, man-down + emergency screens, demo controls | `frontend/` |
+
+Only this session trains big models (one laptop CPU). Each session documents the API it exposes so A and E can wire everything together.
 
 ## Phase 8: hazards and man-down
 
@@ -200,6 +212,14 @@ The PlanIT Control track brief asks for more than the original spec. Sources and
 3. `alerts/router.py`: priority `MANDOWN` > `HEAT_RED` > `LIGHTNING` > `HEAT_YELLOW` > `FLOOD_FIRE`, sends only on change, no flicker.
 4. `alerts/mandown.py`: tilt rule, accelerometer rule when the Grove part arrives, unacknowledged red alert trigger.
 5. Man-down classifier on accelerometer windows (falls, sits, normal movement recorded by teammates).
+
+## Phase 8b: emergency escalation (confirmed man-down)
+
+1. `emergency/escalation.py`: fixed rule (code, not LLM): confirmed man-down → notify crew lead + safety officer → short cancel window → emergency call. Every step logged.
+2. `emergency/voice_agent.py`: ElevenLabs voice agent places a phone call and reads a factual report (name, site, GPS, what happened, last vitals, time). Answers simple follow-ups from data only.
+3. **Demo mode only calls a test number** (a teammate playing dispatcher). The screen says "Demo: would call 911". Never dial real 911 from the prototype.
+4. Real deployment path: route the 911 leg through a licensed emergency-dispatch provider. Note it in the pitch.
+5. Needs: ElevenLabs API key and a phone-calling service (ask Aiden before adding either).
 
 ## Phase 9: frontend (Next.js + Tailwind + Recharts + Leaflet)
 
@@ -246,3 +266,4 @@ Sweat, man-down classifier, explainability, CAVIA training (keep plain twins), a
 - **Real data size:** small datasets limit fine-tuning and calibration.
 - **WBGT needs sun strength.** NWS only gives cloud cover, so it's estimated.
 - **ECTemp is patented.** Fine for a hackathon.
+- **Automated 911 calls are legally restricted.** The prototype only ever calls a test number.

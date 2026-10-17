@@ -104,7 +104,12 @@ The band and the watch send readings to the laptop. The laptop estimates and for
 - **Data contract:** agree on one message format before building anything, so every piece snaps together: worker\_id, timestamp, hr, skin\_temp, tilt, activity, accel (optional). Downstream code gets one-minute averages for the models.
 - **API server:** FastAPI (Python), with WebSockets to stream live data to the frontend.
 - **Storage:** SQLite for speed, or Supabase (Postgres) if we want it hosted. Tables: readings, workers, alerts, plans.
-- **Hazard feed:** the National Weather Service API (free, no key) for active alerts at the job site (heat, thunderstorm, flood, fire weather) and the hourly forecast. Compute wet bulb globe temperature (WBGT) from the forecast with the Liljegren method; open-source implementations exist.
+- **Hazard feeds (required by the track brief):** the app pulls live hazard APIs for every job site and reports them on the dashboard, the band and the 6 PM briefing. See "Site hazard layer" below and `docs/data-sources.md`.
+  - Weather and extreme heat: NWS active alerts (free, no key, needs a User-Agent) plus Open-Meteo for temperature, humidity, solar radiation, wind and soil moisture. Compute WBGT with the Liljegren method (the NWS hourly forecast has no solar radiation).
+  - Lightning: GOES-19 satellite lightning flashes, for a 10-mile stop-work rule with a 30-minute all-clear countdown.
+  - Flooding: NWS river gauges (NWPS) and flood alerts, NOAA Tides & Currents for coastal sites.
+  - Wildfire: NASA FIRMS detections, NIFC incidents, Red Flag Warnings.
+  - Soil saturation: Open-Meteo soil moisture. Wildlife: iNaturalist plus crew photo reports.
 - **Alert router:** decides which pattern to send to the band and who to notify (the worker, the crew lead, nearby crewmates).
 - **Replay mode:** streams recorded or synthetic data as if it were live, including a speed-up factor (for example 10x). If hardware fails during judging, flip to this. Build it in the first few hours.
 
@@ -179,7 +184,7 @@ Each hazard gets its own buzz and LED pattern, so the worker knows what's wrong 
 | --- | --- | --- | --- |
 | Heat warning | 20-min forecast (90th percentile) crosses 38.0 °C | One long buzz | Solid yellow |
 | Heat danger | Current estimate or 10-min forecast crosses 38.5 °C | Long buzz every 10 s until acknowledged | Flashing red |
-| Lightning or thunderstorm | Active NWS alert at the site | Rapid pulses | Rapid white flashes |
+| Lightning | GOES-19 lightning within 10 miles (2+ good-quality flashes); stays on until 30 min with no strikes | Rapid pulses | Rapid white flashes |
 | Flood or fire weather | Active NWS alert at the site | Two short buzzes | Blue |
 | Man-down check | Band tips over, then no movement for 30–60 s | Continuous buzz; button press or movement cancels | Whole strip pulsing red |
 
@@ -194,7 +199,30 @@ Man-down fires when the worker appears to have fallen or stopped responding. We 
 - **Also trigger** on a red heat alert with no button press within a minute.
 - **Version 2 (ML):** a small classifier on accelerometer windows, trained on recorded falls, sits and normal movement from teammates.
 
-**On trigger:** buzz the worker first with the continuous man-down pattern. Any movement or a button press cancels it. If it isn't cancelled, alert the crew lead and nearby crewmates with the worker's location.
+**On trigger:** buzz the worker first with the continuous man-down pattern. Any movement or a button press cancels it. If it isn't cancelled, alert the crew lead and nearby crewmates with the worker's location, then start emergency escalation (below).
+
+## Emergency escalation (confirmed man-down)
+
+When a man-down is **confirmed** (no cancel within a minute, see above), an AI voice agent built on ElevenLabs places a phone call and reads out a short, factual emergency report: worker name, site name and GPS location, what happened ("collapsed, no movement for 90 seconds"), last vitals (estimated core temp, heart rate) and how long ago it started. It can answer simple follow-up questions from the person on the line ("Is he breathing?" → "Unknown. Last movement was at 2:14 pm").
+
+Rules:
+- **The decision to call is made by code, never by the LLM.** Fixed rule: confirmed man-down → call. The voice agent only delivers the report.
+- **Call order:** crew lead and site safety officer first (phone + dashboard), then emergency services. A crew lead can press "cancel, false alarm" within a short window.
+- **Never call real 911 from the prototype.** Automated or prerecorded calls to 911 are restricted by law, and test calls tie up dispatchers. For the demo, the agent calls a teammate's phone acting as the dispatcher, and the screen says "Demo: would call 911".
+- **Real deployment:** route the 911 leg through a licensed emergency-dispatch provider that connects to 911 call centers with location data, instead of dialing 911 directly.
+- Every call is logged with time, number, transcript and outcome.
+
+## Site hazard layer (track brief)
+
+The track brief asks for a site layer on top of the worker layer. Full source list and gotchas: `docs/data-sources.md`.
+
+- **Job sites:** 50+ real Florida power plants from EIA-860M (public domain), converted once to `plants.geojson`. Mix gas, nuclear and solar.
+- **Live hazards per site:** heat, lightning (10-mile rule, 30-min countdown), flooding, wildfire, soil saturation, wildlife (see Hazard feeds above). Each hazard has a status, a source, a timestamp and a band/LED pattern.
+- **0-10 hazard index:** an ML model scoring each site for tomorrow, using only what's known by 6 PM the day before. Labels: NWS warnings that covered the site (IEM archive), Storm Events, Local Storm Reports, OSHA heat and fall injuries. Split by time, judged by PR-AUC.
+- **Risk-ranked map:** sites ranked by the index, flagged when a worker on site has a heat alert or man-down.
+- **6 PM briefing:** tomorrow's index and hazards per site, forecast windows, past incidents nearby, and the planner's suggested schedule.
+- **Crew photo reports:** workers snap a photo with a note (snake, standing water, downed line). Shows on the map.
+- **Reporting:** every hazard event is logged with source and time, so the site has a record of what was reported and when.
 
 ## Frontend
 
@@ -311,6 +339,9 @@ planit-control/
   backend/models/         kalman.py (ECTemp), forecaster.py (GRU inference)
   backend/hazards/        nws.py, wbgt.py (Liljegren)
   backend/alerts/         router.py, mandown.py
+  backend/emergency/      escalation.py (call order, cancel window), voice_agent.py (ElevenLabs + phone call)
+  backend/planner/        rule checker, optimizer, Claude agent, 6 PM briefing
+  backend/sites/          plants.geojson (50+ Florida power plants), site hazard feeds, 0-10 hazard index
   backend/replay/         replay.py (recorded or synthetic data, speed factor)
   backend/storage/        db.py (SQLite: readings, workers, alerts, plans)
   ml/                     simulate.py (pythermalcomfort), train.py, evaluate.py
