@@ -163,3 +163,32 @@ body {
 .dark .leaflet-control-attribution { background: rgba(26, 26, 25, 0.8) !important; color: var(--muted); }
 .dark .leaflet-control-attribution a { color: var(--ink-2); }
 .dark .leaflet-bar a { background: var(--surface); color: var(--ink); border-color: var(--line); }
+
+/* ---- Selling page (/preview) motion ---------------------------------------------------- */
+@keyframes rise { from { opacity: 0; transform: translateY(22px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes drop { from { opacity: 0; transform: translateY(-46px); } 70% { opacity: 1; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pop { from { opacity: 0; transform: translateY(-14px) scale(.6); } 70% { transform: translateY(2px) scale(1.06); } to { opacity: 1; transform: none; } }
+@keyframes pulse-soft { 0%, 100% { opacity: .15; transform: scale(.85); } 50% { opacity: .45; transform: scale(1.15); } }
+@keyframes shimmer { 0%, 100% { transform: translateY(0); opacity: .15; } 50% { transform: translateY(-10px); opacity: .55; } }
+@keyframes steam { 0% { transform: translate(0, 6px) scale(.8); opacity: 0; } 30% { opacity: .9; } 100% { transform: translate(18px, -26px) scale(1.25); opacity: 0; } }
+@keyframes rain { from { transform: translateY(-8px); opacity: 0; } 50% { opacity: .8; } to { transform: translateY(16px); opacity: 0; } }
+@keyframes bolt { 0%, 86%, 100% { opacity: 0; } 88%, 92% { opacity: 1; } 90% { opacity: .3; } }
+@keyframes flip-in { from { opacity: 0; transform: rotateX(-70deg); } to { opacity: 1; transform: none; } }
+
+.rise { animation: rise .9s cubic-bezier(.2, .8, .2, 1) both; }
+.fade-in { animation: fade-in 1s ease both; }
+.flip-in { animation: flip-in .6s cubic-bezier(.2, .8, .2, 1) both; transform-origin: top; }
+.scene-in { animation: fade-in .8s ease both; }
+.scene-drop { animation: drop .8s cubic-bezier(.2, .8, .2, 1) both; transform-box: fill-box; }
+.scene-pop { animation: pop .55s cubic-bezier(.2, .8, .2, 1) both; transform-box: fill-box; transform-origin: bottom; }
+.scene-pulse { animation: pulse-soft 1.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.scene-shimmer { animation: shimmer 3s ease-in-out infinite; }
+.scene-steam { animation: steam 3.6s ease-out infinite; }
+.scene-rain { animation: rain .7s linear infinite; }
+.scene-bolt { animation: bolt 2.6s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .rise, .fade-in, .flip-in, .scene-in, .scene-drop, .scene-pop, .scene-pulse, .scene-shimmer,
+  .scene-steam, .scene-rain, .scene-bolt { animation: none; }
+}
