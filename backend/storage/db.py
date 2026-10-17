@@ -8,6 +8,7 @@ Tables
     alerts     every alert-type event: heat alerts, acks, band commands,
                man-down, hazards (full event as JSON too)
     plans      schedules from the planner (session B)
+    reports    crew photo reports (snake, standing water, downed line ...)
     estimates  one row per worker per minute: inputs, Kalman, model estimate,
                forecast at +10/+20/+30 min, model name, twin version.
                The twins learn from this table later.
@@ -40,6 +41,10 @@ CREATE TABLE IF NOT EXISTS alerts (
 CREATE INDEX IF NOT EXISTS alerts_worker_time ON alerts (worker_id, timestamp);
 CREATE TABLE IF NOT EXISTS plans (
     id INTEGER PRIMARY KEY, timestamp REAL, source TEXT, plan TEXT
+);
+CREATE TABLE IF NOT EXISTS reports (
+    id TEXT PRIMARY KEY, site_id TEXT, worker_id TEXT, kind TEXT, note TEXT,
+    lat REAL, lon REAL, photo TEXT, at REAL
 );
 CREATE TABLE IF NOT EXISTS estimates (
     worker_id TEXT, timestamp REAL, minute INTEGER,
@@ -102,6 +107,11 @@ class Database:
     def add_plan(self, ev: dict) -> None:
         self._write("INSERT INTO plans (timestamp, source, plan) VALUES (?, ?, ?)",
                     (ev["timestamp"], ev.get("source"), json.dumps(ev["plan"])))
+
+    def add_report(self, r: dict) -> None:
+        self._write("INSERT OR REPLACE INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (r["id"], r["site_id"], r.get("worker_id"), r["kind"], r["note"],
+                     r.get("lat"), r.get("lon"), r.get("photo"), r["at"]))
 
     def log_event(self, ev: dict) -> None:
         """Called by the hub for every event; keeps the ones that belong in a table."""

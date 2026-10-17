@@ -29,6 +29,7 @@ from pydantic import BaseModel
 
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand, UDPBand
+from backend.app.frontend_api import FrontendAdapter, router as frontend_router
 from backend.app.hub import Hub
 from backend.replay import shifts
 from backend.replay.replay import Replay
@@ -121,7 +122,9 @@ async def lifespan(app: FastAPI):
     hub = Hub(predictor=load_predictor(s), band=band, db=db, recorder=recorder, demo=s.demo)
     hub.add_listener(print_key_event)
     app.state.hub = hub
-    tasks = [asyncio.create_task(_tick_forever(hub))]
+    app.state.frontend = FrontendAdapter(hub)           # the Next.js dashboard's contract (/ws/live)
+    hub.add_listener(app.state.frontend.on_event)
+    tasks = [asyncio.create_task(_tick_forever(hub, app.state.frontend))]
 
     tasks += wire_emergency(hub, s)
 
@@ -191,12 +194,16 @@ def wire_emergency(hub: Hub, s) -> list[asyncio.Task]:
     return [asyncio.create_task(manager.run())]
 
 
-async def _tick_forever(hub: Hub):
+async def _tick_forever(hub: Hub, frontend: FrontendAdapter):
+    n = 0
     while True:
         try:
             hub.tick()
+            if n % 2 == 0:
+                frontend.tick()              # clock + band-connected, once a second
         except Exception:
             log.exception("tick failed")
+        n += 1
         await asyncio.sleep(TICK_S)
 
 
@@ -225,6 +232,9 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
 
 
 app = FastAPI(title="PlanIT Control", lifespan=lifespan)
+app.include_router(frontend_router)
+# Every route is "async def" on purpose: FastAPI runs those on the event loop, so the hub
+# is only ever touched from one thread. (Plain "def" routes would run on a thread pool.)
 
 
 def hub_of() -> Hub:
@@ -251,17 +261,18 @@ def _worker(worker_id: str):
 # Page + live stream
 # ---------------------------------------------------------------------------
 @app.get("/")
-def index():
+async def index():
     return FileResponse(STATIC / "index.html")
 
 
-@app.get("/api/state")
-def state():
+@app.get("/api/raw/state")
+async def raw_state():
+    """The hub's own snapshot (what /ws sends first). The dashboard uses /api/state instead."""
     return _clean(hub_of().snapshot())
 
 
-@app.get("/api/workers/{worker_id}/history")
-def history(worker_id: str, limit: int = 600):
+@app.get("/api/raw/workers/{worker_id}/estimates")
+async def raw_estimates(worker_id: str, limit: int = 600):
     _worker(worker_id)
     return _clean(list(hub_of().pipelines[worker_id].estimates)[-limit:])
 
@@ -311,9 +322,9 @@ class WorkerRequest(BaseModel):
 
 
 @app.post("/api/demo/threshold")
-def demo_threshold(body: OnOff):
+async def demo_threshold(body: OnOff):
     hub_of().set_demo(body.on)
-    return {"demo": body.on}
+    return app.state.frontend.demo_state()
 
 
 @app.post("/api/replay")
@@ -330,7 +341,7 @@ async def replay_toggle(body: ReplayRequest):
 
 
 @app.post("/api/replay/speed")
-def replay_speed(body: Speed):
+async def replay_speed(body: Speed):
     if body.speed <= 0:
         raise HTTPException(400, "speed must be > 0")
     hub = hub_of()
@@ -341,7 +352,7 @@ def replay_speed(body: Speed):
 
 
 @app.post("/api/demo/hazard")
-def demo_hazard(body: HazardRequest):
+async def demo_hazard(body: HazardRequest):
     try:
         return hub_of().set_site_hazard(body.site_id, body.kind, body.on, body.source, body.details)
     except ValueError as e:
@@ -349,28 +360,28 @@ def demo_hazard(body: HazardRequest):
 
 
 @app.post("/api/demo/fall")
-def demo_fall(body: WorkerRequest):
+async def demo_fall(body: WorkerRequest):
     _worker(body.worker_id)
     hub_of().fake_fall(body.worker_id)
     return {"ok": True}
 
 
 @app.post("/api/demo/button")
-def demo_button(body: WorkerRequest):
+async def demo_button(body: WorkerRequest):
     _worker(body.worker_id)
     hub_of().press_button(body.worker_id)
     return {"ok": True}
 
 
 @app.post("/api/demo/sos")
-def demo_sos(body: WorkerRequest):
+async def demo_sos(body: WorkerRequest):
     _worker(body.worker_id)
     hub_of().press_sos(body.worker_id)
     return {"ok": True}
 
 
 @app.post("/api/emergency/cancel")
-def emergency_cancel(body: WorkerRequest):
+async def emergency_cancel(body: WorkerRequest):
     """Crew lead: "cancel, false alarm". False if there's nothing to cancel or it's too late."""
     manager = getattr(app.state, "emergency", None)
     if manager is None:
@@ -378,17 +389,11 @@ def emergency_cancel(body: WorkerRequest):
     return {"cancelled": manager.cancel(worker_id=body.worker_id)}
 
 
-@app.post("/api/mandown/{worker_id}/resolve")
-def mandown_resolve(worker_id: str):
-    _worker(worker_id)
-    hub_of().resolve_mandown(worker_id)
-    return {"ok": True}
-
-
 # ---------------------------------------------------------------------------
 # Plug-ins: site hazards (C1), sites (C1), plans (B), worker assignment
 # ---------------------------------------------------------------------------
-class SiteRequest(BaseModel):
+class SiteRequest(BaseModel, extra="allow"):
+    """A job site. Extra fields (operator, tech, capacity_mw, county, coastal) are kept."""
     site_id: str
     name: str
     lat: float
@@ -414,24 +419,33 @@ class AssignRequest(BaseModel):
 
 
 @app.post("/api/hazards")
-def hazards(body: HazardRequest):
-    return demo_hazard(body)
+async def hazards(body: HazardRequest):
+    return await demo_hazard(body)
 
 
 @app.post("/api/sites")
-def add_site(body: SiteRequest):
+async def add_site(body: SiteRequest):
     hub_of().add_site(body.model_dump())
     return body.model_dump()
 
 
+@app.post("/api/sites/{site_id}/status")
+async def site_status(site_id: str, body: dict):
+    """Session C1: full SiteStatus (hazards list, index_tomorrow, index_drivers) for the dashboard."""
+    if site_id not in hub_of().sites:
+        raise HTTPException(404, f"Unknown site {site_id}")
+    hub_of().set_site_status(site_id, body)
+    return {"ok": True}
+
+
 @app.post("/api/sites/{site_id}/weather")
-def site_weather(site_id: str, body: WeatherRequest):
+async def site_weather(site_id: str, body: WeatherRequest):
     hub_of().set_site_weather(site_id, body.wbgt, body.future_wbgt)
     return {"ok": True}
 
 
 @app.post("/api/workers/{worker_id}/context")
-def worker_context(worker_id: str, body: ContextRequest):
+async def worker_context(worker_id: str, body: ContextRequest):
     """Session B: a worker's planned workload (now and next 30 min). Forecaster inputs."""
     _worker(worker_id)
     hub_of().set_context(worker_id, **body.model_dump(exclude_none=True))
@@ -439,7 +453,7 @@ def worker_context(worker_id: str, body: ContextRequest):
 
 
 @app.post("/api/workers")
-def assign_worker(body: AssignRequest):
+async def assign_worker(body: AssignRequest):
     """Create a worker or move one to another site (resets their pipeline)."""
     hub = hub_of()
     if body.site_id and body.site_id not in hub.sites:
@@ -451,7 +465,7 @@ def assign_worker(body: AssignRequest):
 
 
 @app.post("/api/plans")
-def add_plan(plan: dict):
+async def add_plan(plan: dict):
     return hub_of().add_plan(plan)
 
 

@@ -67,6 +67,7 @@ class Hub:
         self.listeners: list[Callable[[dict], None]] = []
         self.recent: deque = deque(maxlen=RECENT_KEEP)
         self.hazards: dict[str, dict[str, dict]] = {}     # site_id -> kind -> latest hazard event
+        self.site_status: dict[str, dict] = {}            # site_id -> full status pushed by session C1
         self.plans: list[dict] = []
         self.replay = None              # the running Replay, if any
         self.replay_task: asyncio.Task | None = None
@@ -255,6 +256,15 @@ class Hub:
                 events += self.pipelines[wid].set_hazard(pattern, pattern_on, self.now(wid))
         self.dispatch(events)
         return ev
+
+    def set_site_status(self, site_id: str, status: dict) -> None:
+        """
+        Session C1: the full live hazard picture for a site (contract's SiteStatus: hazards,
+        index_tomorrow, index_drivers). Shown on the dashboard as-is. Band patterns still
+        only change through set_site_hazard(), so C1 calls both.
+        """
+        self.site_status[site_id] = status
+        self.dispatch([{"type": "site_status_update", "timestamp": self.real_clock.now(), "site_id": site_id}])
 
     def press_sos(self, worker_id: str) -> None:
         """Demo: act as if the worker held the band button for 3 s (SOS)."""

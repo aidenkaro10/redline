@@ -22,9 +22,9 @@ def add_readings(hub, worker_id="w1", n=30, hr=170):
 
 
 def test_page_and_state(client):
-    assert "Chart.js" in client.get("/").text or "chart.umd" in client.get("/").text
+    assert "chart.umd" in client.get("/").text
     add_readings(main.app.state.hub)
-    s = client.get("/api/state").json()
+    s = client.get("/api/raw/state").json()
     assert s["type"] == "snapshot" and s["workers"][0]["worker_id"] == "w1"
     assert s["workers"][0]["history"]
 
