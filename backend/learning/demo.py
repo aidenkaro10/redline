@@ -5,6 +5,7 @@ Demo artifacts for the frontend (session E). Plain JSON in backend/learning/demo
   family_tree.json       every agent version from Loop 3 with its scores, parent and edit
   day1_vs_day14.json     the same heat-wave day planned by the day-1 and the day-14 agent,
                          worked in the simulated world, side by side
+  weights_tuning.json    default vs tuned PlannerWeights (tasks per shift, heat minutes, violations), Pareto front
   summary.json           headline numbers, API cost, and safety violations per version (all 0)
 
 Shapes: docs/interfaces/agent-learning.md.
@@ -13,6 +14,7 @@ Run (after the loops):  python -m backend.learning.demo
 """
 
 import json
+import os
 
 import numpy as np
 
@@ -176,6 +178,26 @@ def day1_vs_day14(bank_ids: set) -> dict:
     return out
 
 
+def weights_tuning(ws: dict) -> dict:
+    """Default vs tuned PlannerWeights: picked on training days, scored once on B's held-out days."""
+    keys = ("tasks_per_shift", "throughput", "minutes_above_yellow", "minutes_above_red", "peak_p90_c",
+            "fairness_spread", "safety_violations", "invalid")
+    pick = lambda r: {k: r[k] for k in keys} if r else None
+    d, t = ws["defaults_train"]["weights"], ws["best_train"]["weights"]
+    changed = {k: {"default": d[k], "tuned": t[k]} for k in t if t[k] != d[k]}
+    ho = ws.get("held_out") or {}
+    return {
+        "label": "Simulated shifts. Weights picked on training days only; held-out days scored once.",
+        "changed_weights": changed, "tuned_is_default": ws["best_is_default"],
+        "train": {"n_days": ws["n_train_days"], "default": pick(ws["defaults_train"]), "tuned": pick(ws["best_train"])},
+        "held_out": None if not ho else {"n_days": ho["n_test_days"], "default_optimizer_only": pick(ho["defaults"]),
+                                         "tuned": pick(ho["tuned"])},
+        "pareto_train": [{**pick(r), "weights": r["weights"]} for r in ws["pareto_train"]],
+        "all_train": [pick(r) for r in ws["full_train"]],
+        "claude_cost_usd": ws.get("claude_cost_usd", 0.0),
+    }
+
+
 def summarize_candidates(cands: list[dict]) -> dict:
     """How day 14 did on ALL candidate days, not just the one shown (so nobody oversells the demo)."""
     import numpy as np
@@ -198,17 +220,27 @@ def build_all() -> dict:
         written["playbook_growth"] = playbook_growth(ace_run)
     if gepa_run:
         written["family_tree"] = family_tree(gepa_run)
-    written["day1_vs_day14"] = day1_vs_day14({r["id"] for r in bank["bank"]})
+    ws = _read("weights_search.json")
+    if ws:
+        written["weights_tuning"] = weights_tuning(ws)
+    if os.getenv("DEMO_REUSE_DAY") and (settings.DEMO_DIR / "day1_vs_day14.json").exists():
+        written["day1_vs_day14"] = json.loads((settings.DEMO_DIR / "day1_vs_day14.json").read_text())   # skip the slow re-plan
+    else:
+        written["day1_vs_day14"] = day1_vs_day14({r["id"] for r in bank["bank"]})
     viol = {"ace_days": sum(d["safety_violations"] for d in written.get("playbook_growth", {}).get("days", [])),
             "ace_gates": sum((d["gate"] or {}).get("safety_violations", 0)
                              for d in written.get("playbook_growth", {}).get("days", [])),
             "gepa_versions": sum((n["scores"] or {}).get("safety_violations", 0)
                                  for n in written.get("family_tree", {}).get("nodes", [])),
             "demo_days": sum(c[k]["safety_violations"] for c in written["day1_vs_day14"]["candidates"]
-                             for k in ("day1", "day14", "day14_evolved"))}
+                             for k in ("day1", "day14", "day14_evolved")),
+            "weight_search": 0 if "weights_tuning" not in written else sum(
+                (r or {}).get("safety_violations", 0) for r in [written["weights_tuning"]["train"]["tuned"],
+                                                                (written["weights_tuning"]["held_out"] or {}).get("tuned")])}
     written["summary"] = {
         "safety_violations": viol, "all_zero": all(v == 0 for v in viol.values()),
         "demo_days": written["day1_vs_day14"]["candidates_summary"],
+        "weights": None if "weights_tuning" not in written else written["weights_tuning"]["held_out"],
         "curriculum": {"kept": bank["n_kept"], "tried": bank["n_tried"], "llm": bank["llm"]},
         "ace": None if not ace_run else {"days": len(ace_run["timeline"]), "final_version": ace_run["versions"][-1]["version"],
                                          "gate_score_start": ace_run["versions"][0]["gate"]["score"],
