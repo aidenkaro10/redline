@@ -60,7 +60,9 @@ SQLite tables: `readings`, `workers`, `alerts`, `plans` (spec), plus `estimates`
 
 ## Phase 1: data
 
-### 1a. Public datasets (Aiden found some, more requested)
+### 1a. Public datasets (details in [docs/datasets.md](docs/datasets.md))
+
+**Mendeley (Buono 2022)** is the main real dataset: 65 people, a heat and a neutral session each, 2 hours per session, per-minute HR and core temp. ECTemp gets RMSE 0.47 °C on it, so it's beatable. **Abertay** (14 people, sprints) is probably only useful for skin temp and acclimatization; decide after reading its ReadMe.
 
 1. One loader per dataset, all converted to the same 1-minute table: person ID, minute, HR, skin temp (if any), activity (if any), weather (if any), **measured core temp**.
 2. Check each license and note it.
@@ -195,7 +197,9 @@ Sweat, man-down classifier, explainability, CAVIA training (keep plain twins), a
 
 ## Waiting on
 
-- Aiden: dataset names/links (found + requested).
+- Abertay ReadMe + spreadsheet: download and check if core temp is per-minute.
+- Study protocol for the Mendeley data (air temp, humidity, exercise intensity per condition).
+- Who made the cleaning columns in data.csv, and how.
 - Hardware team: UDP on port 5005? Button stops the repeat buzz on its own and still sends `BTN:1`? Diode calibration on the band?
 
 ## Risks

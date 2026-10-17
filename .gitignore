@@ -22,3 +22,6 @@ node_modules/
 
 # Mac
 .DS_Store
+
+# Raw datasets (download separately, see docs/datasets.md)
+data/raw/
