@@ -1,0 +1,270 @@
+{
+ "id": "test-1004",
+ "site": {
+  "id": "babcock-solar",
+  "name": "Babcock Ranch Solar Energy Center",
+  "lat": 26.834,
+  "lon": -81.747
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 25.73,
+   "rh": 83.4,
+   "solar": 103.1,
+   "wind": 2.59,
+   "wbgt": 24.37
+  },
+  {
+   "tdb": 26.45,
+   "rh": 79.8,
+   "solar": 195.5,
+   "wind": 2.51,
+   "wbgt": 24.92
+  },
+  {
+   "tdb": 27.15,
+   "rh": 76.3,
+   "solar": 285.2,
+   "wind": 2.73,
+   "wbgt": 25.42
+  },
+  {
+   "tdb": 27.84,
+   "rh": 72.8,
+   "solar": 371.1,
+   "wind": 2.27,
+   "wbgt": 25.95
+  },
+  {
+   "tdb": 28.5,
+   "rh": 69.5,
+   "solar": 452.1,
+   "wind": 2.67,
+   "wbgt": 26.36
+  },
+  {
+   "tdb": 29.14,
+   "rh": 66.4,
+   "solar": 527.1,
+   "wind": 2.29,
+   "wbgt": 26.82
+  },
+  {
+   "tdb": 29.74,
+   "rh": 63.4,
+   "solar": 595.0,
+   "wind": 2.74,
+   "wbgt": 27.14
+  },
+  {
+   "tdb": 30.3,
+   "rh": 60.6,
+   "solar": 655.0,
+   "wind": 2.49,
+   "wbgt": 27.5
+  },
+  {
+   "tdb": 30.82,
+   "rh": 58.0,
+   "solar": 706.3,
+   "wind": 2.74,
+   "wbgt": 27.75
+  },
+  {
+   "tdb": 31.29,
+   "rh": 55.7,
+   "solar": 748.2,
+   "wind": 2.45,
+   "wbgt": 28.04
+  },
+  {
+   "tdb": 31.71,
+   "rh": 53.6,
+   "solar": 780.1,
+   "wind": 2.57,
+   "wbgt": 28.21
+  },
+  {
+   "tdb": 32.07,
+   "rh": 51.8,
+   "solar": 801.6,
+   "wind": 2.99,
+   "wbgt": 28.28
+  },
+  {
+   "tdb": 32.38,
+   "rh": 50.3,
+   "solar": 812.4,
+   "wind": 2.7,
+   "wbgt": 28.44
+  },
+  {
+   "tdb": 32.63,
+   "rh": 49.0,
+   "solar": 812.4,
+   "wind": 2.57,
+   "wbgt": 28.52
+  },
+  {
+   "tdb": 32.82,
+   "rh": 48.1,
+   "solar": 801.6,
+   "wind": 2.58,
+   "wbgt": 28.54
+  },
+  {
+   "tdb": 32.95,
+   "rh": 47.4,
+   "solar": 780.1,
+   "wind": 2.61,
+   "wbgt": 28.52
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Kofi",
+   "weight": 82.0,
+   "height": 1.65,
+   "age": 25,
+   "acclim": 1.0,
+   "clo": 0.74,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Marcus",
+   "weight": 98.0,
+   "height": 1.75,
+   "age": 36,
+   "acclim": 1.0,
+   "clo": 0.76,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Emma",
+   "weight": 66.0,
+   "height": 1.65,
+   "age": 41,
+   "acclim": 0.7,
+   "clo": 0.66,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Sam",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 51,
+   "acclim": 1.0,
+   "clo": 0.67,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 21,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 8,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 16,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t4",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 6,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "climbing"
+  },
+  {
+   "id": "t5",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 1,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "severe_thunderstorm",
+   "start_slot": 11,
+   "end_slot": 13,
+   "source": "NWS",
+   "note": "Severe Thunderstorm Warning"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "warning"
+ ]
+}

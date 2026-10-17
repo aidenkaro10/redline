@@ -1,0 +1,320 @@
+{
+ "id": "test-1007",
+ "site": {
+  "id": "deerhaven",
+  "name": "Deerhaven Generating Station",
+  "lat": 29.7597,
+  "lon": -82.3893
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 28.87,
+   "rh": 88.7,
+   "solar": 109.6,
+   "wind": 1.19,
+   "wbgt": 28.05
+  },
+  {
+   "tdb": 29.6,
+   "rh": 85.3,
+   "solar": 207.7,
+   "wind": 1.22,
+   "wbgt": 28.66
+  },
+  {
+   "tdb": 30.33,
+   "rh": 81.9,
+   "solar": 303.0,
+   "wind": 1.99,
+   "wbgt": 29.18
+  },
+  {
+   "tdb": 31.03,
+   "rh": 78.6,
+   "solar": 394.3,
+   "wind": 1.57,
+   "wbgt": 29.76
+  },
+  {
+   "tdb": 31.71,
+   "rh": 75.4,
+   "solar": 480.4,
+   "wind": 1.53,
+   "wbgt": 30.28
+  },
+  {
+   "tdb": 32.36,
+   "rh": 72.4,
+   "solar": 560.0,
+   "wind": 1.97,
+   "wbgt": 30.67
+  },
+  {
+   "tdb": 32.97,
+   "rh": 69.5,
+   "solar": 632.2,
+   "wind": 1.83,
+   "wbgt": 31.11
+  },
+  {
+   "tdb": 33.55,
+   "rh": 66.8,
+   "solar": 696.0,
+   "wind": 1.6,
+   "wbgt": 31.54
+  },
+  {
+   "tdb": 34.08,
+   "rh": 64.4,
+   "solar": 750.5,
+   "wind": 1.14,
+   "wbgt": 31.99
+  },
+  {
+   "tdb": 34.56,
+   "rh": 62.1,
+   "solar": 795.0,
+   "wind": 1.57,
+   "wbgt": 32.15
+  },
+  {
+   "tdb": 34.99,
+   "rh": 60.1,
+   "solar": 828.9,
+   "wind": 0.88,
+   "wbgt": 32.6
+  },
+  {
+   "tdb": 35.36,
+   "rh": 58.4,
+   "solar": 851.7,
+   "wind": 1.37,
+   "wbgt": 32.61
+  },
+  {
+   "tdb": 35.68,
+   "rh": 56.9,
+   "solar": 863.2,
+   "wind": 1.37,
+   "wbgt": 32.74
+  },
+  {
+   "tdb": 35.94,
+   "rh": 55.7,
+   "solar": 863.2,
+   "wind": 0.9,
+   "wbgt": 32.98
+  },
+  {
+   "tdb": 36.13,
+   "rh": 54.8,
+   "solar": 320.1,
+   "wind": 1.32,
+   "wbgt": 31.57
+  },
+  {
+   "tdb": 34.02,
+   "rh": 54.2,
+   "solar": 311.5,
+   "wind": 1.07,
+   "wbgt": 29.57
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Tom",
+   "weight": 74.0,
+   "height": 1.85,
+   "age": 35,
+   "acclim": 1.0,
+   "clo": 0.78,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Ana",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 25,
+   "acclim": 0.7,
+   "clo": 0.69,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Marcus",
+   "weight": 90.0,
+   "height": 1.85,
+   "age": 56,
+   "acclim": 1.0,
+   "clo": 0.62,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Wei",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 26,
+   "acclim": 1.0,
+   "clo": 0.71,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Kofi",
+   "weight": 82.0,
+   "height": 1.85,
+   "age": 21,
+   "acclim": 1.0,
+   "clo": 0.75,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w6",
+   "name": "Jada",
+   "weight": 82.0,
+   "height": 1.65,
+   "age": 55,
+   "acclim": 1.0,
+   "clo": 0.73,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 2,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 13,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 13,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 7,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t5",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 11,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 11,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 17,
+   "outdoor": false,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": 9,
+   "skill": null
+  },
+  {
+   "id": "t7",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 2,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 12,
+   "skill": "electrical"
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "lightning",
+   "start_slot": 14,
+   "end_slot": 16,
+   "source": "GOES-19 GLM",
+   "note": "2+ flashes within 10 miles"
+  },
+  {
+   "kind": "heat_advisory",
+   "start_slot": 0,
+   "end_slot": 16,
+   "source": "NWS",
+   "note": "Heat Advisory (no stop-work)"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "heat_dome",
+  "storm_2pm"
+ ]
+}

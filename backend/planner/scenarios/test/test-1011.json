@@ -1,0 +1,287 @@
+{
+ "id": "test-1011",
+ "site": {
+  "id": "deerhaven",
+  "name": "Deerhaven Generating Station",
+  "lat": 29.7597,
+  "lon": -82.3893
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 26.12,
+   "rh": 80.8,
+   "solar": 111.6,
+   "wind": 3.52,
+   "wbgt": 24.51
+  },
+  {
+   "tdb": 26.86,
+   "rh": 77.4,
+   "solar": 211.5,
+   "wind": 3.03,
+   "wbgt": 25.09
+  },
+  {
+   "tdb": 27.59,
+   "rh": 74.1,
+   "solar": 308.6,
+   "wind": 2.77,
+   "wbgt": 25.66
+  },
+  {
+   "tdb": 28.29,
+   "rh": 70.8,
+   "solar": 401.6,
+   "wind": 3.55,
+   "wbgt": 26.13
+  },
+  {
+   "tdb": 28.98,
+   "rh": 67.7,
+   "solar": 489.3,
+   "wind": 2.21,
+   "wbgt": 26.74
+  },
+  {
+   "tdb": 29.63,
+   "rh": 64.6,
+   "solar": 570.4,
+   "wind": 3.18,
+   "wbgt": 27.08
+  },
+  {
+   "tdb": 30.25,
+   "rh": 61.8,
+   "solar": 643.9,
+   "wind": 2.94,
+   "wbgt": 27.51
+  },
+  {
+   "tdb": 30.82,
+   "rh": 59.1,
+   "solar": 708.9,
+   "wind": 2.56,
+   "wbgt": 27.92
+  },
+  {
+   "tdb": 31.36,
+   "rh": 56.7,
+   "solar": 764.4,
+   "wind": 2.69,
+   "wbgt": 28.21
+  },
+  {
+   "tdb": 31.84,
+   "rh": 54.5,
+   "solar": 809.7,
+   "wind": 3.09,
+   "wbgt": 28.41
+  },
+  {
+   "tdb": 32.27,
+   "rh": 52.5,
+   "solar": 844.2,
+   "wind": 2.94,
+   "wbgt": 28.64
+  },
+  {
+   "tdb": 32.65,
+   "rh": 50.7,
+   "solar": 867.5,
+   "wind": 3.4,
+   "wbgt": 28.73
+  },
+  {
+   "tdb": 32.97,
+   "rh": 49.3,
+   "solar": 324.5,
+   "wind": 2.89,
+   "wbgt": 27.83
+  },
+  {
+   "tdb": 30.41,
+   "rh": 48.1,
+   "solar": 324.5,
+   "wind": 3.44,
+   "wbgt": 25.35
+  },
+  {
+   "tdb": 30.22,
+   "rh": 47.2,
+   "solar": 320.1,
+   "wind": 2.92,
+   "wbgt": 25.09
+  },
+  {
+   "tdb": 30.3,
+   "rh": 46.6,
+   "solar": 311.5,
+   "wind": 2.7,
+   "wbgt": 25.08
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Dev",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 35,
+   "acclim": 1.0,
+   "clo": 0.53,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Rosa",
+   "weight": 98.0,
+   "height": 1.85,
+   "age": 57,
+   "acclim": 1.0,
+   "clo": 0.63,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Jada",
+   "weight": 66.0,
+   "height": 1.75,
+   "age": 32,
+   "acclim": 1.0,
+   "clo": 0.55,
+   "skills": [],
+   "start_core_c": null,
+   "available": [],
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Wei",
+   "weight": 66.0,
+   "height": 1.65,
+   "age": 43,
+   "acclim": 1.0,
+   "clo": 0.62,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Marcus (new hire)",
+   "weight": 82.0,
+   "height": 1.65,
+   "age": 44,
+   "acclim": 0.0,
+   "clo": 0.62,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 4,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 4,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t3",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 3,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": 14,
+   "skill": "electrical"
+  },
+  {
+   "id": "t4",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 11,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 24,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": 10,
+   "skill": null
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "lightning",
+   "start_slot": 12,
+   "end_slot": 13,
+   "source": "GOES-19 GLM",
+   "note": "2+ flashes within 10 miles"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "storm_2pm",
+  "new_hire",
+  "callout"
+ ]
+}

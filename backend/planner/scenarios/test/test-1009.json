@@ -1,0 +1,236 @@
+{
+ "id": "test-1009",
+ "site": {
+  "id": "babcock-solar",
+  "name": "Babcock Ranch Solar Energy Center",
+  "lat": 26.834,
+  "lon": -81.747
+ },
+ "date": "2026-07-15",
+ "shift_start": "11:00",
+ "weather": [
+  {
+   "tdb": 31.73,
+   "rh": 56.8,
+   "solar": 652.9,
+   "wind": 2.05,
+   "wbgt": 28.45
+  },
+  {
+   "tdb": 32.24,
+   "rh": 54.4,
+   "solar": 691.6,
+   "wind": 2.0,
+   "wbgt": 28.71
+  },
+  {
+   "tdb": 32.69,
+   "rh": 52.3,
+   "solar": 721.1,
+   "wind": 2.1,
+   "wbgt": 28.9
+  },
+  {
+   "tdb": 33.08,
+   "rh": 50.5,
+   "solar": 741.0,
+   "wind": 1.53,
+   "wbgt": 29.19
+  },
+  {
+   "tdb": 33.41,
+   "rh": 48.9,
+   "solar": 751.0,
+   "wind": 2.1,
+   "wbgt": 29.17
+  },
+  {
+   "tdb": 33.68,
+   "rh": 47.7,
+   "solar": 751.0,
+   "wind": 1.62,
+   "wbgt": 29.35
+  },
+  {
+   "tdb": 33.88,
+   "rh": 46.7,
+   "solar": 741.0,
+   "wind": 1.96,
+   "wbgt": 29.3
+  },
+  {
+   "tdb": 34.02,
+   "rh": 46.1,
+   "solar": 721.1,
+   "wind": 2.09,
+   "wbgt": 29.26
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Kofi",
+   "weight": 90.0,
+   "height": 1.85,
+   "age": 54,
+   "acclim": 0.7,
+   "clo": 0.51,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": 37.71,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Tom",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 39,
+   "acclim": 1.0,
+   "clo": 0.78,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": 37.44,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Sam",
+   "weight": 66.0,
+   "height": 1.85,
+   "age": 58,
+   "acclim": 1.0,
+   "clo": 0.76,
+   "skills": [],
+   "start_core_c": 37.51,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Jada",
+   "weight": 74.0,
+   "height": 1.75,
+   "age": 25,
+   "acclim": 1.0,
+   "clo": 0.57,
+   "skills": [],
+   "start_core_c": 37.49,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Priya",
+   "weight": 98.0,
+   "height": 1.75,
+   "age": 47,
+   "acclim": 1.0,
+   "clo": 0.76,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": 37.52,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w6",
+   "name": "Luis",
+   "weight": 82.0,
+   "height": 1.75,
+   "age": 47,
+   "acclim": 0.7,
+   "clo": 0.57,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": 37.69,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 2,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 7,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 5,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": 5,
+   "skill": null
+  },
+  {
+   "id": "t3",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 17,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t4",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 5,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "climbing"
+  }
+ ],
+ "hazards": [],
+ "slot_min": 30,
+ "tags": [
+  "replan"
+ ]
+}

@@ -1,0 +1,48 @@
+PlanIT Control 6 PM briefing for 2026-10-18
+
+Tomorrow (2026-10-18): highest hazard index is Big Bend at 0.3/10. Crew site Deerhaven Generating Station: plan optimizer:throughput. Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 67% of priority-weighted work done.
+
+Big Bend (eia-645): index 0.3/10 low  [index: C2, hazards: C1 (fake demo data), weather: C1 (fake demo data), incidents: C2]
+   - heat (extreme): Max WBGT 33 °C around 2 PM
+   - heat (high): NWS HeatRisk: Major
+   - heat (extreme): Now: WBGT 32.9 °C (black flag)
+   - window: WBGT at or above 30 °C from 9 AM to 3 PM
+   - past: 2024-10-01 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+   - past: 2024-09-23 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+   - past: 2024-09-10 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+Crystal River (eia-628): index 0.2/10 low  [index: C2, hazards: C1 (fake demo data), weather: C1 (fake demo data), incidents: C2]
+   - heat (low): Max WBGT 29 °C around 2 PM
+   - heat (low): NWS HeatRisk: Minor
+   - lightning (extreme): Now: Lightning within 10 mi (0.8 mi): STOP WORK, all-clear in 18 min
+   - past: 2024-06-16 Tornado [NOAA Storm Events]
+   - past: 2023-10-12 Tornado [NOAA Storm Events]
+   - past: 2022-09-28 Tropical Storm [NOAA Storm Events]
+Deerhaven Generating Station (eia-663): index 0.2/10 low  [index: C2, hazards: C1 (fake demo data), weather: C1 (fake demo data), incidents: C2]
+   - heat (low): Max WBGT 29 °C around 2 PM
+   - heat (low): NWS HeatRisk: Minor
+   - past: 2024-09-26 Tropical Storm, 1 hurt [NOAA Storm Events]
+   - past: 2024-06-24 Thunderstorm Wind [NOAA Storm Events]
+   - past: 2024-06-11 Thunderstorm Wind [NOAA Storm Events]
+
+Suggested schedule for eia-663 (checked by rule checker: True):
+   07:00 07:30 08:00 08:30 09:00 09:30 10:00 10:30 11:00 11:30 12:00 12:30 13:00 13:30 14:00 14:30
+   Priya
+   HEAVY HEAVY   .   HEAVY light   .   HEAVY light   .   light light light   .    mod   mod   mod 
+   Ana
+   HEAVY  mod  light   .   light light light   .     .    mod   mod   mod    .    mod   mod   mod 
+   Luis
+   light   .     .     .     .     .     .     .   light   .     .     .     .     .     .     .  
+   Jada
+   HEAVY   .     .     .     .     .   light light light   .     .     .     .     .     .     .  
+   Kofi (new hire)
+   HEAVY light HEAVY   .   HEAVY   .     .     .     .     .     .     .     .     .     .     .  
+
+* Heavy outdoor work is scheduled between 07:00 and 10:30.
+* Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 08:00, 09:00, kept under the heat limit with breaks.
+* Won't finish safely tomorrow: Cable pulling, Inverter inspection, Trenching for conduit, Vegetation clearing.
+* Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 67% of priority-weighted work done.
+* Kofi (new hire) is not acclimatized: no very heavy work in high heat.
+* Alternatives: optimizer:margin (56% work, peak 37.85 °C); optimizer:fairness (62% work, peak 37.99 °C)
+
+STUB DATA (other sessions not merged yet):
+  - C1 is in HAZARD_MODE=fake: weather and hazards are its built-in demo day, not real feeds

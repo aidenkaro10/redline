@@ -1,0 +1,256 @@
+{
+ "id": "test-1010",
+ "site": {
+  "id": "deerhaven",
+  "name": "Deerhaven Generating Station",
+  "lat": 29.7597,
+  "lon": -82.3893
+ },
+ "date": "2026-07-15",
+ "shift_start": "11:00",
+ "weather": [
+  {
+   "tdb": 34.17,
+   "rh": 68.6,
+   "solar": 673.7,
+   "wind": 2.02,
+   "wbgt": 32.2
+  },
+  {
+   "tdb": 34.77,
+   "rh": 66.7,
+   "solar": 713.6,
+   "wind": 1.75,
+   "wbgt": 32.69
+  },
+  {
+   "tdb": 35.31,
+   "rh": 65.0,
+   "solar": 744.0,
+   "wind": 1.8,
+   "wbgt": 33.05
+  },
+  {
+   "tdb": 35.78,
+   "rh": 63.5,
+   "solar": 764.5,
+   "wind": 2.03,
+   "wbgt": 33.3
+  },
+  {
+   "tdb": 36.18,
+   "rh": 62.3,
+   "solar": 774.9,
+   "wind": 1.41,
+   "wbgt": 33.68
+  },
+  {
+   "tdb": 36.5,
+   "rh": 61.3,
+   "solar": 774.9,
+   "wind": 2.03,
+   "wbgt": 33.7
+  },
+  {
+   "tdb": 36.74,
+   "rh": 60.5,
+   "solar": 764.5,
+   "wind": 1.65,
+   "wbgt": 33.89
+  },
+  {
+   "tdb": 36.9,
+   "rh": 60.0,
+   "solar": 744.0,
+   "wind": 0.8,
+   "wbgt": 34.18
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Wei",
+   "weight": 90.0,
+   "height": 1.85,
+   "age": 35,
+   "acclim": 1.0,
+   "clo": 0.63,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": 37.7,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Tom",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 29,
+   "acclim": 0.7,
+   "clo": 0.58,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": 37.63,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Emma",
+   "weight": 98.0,
+   "height": 1.85,
+   "age": 51,
+   "acclim": 1.0,
+   "clo": 0.78,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": 37.63,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Marcus",
+   "weight": 82.0,
+   "height": 1.85,
+   "age": 52,
+   "acclim": 1.0,
+   "clo": 0.61,
+   "skills": [],
+   "start_core_c": 37.56,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Luis",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 22,
+   "acclim": 1.0,
+   "clo": 0.76,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": 37.55,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w6",
+   "name": "Ana",
+   "weight": 74.0,
+   "height": 1.75,
+   "age": 48,
+   "acclim": 0.7,
+   "clo": 0.79,
+   "skills": [],
+   "start_core_c": 37.69,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 6,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 4,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 2,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 4,
+   "skill": null
+  },
+  {
+   "id": "t3",
+   "name": "Control room checks",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": false,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 5,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 1,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "climbing"
+  },
+  {
+   "id": "t6",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 16,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 4,
+   "skill": null
+  },
+  {
+   "id": "t7",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 4,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "heat_advisory",
+   "start_slot": 0,
+   "end_slot": 8,
+   "source": "NWS",
+   "note": "Heat Advisory (no stop-work)"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "heat_dome",
+  "replan"
+ ]
+}
