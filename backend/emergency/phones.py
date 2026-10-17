@@ -7,6 +7,8 @@ Phone backends: the thing that actually "places" a call.
 - ElevenLabsPhone (voice_agent.py): a real call. Only with EMERGENCY_LIVE_CALLS=1.
 
 Every backend inherits PhoneBackend.call(), which runs the 911 guard FIRST.
+Status text goes to every dashboard, so it only ever shows a masked number (guard.mask).
+The full number stays in CallResult.number and the log file only.
 A backend only gets to dial inside _dial(), after the guard has passed.
 """
 
@@ -14,7 +16,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Callable
 
-from backend.emergency.guard import RefusedNumber, check_number
+from backend.emergency.guard import RefusedNumber, check_number, mask
 from backend.emergency.report import Report, answer_question
 
 # on_status("calling" | "connected", message) lets the escalation show progress live.
@@ -78,8 +80,8 @@ class DryRunPhone(PhoneBackend):
 
     def _dial(self, number, script, report, on_status):
         start = self.clock()
-        on_status("calling", f"Dry run: would call {number}")
-        self.printer(f"[DRY RUN] Would call {number} and say:\n  {script}")
+        on_status("calling", f"Dry run: would call {mask(number)}")
+        self.printer(f"[DRY RUN] Would call {mask(number)} and say:\n  {script}")
         return CallResult(number=number, status="completed", mode=self.mode, script=script,
                           transcript=[{"role": "agent", "text": script}],
                           started_at=start, ended_at=self.clock())
@@ -107,7 +109,7 @@ class FakePhone(PhoneBackend):
 
     def _dial(self, number, script, report, on_status):
         start = self.clock()
-        on_status("calling", f"Calling {number}")
+        on_status("calling", f"Calling {mask(number)}")
         if not self.answers or number in self.fail_numbers:
             result = CallResult(number=number, status="failed", mode=self.mode, script=script,
                                 started_at=start, ended_at=self.clock(), error="No answer")
