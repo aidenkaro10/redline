@@ -33,6 +33,8 @@ def test_mendeley_loads_as_expected():
     s = next(s for s in data if s.session_id == "mendeley-14-heat")
     assert not s.core_temp_measured.all()        # this session has filled-in dropouts
     assert sum(s.meta["stopped_early"] for s in data) == 36   # 31 heat + 5 neutral
+    hot = next(s for s in data if s.condition == "heat")
+    assert hot.signals["wbgt"][0] == 32.0 and not np.isnan(hot.signals["workload"]).any()
 
 
 @needs_mendeley

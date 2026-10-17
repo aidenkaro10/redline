@@ -1,0 +1,310 @@
+{
+ "id": "test-1001",
+ "site": {
+  "id": "turkey-point",
+  "name": "Turkey Point",
+  "lat": 25.4358,
+  "lon": -80.3305
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 27.4,
+   "rh": 87.6,
+   "solar": 123.8,
+   "wind": 1.03,
+   "wbgt": 26.54
+  },
+  {
+   "tdb": 28.09,
+   "rh": 83.7,
+   "solar": 234.7,
+   "wind": 0.8,
+   "wbgt": 27.13
+  },
+  {
+   "tdb": 28.77,
+   "rh": 79.8,
+   "solar": 342.4,
+   "wind": 0.91,
+   "wbgt": 27.66
+  },
+  {
+   "tdb": 29.43,
+   "rh": 76.1,
+   "solar": 445.6,
+   "wind": 1.2,
+   "wbgt": 28.12
+  },
+  {
+   "tdb": 30.07,
+   "rh": 72.4,
+   "solar": 542.9,
+   "wind": 1.03,
+   "wbgt": 28.62
+  },
+  {
+   "tdb": 30.68,
+   "rh": 69.0,
+   "solar": 632.9,
+   "wind": 1.64,
+   "wbgt": 28.91
+  },
+  {
+   "tdb": 31.25,
+   "rh": 65.7,
+   "solar": 714.5,
+   "wind": 0.95,
+   "wbgt": 29.46
+  },
+  {
+   "tdb": 31.79,
+   "rh": 62.7,
+   "solar": 786.5,
+   "wind": 0.99,
+   "wbgt": 29.78
+  },
+  {
+   "tdb": 32.28,
+   "rh": 59.8,
+   "solar": 848.1,
+   "wind": 1.36,
+   "wbgt": 29.94
+  },
+  {
+   "tdb": 32.74,
+   "rh": 57.3,
+   "solar": 898.4,
+   "wind": 1.31,
+   "wbgt": 30.18
+  },
+  {
+   "tdb": 33.14,
+   "rh": 55.0,
+   "solar": 936.7,
+   "wind": 1.41,
+   "wbgt": 30.32
+  },
+  {
+   "tdb": 33.49,
+   "rh": 53.0,
+   "solar": 962.5,
+   "wind": 0.92,
+   "wbgt": 30.63
+  },
+  {
+   "tdb": 33.79,
+   "rh": 51.3,
+   "solar": 975.5,
+   "wind": 1.2,
+   "wbgt": 30.6
+  },
+  {
+   "tdb": 34.03,
+   "rh": 49.9,
+   "solar": 975.5,
+   "wind": 0.69,
+   "wbgt": 30.85
+  },
+  {
+   "tdb": 34.21,
+   "rh": 48.9,
+   "solar": 962.5,
+   "wind": 0.91,
+   "wbgt": 30.74
+  },
+  {
+   "tdb": 34.33,
+   "rh": 48.2,
+   "solar": 936.7,
+   "wind": 0.82,
+   "wbgt": 30.73
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Wei",
+   "weight": 82.0,
+   "height": 1.75,
+   "age": 34,
+   "acclim": 1.0,
+   "clo": 0.62,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Emma",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 47,
+   "acclim": 0.7,
+   "clo": 0.58,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Dev",
+   "weight": 66.0,
+   "height": 1.65,
+   "age": 57,
+   "acclim": 1.0,
+   "clo": 0.57,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Jada",
+   "weight": 98.0,
+   "height": 1.85,
+   "age": 55,
+   "acclim": 1.0,
+   "clo": 0.74,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": [],
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Priya",
+   "weight": 74.0,
+   "height": 1.75,
+   "age": 37,
+   "acclim": 0.7,
+   "clo": 0.63,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w6",
+   "name": "Marcus",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 48,
+   "acclim": 1.0,
+   "clo": 0.62,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 6,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": 12,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 2,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 12,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 9,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 5,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 14,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t6",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 23,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t7",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  }
+ ],
+ "hazards": [],
+ "slot_min": 30,
+ "tags": [
+  "normal",
+  "callout"
+ ]
+}

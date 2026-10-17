@@ -69,3 +69,15 @@ def test_save_and_load_round_trip(tmp_path, sim):
     assert len(sessions) == len(sim["person_index"])
     assert np.allclose(sessions[0].signals["core_temp"], sim["core_temp"][0])
     assert sessions[0].person_id.startswith("sim-")
+
+
+def test_pulse_sensor_artifacts_only_hit_band_shifts_and_get_worse_with_effort():
+    from ml.simulate import add_ppg_motion_artifacts
+    rng = np.random.default_rng(0)
+    true_hr = np.full(400, 120.0)
+    rest, work = np.full(400, 1.2), np.full(400, 4.5)
+    err_rest = np.nanstd(add_ppg_motion_artifacts(true_hr, rest, rng) - true_hr)
+    err_work = np.nanstd(add_ppg_motion_artifacts(true_hr, work, rng) - true_hr)
+    assert err_work > 2 * err_rest
+    s = add_sensor_realism(simulate(4, 2, seed=5, verbose=False), seed=2, ppg_share=0.0)
+    assert not s["hr_source"].any()

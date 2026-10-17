@@ -27,6 +27,11 @@ KALMAN_B1 = 384.4286
 KALMAN_B0 = -7887.1
 KALMAN_CT_START = 37.1    # starting core temp (°C)
 KALMAN_V_START = 0.0      # starting uncertainty (variance), per Buller 2013
+# Sensor fusion (Kalman.step_fused): how noisy each heart rate source is, in bpm.
+# The watch uses the published sigma. A pulse sensor on the band is noisier while
+# moving, so it counts less. Provisional until we test the real band sensor.
+KALMAN_SIGMA_WATCH = KALMAN_SIGMA
+KALMAN_SIGMA_BAND_PPG = 2 * KALMAN_SIGMA
 
 
 # ---------------------------------------------------------------------------
@@ -94,3 +99,114 @@ NWS_USER_AGENT = os.getenv("NWS_USER_AGENT", "planit-control (contact@example.co
 # Where things get saved
 DB_PATH = os.getenv("DB_PATH", "data/planit.db")
 RECORDINGS_DIR = "data/recordings"
+
+
+# ===========================================================================
+# SITE HAZARD LAYER (session C1: backend/sites, backend/hazards)
+# Safety limits for job-site hazards. Hard-coded on purpose, never learned.
+# ===========================================================================
+
+# Lightning stop-work rule (GOES-19 GLM flashes)
+LIGHTNING_STOP_RADIUS_MI = 10        # good-quality flash this close -> stop work
+LIGHTNING_ALL_CLEAR_MIN = 30         # back to work only after this long with no flash; resets on each new one
+LIGHTNING_MIN_FLASHES = 2            # need this many flashes before stopping (GOES-19 false flash problem)
+LIGHTNING_CONFIRM_WINDOW_MIN = 30    # ...within this many minutes of each other
+LIGHTNING_GOOD_QUALITY_FLAG = 0      # only keep flashes with flash_quality_flag == this
+LIGHTNING_WATCH_RADIUS_MI = 30       # flashes this close show "lightning nearby" (no stop)
+LIGHTNING_FEED_STALE_MIN = 5         # no fresh GLM data this long -> never give the all-clear
+
+# WBGT heat flags (°C), from the standard 80/85/88/90 °F flag system
+WBGT_GREEN_C = 26.7                  # 80 °F: heat is a factor, watch new workers
+WBGT_YELLOW_C = 29.4                 # 85 °F: more breaks
+WBGT_RED_C = 31.1                    # 88 °F: limit heavy work
+WBGT_BLACK_C = 32.2                  # 90 °F: extreme, stop strenuous outdoor work
+
+# Flooding
+RIVER_GAUGE_MAX_DIST_MI = 15         # ignore river gauges farther than this from a site
+TIDE_STATION_MAX_DIST_MI = 12        # sites within this of a tide station count as coastal
+FLOOD_FORECAST_HOURS = 48            # look this far ahead in river forecasts
+
+# Wildfire
+FIRE_DETECTION_WARNING_MI = 5        # satellite fire detection this close -> warning
+FIRE_DETECTION_ADVISORY_MI = 15      # ...this close -> advisory
+FIRE_INCIDENT_WARNING_MI = 10        # active NIFC wildfire this close -> warning
+
+# Soil saturation (Open-Meteo top-soil moisture, m³/m³; Florida sand saturates near 0.4)
+SOIL_WET_M3M3 = 0.30                 # advisory: soft ground, standing water likely
+SOIL_SATURATED_M3M3 = 0.38           # warning: saturated, flooding and equipment risk
+HEAVY_RAIN_24H_MM = 50               # this much rain in 24 h -> flooding advisory ("night of heavy rain")
+
+# Wildlife (iNaturalist sightings)
+WILDLIFE_RADIUS_MI = 5               # count sightings within this radius
+WILDLIFE_DAYS = 7                    # ...in the last this many days
+WILDLIFE_CLOSE_MI = 1                # alligator or venomous snake this close -> advisory
+
+# ===========================================================================
+# Emergency escalation (session D, backend/emergency/)
+# Confirmed man-down -> call crew lead + safety officer -> cancel window ->
+# emergency call. The prototype NEVER dials 911. The emergency leg goes to a
+# teammate's test phone and the screen says "Demo: would call 911".
+# ===========================================================================
+# How long the crew lead has to press "cancel, false alarm" after being
+# notified, before the emergency call goes out.
+EMERGENCY_CANCEL_WINDOW_S = 30
+# Shorter window for live demos, so judges aren't waiting. Labeled on screen.
+EMERGENCY_DEMO_CANCEL_WINDOW_S = 10
+
+# Numbers the code refuses to dial, no matter what .env says.
+# 911 (US), 112 (EU/mobile), 999 (UK), 000 (AU), 111 (NZ), 110/119 (JP/CN),
+# 988 (US crisis line), 933 (US 911 address test line).
+EMERGENCY_BLOCKED_NUMBERS = ("911", "112", "999", "000", "111", "110", "119", "988", "933")
+# Real phone numbers have at least this many digits. Anything shorter is a
+# short code (like 911) and is refused.
+EMERGENCY_MIN_DIGITS = 10
+
+# Text shown on the dashboard for the emergency leg in the prototype.
+EMERGENCY_DEMO_LABEL = "Demo: would call 911"
+
+# Live calling is OFF unless .env says EMERGENCY_LIVE_CALLS=1.
+# Off = dry run: the call script is printed and logged, no phone rings.
+EMERGENCY_LIVE_CALLS = os.getenv("EMERGENCY_LIVE_CALLS", "0") == "1"
+
+# The only numbers the system may ever call (the allowlist). From .env.
+# Use full international format, e.g. +13525551234.
+CREW_LEAD_NUMBER = os.getenv("CREW_LEAD_NUMBER", "")
+SAFETY_OFFICER_NUMBER = os.getenv("SAFETY_OFFICER_NUMBER", "")
+EMERGENCY_TEST_NUMBER = os.getenv("EMERGENCY_TEST_NUMBER", "")  # teammate playing dispatcher
+
+# Every escalation step is appended here, one JSON object per line.
+EMERGENCY_LOG_PATH = os.getenv("EMERGENCY_LOG_PATH", "data/emergency_log.jsonl")
+
+# ElevenLabs voice agent (only used when EMERGENCY_LIVE_CALLS=1). From .env.
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_AGENT_ID = os.getenv("ELEVENLABS_AGENT_ID", "")
+ELEVENLABS_PHONE_NUMBER_ID = os.getenv("ELEVENLABS_PHONE_NUMBER_ID", "")
+
+# ===========================================================================
+# ---------------------------------------------------------------------------
+# PLANNER SAFETY LIMITS (session B, backend/planner/). Hard-coded, never learned.
+# The rule checker enforces these on every schedule. No learning loop, prompt,
+# or LLM can change them.
+# ---------------------------------------------------------------------------
+PLAN_SLOT_MIN = 30                        # schedules use 30-minute slots
+PLAN_MAX_P90_C = HEAT_WARNING_C           # planned 90th pct core temp must stay BELOW the yellow line, every minute
+PLAN_MAX_CONSECUTIVE_WORK_SLOTS = 3       # at most 90 min of work before a 30-min shade break
+PLAN_MAX_CONSECUTIVE_WORK_SLOTS_HOT = 2   # ...or 60 min when the slot WBGT is at/above PLAN_HOT_WBGT_C
+PLAN_HOT_WBGT_C = 30.0                    # "hot" slot for the break rule (°C WBGT)
+PLAN_LIGHTNING_RADIUS_MI = 10             # lightning within this many miles = stop outdoor work
+PLAN_LIGHTNING_ALLCLEAR_MIN = 30          # outdoor work resumes only 30 min after the last strike
+PLAN_UNACCLIM_LEVEL = 0.5                 # acclimatization below this = not acclimatized (new hire)
+PLAN_UNACCLIM_NO_VERY_HEAVY_WBGT_C = 28.0 # no very heavy work for unacclimatized workers at/above this WBGT
+# NWS hazard kinds that stop ALL outdoor work during their window.
+PLAN_STOP_WORK_HAZARDS = ("lightning", "severe_thunderstorm", "tornado", "flash_flood", "flood",
+                          "hurricane", "tropical_storm")
+# Personal offsets (thermometer spot checks, backend/models/personal_offset.py) in planning:
+PLAN_MAX_COOLER_OFFSET_C = 0.3   # a worker can count as at most this much COOLER than the model (hotter: no cap here)
+PLAN_PERSON_SD_C = 0.15          # how unsure we are about a person with no spot checks yet (°C)
+PLAN_MIN_PERSON_SD_C = 0.05      # never more certain than this, however many checks
+
+# ---------------------------------------------------------------------------
+# LIVE SYSTEM (session A). Band link timing, from docs/firmware-contract.md.
+# ---------------------------------------------------------------------------
+BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real seconds);
+                             # the band blinks cyan "no connection" after 60 s without a command

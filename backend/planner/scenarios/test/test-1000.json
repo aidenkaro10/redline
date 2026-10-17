@@ -1,0 +1,282 @@
+{
+ "id": "test-1000",
+ "site": {
+  "id": "crystal-river",
+  "name": "Crystal River Energy Complex",
+  "lat": 28.9572,
+  "lon": -82.6989
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 23.99,
+   "rh": 82.5,
+   "solar": 106.6,
+   "wind": 1.04,
+   "wbgt": 22.65
+  },
+  {
+   "tdb": 24.83,
+   "rh": 79.5,
+   "solar": 202.1,
+   "wind": 0.99,
+   "wbgt": 23.43
+  },
+  {
+   "tdb": 25.66,
+   "rh": 76.5,
+   "solar": 294.9,
+   "wind": 0.71,
+   "wbgt": 24.22
+  },
+  {
+   "tdb": 26.46,
+   "rh": 73.7,
+   "solar": 383.7,
+   "wind": 1.44,
+   "wbgt": 24.83
+  },
+  {
+   "tdb": 27.24,
+   "rh": 70.9,
+   "solar": 467.4,
+   "wind": 1.28,
+   "wbgt": 25.52
+  },
+  {
+   "tdb": 27.98,
+   "rh": 68.2,
+   "solar": 544.9,
+   "wind": 0.55,
+   "wbgt": 26.31
+  },
+  {
+   "tdb": 28.68,
+   "rh": 65.7,
+   "solar": 615.2,
+   "wind": 1.24,
+   "wbgt": 26.71
+  },
+  {
+   "tdb": 29.34,
+   "rh": 63.4,
+   "solar": 677.2,
+   "wind": 0.55,
+   "wbgt": 27.43
+  },
+  {
+   "tdb": 29.94,
+   "rh": 61.3,
+   "solar": 730.3,
+   "wind": 0.85,
+   "wbgt": 27.79
+  },
+  {
+   "tdb": 30.49,
+   "rh": 59.3,
+   "solar": 773.6,
+   "wind": 0.71,
+   "wbgt": 28.24
+  },
+  {
+   "tdb": 30.98,
+   "rh": 57.5,
+   "solar": 806.5,
+   "wind": 0.75,
+   "wbgt": 28.56
+  },
+  {
+   "tdb": 31.41,
+   "rh": 56.0,
+   "solar": 828.8,
+   "wind": 0.98,
+   "wbgt": 28.75
+  },
+  {
+   "tdb": 31.77,
+   "rh": 54.7,
+   "solar": 840.0,
+   "wind": 0.84,
+   "wbgt": 29.0
+  },
+  {
+   "tdb": 32.06,
+   "rh": 53.7,
+   "solar": 840.0,
+   "wind": 0.88,
+   "wbgt": 29.12
+  },
+  {
+   "tdb": 32.29,
+   "rh": 52.9,
+   "solar": 828.8,
+   "wind": 1.37,
+   "wbgt": 29.03
+  },
+  {
+   "tdb": 32.43,
+   "rh": 52.4,
+   "solar": 806.5,
+   "wind": 0.89,
+   "wbgt": 29.2
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Jada",
+   "weight": 66.0,
+   "height": 1.65,
+   "age": 29,
+   "acclim": 1.0,
+   "clo": 0.74,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Tom",
+   "weight": 66.0,
+   "height": 1.65,
+   "age": 39,
+   "acclim": 1.0,
+   "clo": 0.74,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Kofi",
+   "weight": 82.0,
+   "height": 1.75,
+   "age": 49,
+   "acclim": 0.7,
+   "clo": 0.59,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Sam",
+   "weight": 90.0,
+   "height": 1.85,
+   "age": 54,
+   "acclim": 1.0,
+   "clo": 0.76,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Marcus",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 59,
+   "acclim": 1.0,
+   "clo": 0.8,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w6",
+   "name": "Dev",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 32,
+   "acclim": 0.7,
+   "clo": 0.75,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 6,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t2",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 39,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 7,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": 13,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 17,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 12,
+   "skill": null
+  },
+  {
+   "id": "t5",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 8,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  }
+ ],
+ "hazards": [],
+ "slot_min": 30,
+ "tags": [
+  "normal"
+ ]
+}

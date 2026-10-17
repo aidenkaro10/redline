@@ -48,3 +48,26 @@ def test_variance_stays_positive_and_settles():
     assert np.all(vs > 0)
     assert abs(vs[-1] - vs[-2]) / vs[-1] < 1e-5   # converged to a steady uncertainty
     assert 0.01 < vs[-1] < 0.02                    # about ±0.11 °C, a sane spread
+
+
+def test_fused_with_one_source_is_exactly_ectemp():
+    from backend import config
+    a, b = ECTempKalman(), ECTempKalman()
+    for hr in [100.0, 130.0, None, 150.0, 160.0]:
+        sa = a.step(hr)
+        sb = b.step_fused([(hr, config.KALMAN_SIGMA)])
+        assert sa.ct == sb.ct and sa.v == sb.v
+
+
+def test_fusion_trusts_the_cleaner_source_and_survives_dropouts():
+    from backend import config
+    watch_sigma, band_sigma = config.KALMAN_SIGMA, 3 * config.KALMAN_SIGMA
+    clean, fused = ECTempKalman(), ECTempKalman()
+    for _ in range(30):
+        clean.step(150.0)
+        fused.step_fused([(150.0, watch_sigma), (175.0, band_sigma)])   # band reads too high
+    gap = fused.state.ct - clean.state.ct
+    assert 0 < gap < 0.15                    # pulled only a little toward the noisy band
+    before = fused.state.ct
+    fused.step_fused([(None, watch_sigma), (150.0, band_sigma)])       # watch drops out
+    assert fused.state.ct != before          # the band alone still updates the estimate

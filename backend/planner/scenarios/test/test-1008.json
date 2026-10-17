@@ -1,0 +1,289 @@
+{
+ "id": "test-1008",
+ "site": {
+  "id": "babcock-solar",
+  "name": "Babcock Ranch Solar Energy Center",
+  "lat": 26.834,
+  "lon": -81.747
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 27.34,
+   "rh": 90.3,
+   "solar": 94.6,
+   "wind": 1.41,
+   "wbgt": 26.65
+  },
+  {
+   "tdb": 28.08,
+   "rh": 87.2,
+   "solar": 179.3,
+   "wind": 1.58,
+   "wbgt": 27.28
+  },
+  {
+   "tdb": 28.81,
+   "rh": 84.3,
+   "solar": 261.7,
+   "wind": 1.04,
+   "wbgt": 27.94
+  },
+  {
+   "tdb": 29.52,
+   "rh": 81.4,
+   "solar": 340.5,
+   "wind": 1.07,
+   "wbgt": 28.53
+  },
+  {
+   "tdb": 30.21,
+   "rh": 78.6,
+   "solar": 414.9,
+   "wind": 1.26,
+   "wbgt": 29.06
+  },
+  {
+   "tdb": 30.86,
+   "rh": 76.0,
+   "solar": 483.6,
+   "wind": 1.22,
+   "wbgt": 29.58
+  },
+  {
+   "tdb": 31.48,
+   "rh": 73.5,
+   "solar": 546.0,
+   "wind": 0.94,
+   "wbgt": 30.12
+  },
+  {
+   "tdb": 32.06,
+   "rh": 71.1,
+   "solar": 601.1,
+   "wind": 1.79,
+   "wbgt": 30.36
+  },
+  {
+   "tdb": 32.59,
+   "rh": 69.0,
+   "solar": 648.1,
+   "wind": 1.46,
+   "wbgt": 30.8
+  },
+  {
+   "tdb": 33.07,
+   "rh": 67.0,
+   "solar": 686.5,
+   "wind": 1.6,
+   "wbgt": 31.09
+  },
+  {
+   "tdb": 33.51,
+   "rh": 65.2,
+   "solar": 715.8,
+   "wind": 1.84,
+   "wbgt": 31.3
+  },
+  {
+   "tdb": 33.89,
+   "rh": 63.7,
+   "solar": 735.5,
+   "wind": 1.56,
+   "wbgt": 31.58
+  },
+  {
+   "tdb": 34.2,
+   "rh": 62.4,
+   "solar": 745.5,
+   "wind": 1.09,
+   "wbgt": 31.88
+  },
+  {
+   "tdb": 34.46,
+   "rh": 61.4,
+   "solar": 745.5,
+   "wind": 1.31,
+   "wbgt": 31.92
+  },
+  {
+   "tdb": 34.66,
+   "rh": 60.6,
+   "solar": 735.5,
+   "wind": 1.87,
+   "wbgt": 31.84
+  },
+  {
+   "tdb": 34.79,
+   "rh": 60.1,
+   "solar": 715.8,
+   "wind": 1.48,
+   "wbgt": 31.94
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Tom",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 24,
+   "acclim": 1.0,
+   "clo": 0.76,
+   "skills": [
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Emma",
+   "weight": 82.0,
+   "height": 1.65,
+   "age": 55,
+   "acclim": 0.7,
+   "clo": 0.59,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Luis",
+   "weight": 66.0,
+   "height": 1.85,
+   "age": 52,
+   "acclim": 0.7,
+   "clo": 0.51,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Jada",
+   "weight": 66.0,
+   "height": 1.75,
+   "age": 58,
+   "acclim": 0.7,
+   "clo": 0.76,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Dev (new hire)",
+   "weight": 82.0,
+   "height": 1.75,
+   "age": 51,
+   "acclim": 0.0,
+   "clo": 0.75,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 26,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 6,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t3",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 12,
+   "skill": "climbing"
+  },
+  {
+   "id": "t4",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 2,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 27,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "severe_thunderstorm",
+   "start_slot": 11,
+   "end_slot": 13,
+   "source": "NWS",
+   "note": "Severe Thunderstorm Warning"
+  },
+  {
+   "kind": "heat_advisory",
+   "start_slot": 0,
+   "end_slot": 16,
+   "source": "NWS",
+   "note": "Heat Advisory (no stop-work)"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "heat_dome",
+  "warning",
+  "new_hire"
+ ]
+}

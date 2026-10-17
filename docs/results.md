@@ -33,3 +33,59 @@ Notes:
 | Red false alarms / hr | 0.27 | 0.61 | |
 
 Swap check (`--swap-check`): fit on calib -> val coverage 0.96 / 0.96 / 0.95; fit on val -> calib coverage 0.84 / 0.81 / 0.80. Average is about right (~0.89), but 10 people is too few: person-to-person differences dominate. Plan: final calibration on calib + val (20 people) with the ensemble, then personal twins to shrink person-to-person error.
+
+## ens5: 5-model deep ensemble (2026-10-17)
+
+`python -m ml.train --name ens5 --seeds 5`, scored raw (uncalibrated) on val people:
+
+| | Kalman best | v1 | ens5 |
+| --- | --- | --- | --- |
+| NOW RMSE °C | 0.414 | 0.236 | 0.239 |
+| NOW bias °C | -0.077 | -0.033 | **+0.007** |
+| +10 / +20 / +30 RMSE °C | 0.445 / 0.456 / 0.457 | 0.254 / 0.282 / 0.311 | **0.229 / 0.230 / 0.238** |
+| +20 quantile loss | 0.1155 | 0.0723 | **0.0634** |
+| p90 coverage +10/+20/+30 | 0.84 / 0.90 / 0.90 | 0.82 / 0.88 / 0.89 | 0.94 / 0.96 / 0.96 |
+| Red caught / false alarms per hr | 75-88% / 0.41 | 75% / 0.27 | **88%** / 0.55 |
+
+Ensemble forecasts ~50% better than ECTemp and barely degrade with horizon. Ranges now too wide (ensemble spread + model ranges); final calibration on calib + val (20 people) will tighten them. Swap check on ens5: calib->val 0.95-0.96, val->calib 0.81-0.86.
+
+## Twins v1 (twins16): NEGATIVE result on real people (2026-10-17)
+
+`python -m ml.twins --model ml/checkpoints/twins16.pt --proof real`: 20 unseen Mendeley people, adapt the 16-number twin on the neutral session's heart rate (network frozen, gate on held-out HR), score the heat session.
+
+| Heat sessions (19) | average person | personal twin |
+| --- | --- | --- |
+| NOW RMSE °C | **0.301** | 0.423 |
+| +20 min RMSE °C | **0.353** | 0.528 |
+| Red caught | **60%** | 50% |
+
+Gate kept 5 of 19 twins. Those improved heart-rate prediction but made core temp worse: the gate's signal (HR) is misaligned with the goal (core temp), the course's misaligned-verifier lesson. The 16-dim twin space learned in the simulator does not transfer to real people as-is.
+
+Fix in progress: (1) CAVIA-style meta-training in the simulator so HR-based adaptation provably improves core temp, (2) a small physiology-based twin (3-4 numbers), (3) a stricter gate that also checks core temp in simulator replays. Until then, twins stay OFF in the live system.
+
+## Twins v2 (meta4): CAVIA meta-learned 4-number twin (2026-10-17)
+
+`python -m ml.meta --name meta4` then `--proof ml/checkpoints/meta4.pt`: 20 unseen real people, adapt on one session's HR (3 steps), score the other session, both directions (38 sessions).
+
+| | average person | meta twin |
+| --- | --- | --- |
+| NOW RMSE °C | 0.297 | 0.297 |
+| +20 min RMSE °C | 0.326 | 0.327 |
+| Red caught | 69% | 69% |
+
+Meta-learning removed the harm from twins v1 (0.30 -> 0.42), but there is no gain yet: the twin stays near the average person. Twins stay OFF live. Next ideas: more inner steps or a larger LR_INNER, adapt on more than one session, and a twin targeted at the personal HR offset.
+
+Other sessions (their branches, not merged): G curriculum loop works but hasn't improved real-people scores yet; H Weaver weights gave no gain over equal weights, explain() and 5 figures done; F agent loops built (29 tests), curriculum bank made for $0.34, ACE/GEPA runs not done yet.
+
+## Personalization diagnosis + the twin that works: personal offset from thermometer spot checks (2026-10-17)
+
+Diagnosis on 19 unseen real people (ens5): per-session mean error SD 0.276 °C (most error is a per-person offset); a person's offset repeats across sessions (corr +0.57); resting heart rate cannot predict it (corr -0.02). So heart-rate twins learn from the wrong signal. Fix: learn the offset from quick thermometer spot checks (aligned verifier).
+
+| Real people, apply 3 spot checks from one session to the other | NOW RMSE | +20 min RMSE |
+| --- | --- | --- |
+| no correction | 0.306 | 0.308 |
+| person offset from spot checks | **0.285** | **0.270** |
+| start-of-shift check only (decays) | 0.291 | 0.287 |
+| start check fading to person offset | 0.278 | 0.267 |
+
+Implemented as backend/models/personal_offset.py (Bayesian shrinkage toward the average person, more confident with every check, capped at 0.6 °C, bad readings ignored). Needs a cheap ear/oral thermometer and a spot-check step at shift start and on breaks.
