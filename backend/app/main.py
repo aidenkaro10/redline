@@ -201,8 +201,7 @@ async def _tick_forever(hub: Hub, frontend: FrontendAdapter):
     while True:
         try:
             hub.tick()
-            if n % 2 == 0:
-                frontend.tick()              # clock + band-connected, once a second
+            frontend.tick()                  # clock + band-connected, twice a second
         except Exception:
             log.exception("tick failed")
         n += 1

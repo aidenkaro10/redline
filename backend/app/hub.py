@@ -129,7 +129,11 @@ class Hub:
         # Raw inputs go out too (the chart's live HR). SOS doesn't: the pipeline sends the full
         # "sos" event with who/where/vitals, and listeners must only ever see that one.
         out = [] if isinstance(event, SosPress) else [event.model_dump()]
-        out += self.pipelines[event.worker_id].handle(event)
+        derived = self.pipelines[event.worker_id].handle(event)
+        for ev in derived:
+            if ev["type"] == "sos":     # where the press came from: the band, the phone, a demo button
+                ev["source"] = "band" if source in ("serial", "udp", "live", "replay") else source
+        out += derived
         self.dispatch(out)
 
     def set_context(self, worker_id: str, **context) -> None:
@@ -266,9 +270,9 @@ class Hub:
         self.site_status[site_id] = status
         self.dispatch([{"type": "site_status_update", "timestamp": self.real_clock.now(), "site_id": site_id}])
 
-    def press_sos(self, worker_id: str) -> None:
-        """Demo: act as if the worker held the band button for 3 s (SOS)."""
-        self.handle_input(SosPress(worker_id=worker_id, timestamp=self.now(worker_id)), source="demo")
+    def press_sos(self, worker_id: str, source: str = "demo") -> None:
+        """Act as if the worker held the band button for 3 s (SOS). source: demo | phone."""
+        self.handle_input(SosPress(worker_id=worker_id, timestamp=self.now(worker_id)), source=source)
 
     def press_button(self, worker_id: str) -> None:
         """Demo: act as if the worker pressed the band button."""

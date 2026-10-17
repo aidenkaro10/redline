@@ -104,3 +104,24 @@ def test_cors_allows_dashboard(client):
     r = client.options("/api/demo/threshold", headers={"Origin": "http://localhost:3000",
                                                        "Access-Control-Request-Method": "POST"})
     assert r.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+
+def test_sos_incident_flow(client):
+    hub = main.app.state.hub
+    hub.handle_input(Reading(worker_id="w1", timestamp=1000.0, hr=100, tilt=0, activity=3))
+    with client.websocket_connect("/ws/live?view=crew") as ws:
+        ws.receive_json()
+        assert client.post("/api/workers/w1/sos").json()["action"] == "escalated"
+        sos = None
+        for _ in range(10):
+            msg = ws.receive_json()
+            if msg["type"] == "sos":
+                sos = msg["sos"]
+                break
+        assert sos["source"] == "phone" and sos["escalated"] is True
+    st = client.get("/api/state").json()
+    assert st["mandown"]["reason"] == "sos" and st["mandown"]["stage"] == "confirmed"
+    assert st["workers"][0]["hazard"] == "SOS" and st["sites"][0]["worker_flag"] == "sos"
+    assert client.post("/api/workers/w1/sos").json()["action"] == "ignored_active_incident"
+    client.post(f"/api/mandown/{st['mandown']['id']}/resolve")
+    assert client.get("/api/state").json()["mandown"] is None

@@ -46,7 +46,7 @@ class FrontendAdapter:
         self.alerts: deque = deque(maxlen=200)
         self.active_heat_alert: dict[str, dict] = {}            # worker -> their open heat Alert
         self.active_hazard_alert: dict[tuple, dict] = {}        # (site, kind) -> open hazard Alert
-        self.mandown: dict | None = None
+        self.incidents: dict[str, dict] = {}                     # worker -> open man-down / SOS incident
         self.emergency: dict | None = None
         self.band: deque = deque(maxlen=100)
         self.log: deque = deque(maxlen=200)
@@ -86,6 +86,8 @@ class FrontendAdapter:
             out.append({"type": "band_command", "band": b})
         elif kind.startswith("mandown_"):
             out += self._mandown(ev)
+        elif kind == "sos":
+            out += self._sos(ev)
         elif kind == "emergency_status":
             out += self._emergency(ev)
         elif kind == "worker_removed":
@@ -103,7 +105,7 @@ class FrontendAdapter:
         if wid and wid in self.hub.pipelines and kind != "reading":
             out += self._status_if_changed(wid)
         if kind in ("hazard", "heat_alert", "mandown_check", "mandown_cancelled", "mandown_resolved", "worker",
-                    "site_status_update"):
+                    "site_status_update", "sos"):
             site = ev.get("site_id") or self.hub.workers.get(wid, {}).get("site_id")
             if site:
                 out.append({"type": "site_status", "site": self.site_status(site)})
@@ -111,7 +113,7 @@ class FrontendAdapter:
             self.broadcast(msg)
 
     def tick(self) -> None:
-        """Once a second: the clock (for countdowns) and band-connected changes."""
+        """Twice a second: the clock (for countdowns) and band-connected changes."""
         self.broadcast({"type": "clock", "sim_time": self.sim_time(), "speed": self.speed()})
         for wid in list(self.hub.pipelines):
             for msg in self._status_if_changed(wid):
@@ -170,7 +172,10 @@ class FrontendAdapter:
         p, info = self.hub.pipelines[wid], self.hub.workers[wid]
         status = STATUS[p.heat.level]
         mins = self.minutes_to_danger(wid)
-        if p.mandown.state != "ok":
+        incident = self.incidents.get(wid)
+        if incident and incident["reason"] == "sos":
+            reason = "SOS pressed"
+        elif p.mandown.state != "ok":
             reason = "Man-down check" if p.mandown.state == "checking" else "Man-down confirmed"
         elif status == "red":
             reason = "In heat danger now"
@@ -184,7 +189,8 @@ class FrontendAdapter:
         return {
             "worker_id": wid, "name": info["name"], "role": info["meta"].get("role", "Crew"),
             "site_id": info["site_id"], "status": status, "minutes_to_danger": mins, "status_reason": reason,
-            "hazard": None if p.router.current == "OFF" else p.router.current,
+            "hazard": "SOS" if incident and incident["reason"] == "sos"
+                      else None if p.router.current == "OFF" else p.router.current,
             "alert_acknowledged": p.heat.acknowledged if p.heat.level == "red" else None,
             "on_break": False, "break_at": None,
             "band_connected": p.last_t is not None and now - p.last_t < BAND_SEEN_S * max(1.0, self.speed()),
@@ -231,7 +237,9 @@ class FrontendAdapter:
                 })
         on_site = [w for w, i in self.hub.workers.items() if i["site_id"] == site_id]
         flag = "none"
-        if any(self.hub.pipelines[w].mandown.state != "ok" for w in on_site):
+        if any(self.incidents.get(w, {}).get("reason") == "sos" for w in on_site):
+            flag = "sos"
+        elif any(self.hub.pipelines[w].mandown.state != "ok" for w in on_site):
             flag = "mandown"
         elif any(self.hub.pipelines[w].heat.level != "clear" for w in on_site):
             flag = "heat"
@@ -297,43 +305,79 @@ class FrontendAdapter:
             return [{"type": "alert", "alert": a}]
         return []
 
+    # One incident (man-down or SOS) per worker; the contract shows the newest active one.
+    @property
+    def mandown(self) -> dict | None:
+        return max(self.incidents.values(), key=lambda m: m["check_started_at"], default=None)
+
+    def _incident(self, wid: str, t: float, started: float, reason: str, stage: str, alert_kind: str,
+                  source: str) -> dict:
+        site = self.hub.sites.get(self.hub.workers[wid]["site_id"], {})
+        p = self.hub.pipelines.get(wid)
+        last = p.estimates[-1] if p and p.estimates else {}
+        sos = reason == "sos"
+        md = {
+            "id": f"{'sos' if sos else 'md'}-{wid}-{int(t)}", "worker_id": wid,
+            "worker_name": self.hub.workers[wid]["name"], "site_id": site.get("site_id"),
+            "site_name": site.get("name"), "lat": site.get("lat"), "lon": site.get("lon"),
+            "fell_at": started, "check_started_at": t,
+            "confirm_at": t if sos else t + config.MANDOWN_ESCALATE_S,
+            "confirmed_at": t if sos else None, "stage": stage, "reason": reason,
+            "last_vitals": {"core_temp": last.get("core_temp"), "hr": p.last_reading.get("hr") if p else None,
+                            "at": last.get("timestamp", t)},
+        }
+        name = md["worker_name"]
+        words = f"SOS from {name}" if sos else f"Man-down check: {name}"
+        md["_alert"] = self._new_alert(alert_kind, wid, site.get("site_id"), t, words, source)
+        self.incidents[wid] = md
+        return md
+
+    def _close_incident(self, wid: str, t: float, stage: str) -> list[dict]:
+        md = self.incidents.pop(wid, None)
+        if md is None:
+            return []
+        md["stage"] = stage
+        md["_alert"]["cleared_at"] = t
+        out = [{"type": "alert", "alert": md["_alert"]}, self._mandown_msg(md)]
+        nxt = self.mandown                                     # another worker's incident, if any
+        return out + [{"type": "mandown", "mandown": self._public(nxt) if nxt else None}]
+
     def _mandown(self, ev: dict) -> list[dict]:
         kind, wid, t = ev["type"], ev["worker_id"], ev["timestamp"]
-        p = self.hub.pipelines.get(wid)
         if kind == "mandown_check":
-            site = self.hub.sites.get(self.hub.workers[wid]["site_id"], {})
-            last = p.estimates[-1] if p and p.estimates else {}
-            self.mandown = {
-                "id": f"md-{wid}-{int(t)}", "worker_id": wid, "worker_name": self.hub.workers[wid]["name"],
-                "site_id": site.get("site_id"), "site_name": site.get("name"), "lat": site.get("lat"),
-                "lon": site.get("lon"), "fell_at": ev["started_at"], "check_started_at": t,
-                "confirm_at": t + config.MANDOWN_ESCALATE_S, "confirmed_at": None, "stage": "checking",
-                "reason": MANDOWN_REASON.get(ev["reason"], "demo"),
-                "last_vitals": {"core_temp": last.get("core_temp"), "hr": p.last_reading.get("hr") if p else None,
-                                "at": last.get("timestamp", t)},
-            }
-            a = self._new_alert("MANDOWN", wid, site.get("site_id"), t, f"Man-down check: {self.mandown['worker_name']}",
-                                "tilt switch" if ev["reason"] == "fall" else "demo button" if ev["reason"].startswith("demo")
-                                else "unacknowledged red alert")
-            self.mandown["_alert"] = a
-            return [{"type": "alert", "alert": a}, self._mandown_msg()]
-        if self.mandown is None or self.mandown["worker_id"] != wid:
+            reason = MANDOWN_REASON.get(ev["reason"], "demo")
+            source = {"fall": "tilt switch", "no_response_to_red": "unacknowledged red alert"}.get(reason, "demo button")
+            md = self._incident(wid, t, ev["started_at"], reason, "checking", "MANDOWN", source)
+            return [{"type": "alert", "alert": md["_alert"]}, self._mandown_msg(md)]
+        md = self.incidents.get(wid)
+        if md is None or md["reason"] == "sos":
             return []
         if kind == "mandown_confirmed":
-            self.mandown.update(stage="confirmed", confirmed_at=t)
-            self.mandown["last_vitals"] = {"core_temp": ev.get("core_temp_c"), "hr": ev.get("hr_bpm"), "at": t}
-            return [self._mandown_msg()]
+            md.update(stage="confirmed", confirmed_at=t)
+            md["last_vitals"] = {"core_temp": ev.get("core_temp_c"), "hr": ev.get("hr_bpm"), "at": t}
+            return [self._mandown_msg(md)]
         if kind in ("mandown_cancelled", "mandown_resolved"):
-            self.mandown["stage"] = "cancelled" if kind == "mandown_cancelled" else "resolved"
-            a = self.mandown["_alert"]
-            a["cleared_at"] = t
-            out = [{"type": "alert", "alert": a}, self._mandown_msg()]
-            self.mandown = None
-            return out + [{"type": "mandown", "mandown": None}]
+            return self._close_incident(wid, t, "cancelled" if kind == "mandown_cancelled" else "resolved")
         return []
 
-    def _mandown_msg(self) -> dict:
-        return {"type": "mandown", "mandown": {k: v for k, v in self.mandown.items() if not k.startswith("_")}}
+    def _sos(self, ev: dict) -> list[dict]:
+        """BTN:SOS (or the phone button): an incident that starts confirmed. Ignored if one is active."""
+        wid, t = ev["worker_id"], ev["timestamp"]
+        escalated = wid not in self.incidents
+        sos = {k: ev.get(k) for k in ("worker_id", "worker_name", "site_id", "site_name", "lat", "lon", "pressed_at")}
+        sos.update(source=ev.get("source", "band"), escalated=escalated)
+        out = [{"type": "sos", "sos": sos}]
+        if escalated:
+            md = self._incident(wid, t, t, "sos", "confirmed", "SOS", f"SOS ({sos['source']})")
+            out += [{"type": "alert", "alert": md["_alert"]}, self._mandown_msg(md)]
+        return out
+
+    @staticmethod
+    def _public(md: dict) -> dict:
+        return {k: v for k, v in md.items() if not k.startswith("_")}
+
+    def _mandown_msg(self, md: dict) -> dict:
+        return {"type": "mandown", "mandown": self._public(md)}
 
     def _emergency(self, ev: dict) -> list[dict]:
         stage, status = ev["stage"], ev["status"]
@@ -408,7 +452,7 @@ class FrontendAdapter:
             "workers": [self.worker_status(w) for w in self.hub.pipelines],
             "sites": [self.site_status(s) for s in self.hub.sites],
             "alerts": list(self.alerts),
-            "mandown": None if self.mandown is None else self._mandown_msg()["mandown"],
+            "mandown": None if self.mandown is None else self._public(self.mandown),
             "emergency": self.emergency, "demo": self.demo_state(), "reports": self.reports,
             "log": list(self.log)[-100:], "history": history,
             "band": list(self.band) if f["view"] != "crew" else [],
@@ -542,6 +586,17 @@ async def button(request: Request, worker_id: str):
     return {"ok": True}
 
 
+@router.post("/api/workers/{worker_id}/sos")
+async def sos(request: Request, worker_id: str):
+    """The phone view's hold-3-s SOS button. Same as the band's BTN:SOS."""
+    a = _a(request)
+    if worker_id not in a.hub.pipelines:
+        raise HTTPException(404, "unknown worker")
+    active = worker_id in a.incidents
+    a.hub.press_sos(worker_id, source="phone")
+    return {"ok": True, "action": "ignored_active_incident" if active else "escalated"}
+
+
 @router.post("/api/alerts/{alert_id}/ack")
 async def ack_alert(request: Request, alert_id: str):
     """Heat alerts are acknowledged like the band button would; others are just marked seen."""
@@ -559,12 +614,17 @@ async def ack_alert(request: Request, alert_id: str):
 
 @router.post("/api/mandown/{mandown_id}/resolve")
 async def resolve(request: Request, mandown_id: str):
-    """Crew lead closes the man-down. Accepts the ManDown id or a worker id."""
+    """Crew lead closes a man-down or SOS incident. Accepts the incident id or a worker id."""
     a = _a(request)
-    wid = a.mandown["worker_id"] if a.mandown and a.mandown["id"] == mandown_id else mandown_id
+    md = next((m for m in a.incidents.values() if m["id"] == mandown_id), None)
+    wid = md["worker_id"] if md else mandown_id
     if wid not in a.hub.pipelines:
         raise HTTPException(404, "unknown man-down")
-    a.hub.resolve_mandown(wid)
+    if md and md["reason"] == "sos":
+        for msg in a._close_incident(wid, a.hub.now(wid), "resolved"):   # SOS never touched the detector
+            a.broadcast(msg)
+    else:
+        a.hub.resolve_mandown(wid)
     return {"ok": True}
 
 
