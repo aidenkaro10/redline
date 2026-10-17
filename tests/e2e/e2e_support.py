@@ -319,6 +319,13 @@ class AppFactory:
             app.hub.why = None        # session H's why-lines run a second model copy: too heavy here
         return app
 
+    __call__ = start                  # live_app(...) starts an app
+
+    def stop(self, app: LiveApp) -> None:
+        """Shut one app down (e.g. to restart the server on the same database)."""
+        app.client.__exit__(None, None, None)
+        self.clients.remove(app.client)
+
     def close(self) -> None:
         for client in reversed(self.clients):
             client.__exit__(None, None, None)
@@ -329,8 +336,8 @@ class AppFactory:
 def live_app(tmp_path, monkeypatch):
     """
     Factory: live_app("--checkpoint", path, ...) starts the real app and returns a LiveApp.
-    The app shuts down cleanly when the test ends.
+    live_app.stop(app) shuts one down early (restart tests). The rest shut down when the test ends.
     """
     factory = AppFactory(tmp_path, monkeypatch)
-    yield factory.start
+    yield factory
     factory.close()
