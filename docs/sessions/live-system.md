@@ -25,7 +25,7 @@ Branch `claude/live-system-f3b5f1`. Interface: [docs/interfaces/live-system.md](
 
 ## Integration round (Oct 17, afternoon)
 
-- Forecaster: `ens5.pt` (5-model ensemble) loads first, then `v1.pt`, then Kalman-only. `backend/app/model_runner.predict_at` runs it for the newest minute only (0.11 s vs 0.41 s late in a shift); a test checks it equals `predict_signals` for both checkpoints. With ens5 the demo story is unchanged: Jake yellow at +9 replay min, red at +38, crewmates calm, pre-roll ~6 s.
+- Forecaster: `final_cv.pt` loads first (since main 26dbc2d), then `ens5.pt`, then `v1.pt`, then Kalman-only. `backend/app/model_runner.predict_at` runs it for the newest minute only (0.11 s vs 0.41 s late in a shift); a test checks it equals `predict_signals` for both checkpoints. With ens5 the demo story is unchanged: Jake yellow at +9 replay min, red at +38, crewmates calm, pre-roll ~6 s.
 - Personal offset twin wired (`POST /spot-check`, SQLite, `offset_update`).
 - Why-line adapter (`backend/app/why.py`), C1 bridge with fake/live/off, D bridge: all import their modules only when merged.
 - Checked in a throwaway merge of this branch + C1 + D + H (not committed, removed): 234 tests pass, and the replay demo runs end to end with 79 sites, C1 fake hazards, H's why-lines, the D chain through "Demo: would call 911", test lightning reaching the crew's bands by router priority, and a spot check. Merge needs both sides kept in `backend/config.py` and `.env.example` (append-only conflicts).

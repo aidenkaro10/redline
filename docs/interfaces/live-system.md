@@ -17,7 +17,7 @@ Useful flags: `--speed 30` (faster replay), `--demo` (demo thresholds 37.3 / 37.
 
 | Piece | Where it comes from | When it's missing |
 | --- | --- | --- |
-| Forecaster | `ml/checkpoints/ens5.pt` (5-model ensemble), else `v1.pt` | Kalman-only alerts (Kalman rule) |
+| Forecaster | `ml/checkpoints/final_cv.pt`, else `ens5.pt`, else `v1.pt` | Kalman-only alerts (Kalman rule) |
 | Personal offset twin | `backend/models/personal_offset.py` + `POST /spot-check` | offset 0 (average person) |
 | Why-lines | session H, `ml/explain/` (branch `claude/ml-explain-071c08`) | `estimate.why` is null; `/ws/live` uses a plain heart-rate sentence |
 | Site hazards | session C1, `backend/hazards/` + `backend/sites/` | one demo site `site-gnv`, demo-button hazards only |
