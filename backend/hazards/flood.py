@@ -194,8 +194,8 @@ def flood_events(sites, context=None, now=None):
     from backend.sites.build_context import load_context
     now = now or utc_now()
     context = context if context is not None else load_context()
-    stations = [context.get(s.site_id, {}).get("tides") for s in sites]
-    station_ids = [st["id"] for st in stations if st]
+    # Every coastal station we know, not just these sites', so the shared cache stays complete
+    station_ids = sorted({v["tides"]["id"] for v in context.values() if v.get("tides")})
     if store.is_fake():
         g_result = fake.feed_result(fake.gauge_status(sites, context, now), now)
         t_result = fake.feed_result(fake.water_levels(station_ids, context, now), now)

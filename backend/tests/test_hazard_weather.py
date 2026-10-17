@@ -60,3 +60,10 @@ def test_fake_mode_all_sites():
     assert len(wx) == len(sites)
     assert wx["eia-645"]["now"]["wbgt_flag"] in ("red", "black")    # Tampa Bay hot spot
     assert wx["eia-136"]["now"]["rain_24h_mm"] > 50                  # night of heavy rain
+
+
+def test_one_site_request_does_not_shrink_the_shared_cache(monkeypatch):
+    monkeypatch.setattr(weather, "fetch_forecast", lambda sites: {s.site_id: hourly() for s in sites})
+    weather.site_weather([GNV], now=NOW)                      # e.g. the planner asks for one site
+    wx, _ = weather.site_weather(list(load_sites()), now=NOW)   # then the map asks for all
+    assert len(wx) == len(load_sites())

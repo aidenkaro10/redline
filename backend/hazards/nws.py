@@ -219,11 +219,16 @@ def heatrisk_by_site(sites, now=None):
     if store.is_fake():
         result = fake.feed_result(fake.heatrisk(sites, now))
     else:
-        result = heatrisk_cache.get(lambda: fetch_heatrisk(sites), now=now)
+        from backend.sites.sites import load_sites
+        # Always fetch every site, so the shared cache never holds a partial list
+        result = heatrisk_cache.get(lambda: fetch_heatrisk(list(load_sites())), now=now)
     # "Today" in Florida (Eastern time, roughly UTC-4)
     local_today = (now - timedelta(hours=4)).date()
     out = {}
+    wanted = {s.site_id for s in sites}
     for sid, days in (result.data or {}).items():
+        if sid not in wanted:
+            continue
         by_date = {d["date"]: d["value"] for d in days}
 
         def label(date):

@@ -25,6 +25,7 @@ from backend.hazards.events import HazardEvent, iso, parse_time, utc_now
 from backend.hazards.http import get_json
 from backend.hazards.wbgt import (FLAG_SEVERITY, cos_zenith, earth_sun_distance_au, wbgt_flag,
                                   wbgt_liljegren, wind_at_2m)
+from backend.sites.sites import load_sites
 
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 SOURCE = "Open-Meteo"
@@ -161,7 +162,8 @@ def site_weather(sites, now=None):
     if store.is_fake():
         result = fake.feed_result(fake.weather(sites, now), now)
     else:
-        result = weather_cache.get(lambda: fetch_forecast(sites), now=now)
+        # Always fetch every site, so the shared cache never holds a partial list
+        result = weather_cache.get(lambda: fetch_forecast(list(load_sites())), now=now)
     out = {}
     by_id = {s.site_id: s for s in sites}
     for sid, hourly in (result.data or {}).items():
