@@ -142,6 +142,36 @@ r = plan_with_agent(demo_scenario())       # r.plan, r.check (ok, violations, pe
 
 ## For session F (learning loops)
 
+**Weight search.** Every soft knob is in `PlannerWeights` (`backend/planner/weights.py`); hard limits are not (they're in `config.py` and the rule checker, and every plan must still pass it):
+
+| Field | Default | What it trades |
+| --- | --- | --- |
+| `throughput` | 10 | weight on priority-weighted work done (> 0) |
+| `margin` | 0 | keep everyone's peak heat low |
+| `fairness` | 0 | keep peaks similar across the crew |
+| `budget_margin_c` | 0.05 | plan this far under the heat limit, °C (≥ 0) |
+| `priority_values` | {1: 10, 2: 5, 3: 2} | value of one work unit by task priority |
+| `storm` | 15 | cost of outdoor work × storm chance (×2 elevated / hard-to-stop) |
+| `rain` | 0 | cost of outdoor work × rain chance |
+| `hot_break_bonus` | 0 | reward per rest slot when WBGT ≥ 30 °C |
+| `early_line_c` | 37.7 | act-on-forecast trigger (≤ the 38.0 yellow line, enforced) |
+| `early_horizon_min` | 20 | which forecast minute the trigger reads (1-30) |
+
+`validate()` refuses an early line above the yellow line, a negative cushion, negative weights. Defaults give exactly the old behavior. Accepted by `optimize(..., weights=)`, `objectives_for(weights)` (the agent's 4 variants), `AgentSettings(weights=)`, `run_benchmark(..., weights=)`, `ProactiveLoop(weights=)`, `propose(..., weights=)`.
+
+```python
+from backend.planner.benchmark import score
+from backend.planner.generate import train_scenarios, load_test_set
+from backend.planner.weights import PlannerWeights
+
+m = score(PlannerWeights(storm=25, margin=1), train_scenarios(20))          # search on TRAINING scenarios
+m = score(best, load_test_set(), act_on_forecasts=True)                      # final report on the test set, once
+# m: n_scenarios, tasks_completed_per_shift, throughput, minutes_above_yellow, minutes_above_red,
+#    peak_p90_c, fairness_spread, safety_violations (must be 0), invalid, changes, per_scenario[...]
+```
+
+`score` uses the deterministic solver (same weights → same numbers) and the simulated true shift from `proactive_eval` (workers hotter than planned, hotter day). About 20-30 s per scenario (one solver thread), or ~2-5 min per scenario with `act_on_forecasts=True`. Live (non-deterministic) solves use `PLANNER_SOLVER_WORKERS` threads (default 8; set 2 when the laptop is shared).
+
 - Read-only use of: `generate.train_scenarios` / `assert_not_test` (never learn from `test-*`), `benchmark.run_benchmark` / `score_plans`, `rules.check_plans`, `archon.plan_with_agent(scenario, playbook=, settings=AgentSettings(...), llm=)`.
 - **Loop 2 output:** write a `Playbook` (`playbook.py`) to `backend/learning/playbook.json` (or set `PLANNER_PLAYBOOK`). `Playbook.add()` runs the code safety filter; only `avoid_intensity` hints reach the optimizer. The benchmark's `agent_day14` uses it automatically.
 - **Loop 3 knobs:** everything in `archon.AgentSettings` (objectives, candidate counts, fusion, ranking weights, critic instructions). Nothing there touches safety.
