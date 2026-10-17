@@ -42,6 +42,8 @@ KEEP = 500
 PLANNER_BODY_FIELDS = ("forecast_p90_c", "peak_before_c", "peak_after_c")   # planner_change: not for crew
 ALERT_WORDS = {"HEAT_YELLOW": "Heat warning", "HEAT_RED": "Heat danger"}
 MAX_PHOTO_CHARS = 2_000_000
+AIR_FIELDS = ("worker_id", "timestamp", "air_temp_c", "humidity_pct", "pressure_hpa", "air_sane", "air_note",
+              "wbgt_correction_c", "site_air_temp_c", "site_humidity_pct")
 HR_MISSING_S = 120                 # no heart rate this long -> the card says "Heart rate missing"       # ~1.5 MB JPEG as a base64 data URL
 
 
@@ -64,6 +66,7 @@ class FrontendAdapter:
         self.reports: list[dict] = []
         self.briefing: dict | None = None
         self.last_status: dict[str, dict] = {}
+        self.air: dict[str, dict] = {}                   # worker -> latest per-minute air at their band
         self.ids = itertools.count(1)
 
     # ------------------------------------------------------------------
@@ -128,6 +131,12 @@ class FrontendAdapter:
             out.append({k: v for k, v in ev.items()})
         elif kind in ("demo", "replay"):
             out.append({"type": "demo", "demo": self.demo_state()})
+        elif kind == "band_minute" and ev.get("air_temp_c") is not None:
+            # The band's air sensor, once a minute. Weather at the worker, not body data.
+            # Not in E's contract yet: {type: "band_air", air: {worker_id, timestamp, air_temp_c, ...}}.
+            a = {k: ev.get(k) for k in AIR_FIELDS}
+            self.air[wid] = a
+            out.append({"type": "band_air", "air": a})
 
         text = self._log_text(ev)
         if text:
@@ -510,6 +519,8 @@ class FrontendAdapter:
             return f"{name}: Bluetooth heart rate {ev['state']}" + (f" ({ev['device']})" if ev.get("device") else "")
         if kind == "demo":
             return f"Demo thresholds {'ON' if ev['demo'] else 'off'}"
+        if kind == "band_fall" and ev["accepted"]:
+            return f"{name}: fall detected by the band ({ev['impact_g']} g impact, confirmed by {ev['confirmed_by']})"
         return None
 
     # ------------------------------------------------------------------
@@ -542,6 +553,8 @@ class FrontendAdapter:
             "band": list(self.band) if f["view"] != "crew" else [],
             # Personal offsets (body data): same rule as history, demo view or the worker's own.
             "offsets": {wid: self.offset_state(wid) for wid in history},
+            # Latest air at each band (weather, not body data), once a minute. Optional for older clients.
+            "air": {wid: a for wid, a in self.air.items() if wid in self.hub.pipelines},
         }
 
     def restore_alerts(self, events: list[dict]) -> None:

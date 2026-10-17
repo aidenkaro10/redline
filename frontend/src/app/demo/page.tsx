@@ -20,6 +20,7 @@ import { Nav } from "@/components/Nav";
 import { LearningCard } from "@/components/LearningCard";
 import { Card, StatusBadge, fmtClockSec } from "@/components/ui";
 import type { BandCommand } from "@/lib/contract";
+import { airLine } from "@/lib/format";
 import { useLive, useSimNow } from "@/lib/live";
 import { useCrew, useSites } from "@/lib/crew";
 
@@ -68,7 +69,9 @@ function DemoView() {
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Stat label="Status">{w ? <StatusBadge status={w.status} big /> : "--"}<p className="mt-1 text-xs text-ink-2">{w?.status_reason}</p></Stat>
         <Stat label="Heart rate" value={lastV?.hr != null ? Math.round(lastV.hr) : "--"} unit="bpm" />
-        <Stat label="Skin temp" value={lastV?.skin_temp?.toFixed(1) ?? "--"} unit="°C" />
+        <Stat label="Skin temp" value={lastV?.skin_temp?.toFixed(1) ?? "--"} unit="°C"
+          sub={live.air[id]?.air_temp_c != null ? `air at band ${airLine(live.air[id])}` +
+            (live.air[id].wbgt_correction_c ? ` · WBGT ${live.air[id].wbgt_correction_c! > 0 ? "+" : ""}${live.air[id].wbgt_correction_c!.toFixed(1)} °C` : "") : ""} />
         <Stat label="Core temp now" value={lastE?.core.mean.toFixed(2) ?? "--"} unit="°C"
           sub={lastE ? `range ${lastE.core.p10.toFixed(1)}–${lastE.core.p90.toFixed(1)} · Kalman ${lastE.kalman.toFixed(2)}${lastE.offset_applied_c ? ` · personal ${lastE.offset_applied_c > 0 ? "−" : "+"}${Math.abs(lastE.offset_applied_c).toFixed(2)}` : ""}` : ""} />
         <Stat label="In 20 min (90th pct)" value={at20?.p90.toFixed(2) ?? "--"} unit="°C" sub={at20 ? `median ${at20.p50.toFixed(2)}` : ""} />
