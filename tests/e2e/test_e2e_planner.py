@@ -149,6 +149,64 @@ def test_A26_the_check_endpoint_rejects_an_unsafe_plan(planner_app):
     assert not check_plan(sc, Plan.from_dict(unsafe)).ok
 
 
+@pytest.fixture(scope="module")
+def no_key_briefing(tmp_path_factory):
+    """GET /api/briefing once with NO API key (slow: ~30 s offline), shared by the A27 tests."""
+    from e2e_support import AppFactory
+    mp = pytest.MonkeyPatch()
+    mp.delenv("ANTHROPIC_API_KEY", raising=False)
+    saved = dict(planner_api._state)
+    planner_api._state.update(scenario=None, result=None, briefings={}, chats={})
+    factory = AppFactory(tmp_path_factory.mktemp("briefing"), mp)
+    app = factory.start()
+    try:
+        r = app.client.get("/api/briefing")
+        chat = app.client.post("/api/planner/chat", json={"message": "Plan tomorrow"})
+        yield r, chat
+    finally:
+        factory.close()
+        planner_api._state.clear()
+        planner_api._state.update(saved)
+        mp.undo()
+
+
+def test_A27_no_key_briefing_and_chat_still_work(no_key_briefing):
+    r, chat = no_key_briefing
+    assert r.status_code == 200
+    b = r.json()
+    assert not C.check(b, C.BRIEFING, "briefing")
+    assert b["cost_usd"] == 0 and b["sites"]
+    assert chat.status_code == 200 and chat.json()["llm"] is False      # chat says it ran without the LLM
+    if os.getenv("E2E_WRITE_FIXTURES") == "1":
+        (FIXTURES / "rest" / "get_api_briefing.json").write_text(
+            json.dumps({"request": "GET /api/briefing", "status": 200, "body": b}, indent=1) + "\n")
+
+
+@pytest.mark.xfail(strict=True, reason="gap -> session B: /api/briefing (and /api/schedule) don't say they were "
+                   "made without the LLM; only chat has an 'llm' flag. Add e.g. llm: false or a 'no-LLM' note.")
+def test_A27_no_key_briefing_is_labeled_no_llm(no_key_briefing):
+    b = no_key_briefing[0].json()
+    text = json.dumps({k: b.get(k) for k in ("summary", "stubs", "notes", "llm", "plan")}).lower()
+    assert b.get("llm") is False or "no-llm" in text or "without the llm" in text or "no llm" in text
+
+
+def test_A28_what_ifs_never_change_the_live_scenario(planner_app):
+    from backend.planner.agent import PlannerSession
+    app = planner_app
+    sc = small_scenario()
+    plan_via_http(app, sc)                           # the live scenario + plan
+    live = planner_api._state["scenario"]
+    before, live_plan = live.to_dict(), planner_api._state["result"].plan.assignments
+    session = PlannerSession(live)
+    session.run_tool("run_optimizer", {"what_if": {"remove_workers": [live.crew[0].id], "hotter_c": 3,
+                                                   "add_hazard": {"kind": "lightning", "start_slot": 0, "end_slot": 2}}})
+    unsafe = {w.id: [sc.tasks[1].id] * sc.n_slots for w in sc.crew}
+    session.run_tool("simulate_schedule", {"assignments": unsafe})
+    assert live.to_dict() == before
+    assert planner_api._state["scenario"] is live and planner_api._state["result"].plan.assignments == live_plan
+    assert session.plan.assignments != unsafe                          # a simulated schedule never becomes the plan
+
+
 # ---------------------------------------------------------------------------
 # The planner's heat model on two threads at once
 # ---------------------------------------------------------------------------

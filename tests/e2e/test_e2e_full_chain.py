@@ -132,8 +132,13 @@ def check_chain(app, crew_msgs, demo_msgs):
 
 @pytest.mark.skipif(SIM_PATH is None or ENS5_PATH is None,
                     reason="needs data/sim/sim.npz and ml/checkpoints/ens5.pt (gitignored, main checkout)")
-def test_A09_A17_A20_real_demo_replay_sim_and_ens5(live_app):
+def test_A09_A17_A20_real_demo_replay_sim_and_ens5(live_app, monkeypatch):
     """The demo exactly as judges see it: sim shift 9647, ens5 forecaster, 3 crewmates."""
+    import backend.app.pipeline as pipeline_module
+    calls = []                                   # every forecaster output, in order (A09: applied once)
+    real_predict_at = pipeline_module.predict_at
+    monkeypatch.setattr(pipeline_module, "predict_at",
+                        lambda *a: calls.append(real_predict_at(*a)) or calls[-1])
     app = live_app("--checkpoint", str(ENS5_PATH))
     assert app.hub.predictor is not None
     app.start_replay(shifts.from_sim(path=SIM_PATH))
@@ -148,6 +153,18 @@ def test_A09_A17_A20_real_demo_replay_sim_and_ens5(live_app):
     # The forecaster's whole 30-minute curve reaches the dashboard.
     est = next(m["estimate"] for m in demo_msgs if m["type"] == "estimate")
     assert len(est["forecast"]) == 30 and est["model"]
+    # A09: every minute of every worker (pre-roll included) is sane, and the pipeline uses the model's
+    # calibrated output exactly as returned: no second calibration, no lost offset.
+    ests = [e for e in app.events if e["type"] == "estimate"]
+    assert len(ests) == len(calls) > 600
+    for e, (kal, now_delta, now_var, fc) in zip(ests, calls):
+        f = e["forecast"]
+        assert e["core_temp"] == pytest.approx(kal + now_delta - e["offset_c"], abs=1e-3)
+        for q, col in (("p10", 0), ("p50", 1), ("p90", 2)):
+            assert f[q] == pytest.approx([kal + v - e["offset_c"] for v in fc[:, col]], abs=1e-3)
+        assert all(a <= b <= c for a, b, c in zip(f["p10"], f["p50"], f["p90"])), e["minute"]
+        values = f["p10"] + f["p50"] + f["p90"] + [e["core_temp"]]
+        assert all(v is not None and 34.0 <= v <= 42.0 for v in values), e["minute"]
     # Crewmates who aren't hot stay green the whole time.
     for calm in ("demo-3", "demo-4"):
         assert app.of_type("heat_alert", calm) == []

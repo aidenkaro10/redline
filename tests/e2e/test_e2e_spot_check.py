@@ -24,7 +24,7 @@ def run(live_app, spot_c_below_raw: float | None):
     """Play 20.5 replay minutes, maybe do a spot check, then one more minute. Returns (app, update, est)."""
     extra = ["--checkpoint", str(ENS5_PATH)] if ENS5_PATH else []
     app = live_app(*extra, clock=StepClock(start=START))
-    app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None))
+    app.start_replay(shifts.synthetic(n_crew=1, fall_worker=None))
     app.step(SPOT_AT_S)
     update = None
     if spot_c_below_raw is not None:
@@ -34,15 +34,18 @@ def run(live_app, spot_c_below_raw: float | None):
         update = r.json()
     app.step(60)                                   # the next minute's estimate
     est = app.hub.pipelines["demo-1"].estimates[-1]
+    app.crewmate = app.hub.pipelines["demo-2"].estimates[-1]
     return app, update, est
 
 
 @pytest.fixture
 def runs(live_app):
     base_app, _, base = run(live_app, None)
+    base_mate = base_app.crewmate
     live_app.stop(base_app)
     app, update, est = run(live_app, 0.4)          # thermometer 0.4 °C below the model
-    return {"live_app": live_app, "app": app, "update": update, "est": est, "base": base}
+    return {"live_app": live_app, "app": app, "update": update, "est": est, "base": base,
+            "base_mate": base_mate, "mate": app.crewmate}
 
 
 def test_A10_spot_check_learns_an_offset(runs):
@@ -61,6 +64,12 @@ def test_A10_offset_is_applied_to_the_next_estimate(runs):
     assert est["core_temp_raw"] == pytest.approx(base["core_temp_raw"], abs=1e-6)     # same data, same model
     assert est["core_temp"] == pytest.approx(base["core_temp"] - off, abs=0.002)
     assert est["kalman"] == pytest.approx(base["kalman"], abs=1e-6)                   # the baseline is untouched
+
+
+def test_A10_another_workers_numbers_do_not_move(runs):
+    keys = ("core_temp", "core_temp_raw", "offset_c", "kalman", "forecast")
+    assert {k: runs["mate"][k] for k in keys} == {k: runs["base_mate"][k] for k in keys}
+    assert runs["mate"]["offset_c"] == 0
 
 
 @pytest.mark.skipif(ENS5_PATH is None, reason="needs ml/checkpoints/ens5.pt for a forecast")
@@ -87,7 +96,7 @@ def test_A11_A34_offset_survives_a_server_restart(runs):
     off = runs["update"]["offset_c"]
     live_app.stop(app)
     again = live_app(clock=StepClock(start=START + 3600))      # same SQLite file, new process state
-    again.start_replay(shifts.synthetic(n_crew=0, fall_worker=None))
+    again.start_replay(shifts.synthetic(n_crew=1, fall_worker=None))
     status = again.hub.pipelines["demo-1"].offset_status()
     assert status["n_checks"] == 1 and status["offset_c"] == pytest.approx(off, abs=1e-4)
     again.step(3 * 60)
