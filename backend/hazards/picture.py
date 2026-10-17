@@ -24,6 +24,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 
+from backend.hazards import index as hazard_index
 from backend.hazards import store
 from backend.hazards.events import SEVERITY_LEVEL, iso, parse_time, utc_now
 from backend.hazards.inject import injected_events
@@ -150,6 +151,8 @@ def hazard_picture(now=None, sites=None, write_log=True):
     # Start of tomorrow in Florida (Eastern daylight time, UTC-4)
     tomorrow_start = (now - timedelta(hours=4)).replace(hour=0, minute=0, second=0, microsecond=0) \
         + timedelta(days=1, hours=4)
+    # Tomorrow's 0-10 index (C2 model, cached once a day, computed in the background)
+    indexes, index_status = hazard_index.hazard_indexes(sites, now)
     entries = []
     for s in sites:
         evs = sorted(by_site.get(s.site_id, []), key=lambda e: -e["level"])
@@ -178,12 +181,19 @@ def hazard_picture(now=None, sites=None, write_log=True):
                 "alerts_into_tomorrow": [e["title"] for e in evs if e["source"] == "NWS"
                                          and e["ends"] and parse_time(e["ends"]) > tomorrow_start],
             },
-            # Filled in by the hazard index model (session C2) when it exists
-            "hazard_index": None,
+            # Session C2's predict_index() result for tomorrow, or None if the model isn't available
+            "hazard_index": indexes.get(s.site_id),
         })
     entries.sort(key=lambda x: (-x["score"], x["site"]["name"]))
     for i, entry in enumerate(entries, 1):
         entry["rank"] = i
+    # Second ranking: riskiest tomorrow, by the model's index
+    tomorrow_order = sorted((e for e in entries if e["hazard_index"]),
+                            key=lambda e: (-e["hazard_index"]["index"], e["site"]["name"]))
+    for i, entry in enumerate(tomorrow_order, 1):
+        entry["tomorrow_rank"] = i
+    for entry in entries:
+        entry.setdefault("tomorrow_rank", None)
 
     counts = {sev: sum(1 for e in events if e.severity == sev) for sev in SEVERITY_LEVEL}
     pic = {
@@ -192,6 +202,8 @@ def hazard_picture(now=None, sites=None, write_log=True):
         "site_count": len(sites),
         "event_counts": counts,
         "feeds": feeds,
+        "index_status": index_status,
+        "riskiest_tomorrow": hazard_index.riskiest(entries),
         "sites": entries,
         "credits": CREDITS,
     }
@@ -257,6 +269,11 @@ def _print_table(pic, top):
     for name, f in pic["feeds"].items():
         flag = "STALE" if f["stale"] else "ok"
         print(f"  feed {name:13s} {flag:5s} {f['fetched_at'] or '-':20s} {f['error'] or ''}")
+    st = pic["index_status"]
+    print(f"  hazard index for {st['date']}: {st['state']} ({st['done']}/{st['total']} sites)"
+          + (f"  {st['error']}" if st["error"] else ""))
+    if pic["riskiest_tomorrow"]:
+        print("  riskiest tomorrow: " + ", ".join(f"{r['name']} {r['index']}" for r in pic["riskiest_tomorrow"][:5]))
     print()
     for e in pic["sites"][:top]:
         s = e["site"]
