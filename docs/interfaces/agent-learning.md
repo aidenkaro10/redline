@@ -89,15 +89,19 @@ Suggested view: a line of `n_lessons` (or `playbook_version`) by `day`, a dot pe
   },
   "day14": { "...same shape..." },
   "day14_evolved": { "...same shape, optional..." },
-  "difference": {"focus_peak_drop_c": 0.4, "score_gain": 0.2, "alerts_avoided": 1}
+  "difference": {"focus_peak_drop_c": 0.4, "score_gain": 0.2, "alerts_avoided": 1},
+  "candidates": [{"id": "cur-...", "spec": {...}, "day1": {"score": 0.37, "workers_alerted": 1, "focus_peak_c": 38.04,
+                  "safety_violations": 0}, "day14": {...}, "day14_evolved": {...}}],
+  "pick_rule": "Shown: the clearest of 8 held-out heat-wave days ... All candidates are listed in 'candidates'."
 }
 ```
+We tried 8 held-out heat-wave days and show the clearest one where the day-14 plan used a lesson. Show `pick_rule` in small print, and if there's room, a small table of `candidates` (honesty: most days change little).
 `schedule[].slots[].task` uses the same words as B's `Schedule` (`heavy` includes very heavy). Chart idea: Kofi's `simulated_core_c_every_10_min` for day 1 vs day 14 with a line at 38.0 °C; under it, both schedules; on the day-14 side the cited lesson and the day it was learned.
 
 ### `summary.json`
 
 ```json
-{"safety_violations": {"ace_days": 0, "ace_gates": 0, "gepa_versions": 0, "demo_day": 0}, "all_zero": true,
+{"safety_violations": {"ace_days": 0, "ace_gates": 0, "gepa_versions": 0, "demo_days": 0}, "all_zero": true,
  "curriculum": {"kept": 20, "tried": 84, "llm": {...}},
  "ace": {"days": 14, "final_version": 3, "gate_score_start": 0.40, "gate_score_end": 0.46, "llm": {...}},
  "gepa": {"versions": 7, "best": "a3", "gain_val": 0.02, "llm": {...}},
