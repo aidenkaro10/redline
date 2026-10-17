@@ -1,15 +1,15 @@
 """
-The escalation state machine for a confirmed man-down.
+The escalation state machine for a confirmed man-down or an SOS button press.
 
 Fixed rule, plain code, no LLM:
-    confirmed man-down
+    confirmed man-down, or SOS (button held 3 s, no stillness wait)
       -> 1. notify crew lead + safety officer (dashboard event + phone call)
       -> 2. cancel window (crew lead can press "cancel, false alarm")
       -> 3. emergency call (prototype: the test phone, screen says "Demo: would call 911")
 
 How to use it (session A wires this into the server):
     manager = EscalationManager(emit=broadcast_to_dashboard)
-    manager.handle(mandown_confirmed_dict)     # starts steps 1 and 2
+    manager.handle(mandown_confirmed_dict)     # starts steps 1 and 2 (an "sos" dict works the same)
     manager.cancel(worker_id="worker-1")        # crew lead pressed cancel
     manager.tick()                              # call often (every ~0.5 s); runs step 3 when time is up
     # or: asyncio.create_task(manager.run())    # ticks for you
@@ -24,7 +24,7 @@ from pathlib import Path
 from typing import Callable
 
 from backend import config
-from backend.emergency.events import EmergencyStatus, MandownConfirmed
+from backend.emergency.events import EmergencyStatus, MandownConfirmed, SosPressed
 from backend.emergency.guard import mask
 from backend.emergency.phones import CallResult, DryRunPhone, PhoneBackend
 from backend.emergency.report import build_report, crew_script, emergency_script
@@ -58,7 +58,7 @@ class EscalationLog:
 
 
 class Escalation:
-    """One incident: one worker, one confirmed man-down."""
+    """One incident: one worker, one confirmed man-down or SOS."""
 
     def __init__(self, event: MandownConfirmed, phone: PhoneBackend, emit: Callable[[EmergencyStatus], None],
                  log: EscalationLog, contacts: dict[str, str], cancel_window_s: float,
@@ -133,7 +133,9 @@ class Escalation:
     def start(self) -> None:
         """Step 1 (notify) and open step 2 (cancel window)."""
         self._log("started", event=self.event.model_dump())
-        self._status("calling", message=f"Man-down confirmed: {self.event.worker_name or self.event.worker_id}. Notifying crew.")
+        who = self.event.worker_name or self.event.worker_id
+        headline = f"SOS pressed by {who}" if self.event.trigger == "sos" else f"Man-down confirmed: {who}"
+        self._status("calling", message=f"{headline}. Notifying crew.")
         report = build_report(self.event, self.clock())
         for target in NOTIFY_TARGETS:
             if self.done:      # cancelled while we were calling
@@ -196,13 +198,16 @@ class EscalationManager:
     def active(self) -> list[Escalation]:
         return [inc for inc in self.incidents if not inc.done]
 
-    def handle(self, event: dict | MandownConfirmed) -> Escalation | None:
+    def handle(self, event: dict | MandownConfirmed | SosPressed) -> Escalation | None:
         """
-        A mandown_confirmed event came in. Start escalating.
+        A mandown_confirmed or sos event came in. Start escalating right away.
         Returns None if this worker already has an active incident (no double calls).
         """
         if isinstance(event, dict):
-            event = MandownConfirmed.model_validate(event)
+            model = SosPressed if event.get("type") == "sos" else MandownConfirmed
+            event = model.model_validate(event)
+        if isinstance(event, SosPressed):
+            event = event.to_escalation()
         if any(inc.event.worker_id == event.worker_id for inc in self.active()):
             return None
         inc = Escalation(event, self.phone, self.emit, self.log, self.contacts, self.cancel_window_s, self.clock)

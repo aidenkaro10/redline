@@ -57,3 +57,13 @@ def test_heat_trigger_wording():
 def test_clock_format():
     assert clock(None) == "Unknown"
     assert clock(T0).endswith(("am", "pm"))
+
+
+def test_sos_wording():
+    from backend.emergency.events import SosPressed
+    sos = SosPressed(worker_id="worker-1", worker_name="Alex Rivera", pressed_at=T0)
+    r = build_report(sos.to_escalation(), now=T0 + 30)
+    assert r.what_happened == "pressed SOS on their band"
+    assert "pressed SOS on their band. It started at" in emergency_script(r)
+    assert r.last_movement == clock(T0)       # pressing the button counts as movement
+    assert "collapsed" not in emergency_script(r) + crew_script(r, 30)

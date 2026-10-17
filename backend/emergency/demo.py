@@ -4,6 +4,7 @@ Run the whole emergency chain on a fake man-down, right in the terminal.
     python -m backend.emergency.demo                 # dry run: prints the scripts, no calls
     python -m backend.emergency.demo --phone fake    # pretend phone, a "dispatcher" asks questions
     python -m backend.emergency.demo --cancel        # crew lead cancels during the window
+    python -m backend.emergency.demo --sos           # worker held the SOS button instead of falling
     python -m backend.emergency.demo --phone live    # REAL calls (needs EMERGENCY_LIVE_CALLS=1 + keys)
 
 Dry run and fake use made-up 555 numbers unless .env has real ones.
@@ -32,12 +33,23 @@ def fake_event(now: float) -> dict:
     }
 
 
+def fake_sos(now: float) -> dict:
+    """A worker who just held the band button for 3 seconds."""
+    return {
+        "type": "sos", "worker_id": "worker-1", "worker_name": "Alex Rivera",
+        "site_id": "deerhaven", "site_name": "Deerhaven Generating Station",
+        "lat": 29.7581, "lon": -82.3898, "pressed_at": now,
+        "core_temp_c": 38.4, "hr_bpm": 128,
+    }
+
+
 def main() -> None:
     p = argparse.ArgumentParser(description="Emergency escalation demo")
     p.add_argument("--phone", choices=["dry_run", "fake", "live"], default="dry_run")
     p.add_argument("--window", type=float, default=config.EMERGENCY_DEMO_CANCEL_WINDOW_S,
                    help="cancel window in seconds")
     p.add_argument("--cancel", action="store_true", help="crew lead presses cancel halfway through the window")
+    p.add_argument("--sos", action="store_true", help="SOS button press instead of a fall")
     args = p.parse_args()
 
     if args.phone == "live":
@@ -58,7 +70,7 @@ def main() -> None:
     m = EscalationManager(phone=phone, emit=show, log=EscalationLog(), contacts=contacts,
                           cancel_window_s=args.window)
     print(f"Mode: {phone.mode}. Cancel window: {args.window:.0f} s. Log: {config.EMERGENCY_LOG_PATH}\n")
-    inc = m.handle(fake_event(time.time()))
+    inc = m.handle(fake_sos(time.time()) if args.sos else fake_event(time.time()))
 
     cancel_at = time.time() + args.window / 2
     while not inc.done:

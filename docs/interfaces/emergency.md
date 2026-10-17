@@ -1,6 +1,6 @@
 # Emergency escalation interface (session D, `backend/emergency/`)
 
-Confirmed man-down → call crew lead + safety officer → cancel window → emergency call.
+Confirmed man-down **or SOS** → call crew lead + safety officer → cancel window → emergency call.
 The decision to call is plain code. The prototype **never dials 911**: the emergency leg calls
 `EMERGENCY_TEST_NUMBER` (a teammate) and every status for it carries `demo_label: "Demo: would call 911"`.
 
@@ -17,7 +17,7 @@ Send it when the man-down check was **not** cancelled within `MANDOWN_ESCALATE_S
   "site_id": "deerhaven",                // optional
   "site_name": "Deerhaven Generating Station",  // optional
   "lat": 29.7581, "lon": -82.3898,       // optional, from the site (session C1) or the band
-  "trigger": "fall",                     // "fall" or "heat_red_unacked"
+  "trigger": "fall",                     // "fall" or "heat_red_unacked" ("sos" is set internally, see below)
   "started_at": 1760000000.0,            // when the fall / red alert began, laptop Unix time
   "confirmed_at": 1760000105.0,          // when the cancel time ran out
   "last_movement_at": 1760000000.0,      // optional, last movement the band saw
@@ -27,6 +27,30 @@ Send it when the man-down check was **not** cancelled within `MANDOWN_ESCALATE_S
 }
 ```
 Missing optional fields are said as "Unknown" on the call, never guessed.
+
+## Input: `sos` (session A sends this when the band sends `BTN:SOS`, button held 3 s)
+
+Model: `SosPressed`. Escalates **right away**: no stillness wait. Then the same chain: crew lead +
+safety officer → same cancel window → same test-number call (never 911, allowlist, dry-run by default).
+The call says "pressed SOS on their band" instead of "collapsed". Pressing the button counts as the
+last movement.
+
+```json
+{
+  "type": "sos",
+  "worker_id": "worker-1",
+  "worker_name": "Alex Rivera",          // optional
+  "site_id": "deerhaven",                // optional
+  "site_name": "Deerhaven Generating Station",  // optional
+  "lat": 29.7581, "lon": -82.3898,       // optional
+  "pressed_at": 1760000000.0,            // when the 3 s hold finished, laptop Unix time
+  "core_temp_c": 38.4,                   // optional
+  "hr_bpm": 128,                         // optional
+  "skin_temp_c": 35.0                    // optional
+}
+```
+`manager.handle()` takes either dict and picks the model from `"type"`. An SOS for a worker who
+already has an active incident (e.g. a man-down) is ignored, so nobody gets called twice.
 
 ## How session A wires it in
 
@@ -38,7 +62,7 @@ manager = EscalationManager(phone=make_phone("dry_run"),     # "fake" for demos,
                             emit=lambda s: broadcast(s.model_dump()))
 asyncio.create_task(manager.run())         # ticks every 0.5 s, fires the emergency call on time
 
-manager.handle(event_dict)                 # on mandown_confirmed
+manager.handle(event_dict)                 # on mandown_confirmed or sos
 manager.cancel(worker_id="worker-1")       # crew lead pressed "cancel, false alarm" (returns False if too late)
 ```
 Suggested routes (A owns them): `POST /api/emergency/cancel {"worker_id"}` and the WebSocket broadcast of status events.

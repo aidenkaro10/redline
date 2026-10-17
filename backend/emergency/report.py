@@ -25,6 +25,8 @@ def clock(ts: float | None) -> str:
 def duration(seconds: float) -> str:
     """90 -> '90 seconds', 200 -> '3 minutes'. Short and easy to say out loud."""
     seconds = max(0, int(seconds))
+    if seconds == 1:
+        return "1 second"
     if seconds < 120:
         return f"{seconds} seconds"
     return f"{round(seconds / 60)} minutes"
@@ -46,7 +48,7 @@ class Report:
     worker: str          # "Alex Rivera"
     site: str            # "Deerhaven Generating Station"
     gps: str             # "29.75000 north, 82.39000 west"
-    what_happened: str   # "collapsed, no movement for 90 seconds"
+    what_happened: str   # "collapsed, no movement for 90 seconds" or "pressed SOS on their band"
     started_at: str      # "2:14 pm"
     time_since: str      # "3 minutes"
     last_movement: str   # "2:14 pm"
@@ -66,7 +68,9 @@ def build_report(event: MandownConfirmed, now: float) -> Report:
     # How long they've been still: from last movement if we have it, else from the fall.
     still_since = event.last_movement_at or event.started_at
     still_for = duration(now - still_since)
-    if event.trigger == "fall":
+    if event.trigger == "sos":
+        what = "pressed SOS on their band"   # the time is said right after
+    elif event.trigger == "fall":
         what = f"collapsed, no movement for {still_for}"
     else:
         what = f"had a heat danger alert and has not responded for {duration(now - event.started_at)}"
@@ -94,7 +98,7 @@ def build_report(event: MandownConfirmed, now: float) -> Report:
 def crew_script(r: Report, cancel_window_s: int) -> str:
     """What the crew lead and safety officer hear. Ends with how to cancel."""
     return (
-        f"PlanIT Control automated alert. {r.worker} is down at {r.site}. "
+        f"PlanIT Control automated alert. {r.worker} needs help at {r.site}. "
         f"They {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "
         f"Last vitals: {r.core_temp}, {r.heart_rate}. "
         f"Emergency services will be called in {cancel_window_s} seconds. "
@@ -106,7 +110,7 @@ def emergency_script(r: Report) -> str:
     """What the dispatcher hears. Facts only, in the order a dispatcher asks for them."""
     return (
         f"This is an automated emergency report from PlanIT Control, a worker safety system. "
-        f"A worker needs medical help. "
+        f"A worker needs help. "
         f"Location: {r.site}, GPS {r.gps}. "
         f"Worker: {r.worker}. "
         f"What happened: {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "

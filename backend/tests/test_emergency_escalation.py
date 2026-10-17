@@ -155,3 +155,52 @@ def test_same_worker_twice_does_not_double_call():
 def test_cancel_window_is_a_config_constant():
     assert config.EMERGENCY_CANCEL_WINDOW_S > 0
     assert "911" in config.EMERGENCY_BLOCKED_NUMBERS
+
+
+SOS = {
+    "type": "sos", "worker_id": "worker-2", "worker_name": "Sam Lee",
+    "site_name": "Deerhaven Generating Station", "lat": 29.7581, "lon": -82.3898,
+    "pressed_at": T0, "core_temp_c": 38.4, "hr_bpm": 128,
+}
+
+
+def test_sos_runs_the_same_chain_right_away():
+    m, clock, events, phone = make(questions=["What happened?"])
+    inc = m.handle(SOS)
+    # Crew called immediately, no stillness wait.
+    assert [c.number for c in phone.calls] == ["+13525550001", "+13525550002"]
+    assert inc.stage == "cancel_window" and inc.cancel_deadline == T0 + 30
+    assert "SOS pressed by Sam Lee" in events[0].message
+    clock.t += 31
+    m.tick()
+    assert phone.calls[-1].number == "+13525550003"       # test number, never 911
+    assert inc.outcome == "completed"
+    script = phone.calls[-1].script
+    assert "pressed SOS" in script and "collapsed" not in script
+    assert "pressed SOS" in phone.calls[-1].transcript[-1]["text"]
+
+
+def test_sos_can_be_cancelled():
+    m, clock, events, phone = make()
+    m.handle(SOS)
+    assert m.cancel(worker_id="worker-2")
+    clock.t += 60
+    m.tick()
+    assert len(phone.calls) == 2
+
+
+def test_sos_during_an_active_mandown_does_not_double_call():
+    m, clock, events, phone = make()
+    m.handle(EVENT)
+    assert m.handle(dict(SOS, worker_id="worker-1")) is None
+    assert len(phone.calls) == 2
+
+
+def test_sos_with_911_in_contacts_is_refused():
+    m, clock, events, phone = make(contacts=dict(CONTACTS, emergency="911"))
+    phone.allowlist = ALLOW | {"911"}
+    inc = m.handle(SOS)
+    clock.t += 31
+    m.tick()
+    assert all(c.number != "911" for c in phone.calls)
+    assert inc.outcome == "failed"

@@ -9,6 +9,9 @@
 - `demo.py`: runs the whole chain in the terminal.
 - Tests: `backend/tests/test_emergency_*.py` (48 tests, no network, no real calls).
 
+## Round 2
+- SOS trigger (`BTN:SOS`, button held 3 s): new `sos` event, escalates right away, same cancel window and test-number call. Script says "pressed SOS on their band". 5 new tests (53 total). Demo: `--sos`.
+
 ## Run it
 ```
 .venv/bin/python -m backend.emergency.demo --phone fake
