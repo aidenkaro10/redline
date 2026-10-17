@@ -18,7 +18,7 @@ test), C1 in fake mode, planner with `PLANNER_LLM=off`, the database and hazard 
    ```bash
    /Users/Annabelle/Documents/projects/planit-control/.venv/bin/python -m pytest tests/e2e -q
    ```
-3. You should see about `91 passed, 11 xfailed` in about a minute. "xfailed" = a known bug or gap, listed below.
+3. You should see about `128 passed, 14 xfailed` in about a minute. "xfailed" = a known bug or gap, listed below.
 4. The real-demo test needs `data/sim/sim.npz` and `ml/checkpoints/ens5.pt`. They're gitignored; the tests find them in the main checkout on their own, and skip that one test if they're missing.
 5. To see why one known bug fails, run it with `--runxfail`, for example:
    ```bash
@@ -44,6 +44,8 @@ One test to check it works: `pytest tests/e2e/test_e2e_full_chain.py -q` should 
 | `test_e2e_safety.py` | No code outside tests writes to `backend.config`; the safety numbers match PROJECT.md (38.0/38.5, 10 mi/30 min/2 flashes, Kalman parameters, 115200 baud, 911 blocked ...); a busy session (demo-threshold toggles with sneaky extra fields, 12 "cool" spot checks, a wild reading, hazards, SOS) changes no config constant; the personal offset stops at the 0.6 °C cap and a hot worker stays red. |
 | `test_e2e_planner.py` | B's real endpoints on a small 3-hour, 2-person day with a lightning window: `/api/planner/plan` returns a verified plan, we re-check it ourselves (in-process and via `/api/planner/check`), no outdoor work in the stop-work slots, `/api/schedule` says `checked_by_rules: true`; a black-flag day still gets a verified plan; on a day where nothing passes, the planner says so (`checked_by_rules: false`, "No verified plan") instead of pretending; an all-day heavy plan through the lightning is rejected. |
 
+| `test_e2e_acceptance.py` | The acceptance items not covered elsewhere: parser fuzz (10,000 random lines), BTN:1 never escalates, `step_fused` = `step`, corrupt checkpoint -> Kalman-only, exact thresholds and no flicker, demo-threshold flag, router fallback, no command storms, flapping tilt switch, blocked numbers in 16 formats, live dialer never built, one call per incident, facts-only script, lightning edges (9.9/10.1 mi, quality, stale feed), NWS EH/XH, hazard index 0-10, bad requests 4xx, CORS, replay determinism, 6 workers x 8 h load. |
+
 `e2e_support.py` has the tools (stepped clock, recording band, spy phone, app factory); `conftest.py` only exposes the fixtures.
 
 ## Fixtures for session E (real backend payloads)
@@ -57,26 +59,65 @@ All in `tests/e2e/fixtures/`, recorded from the real merged backend (sim shift +
 
 `test_saved_live_fixtures_match_contract` keeps them honest: every saved example must still match the contract.
 
-## Real bugs found (each has an xfail test naming it)
+## Real bugs found, sorted by demo impact (each has an xfail test)
 
-| # | Bug | Failing test | Owner | Fix idea |
-| --- | --- | --- | --- | --- |
-| 1 | **Server crash.** B's heat model (pythermalcomfort PHS, numba `parallel=True`) aborts the whole Python process when two threads run it at once ("Numba workqueue threading layer is terminating: Concurrent access", exit 134). A's server does exactly that: at startup `planner_bridge` runs `plan_now` and `warm_briefing` in parallel, and FastAPI runs the planner's sync routes on a thread pool. I hit it starting the app offline (replay + fake hazards + planner on): dead within ~10 s. With internet the briefing is slow to reach the model, so it's rarer but still possible. | `test_e2e_planner.py::test_planner_heat_model_survives_two_threads` (3 of 3 runs abort) | B (heat model) + A (bridge) | B: one `threading.Lock` around `HeatModel.simulate` / `slot_costs`. A: start `warm_briefing` only after the first `plan_now` finishes. |
-| 2 | **Full phone numbers reach every dashboard, crew included.** D's dry-run and fake phones say "Dry run: would call +1352..." / "Calling +1352..." with the whole number; A copies that message into `EmergencyCall.steps[].text`. Only `number_masked` should go out. | `test_e2e_privacy.py::test_no_full_phone_number_reaches_any_dashboard` | D (`phones.py` lines 81 and 110, `voice_agent.py` line 83) | Use `mask(number)` in those messages. |
-| 3 | **A worker view can read another worker's raw vitals.** `GET /api/workers/{id}/history?view=worker&worker_id=me` ignores `worker_id`. | `test_e2e_privacy.py::test_worker_view_cannot_read_another_workers_history` | A | Take `worker_id` and return 403 unless it matches (as `/ws/live` already does). |
-| 4 | **Demo page crash after a reload.** The snapshot's `offsets` use A's flat shape (no `history`, `checks`, `last_check`), but `live.tsx` stores them as `OffsetUpdate` without `toOffsetUpdate()`, and `LearningCard` reads `offset.history.length`. | `test_e2e_contract.py::test_snapshot_offsets_are_offset_updates` | E (or A) | E: map snapshot offsets through `toOffsetUpdate()`. Or A: send the contract shape. |
-| 5 | "Test lightning" buzzes the bands at once, but the crew's site card (stop-work banner, ring, countdown) waits for C1's next 60 s rebuild plus the bridge's 15 s poll. | `test_e2e_hazards.py::test_demo_test_alert_shows_on_the_site_card_right_away` | A | After `bridge.test_alert`, rebuild C1's picture on a thread and refresh the bridge. |
-| 6 | No fresh estimate after a spot check: the contract asks for one "so the chart moves while the judge watches"; A only re-checks the alert, so the chart waits for the next minute (60 s live). | `test_e2e_spot_check.py::test_fresh_estimate_is_pushed_right_after_a_spot_check` | A | Re-send the last estimate with the new offset applied. |
-| 7 | Raw `/ws` gets D's `emergency_status` events before the `mandown_confirmed` that caused them (listeners run before the broadcast, D emits synchronously). Bare chart page only. | `test_e2e_full_chain.py::test_raw_stream_sends_mandown_confirmed_before_its_escalation` | A (minor) | Broadcast before calling listeners, or queue nested dispatches. |
+| # | Demo impact | Bug | Failing test | Owner | Fix idea |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **Kills the demo.** Server can die at startup with no internet | B's heat model (pythermalcomfort PHS, numba `parallel=True`) aborts the whole process when two threads run it at once (exit 134, "Concurrent access has been detected"). `planner_bridge` runs `plan_now` and `warm_briefing` in parallel at startup; FastAPI also runs planner routes on a thread pool. Offline (replay + fake hazards + planner on) it died within ~10 s. | `test_e2e_planner.py::test_planner_heat_model_survives_two_threads` (3 of 3 runs abort) | B + A | B: one `threading.Lock` around `HeatModel.simulate` / `slot_costs`. A: start `warm_briefing` after the first `plan_now`. Until fixed: run the demo with `--no-planner` if the WiFi is bad. |
+| 2 | **On the projector.** Full teammate phone numbers on the man-down screen | D's dry-run/fake phones say "Dry run: would call +1352..." / "Calling +1352..."; A copies it into `EmergencyCall.steps[].text` for every view, crew included. | `test_e2e_privacy.py::test_A29_no_full_phone_number_reaches_any_dashboard` | D (A shows it) | `mask(number)` in `phones.py` lines 81 and 110, `voice_agent.py` line 83. |
+| 3 | **Crashes the demo page.** Reload after a spot check | Snapshot `offsets` use A's flat shape; `live.tsx` stores them as `OffsetUpdate` without `toOffsetUpdate()`; `LearningCard` reads `offset.history.length`. | `test_e2e_contract.py::test_snapshot_offsets_are_offset_updates` | E (or A) | E: map snapshot offsets through `toOffsetUpdate()`. |
+| 4 | **Visible lag.** "Test lightning" | Bands buzz at once, but the crew's site card (stop-work banner, ring, countdown) waits up to ~75 s (C1's 60 s rebuild + bridge's 15 s poll). | `test_e2e_hazards.py::test_demo_test_alert_shows_on_the_site_card_right_away` | A | After `bridge.test_alert`, rebuild C1's picture on a thread, then `bridge.refresh()`. |
+| 5 | Judge waits | No fresh estimate after a spot check; the chart moves at the next minute (6 s at 10x replay, 60 s live). | `test_e2e_spot_check.py::test_fresh_estimate_is_pushed_right_after_a_spot_check` | A | Re-send the last estimate with the new offset. |
+| 6 | Live band only | The line parser accepts impossible values (`TEMP:nan`, `HR:inf`, `HR:-80`, `TEMP:1e9`): one glitched line can poison a minute or the Kalman. | `test_e2e_acceptance.py::test_A01_impossible_values_never_make_readings` | A | Drop non-finite and out-of-range values in `parse_line`. |
+| 7 | None in the UI (it sends numbers) | `POST /api/demo/replay {speed: "fast"}` -> 500 (unguarded `float()`). | `test_A30_demo_replay_bad_speed_is_4xx` | A | Validate with a pydantic model. |
+| 8 | None visible | Spot checks outside 34-42 °C return 200 (contract: 400); they're only rejected as bad readings. | `test_A30_out_of_range_spot_check_is_4xx` | A | `Field(ge=34, le=42)` on `thermometer_c`. |
+| 9 | None visible (privacy) | `GET /api/workers/{id}/history?view=worker&worker_id=me` ignores `worker_id`: any worker view reads anyone's vitals. | `test_A29_worker_view_cannot_read_another_workers_history` | A | 403 unless `worker_id` matches. |
+| 10 | Bare chart page only | Raw `/ws` gets D's `emergency_status` before the `mandown_confirmed` that caused it. | `test_e2e_full_chain.py::test_raw_stream_sends_mandown_confirmed_before_its_escalation` | A | Broadcast before calling listeners. |
 
-Contract drift (UI copes today, but the contract and backend disagree):
+Contract drift, no demo impact (the UI copes today): `POST /api/workers/{id}/button` returns `{ok}` not `{ok, action}` (A); `POST /api/emergency/cancel` returns `{cancelled}` not `{ok}` (A); `GET /api/results` not served, UI uses its bundled copy (A + ML); C1 site `tech` has `hydro`, `battery`, `biomass_waste` (C1 + E). Tests: `test_e2e_contract.py::test_rest_replies_match_contract[...]`, `test_results_endpoint_is_served`, `test_site_tech_values_are_in_the_contract`.
 
-| What | Test | Owner |
+## Acceptance items (docs/testing/backend-acceptance.md) -> tests
+
+Tests are named after the items they cover (`test_A12_...`). "Partial" = part of the item is checked.
+
+| Item | Status | Tests |
 | --- | --- | --- |
-| `POST /api/workers/{id}/button` returns `{ok}`; contract says `{ok, action}` | `test_rest_replies_match_contract[POST /api/workers/{id}/button]` | A |
-| `POST /api/emergency/cancel` returns `{cancelled}`; contract says `{ok}` / `{ok: false, error}` | `test_rest_replies_match_contract[POST /api/emergency/cancel]` | A |
-| `GET /api/results` not served (UI falls back to a bundled copy) | `test_results_endpoint_is_served` | A + ML session |
-| C1's site `tech` has `hydro`, `battery`, `biomass_waste`; contract.ts lists only 6 values (shown as text, cosmetic) | `test_site_tech_values_are_in_the_contract` | C1 + E |
+| A01 fuzz parser | pass + 1 xfail (#6) | `test_A01_*` |
+| A02 debug/garbage lines | pass | `test_A02_*` (UDP + serial) |
+| A03 laptop timestamps | partial: stamping checked; burst order and duplicates not | `test_A03_*` |
+| A04 two HR sources | not automated here (A's unit tests cover `step_fused`) | |
+| A05 no heart rate | not automated here | |
+| A06 SOS vs button | pass | `test_A06_*` |
+| A07 Kalman exactness | partial: `step_fused` one source == `step`; Mendeley column is in `backend/tests/test_kalman_real_data.py` | `test_A07_*` |
+| A08 forecaster fallback | pass | `test_A08_*` |
+| A09 forecast sanity | partial: real demo replay + contract check p10 <= mean <= p90 and 30 points; 34-42 °C range not checked | `test_A09_*`, `test_estimates_carry_the_whole_forecast` |
+| A10 offset applied once | pass (other worker unmoved: not checked) | `test_A10_*` |
+| A11 offset safety + restart | pass | `test_A11_*` |
+| A12 exact thresholds | pass | `test_A12_*` |
+| A13 demo threshold | pass | `test_A13_*` |
+| A14 red repeat / ack / timeout | partial: ack in the full chain; unacknowledged-red man-down not | `test_A09_A17_A20_real_demo_*` |
+| A15 router priorities | pass | `test_A15_*` |
+| A16 commands on change + 20 s re-send | pass | `test_A16_*` |
+| A17 man-down | pass | `test_A17_*`, full chain |
+| A18 blocked numbers | pass | `test_A18_*` (16 formats) |
+| A19 dry run by default | pass | `test_A19_*` |
+| A20 one call per incident | pass | `test_A20_*` |
+| A21 facts only | pass | `test_A21_*` |
+| A22 lightning edges | pass (9.9 vs 10.1 mi, 1 flash, bad quality, reset, stale feed) | `test_A22_*` |
+| A23 NWS mapping | pass | `test_A23_*` |
+| A24 offline feeds | partial: whole suite runs offline in fake mode without crashing; live-mode stale marking not checked | |
+| A25 hazard index range | pass | `test_A25_*` |
+| A26 rule checker gate | pass | `test_A26_*` |
+| A27 no-key mode | partial: schedule works with no LLM; briefing not run (18 s to 2 min) | `test_A26_A27_*` |
+| A28 what-ifs | not automated here | |
+| A29 privacy | pass + 2 xfail (#2, #9) | `test_A29_*` |
+| A30 bad requests | pass + 2 xfail (#7, #8) | `test_A30_*` |
+| A31 CORS | pass | `test_A31_*` |
+| A32 replay determinism | pass | `test_A32_*` |
+| A33 load | partial: 6 workers x 8 h in well under 2 min, history bounded; dropped events not counted | `test_A33_*` |
+| A34 restart | partial: offsets come back; alert history and schedule not checked | `test_A11_A34_*` |
+| A35 config unchanged + no writes | pass | `test_A35_*` |
+| A36 learned parts can't move thresholds | pass (static scan + runtime) | `test_A36_*`, `test_A11_A35_A36_*` |
 
 ## Other things noticed (no test, worth a look)
 
