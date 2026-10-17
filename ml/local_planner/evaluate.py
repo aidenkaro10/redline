@@ -42,7 +42,7 @@ from backend.planner.optimizer import optimize
 from backend.planner.rules import check_plans
 from backend.planner.scenario import Plan, Scenario
 
-EVAL_DIR = DATA_DIR / "eval"
+EVAL_DIR = Path(os.getenv("LOCAL_PLANNER_EVAL_DIR", str(DATA_DIR / "eval")))
 # B's scored benchmark runs (same score_plans, same test set). Lives next to our data folder.
 B_BENCHMARK = Path(os.getenv("LOCAL_PLANNER_B_BENCHMARK", str(DATA_DIR.parent / "planner" / "benchmark.json")))
 
