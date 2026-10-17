@@ -168,8 +168,6 @@ def test_A27_no_key_schedule_and_chat_still_work(no_key):
     assert chat.status_code == 200 and chat.json()["llm"] is False      # chat says it ran without the LLM
 
 
-@pytest.mark.xfail(strict=True, reason="gap -> session B: /api/schedule (and /api/briefing) don't say they were "
-                   "made without the LLM; only chat has an 'llm' flag. Add e.g. llm: false or a 'no-LLM' note.")
 def test_A27_no_key_schedule_is_labeled_no_llm(no_key):
     plan_via_http(no_key, small_scenario())
     sched = no_key.client.get("/api/schedule").json()
@@ -233,11 +231,6 @@ TWO_THREADS = textwrap.dedent("""
 """)
 
 
-@pytest.mark.xfail(strict=True, reason="BUG (session B heat model, hit by session A's server): pythermalcomfort's "
-                   "PHS model uses numba parallel=True; two threads running it at once make numba's workqueue layer "
-                   "ABORT the whole process ('Concurrent access has been detected', exit 134). The server does this "
-                   "at startup (planner_bridge plan_now + warm_briefing, seen offline) and on overlapping planner "
-                   "requests. Fix idea: one threading.Lock around the heat model's simulate().")
 def test_planner_heat_model_survives_two_threads(tmp_path):
     repo = Path(__file__).resolve().parents[2]
     env = {**os.environ, "PYTHONPATH": str(repo), "OMP_NUM_THREADS": "2"}
