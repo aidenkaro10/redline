@@ -15,13 +15,13 @@ def test_session_fills_missing_signals_with_nan():
 
 def test_split_is_disjoint_complete_and_deterministic():
     people = [f"p{i}" for i in range(65)]
-    a = make_person_split(people, n_calib=10, n_test=10, seed=0)
-    b = make_person_split(people, n_calib=10, n_test=10, seed=0)
+    a = make_person_split(people, n_val=10, n_calib=10, n_test=10, seed=0)
+    b = make_person_split(people, n_val=10, n_calib=10, n_test=10, seed=0)
     assert a == b
-    assert (len(a["train"]), len(a["calib"]), len(a["test"])) == (45, 10, 10)
-    assert set(a["train"]) | set(a["calib"]) | set(a["test"]) == set(people)
-    assert not (set(a["train"]) & set(a["test"]))
-    assert not (set(a["calib"]) & set(a["test"]))
+    assert [len(a[k]) for k in ("train", "val", "calib", "test")] == [35, 10, 10, 10]
+    groups = [set(v) for v in a.values()]
+    assert set().union(*groups) == set(people)
+    assert sum(len(g) for g in groups) == len(people)   # no one in two groups
 
 
 @needs_mendeley
@@ -39,4 +39,4 @@ def test_mendeley_loads_as_expected():
 def test_saved_split_covers_every_mendeley_person():
     split = load_split("mendeley")
     people = {s.person_id for s in load_mendeley()}
-    assert set(split["train"]) | set(split["calib"]) | set(split["test"]) == people
+    assert set().union(*map(set, split.values())) == people

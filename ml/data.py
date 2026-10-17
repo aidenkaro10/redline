@@ -110,14 +110,23 @@ def load_mendeley(path: Path = MENDELEY_PATH) -> list[Session]:
 # ---------------------------------------------------------------------------
 # Splitting by person. Never by time: the same person in train and test leaks.
 # ---------------------------------------------------------------------------
-def make_person_split(person_ids, n_calib: int, n_test: int, seed: int = 0) -> dict[str, list[str]]:
-    """Shuffle people with a fixed seed and cut them into train / calib / test."""
+def make_person_split(person_ids, n_val: int, n_calib: int, n_test: int, seed: int = 0) -> dict[str, list[str]]:
+    """
+    Shuffle people with a fixed seed and cut them into four groups:
+      train: fit models
+      val:   compare models, early stopping, tuning
+      calib: conformal calibration of the uncertainty range
+      test:  final numbers only. Look once.
+    """
     people = sorted(set(person_ids))
     random.Random(seed).shuffle(people)
-    test = sorted(people[:n_test])
-    calib = sorted(people[n_test:n_test + n_calib])
-    train = sorted(people[n_test + n_calib:])
-    return {"train": train, "calib": calib, "test": test}
+    cuts = [n_test, n_test + n_calib, n_test + n_calib + n_val]
+    return {
+        "train": sorted(people[cuts[2]:]),
+        "val": sorted(people[cuts[1]:cuts[2]]),
+        "calib": sorted(people[cuts[0]:cuts[1]]),
+        "test": sorted(people[:cuts[0]]),
+    }
 
 
 SPLIT_DIR = Path("ml/splits")
@@ -139,8 +148,8 @@ def sessions_in(sessions: list[Session], people: list[str]) -> list[Session]:
 
 
 if __name__ == "__main__":
-    # Create (once) and save the fixed Mendeley split: 45 train / 10 calib / 10 test people.
+    # Create (once) and save the fixed Mendeley split: 35 train / 10 val / 10 calib / 10 test people.
     data = load_mendeley()
-    split = make_person_split([s.person_id for s in data], n_calib=10, n_test=10, seed=0)
+    split = make_person_split([s.person_id for s in data], n_val=10, n_calib=10, n_test=10, seed=0)
     save_split("mendeley", split)
     print({k: len(v) for k, v in split.items()}, "people;", len(data), "sessions")
