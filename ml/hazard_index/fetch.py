@@ -107,7 +107,15 @@ def get_json(base: str, params: dict | None = None, offline: bool = False,
         return json.loads(path.read_text())
     if offline:
         raise FileNotFoundError(f"not cached (offline mode): {url}")
-    data = json.loads(_download(url, delay=delay))
+    for attempt in range(RETRIES):
+        body = _download(url, delay=delay)
+        try:
+            data = json.loads(body)
+            break
+        except json.JSONDecodeError:               # empty or non-JSON reply (busy server): wait and retry
+            if attempt == RETRIES - 1:
+                raise
+            time.sleep(30 * (attempt + 1))
     path.write_text(json.dumps(data))
     return data
 
