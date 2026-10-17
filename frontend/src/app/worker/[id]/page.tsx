@@ -21,6 +21,7 @@ import type { Hazard, Status } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
+import { createHold } from "@/lib/hold";
 import { secondsUntil } from "@/lib/normalize";
 import { shortSiteName, useSites } from "@/lib/crew";
 
@@ -226,39 +227,41 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * A ring fills while you hold; letting go early cancels.
  */
 function SosButton({ onFire }: { onFire: () => void }) {
-  const HOLD_MS = 3000;
   const [progress, setProgress] = useState(0);
-  const start = useRef<number | null>(null);
+  const [hint, setHint] = useState(false);
+  const fire = useRef(onFire);
+  fire.current = onFire;
+  const hold = useRef(createHold(3000, () => fire.current(), () => performance.now()));
   const raf = useRef<number | null>(null);
-  const stop = () => {
-    start.current = null;
-    if (raf.current) cancelAnimationFrame(raf.current);
-    setProgress(0);
-  };
   const step = () => {
-    if (start.current === null) return;
-    const p = Math.min(1, (performance.now() - start.current) / HOLD_MS);
+    const p = hold.current.tick();
     setProgress(p);
-    if (p >= 1) { stop(); onFire(); return; }
-    raf.current = requestAnimationFrame(step);
+    if (p < 1) raf.current = requestAnimationFrame(step);
+  };
+  const stop = () => {
+    if (raf.current) cancelAnimationFrame(raf.current);
+    const fired = hold.current.release();
+    if (!fired) setHint(true);              // let go early: nothing sent, just a reminder
+    setProgress(0);
   };
   useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
   return (
     <button
       onPointerDown={(e) => {
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* keep going without capture */ }
-        start.current = performance.now();
+        setHint(false);
+        hold.current.start();
         step();
       }}
       onPointerUp={stop} onPointerCancel={stop} onContextMenu={(e) => e.preventDefault()}
-      className="relative flex select-none items-center gap-2 rounded-xl bg-[#6d28d9] px-3 py-2 text-white touch-none"
+      className="relative flex min-h-11 select-none items-center gap-2 rounded-xl bg-[#6d28d9] px-3 py-2 text-white touch-none"
       aria-label="Hold 3 seconds to send SOS"
     >
       <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90" aria-hidden>
         <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="4" />
         <circle cx="18" cy="18" r="15" fill="none" stroke="#fff" strokeWidth="4" strokeDasharray={`${progress * 94.2} 94.2`} />
       </svg>
-      <span className="text-left leading-tight"><b className="block">SOS</b><span className="text-[11px] font-medium opacity-90">{progress > 0 ? "keep holding…" : "hold 3 s"}</span></span>
+      <span className="text-left leading-tight"><b className="block">SOS</b><span className="text-[11px] font-medium opacity-90">{progress > 0 ? "keep holding…" : hint ? "hold for 3 seconds" : "hold 3 s"}</span></span>
     </button>
   );
 }

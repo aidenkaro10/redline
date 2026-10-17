@@ -63,7 +63,7 @@ export interface LiveState {
   offsets: Record<string, OffsetUpdate>;
 }
 
-const EMPTY: LiveState = {
+export const EMPTY: LiveState = {
   connected: false, ready: false, clock: { sim: 0, wall: 0, speed: 1 }, workers: {}, sites: {}, alerts: [],
   mandown: null, emergency: null, demo: null, reports: [], log: [], history: {}, band: [], offsets: {},
 };
@@ -72,7 +72,7 @@ const MAX_VITALS = 240;      // 20 min at 5 s
 const MAX_ESTIMATES = 90;    // 90 min
 
 /** Apply a batch of events to the state. Returns a new state object. */
-function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
+export function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
   const s: LiveState = { ...prev };
   const now = Date.now() / 1000;
   for (const ev of events) {
@@ -158,7 +158,7 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
 /** If nothing arrives for this long, the connection is treated as dead and reopened. */
 const SILENCE_MS = 8000;
 
-function connect(filter: ViewFilter, onEvent: (ev: LiveEvent) => void, onStatus: (up: boolean) => void) {
+export function connect(filter: ViewFilter, onEvent: (ev: LiveEvent) => void, onStatus: (up: boolean) => void) {
   const qs = new URLSearchParams({ view: filter.view, ...(filter.worker_id ? { worker_id: filter.worker_id } : {}) });
   let closed = false;
   let lastMsg = Date.now();
@@ -225,7 +225,17 @@ function filterForPath(path: string): ViewFilter {
 // React glue
 // ---------------------------------------------------------------------------
 
-const LiveContext = createContext<LiveState>(EMPTY);
+export const LiveContext = createContext<LiveState>(EMPTY);
+
+/**
+ * Privacy gate on everything that arrives. Returns the event to keep, or null to drop it:
+ * anything this view may not see, plus raw history/offsets in a crew snapshot, even if a backend sends them.
+ */
+export function acceptEvent(filter: ViewFilter, ev: LiveEvent): LiveEvent | null {
+  if (!ev || typeof ev !== "object" || !canSee(filter, ev)) return null;
+  if (ev.type === "snapshot" && filter.view === "crew") return { ...ev, history: {}, offsets: {} };
+  return ev;
+}
 
 export function LiveProvider({ children }: { children: React.ReactNode }) {
   const path = usePathname();
@@ -246,10 +256,9 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
     }, 250);
     const stop = connect(
       filter,
-      (ev) => {
-        // Belt and braces for privacy: drop anything this view may not see, even if a backend sends it.
-        if (!canSee(filter, ev)) return;
-        if (ev.type === "snapshot" && filter.view === "crew") { ev.history = {}; ev.offsets = {}; }
+      (raw) => {
+        const ev = acceptEvent(filter, raw);
+        if (!ev) return;
         if (ev.type === "snapshot") queue.current = [];   // a snapshot replaces everything before it
         queue.current.push(ev);
       },

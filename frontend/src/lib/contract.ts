@@ -424,7 +424,10 @@ export interface ViewFilter {
  */
 export function canSee(filter: ViewFilter, ev: LiveEvent): boolean {
   if (ev.type === "vitals" || ev.type === "estimate" || ev.type === "offset_update") {
-    const id = ev.type === "vitals" ? ev.vitals.worker_id : ev.type === "estimate" ? ev.estimate.worker_id : ev.offset.worker_id;
+    // offset_update comes wrapped ({offset: {...}}) from our mock, flat ({worker_id, offset_c, ...}) from session A.
+    const flat = ev as unknown as { worker_id?: string; offset?: { worker_id?: string } };
+    const id = ev.type === "vitals" ? ev.vitals?.worker_id : ev.type === "estimate" ? ev.estimate?.worker_id
+      : flat.offset?.worker_id ?? flat.worker_id;
     if (filter.view === "demo") return true;
     if (filter.view === "worker") return filter.worker_id === id;
     return false;

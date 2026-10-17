@@ -15,8 +15,9 @@
 import { useState } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import type { OffsetUpdate, SpotCheckResult } from "@/lib/contract";
+import type { OffsetUpdate } from "@/lib/contract";
 import { apiPost, USING_MOCK } from "@/lib/live";
+import { sendSpotCheck } from "@/lib/spotcheck";
 import { useIsDark } from "./Nav";
 
 /** "+0.12 °C hotter than average" / "0.08 °C cooler than average" / "same as average". */
@@ -109,21 +110,12 @@ export function SpotCheckForm({ workerId, glass }: { workerId: string; glass?: b
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const t = Number(value.replace(",", "."));
-    if (!Number.isFinite(t)) return;
+    if (busy) return;                       // a double tap sends it once
     setBusy(true);
     try {
-      // Our mock answers with SpotCheckResult; session A answers with its flat offset_update event.
-      const r = await apiPost<Partial<SpotCheckResult> & { offset_c?: number; reason?: string; detail?: unknown }>("/spot-check", { worker_id: workerId, thermometer_c: t });
-      const accepted = r.accepted === true;
-      const text = r.message
-        ?? (accepted && typeof r.offset_c === "number" ? `Learned: ${bodyText(r.offset_c)}.` : null)
-        ?? (typeof r.reason === "string" ? r.reason : null)
-        ?? (r.detail ? "The backend refused that reading." : accepted ? "Reading added." : "Reading ignored (too far from the model, probably a bad reading).");
-      setMsg({ ok: accepted, text });
-      if (accepted) setValue("");
-    } catch {
-      setMsg({ ok: false, text: "Couldn't send the reading. Is the backend running?" });
+      const r = await sendSpotCheck(workerId, value, apiPost, bodyText);
+      setMsg({ ok: r.accepted, text: r.text });
+      if (r.accepted) setValue("");
     } finally {
       setBusy(false);
     }
