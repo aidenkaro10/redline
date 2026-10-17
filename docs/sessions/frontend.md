@@ -94,9 +94,17 @@ Backend gaps (not frontend code, for the main session / A):
 3. `/api/state` snapshot has no `offsets`, so the "Learning your body" card resets to "Not personalized yet" on page reload even though A saved the offset (SQLite). Add `offsets: {worker_id: offset_update}` for demo/worker views.
 4. Old man-down incidents stay open until a crew lead closes them (replay falls stack up); only one shows at a time. Fine for now.
 
-## Round 9 (2026-10-17): fixed the clear backend gaps (Aiden: "fix the clear stuff")
+## Round 9 (2026-10-17): backend edits reverted
 
-- Saved spot-check offsets now come with the snapshot (A's `frontend_api.py`, contract shape with history). Survives page reloads and backend restarts (SQLite). Crew never gets them. Test added.
-- Session C2's index wired into C1's picture (`backend/hazards/index_bridge.py`): cached sites first, then downloads the rest in the background, hourly. Full `hazard_index` + reason texts reach the frontend. `HAZARD_INDEX=auto|offline|off`. Tests added.
-- Break times: NOT wired. Session B's planner uses its own sample crew and date, so mapping it onto the live crew is a design call. Until then the worker app hides the break tile instead of showing "--", and the crew row hides "Next break".
-- Backend suite: 261 tests pass.
+Commit 84b3310 edited backend files owned by sessions A and C1. Reverted in 1fb24f0 at the main session's request (A merged its own offsets fix, C1 is wiring the index). This session stays inside `frontend/` and its own notes.
+
+## Round 10 (2026-10-17): merged main (b680a29), aligned with A's offsets and break times
+
+Tested against the merged backend (replay, own port):
+- Break times (A's planner bridge): worker app shows "Next break in 45 min", crew rows show "On break". The break tile still hides when a worker has no schedule.
+- Saved offsets: A's snapshot sends `offsets` in the flat offset_update shape; `src/lib/offset.ts` converts it. Learning card survives a page reload (checked: "+0.04 °C hotter than average", 1 check). Crew snapshot has none.
+- No frontend code changes were needed for these; the adapters from round 8 already covered A's shapes.
+
+Remaining gaps for the owners:
+1. **C1 (index):** until C1 lands the C2 wiring, A's `site_status` sends `index_tomorrow: 0` (not null) and no `hazard_index`, so every site shows "0.0" and the "Riskiest tomorrow" list isn't really ranked. Ask: send `null` until the index exists (the UI then shows "--"), and pass C2's full result as `hazard_index` (the hazard panel shows the per-hazard breakdown and reasons from it).
+2. **A (snapshot offsets):** the snapshot's offset has no history or last reading, so after a reload the learning card's little chart restarts at the current value. Optional: include the per-check history.
