@@ -2,7 +2,19 @@
 
 Everything except hardware and firmware (friends own the band). Spec: [PROJECT.md](PROJECT.md).
 
-The ML is the main event. The plumbing is one fast phase, because nothing runs without it. Each step ends with tests passing and a commit.
+The ML is the main event. Each step ends with tests passing and a commit.
+
+## Current build order (ML first, agreed with Aiden on 2026-10-17)
+
+The ML is the long pole and needs no hardware, so it goes first. The rest of the Phase 0 plumbing waits until forecaster v1 works.
+
+1. Environment: torch, pythermalcomfort, matplotlib on Python 3.14. **Done.**
+2. Mendeley loader + split by person (Phase 1a).
+3. Scoring harness + Kalman baselines on real data (Phase 2). Sets the bar.
+4. Shared feature builder (one function for training and live).
+5. Simulator stepping test, then the full simulator (Phase 1b). It also replaces the fake data generator.
+6. Forecaster v1: pretrain on the simulator, fine-tune + test on Mendeley, score against Kalman (Phase 3).
+7. Then Phases 4 to 7 (calibration, ensemble, explainability, twins, curriculum, agent), then the rest of Phase 0 and the other phases.
 
 ## The pitch this plan builds toward
 

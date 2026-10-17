@@ -10,7 +10,11 @@ websockets       # Pulsoid heart rate client
 pytest
 httpx            # needed by FastAPI's test client
 
+# ML
+torch            # neural nets (forecaster, twins)
+pythermalcomfort # physiology simulator (ISO 7933 heat strain)
+matplotlib       # evaluation plots and slide figures
+
 # Later (uncomment when we get there)
-# torch            # GRU forecaster
-# pythermalcomfort # synthetic training data
-# wandb            # experiment tracking
+# ortools          # schedule optimizer
+# anthropic        # planning agent
