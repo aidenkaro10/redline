@@ -48,3 +48,17 @@ Swap check (`--swap-check`): fit on calib -> val coverage 0.96 / 0.96 / 0.95; fi
 | Red caught / false alarms per hr | 75-88% / 0.41 | 75% / 0.27 | **88%** / 0.55 |
 
 Ensemble forecasts ~50% better than ECTemp and barely degrade with horizon. Ranges now too wide (ensemble spread + model ranges); final calibration on calib + val (20 people) will tighten them. Swap check on ens5: calib->val 0.95-0.96, val->calib 0.81-0.86.
+
+## Twins v1 (twins16): NEGATIVE result on real people (2026-10-17)
+
+`python -m ml.twins --model ml/checkpoints/twins16.pt --proof real`: 20 unseen Mendeley people, adapt the 16-number twin on the neutral session's heart rate (network frozen, gate on held-out HR), score the heat session.
+
+| Heat sessions (19) | average person | personal twin |
+| --- | --- | --- |
+| NOW RMSE °C | **0.301** | 0.423 |
+| +20 min RMSE °C | **0.353** | 0.528 |
+| Red caught | **60%** | 50% |
+
+Gate kept 5 of 19 twins. Those improved heart-rate prediction but made core temp worse: the gate's signal (HR) is misaligned with the goal (core temp), the course's misaligned-verifier lesson. The 16-dim twin space learned in the simulator does not transfer to real people as-is.
+
+Fix in progress: (1) CAVIA-style meta-training in the simulator so HR-based adaptation provably improves core temp, (2) a small physiology-based twin (3-4 numbers), (3) a stricter gate that also checks core temp in simulator replays. Until then, twins stay OFF in the live system.
