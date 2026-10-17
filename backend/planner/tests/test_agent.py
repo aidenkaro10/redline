@@ -36,9 +36,11 @@ class FakeLLM:
             })
         if "complaints" in prompt:
             # a FALSE complaint (claims heavy work in slots where the worker rests)
-            return json.dumps({"complaints": [{"plan": "optimizer:throughput", "worker": self.sc.crew[0].id,
-                                               "slots": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-                                               "intensities": ["very_heavy"], "text": "too much digging"}]})
+            shown = json.loads(prompt.split("Verified plans:\n")[1].split("\n\nList")[0])
+            return json.dumps({"complaints": [{"plan": name, "worker": self.sc.crew[0].id,
+                                               "slots": list(range(self.sc.n_slots)),
+                                               "intensities": ["very_heavy"], "text": "too much digging"}
+                                              for name in shown]})
         return "- Safe plan.\n- Storm handled.\n- Fair."
 
 
