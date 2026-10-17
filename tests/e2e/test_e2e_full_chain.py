@@ -7,7 +7,7 @@ What happens in the demo (docs/sessions/live-system.md), in replay minutes:
     -> session D's escalation in dry run: crew lead, safety officer, cancel window, "Demo: would call 911".
 
 We run it two ways:
-  - the real demo: sim shift 9647 + the ens5 forecaster (skipped if those gitignored files are missing)
+  - the real demo: sim shift 9647 + the demo forecaster (final_cv, else ens5) (skipped if those gitignored files are missing)
   - a built-in synthetic shift with the Kalman filter only (always runs, no data files needed)
 and check the timeline, the band commands, the emergency chain, and what the dashboard's
 WebSocket (/ws/live) actually received.
@@ -17,7 +17,7 @@ import pytest
 
 from backend.emergency.guard import is_emergency_number
 from backend.replay import shifts
-from e2e_support import ENS5_PATH, SIM_PATH, TEST_NUMBERS
+from e2e_support import DEMO_MODEL_PATH, SIM_PATH, TEST_NUMBERS
 
 FALL_AT_S = 40 * 60          # shifts.from_sim / synthetic: crewmate falls 40 replay minutes in
 
@@ -130,16 +130,16 @@ def check_chain(app, crew_msgs, demo_msgs):
         m["band"] for m in demo_msgs if m["type"] == "band_command" and m["band"]["command"] == "BUZZ:MANDOWN").items()
 
 
-@pytest.mark.skipif(SIM_PATH is None or ENS5_PATH is None,
-                    reason="needs data/sim/sim.npz and ml/checkpoints/ens5.pt (gitignored, main checkout)")
-def test_A09_A17_A20_real_demo_replay_sim_and_ens5(live_app, monkeypatch):
-    """The demo exactly as judges see it: sim shift 9647, ens5 forecaster, 3 crewmates."""
+@pytest.mark.skipif(SIM_PATH is None or DEMO_MODEL_PATH is None,
+                    reason="needs data/sim/sim.npz and the demo model checkpoint (gitignored, main checkout)")
+def test_A09_A17_A20_real_demo_replay_sim_and_demo_model(live_app, monkeypatch):
+    """The demo exactly as judges see it: sim shift 9647, the demo forecaster (final_cv), 3 crewmates."""
     import backend.app.pipeline as pipeline_module
     calls = []                                   # every forecaster output, in order (A09: applied once)
     real_predict_at = pipeline_module.predict_at
     monkeypatch.setattr(pipeline_module, "predict_at",
                         lambda *a: calls.append(real_predict_at(*a)) or calls[-1])
-    app = live_app("--checkpoint", str(ENS5_PATH))
+    app = live_app("--checkpoint", str(DEMO_MODEL_PATH))
     assert app.hub.predictor is not None
     app.start_replay(shifts.from_sim(path=SIM_PATH))
     crew_msgs, demo_msgs = run_demo(app, minutes=43)

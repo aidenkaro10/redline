@@ -72,7 +72,8 @@ def find_data(relative: str) -> Path | None:
 
 
 SIM_PATH = find_data("data/sim/sim.npz")
-ENS5_PATH = find_data("ml/checkpoints/ens5.pt")
+# The model the live demo uses (backend/app/model_runner.py CHECKPOINTS order), else the older ens5.
+DEMO_MODEL_PATH = find_data("ml/checkpoints/final_cv.pt") or find_data("ml/checkpoints/ens5.pt")
 
 
 # ---------------------------------------------------------------------------
