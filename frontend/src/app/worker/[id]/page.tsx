@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import { CoreChart } from "@/components/Charts";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
+import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
 import { SITE_BY_ID } from "@/lib/sites";
 
@@ -36,6 +37,7 @@ export default function WorkerPhone() {
   const siteStatus = w ? live.sites[w.site_id] : null;
   const md = live.mandown;
   const meDown = md && md.worker_id === id && (md.stage === "checking" || md.stage === "confirmed");
+  const call = md ? callForIncident(live.emergency, md) : null;   // the emergency call for this incident, if any
   const crewDown = md && md.worker_id !== id && md.stage === "confirmed";
   const est = live.history[id]?.estimates ?? [];
 
@@ -58,9 +60,11 @@ export default function WorkerPhone() {
           <p className="text-sm font-bold uppercase tracking-[0.25em]">SOS sent</p>
           <h1 className="text-5xl font-black leading-tight">Help is coming</h1>
           <p className="text-lg">Your crew lead and crewmates have your location.<br />Stay where you are if you can.</p>
-          {live.emergency?.mandown_id === md.id && (
+          {call?.stage === "failed" ? (
+            <p className="rounded-xl bg-red-700 px-4 py-3 text-2xl font-black">Automatic call failed. Call 911 now.</p>
+          ) : call && (
             <p className="rounded-xl bg-black/30 px-4 py-2 text-sm font-semibold">
-              {live.emergency.stage === "cancelled" ? "Cancelled by your crew lead" : live.emergency.stage === "done" ? "Emergency report delivered" : "Contacting your crew lead…"}
+              {call.stage === "cancelled" ? "Cancelled by your crew lead" : call.stage === "done" ? "Emergency report delivered" : "Contacting your crew lead…"}
             </p>
           )}
         </div>

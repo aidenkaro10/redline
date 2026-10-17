@@ -15,11 +15,12 @@
  */
 
 import type {
-  Alert, AlertKind, BandCommand, Briefing, DemoState, EmergencyCall, EmergencyStage, Estimate, Hazard,
+  Alert, AlertKind, BandCommand, Briefing, DemoState, EmergencyCall, EmergencyStage, EmergencyStatus, Estimate, Hazard,
   HazardKind, HazardLevel, LiveEvent, LogEntry, ManDown, PhotoReport, ReportKind, Schedule, SiteStatus,
   Snapshot, SosPress, Status, TaskKind, ViewFilter, Vitals, WorkerStatus,
 } from "../lib/contract.ts";
 import { canSee, HAZARD_ORDER } from "../lib/contract.ts";
+import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
 import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
 
@@ -266,7 +267,25 @@ export interface EngineOptions {
   wallNow?: () => number;
   /** "Today", used to anchor the sim clock. */
   baseDate?: number;
+  /** How the emergency call is sent. See MockEngine.emergencyFormat. */
+  emergencyFormat?: EmergencyFormat;
 }
+
+/**
+ * "call"   = one `emergency` event with the whole EmergencyCall (has the live transcript).
+ * "status" = session D's small `emergency_status` events, folded by the UI (no transcript, like D).
+ */
+export type EmergencyFormat = "call" | "status";
+
+// Pretend phone numbers for the "status" format, already masked like session D does.
+const MASKED: Record<"crew_lead" | "safety_officer" | "emergency", string> = {
+  crew_lead: "+1 ••• ••• 0101",
+  safety_officer: "+1 ••• ••• 0102",
+  emergency: "+1 ••• ••• 0199",
+};
+
+/** The fields of a D event that change from step to step. The rest are filled in by emitCall. */
+type StatusStep = Pick<EmergencyStatus, "stage" | "status"> & Partial<Pick<EmergencyStatus, "target" | "message">>;
 
 export class MockEngine {
   wallNow: () => number;
@@ -288,10 +307,15 @@ export class MockEngine {
   scenarioDone = new Set<number>();      // which scenario steps already ran
   nextId = 1;
   timer: ReturnType<typeof setInterval> | null = null;
+  /** Which event shape the emergency call goes out as ("call" or session D's "status"). */
+  emergencyFormat: EmergencyFormat;
+  /** Demo switch: the next emergency call fails instead of connecting (tests the "Call 911 yourself" screen). */
+  failNextCall = false;
 
   constructor(opts: EngineOptions = {}) {
     this.wallNow = opts.wallNow ?? (() => Date.now() / 1000);
     this.baseDate = opts.baseDate ?? Date.now();
+    this.emergencyFormat = opts.emergencyFormat ?? "call";
     this.demo = {
       source: "live", speed: 1, demo_threshold: false,
       thresholds: { warning: CFG.HEAT_WARNING_C, danger: CFG.HEAT_DANGER_C },
@@ -803,18 +827,56 @@ export class MockEngine {
       .filter((x) => x.def.site_id === md.site_id && x.def.worker_id !== md.worker_id)
       .map((x) => x.def.name.split(" ")[0]);
     this.emergency = {
-      id: `em-${this.nextId++}`, mandown_id: md.id, worker_id: md.worker_id, stage: "notifying",
+      // Same id format as session D: inc-<worker_id>-<confirmed_at>
+      id: `inc-${md.worker_id}-${Math.round(this.sim)}`, mandown_id: md.id, worker_id: md.worker_id, stage: "notifying",
       started_at: this.sim, cancel_deadline: null, demo: true, target_label: "Demo: would call 911",
       steps: [{ at: this.sim, stage: "notifying", text: `${md.reason === "sos" ? `SOS from ${md.worker_name}. ` : ""}Notifying crew lead ${CREW_LEAD} and the site safety officer (dashboard + phone). Crewmates alerted: ${crewmates.join(", ") || "none"}.` }],
       transcript: [], outcome: null,
     };
     this.addLog(`Emergency escalation started (fixed rule: ${md.reason === "sos" ? "SOS" : "confirmed man-down"} → call)`, "escalation");
-    this.emit({ type: "emergency", emergency: this.emergency });
+    this.emitCall([
+      { stage: "notify", status: "calling", message: `${md.reason === "sos" ? `SOS from ${md.worker_name}` : `${md.worker_name} is down`}. Notifying crew.` },
+      { stage: "notify", status: "calling", target: "crew_lead", message: "Calling" },
+      { stage: "notify", status: "calling", target: "safety_officer", message: "Calling" },
+    ]);
+  }
+
+  /**
+   * Send the emergency call out to the UI.
+   * "call" format: the whole EmergencyCall in one event.
+   * "status" format: one session-D-style event per step in `steps`.
+   */
+  emitCall(steps: StatusStep[]) {
+    const em = this.emergency;
+    if (!em) return;
+    if (this.emergencyFormat === "call") {
+      this.emit({ type: "emergency", emergency: em });
+      return;
+    }
+    const md = this.mandown;
+    for (const step of steps) {
+      const target = step.target ?? null;
+      this.emit({
+        type: "emergency_status",
+        incident_id: em.id,
+        worker_id: em.worker_id,
+        worker_name: md?.worker_id === em.worker_id ? md.worker_name : null,
+        timestamp: this.sim,
+        stage: step.stage,
+        status: step.status,
+        target,
+        number_masked: target ? MASKED[target] : null,
+        mode: "fake",
+        demo_label: target === "emergency" ? em.target_label : null,
+        cancel_deadline: em.cancel_deadline,
+        message: step.message ?? "",
+      });
+    }
   }
 
   emergencyStep() {
     const em = this.emergency;
-    if (!em || em.stage === "done" || em.stage === "cancelled") return;
+    if (!em || isFinalStage(em.stage)) return;
     const md = this.mandown;
     const t = this.sim - em.started_at;
     const T = DEMO_TIMINGS;
@@ -824,18 +886,35 @@ export class MockEngine {
       this.addLog(text, "escalation");
     };
     let changed = false;
+    const steps: StatusStep[] = [];   // what changed, in session D's words (for the "status" format)
     if (em.stage === "notifying" && t >= T.NOTIFY_S) {
       em.cancel_deadline = this.sim + T.CANCEL_WINDOW_S;
       push("cancel_window", `Cancel window open for ${T.CANCEL_WINDOW_S} s. Crew lead can press "Cancel, false alarm".`);
+      for (const target of ["crew_lead", "safety_officer"] as const) {
+        steps.push({ stage: "notify", status: "connected", target, message: "Connected" });
+        steps.push({ stage: "notify", status: "completed", target, message: "Message delivered" });
+      }
+      steps.push({ stage: "cancel_window", status: "waiting", message: `Emergency call in ${T.CANCEL_WINDOW_S} s unless cancelled.` });
       changed = true;
     }
     if (em.stage === "cancel_window" && em.cancel_deadline !== null && this.sim >= em.cancel_deadline) {
       push("calling", "Not cancelled. Voice agent calling the test phone. Demo: would call 911.");
+      steps.push({ stage: "emergency_call", status: "calling", target: "emergency", message: "Calling the test number" });
       changed = true;
     }
     const callStart = (T.NOTIFY_S + T.CANCEL_WINDOW_S);
+    if (em.stage === "calling" && t >= callStart + T.RING_S && this.failNextCall) {
+      // Demo switch: the call doesn't go through. The screen must tell the crew lead to call 911.
+      this.failNextCall = false;
+      push("failed", CALL_FAILED_TEXT);
+      em.outcome = CALL_FAILED_TEXT;
+      steps.push({ stage: "emergency_call", status: "failed", target: "emergency", message: "No answer" });
+      steps.push({ stage: "done", status: "failed", message: CALL_FAILED_TEXT });
+      changed = true;
+    }
     if (em.stage === "calling" && t >= callStart + T.RING_S) {
       push("connected", "Connected. Reading the emergency report.");
+      steps.push({ stage: "emergency_call", status: "connected", target: "emergency", message: "Connected. Reading the emergency report." });
       const loc = md ? `${md.lat.toFixed(4)} N, ${Math.abs(md.lon).toFixed(4)} W` : "";
       const v = md?.last_vitals;
       const stillFor = md ? Math.round(this.sim - md.fell_at) : 0;
@@ -862,10 +941,12 @@ export class MockEngine {
       if (conv >= 21) {
         push("done", "Report delivered. Call logged with time, number, transcript and outcome.");
         em.outcome = "Report delivered to test dispatcher (demo). Real deployment routes through a licensed emergency-dispatch provider.";
+        steps.push({ stage: "emergency_call", status: "completed", target: "emergency", message: "Call ended" });
+        steps.push({ stage: "done", status: "completed", message: "Emergency report delivered." });
         changed = true;
       }
     }
-    if (changed) this.emit({ type: "emergency", emergency: em });
+    if (changed) this.emitCall(steps);
   }
 
   cancelEmergency(id: string) {
@@ -876,9 +957,16 @@ export class MockEngine {
     em.outcome = `Cancelled by crew lead ${CREW_LEAD}: false alarm.`;
     em.steps.push({ at: this.sim, stage: "cancelled", text: em.outcome });
     this.addLog(em.outcome, "escalation");
-    this.emit({ type: "emergency", emergency: em });
+    this.emitCall([{ stage: "done", status: "cancelled", message: em.outcome }]);
     this.resolveManDown(true);
     return { ok: true };
+  }
+
+  /** Session D's style: cancel whatever call is running for this worker. */
+  cancelEmergencyForWorker(workerId: string) {
+    const em = this.emergency;
+    if (!em || em.worker_id !== workerId) return { ok: false, error: "no active call for this worker" };
+    return this.cancelEmergency(em.id);
   }
 
   /** Crew lead closes the man-down screen (worker reached, or false alarm). */
@@ -1056,7 +1144,7 @@ export class MockEngine {
     // Scripted reactions (button press after a red alert, crew lead cancelling the SOS).
     scenarioReactions(this);
     // End once the emergency call is finished (or after the last step if nothing is pending).
-    const done = this.emergency?.stage === "done" || this.emergency?.stage === "cancelled";
+    const done = !!this.emergency && isFinalStage(this.emergency.stage);
     if (minutes >= SCENARIO_END_MIN && (done || !this.mandown) && this.scenarioDone.size === SCENARIO.length) {
       this.demo.scenario = { running: false, step: "Finished", started_at: this.demo.scenario.started_at };
       this.scenarioStart = null;
@@ -1205,6 +1293,8 @@ export class MockEngine {
       if (a === "workers" && c === "button") return ok(this.buttonPress(b));
       if (a === "workers" && c === "sos") return ok(this.sos(b, "phone"));
       if (a === "mandown" && c === "resolve") return ok(this.resolveManDown(false));
+      // Two ways to cancel: by worker (session D's suggested route, what the UI uses) or by call id.
+      if (a === "emergency" && b === "cancel" && !c) return ok(this.cancelEmergencyForWorker(String(body.worker_id ?? "")));
       if (a === "emergency" && c === "cancel") return ok(this.cancelEmergency(b));
       if (a === "reports") return ok(this.addReport(body as Partial<PhotoReport>));
       if (a === "demo") {
@@ -1239,6 +1329,12 @@ export class MockEngine {
           return ok({ ok: true });
         }
         if (b === "sos") return ok(this.sos(String(body.worker_id ?? DEMO_WORKER), "demo"));
+        // Test the emergency path: {"format": "call" | "status", "fail_next": true}
+        if (b === "emergency") {
+          if (body.format === "call" || body.format === "status") this.emergencyFormat = body.format;
+          if (typeof body.fail_next === "boolean") this.failNextCall = body.fail_next;
+          return ok({ format: this.emergencyFormat, fail_next: this.failNextCall });
+        }
       }
       return bad("not found", 404);
     }

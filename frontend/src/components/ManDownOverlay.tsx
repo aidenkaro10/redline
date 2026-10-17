@@ -5,7 +5,8 @@
  *
  * Shows: worker name, location, time since the fall, last vitals, and the
  * emergency call as it happens (notify crew lead -> cancel window ->
- * "Demo: would call 911" -> connected -> done).
+ * "Demo: would call 911" -> connected -> done). If the emergency call fails,
+ * a huge "Call 911 yourself now" box takes over, and it can't be minimized.
  *
  * Last vitals are shown to the crew lead here on purpose: in an emergency,
  * responders need them. Everywhere else the crew lead sees status only.
@@ -14,7 +15,8 @@
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
-import type { EmergencyCall, EmergencyStage } from "@/lib/contract";
+import type { EmergencyCall, EmergencyStage, ManDown } from "@/lib/contract";
+import { CALL_FAILED_TEXT, callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
 import { fmtClock, fmtClockSec, fmtCountdown } from "./ui";
 
@@ -40,12 +42,14 @@ export function ManDownOverlay() {
   // Other workers' phones only hear about it once it's confirmed (crewmates get alerted).
   if (phone && md.stage !== "confirmed") return null;
 
-  const call = em && em.mandown_id === md.id ? em : null;
+  const call = callForIncident(em, md);
+  const failed = call?.stage === "failed";
   const downFor = now - md.fell_at;
   const sos = md.reason === "sos";
   const pulse = sos ? "pulse-sos" : "pulse-red";
 
-  if (minimized === md.id) {
+  // A failed call is never hidden behind the minimized bar: someone has to call 911 now.
+  if (minimized === md.id && !failed) {
     return (
       <button onClick={() => setMinimized(null)}
         className={`${pulse} fixed inset-x-0 top-0 z-[2000] flex items-center justify-center gap-3 px-4 py-2 text-sm font-bold text-white`}>
@@ -90,6 +94,9 @@ export function ManDownOverlay() {
           </p>
         </div>
 
+        {/* The emergency call failed: tell the crew lead to call 911, as big as possible. */}
+        {failed && <CallFailed md={md} />}
+
         {/* Emergency call */}
         {call && <CallPanel call={call} now={now} />}
 
@@ -130,11 +137,31 @@ function stageText(call: EmergencyCall, now: number) {
     case "connected": return "Connected";
     case "done": return "Call done";
     case "cancelled": return "Cancelled";
+    case "failed": return "CALL FAILED: call 911 now";
   }
 }
 
+/** Huge red box. Gives the crew lead what to say to 911. */
+function CallFailed({ md }: { md: ManDown }) {
+  return (
+    <div role="alert" className="rounded-2xl border-4 border-white bg-red-700 p-5 text-white shadow-2xl sm:p-8">
+      <p className="text-4xl font-black leading-tight sm:text-6xl">{CALL_FAILED_TEXT}</p>
+      <p className="mt-4 text-lg font-semibold sm:text-xl">
+        Tell them: {md.worker_name}, {md.reason === "sos" ? "pressed SOS" : "collapsed"} at {md.site_name}. GPS {md.lat.toFixed(5)}, {md.lon.toFixed(5)}.
+      </p>
+    </div>
+  );
+}
+
+const MODE_LABEL: Record<NonNullable<EmergencyCall["mode"]>, string> = {
+  dry_run: "Dry run: nothing dialed",
+  fake: "Pretend phone",
+  live: "Live phone call",
+};
+
 function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
-  const idx = STEPS.findIndex((s) => s.stage === call.stage);
+  // A failed call stopped at the "Calling" step, so that's the one we mark.
+  const idx = STEPS.findIndex((s) => s.stage === (call.stage === "failed" ? "calling" : call.stage));
   const canCancel = call.stage === "notifying" || call.stage === "cancel_window";
   return (
     <div className="rounded-2xl border border-line bg-surface p-4 text-ink shadow-2xl sm:p-5">
@@ -143,11 +170,14 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
           <h2 className="text-lg font-bold">Emergency call</h2>
           <p className="text-sm text-ink-2">The decision to call is a fixed rule in code (confirmed man-down or SOS → call). The voice agent only reads the report.</p>
         </div>
-        {call.demo && (
-          <span className="rounded-lg border-2 border-danger px-3 py-1.5 text-sm font-black uppercase tracking-wide text-danger-ink">
-            {call.target_label}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1">
+          {call.demo && (
+            <span className="rounded-lg border-2 border-danger px-3 py-1.5 text-sm font-black uppercase tracking-wide text-danger-ink">
+              {call.target_label}
+            </span>
+          )}
+          {call.mode && <span className="text-xs font-semibold text-muted">{MODE_LABEL[call.mode]}</span>}
+        </div>
       </div>
 
       {/* Stepper */}
@@ -155,11 +185,12 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
         {STEPS.map((s, i) => {
           const done = call.stage !== "cancelled" && i < idx;
           const current = i === idx;
+          const broke = current && call.stage === "failed";
           return (
             <li key={s.stage} className="flex flex-col gap-1.5">
               <span className={`h-1.5 rounded-full ${done ? "bg-ok" : current ? "bg-danger" : "bg-surface-2"}`} />
-              <span className={`text-[11px] leading-tight sm:text-xs ${current ? "font-bold text-ink" : done ? "text-ink-2" : "text-muted"}`}>
-                {done ? "✓ " : ""}{s.label}
+              <span className={`text-[11px] leading-tight sm:text-xs ${broke ? "font-black text-danger-ink" : current ? "font-bold text-ink" : done ? "text-ink-2" : "text-muted"}`}>
+                {done ? "✓ " : ""}{broke ? "✗ Call failed" : s.label}
               </span>
             </li>
           );
@@ -173,7 +204,8 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
           <p className="flex-1 text-sm font-medium text-warn-ink">
             {call.stage === "notifying" ? "Crew lead and safety officer are being notified." : `Calling in ${fmtCountdown((call.cancel_deadline ?? now) - now)} unless cancelled.`}
           </p>
-          <button onClick={() => apiPost(`/emergency/${call.id}/cancel`)} className="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-page hover:opacity-90">
+          {/* Same route as session D suggests: cancel by worker, not by call id. */}
+          <button onClick={() => apiPost("/emergency/cancel", { worker_id: call.worker_id })} className="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-page hover:opacity-90">
             Cancel, false alarm
           </button>
         </div>

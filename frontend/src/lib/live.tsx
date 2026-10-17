@@ -19,6 +19,7 @@ import type {
   Alert, BandCommand, DemoState, EmergencyCall, Estimate, LiveEvent, LogEntry, ManDown, PhotoReport,
   SiteStatus, ViewFilter, Vitals, WorkerStatus,
 } from "./contract";
+import { foldEmergencyStatus } from "./emergency.ts";
 
 const BACKEND = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "").replace(/\/$/, "");
 export const USING_MOCK = BACKEND === "";
@@ -113,6 +114,11 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
         break;
       case "emergency":
         s.emergency = ev.emergency;
+        break;
+      case "emergency_status":
+        // Session D's small step-by-step events: fold each one into the same
+        // EmergencyCall the man-down screen already reads (see lib/emergency.ts).
+        s.emergency = foldEmergencyStatus(s.emergency, ev, s.mandown);
         break;
       case "demo":
         s.demo = ev.demo;
