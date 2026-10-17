@@ -1,11 +1,12 @@
 """
 Three models for "will hazard H reach level K at this site tomorrow?" (a yes/no
-question, answered with a probability). All plain numpy + scipy, no new libraries.
+question, answered with a probability). Built on scikit-learn.
 
   Climatology      how often it happened in that month at that site (or the
                    nearest training site, for a site the model never saw)
   Logistic         logistic regression on the features (L2-regularized)
-  Boosted trees    small gradient-boosted decision trees (depth 3), the strong one
+  Boosted trees    small gradient-boosted decision trees (depth 3)
+  Blend            average of the two (the one we ship, see evaluate.py)
 
 Most site-days are zero, so training up-weights the rare "yes" days (class
 weights). Up-weighting inflates the probabilities, so afterwards we undo it
@@ -17,11 +18,13 @@ Every model has the same two methods:
     predict(X, meta)    -> probabilities (n,)
 """
 
-import json
-
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
+from sklearn.ensemble import HistGradientBoostingClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from ml.hazard_index.sites import distance_km
 
@@ -76,205 +79,81 @@ class Climatology:
 
 
 # ---------------------------------------------------------------------------
-# Shared feature prep: fill gaps with the training median, scale to mean 0 / sd 1
-# ---------------------------------------------------------------------------
-class _Prep:
-    def fit(self, X):
-        self.med = np.nanmedian(X, axis=0)
-        self.med = np.where(np.isnan(self.med), 0.0, self.med)
-        Xf = np.where(np.isnan(X), self.med, X)
-        self.mu, self.sd = Xf.mean(0), Xf.std(0)
-        self.sd[self.sd < 1e-9] = 1.0
-        return self
-
-    def __call__(self, X):
-        return (np.where(np.isnan(X), self.med, X) - self.mu) / self.sd
-
-
-# ---------------------------------------------------------------------------
-# Logistic regression
+# Logistic regression (scikit-learn)
 # ---------------------------------------------------------------------------
 class Logistic:
+    """Fill gaps with the training median, scale features, then L2 logistic regression."""
     name = "logistic"
 
-    def __init__(self, l2: float = 1.0):
-        self.l2 = l2
+    def __init__(self, C: float = 1.0):
+        self.C = C
 
     def fit(self, X, y, meta=None):
-        self.prep = _Prep().fit(X)
-        Z = np.hstack([self.prep(X), np.ones((len(X), 1))])
         self.cw = class_weight(y)
-        w = np.where(y == 1, self.cw, 1.0)
-
-        def loss(beta):
-            z = Z @ beta
-            # weighted log-loss, written stably: log(1 + e^z) - y z
-            ll = np.sum(w * (np.logaddexp(0, z) - y * z))
-            reg = 0.5 * self.l2 * np.sum(beta[:-1] ** 2)
-            grad = Z.T @ (w * (sigmoid(z) - y)) + self.l2 * np.r_[beta[:-1], 0.0]
-            return ll + reg, grad
-
-        self.beta = minimize(loss, np.zeros(Z.shape[1]), jac=True, method="L-BFGS-B").x
-        return self
-
-    def predict(self, X, meta=None):
-        Z = np.hstack([self.prep(X), np.ones((len(X), 1))])
-        return sigmoid(Z @ self.beta - np.log(self.cw))      # undo the class weight
-
-
-# ---------------------------------------------------------------------------
-# Gradient-boosted trees (histogram style, like LightGBM but tiny)
-# ---------------------------------------------------------------------------
-class BoostedTrees:
-    name = "boosted_trees"
-
-    def __init__(self, n_trees=300, depth=3, lr=0.05, n_bins=32, min_hess=5.0,
-                 l2=5.0, subsample=0.8, seed=0):
-        self.n_trees, self.depth, self.lr, self.n_bins = n_trees, depth, lr, n_bins
-        self.min_hess, self.l2, self.subsample, self.seed = min_hess, l2, subsample, seed
-
-    # --- turn each feature into small integers (bins) once ---
-    def _fit_bins(self, X):
-        qs = np.linspace(0, 1, self.n_bins + 1)[1:-1]
-        self.edges = [np.unique(np.nanquantile(col, qs)) if np.isfinite(col).any() else np.array([])
-                      for col in X.T]
-
-    def _bin(self, X):
-        B = np.empty(X.shape, dtype=np.int16)
-        for j, e in enumerate(self.edges):
-            col = X[:, j]
-            B[:, j] = np.where(np.isnan(col), 0, np.searchsorted(e, col, side="right") + 1)  # bin 0 = missing
-        return B
-
-    def _grow(self, B, g, h, rows):
-        """Grow one tree greedily. Returns a list of nodes (dicts)."""
-        nodes = [dict(rows=rows, depth=0)]
-        i = 0
-        while i < len(nodes):
-            node = nodes[i]
-            r = node.pop("rows")
-            G, Hs = g[r].sum(), h[r].sum()
-            node["value"] = -G / (Hs + self.l2)
-            if node["depth"] < self.depth and Hs >= 2 * self.min_hess:
-                best = (0.0, None, None)
-                parent = G * G / (Hs + self.l2)
-                for j in range(B.shape[1]):
-                    nb = len(self.edges[j]) + 2
-                    gb = np.bincount(B[r, j], weights=g[r], minlength=nb)
-                    hb = np.bincount(B[r, j], weights=h[r], minlength=nb)
-                    gl, hl = np.cumsum(gb)[:-1], np.cumsum(hb)[:-1]       # left = bins <= t
-                    gr, hr = G - gl, Hs - hl
-                    ok = (hl >= self.min_hess) & (hr >= self.min_hess)
-                    if not ok.any():
-                        continue
-                    gain = np.where(ok, gl * gl / (hl + self.l2) + gr * gr / (hr + self.l2) - parent, -np.inf)
-                    t = int(np.argmax(gain))
-                    if gain[t] > best[0]:
-                        best = (float(gain[t]), j, t)
-                if best[1] is not None:
-                    j, t = best[1], best[2]
-                    left = r[B[r, j] <= t]
-                    right = r[B[r, j] > t]
-                    node.update(feature=j, threshold=t, left=len(nodes), right=len(nodes) + 1, gain=best[0])
-                    nodes.append(dict(rows=left, depth=node["depth"] + 1))
-                    nodes.append(dict(rows=right, depth=node["depth"] + 1))
-            i += 1
-        return nodes
-
-    @staticmethod
-    def _apply(tree, B):
-        out = np.empty(len(B))
-        idx = np.zeros(len(B), dtype=np.int64)          # every row starts at the root
-        done = np.zeros(len(B), dtype=bool)
-        while not done.all():
-            for k in np.unique(idx[~done]):
-                node = tree[k]
-                at = (idx == k) & ~done
-                if "feature" not in node:
-                    out[at] = node["value"]
-                    done[at] = True
-                else:
-                    go_left = B[at, node["feature"]] <= node["threshold"]
-                    rows = np.flatnonzero(at)
-                    idx[rows[go_left]] = node["left"]
-                    idx[rows[~go_left]] = node["right"]
-        return out
-
-    def fit(self, X, y, meta=None, X_val=None, y_val=None):
-        rng = np.random.default_rng(self.seed)
-        self._fit_bins(X)
-        B = self._bin(X)
-        self.cw = class_weight(y)
-        w = np.where(y == 1, self.cw, 1.0)
-        p0 = np.clip(np.average(y, weights=w), 1e-4, 1 - 1e-4)
-        self.base = float(np.log(p0 / (1 - p0)))
-        F = np.full(len(y), self.base)
-        self.trees, self.importance = [], np.zeros(X.shape[1])
-        Bv = self._bin(X_val) if X_val is not None else None
-        Fv = np.full(len(X_val), self.base) if X_val is not None else None
-        best_loss, best_n = np.inf, 0
-        for k in range(self.n_trees):
-            p = sigmoid(F)
-            g, h = w * (p - y), w * p * (1 - p)
-            rows = np.flatnonzero(rng.random(len(y)) < self.subsample)
-            tree = self._grow(B, g, h, rows)
-            for node in tree:
-                node["value"] *= self.lr
-                if "feature" in node:
-                    self.importance[node["feature"]] += node["gain"]
-            self.trees.append(tree)
-            F += self._apply(tree, B)
-            if Bv is not None:                         # early stopping on the validation year
-                Fv += self._apply(tree, Bv)
-                pv = sigmoid(Fv - np.log(self.cw))
-                loss = -np.mean(y_val * np.log(pv + 1e-12) + (1 - y_val) * np.log(1 - pv + 1e-12))
-                if loss < best_loss - 1e-6:
-                    best_loss, best_n = loss, k + 1
-                elif k + 1 - best_n >= 40:
-                    break
-        if Bv is not None:
-            self.trees = self.trees[:max(best_n, 1)]
+        self.model = make_pipeline(
+            SimpleImputer(strategy="median", keep_empty_features=True), StandardScaler(),
+            LogisticRegression(C=self.C, class_weight={0: 1.0, 1: self.cw}, max_iter=2000))
+        self.model.fit(X, y)
         return self
 
     def raw_score(self, X):
-        B = self._bin(X)
-        return self.base + sum(self._apply(t, B) for t in self.trees)
+        return self.model.decision_function(X)
 
     def predict(self, X, meta=None):
-        return sigmoid(self.raw_score(X) - np.log(self.cw))
+        return sigmoid(self.raw_score(X) - np.log(self.cw))      # undo the class weight
 
-    def contributions(self, x: np.ndarray) -> np.ndarray:
-        """
-        Why did ONE row score what it did? Walk each tree; every split hands the
-        change in node value to the feature it split on (the "Saabas" method).
-        Returns (per-feature numbers, bias). Positive = pushed risk up.
-        raw_score = base + bias + sum(per-feature numbers).
-        """
-        B = self._bin(x[None, :])[0]
-        contrib = np.zeros(len(x))
-        bias = 0.0
-        for tree in self.trees:
-            k = 0
-            bias += tree[0]["value"]
-            while "feature" in tree[k]:
-                node = tree[k]
-                nxt = node["left"] if B[node["feature"]] <= node["threshold"] else node["right"]
-                contrib[node["feature"]] += tree[nxt]["value"] - node["value"]
-                k = nxt
-        return contrib, bias
 
-    # --- save / load as plain JSON (small, readable, no pickle) ---
-    def to_dict(self):
-        return dict(base=self.base, cw=self.cw, edges=[e.tolist() for e in self.edges],
-                    trees=[[{k: v for k, v in n.items() if k != "depth"} for n in t] for t in self.trees])
+# ---------------------------------------------------------------------------
+# Gradient-boosted trees (scikit-learn's HistGradientBoostingClassifier)
+# ---------------------------------------------------------------------------
+class BoostedTrees:
+    """
+    Small boosted trees. Handles missing values itself. Stops adding trees when
+    the validation set (passed in, e.g. the last training year) stops improving.
+    """
+    name = "boosted_trees"
 
-    @classmethod
-    def from_dict(cls, d):
-        m = cls()
-        m.base, m.cw = d["base"], d["cw"]
-        m.edges = [np.array(e) for e in d["edges"]]
-        m.trees = d["trees"]
-        return m
+    def __init__(self, max_iter=400, max_depth=3, learning_rate=0.05, l2=1.0, min_samples_leaf=40, seed=0):
+        self.params = dict(max_iter=max_iter, max_depth=max_depth, learning_rate=learning_rate,
+                           l2_regularization=l2, min_samples_leaf=min_samples_leaf, random_state=seed)
+
+    def fit(self, X, y, meta=None, X_val=None, y_val=None):
+        self.cw = class_weight(y)
+        cw = {0: 1.0, 1: self.cw}
+        if X_val is not None:
+            # pick the number of trees on the validation rows, then refit on everything
+            probe = HistGradientBoostingClassifier(class_weight=cw, early_stopping=False, **self.params)
+            probe.fit(X, y)
+            best, best_n = np.inf, 1
+            for n, z in enumerate(probe.staged_decision_function(X_val), start=1):
+                p = sigmoid(np.ravel(z) - np.log(self.cw))
+                loss = -np.mean(y_val * np.log(p + 1e-12) + (1 - y_val) * np.log(1 - p + 1e-12))
+                if loss < best - 1e-6:
+                    best, best_n = loss, n
+            self.params["max_iter"] = best_n
+        self.model = HistGradientBoostingClassifier(class_weight=cw, early_stopping=False, **self.params)
+        self.model.fit(X, y)
+        self.n_trees = self.model.n_iter_
+        return self
+
+    def raw_score(self, X):
+        return self.model.decision_function(X)
+
+    def predict(self, X, meta=None):
+        return sigmoid(self.raw_score(X) - np.log(self.cw))      # undo the class weight
+
+
+class Blend:
+    """Average of logistic regression and boosted trees (in probability).
+    The trees catch thresholds and interactions; the logistic part keeps going
+    up when a hot year goes past anything in the training data."""
+    name = "blend"
+
+    def __init__(self, logistic: Logistic, trees: BoostedTrees):
+        self.logistic, self.trees = logistic, trees
+
+    def predict(self, X, meta=None):
+        return 0.5 * self.logistic.predict(X) + 0.5 * self.trees.predict(X)
 
 
 # ---------------------------------------------------------------------------
@@ -310,6 +189,3 @@ def ece(y, p, n_bins: int = 10) -> float:
     t = calibration_table(y, p, n_bins)
     return float(np.sum(t["n"] * np.abs(t["predicted"] - t["actual"])) / t["n"].sum())
 
-
-def save_json(obj, path):
-    path.write_text(json.dumps(obj))

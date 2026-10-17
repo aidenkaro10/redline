@@ -61,25 +61,25 @@ def target(df: pd.DataFrame, hazard: str, level: int) -> np.ndarray:
 
 
 def fit_boosted(train: pd.DataFrame, y: np.ndarray, features, n_trees: int, val_year: int = VAL_YEAR):
-    """Pick the number of trees on val_year, then refit on all training years."""
+    """Pick the number of trees on val_year (trained without it), then refit on all training years."""
     X = train[features].to_numpy(float)
     val = (train["year"] == val_year).to_numpy()
-    probe = M.BoostedTrees(n_trees=n_trees)
+    n = n_trees // 2
     if val.any() and (~val).any() and y[val].sum() >= 5 and y[~val].sum() >= 5:
-        probe.fit(X[~val], y[~val], X_val=X[val], y_val=y[val])
-        n = len(probe.trees)
-    else:
-        n = n_trees // 2
-    return M.BoostedTrees(n_trees=n).fit(X, y)
+        probe = M.BoostedTrees(max_iter=n_trees).fit(X[~val], y[~val], X_val=X[val], y_val=y[val])
+        n = probe.n_trees
+    return M.BoostedTrees(max_iter=n).fit(X, y)
 
 
 def fit_all(train: pd.DataFrame, y: np.ndarray, features, n_trees: int) -> dict:
     meta = train[["site_id", "date", "lat", "lon"]]
     X = train[features].to_numpy(float)
+    lr, gb = M.Logistic().fit(X, y), fit_boosted(train, y, features, n_trees)
     return {
         "climatology": M.Climatology().fit(X, y, meta),
-        "logistic": M.Logistic().fit(X, y),
-        "boosted_trees": fit_boosted(train, y, features, n_trees),
+        "logistic": lr,
+        "boosted_trees": gb,
+        "blend": M.Blend(lr, gb),
     }
 
 
@@ -87,6 +87,19 @@ def predict_all(models: dict, test: pd.DataFrame, features) -> dict:
     meta = test[["site_id", "date", "lat", "lon"]]
     X = test[features].to_numpy(float)
     return {name: m.predict(X, meta) for name, m in models.items()}
+
+
+def feature_importance(model, X: np.ndarray, seed: int = 0) -> np.ndarray:
+    """How much does the model's score move when one feature is shuffled? (cheap, label-free)"""
+    rng = np.random.default_rng(seed)
+    X = X[rng.choice(len(X), min(len(X), 3000), replace=False)]
+    base = model.raw_score(X)
+    out = np.zeros(X.shape[1])
+    for j in range(X.shape[1]):
+        Xs = X.copy()
+        Xs[:, j] = rng.permutation(Xs[:, j])
+        out[j] = np.mean(np.abs(model.raw_score(Xs) - base))
+    return out
 
 
 def week_bootstrap_diff(y, p_model, p_base, weeks, n_boot=N_BOOT, seed=0) -> tuple[float, float]:
@@ -130,7 +143,7 @@ def run_split(df: pd.DataFrame, split: str, features, n_trees: int, sites) -> li
                     preds.setdefault(name, []).append(p)
                 ys.append(target(test, hz, level))
                 weeks.append(np.array([d.isocalendar()[0] * 100 + d.isocalendar()[1] for d in test["date"]]))
-                importances.append(models["boosted_trees"].importance)
+                importances.append(feature_importance(models["boosted_trees"], test[features].to_numpy(float)))
             if not ys:
                 continue
             y = np.concatenate(ys)
@@ -147,31 +160,32 @@ def run_split(df: pd.DataFrame, split: str, features, n_trees: int, sites) -> li
                 row[f"brier_{name}"] = M.brier(y, p)
                 row[f"ece_{name}"] = M.ece(y, p) if y.sum() else float("nan")
             if y.sum() >= MIN_TEST_POSITIVES:
-                row["diff_ci"] = week_bootstrap_diff(y, P["boosted_trees"], P["climatology"], wk)
+                row["diff_ci"] = week_bootstrap_diff(y, P["blend"], P["climatology"], wk)
             flags = []
             if y.sum() < MIN_TEST_POSITIVES:
                 flags.append("NO SIGNAL")
-            if row["pr_auc_boosted_trees"] > TOO_GOOD_PR_AUC or row["top_feature_share"] > TOO_GOOD_FEATURE_SHARE:
+            if max(row["pr_auc_boosted_trees"], row["pr_auc_blend"]) > TOO_GOOD_PR_AUC \
+                    or row["top_feature_share"] > TOO_GOOD_FEATURE_SHARE:
                 flags.append("TOO GOOD?")
             row["flags"] = flags
             results.append(row)
             print(f"  {split:10s} {hz:9s} >={level}: pos {int(y.sum()):5d}  "
                   f"clim {row['pr_auc_climatology']:.3f}  logit {row['pr_auc_logistic']:.3f}  "
-                  f"trees {row['pr_auc_boosted_trees']:.3f}  {' '.join(flags)}", flush=True)
+                  f"trees {row['pr_auc_boosted_trees']:.3f}  blend {row['pr_auc_blend']:.3f}  {' '.join(flags)}", flush=True)
     return results
 
 
 def markdown_table(results: list[dict]) -> str:
     lines = ["| split | hazard | level | test yes-days | base rate | PR-AUC climatology | PR-AUC logistic | "
-             "PR-AUC trees | trees - clim (95% CI) | ECE trees | ECE clim | top feature | flags |",
-             "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
+             "PR-AUC trees | PR-AUC blend | blend - clim (95% CI) | ECE blend | ECE clim | top feature (trees) | flags |",
+             "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in results:
         ci = r.get("diff_ci")
-        ci_s = f"{r['pr_auc_boosted_trees'] - r['pr_auc_climatology']:+.3f} ({ci[0]:+.3f}, {ci[1]:+.3f})" if ci else "n/a"
+        ci_s = f"{r['pr_auc_blend'] - r['pr_auc_climatology']:+.3f} ({ci[0]:+.3f}, {ci[1]:+.3f})" if ci else "n/a"
         lines.append(
             f"| {r['split']} | {r['target']} | >={r['level']} | {r['positives']} | {r['base_rate']:.3f} | "
             f"{r['pr_auc_climatology']:.3f} | {r['pr_auc_logistic']:.3f} | {r['pr_auc_boosted_trees']:.3f} | "
-            f"{ci_s} | {r['ece_boosted_trees']:.3f} | {r['ece_climatology']:.3f} | "
+            f"{r['pr_auc_blend']:.3f} | {ci_s} | {r['ece_blend']:.3f} | {r['ece_climatology']:.3f} | "
             f"{r['top_features'][0]} ({r['top_feature_share']:.0%}) | {', '.join(r['flags'])} |")
     return "\n".join(lines)
 
@@ -186,7 +200,7 @@ def main():
     df = load_dataset(sites)
     drop = [p for p in args.drop.split(",") if p]
     features = [f for f in FEATURES if not any(f.startswith(p) for p in drop)]
-    n_trees = 120 if args.quick else 400
+    n_trees = 150 if args.quick else 400
     print(f"{df['site_id'].nunique()} sites, {len(df)} site-days, {len(features)} features"
           + (f" (dropped {drop})" if drop else ""))
     results = []

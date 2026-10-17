@@ -84,3 +84,17 @@ def test_records_to_labels_takes_worst_and_overall():
     row = lab[lab["date"] == dt.date(2024, 6, 5)].iloc[0]
     assert row["storm"] == 8 and row["heat"] == 3 and row["overall"] == 8
     assert len(lab) == 366 and lab["overall"].sum() == 8
+
+
+def test_osha_heat_is_a_label_and_utility_falls_are_records_only():
+    osha = pd.DataFrame([
+        dict(EventDate="7/1/2024", Latitude="29.66", Longitude="-82.30", Event="5312", **{"Primary NAICS": "561730"}),
+        dict(EventDate="7/2/2024", Latitude="29.66", Longitude="-82.30", Event="5311", **{"Primary NAICS": "311000"}),  # indoor heat: skip
+        dict(EventDate="7/3/2024", Latitude="29.66", Longitude="-82.30", Event="4320", **{"Primary NAICS": "237130"}),
+        dict(EventDate="7/4/2024", Latitude="29.66", Longitude="-82.30", Event="4320", **{"Primary NAICS": "722511"}),  # restaurant fall: skip
+        dict(EventDate="7/5/2024", Latitude="25.00", Longitude="-80.00", Event="531", **{"Primary NAICS": "2211"}),    # too far
+    ])
+    recs = L.osha_records([GNV], osha, years=(2024,))
+    assert [(r["date"].day, r["hazard"]) for r in recs] == [(1, "heat"), (3, "fall")]
+    lab = L.records_to_labels(pd.DataFrame(recs), [GNV], years=(2024,))
+    assert lab["heat"].max() == H.INJURY and "fall" not in lab.columns

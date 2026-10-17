@@ -18,3 +18,6 @@ matplotlib       # evaluation plots and slide figures
 # Later (uncomment when we get there)
 # ortools          # schedule optimizer
 # anthropic        # planning agent
+
+# Hazard index (ml/hazard_index)
+scikit-learn     # logistic regression + boosted trees for the 0-10 site index (also installs joblib)

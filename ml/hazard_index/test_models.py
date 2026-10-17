@@ -32,21 +32,19 @@ def test_models_beat_climatology_and_stay_calibrated():
     Xt, yt, mt = toy(seed=1)
     clim = M.Climatology().fit(X, y, meta)
     lr = M.Logistic().fit(X, y)
-    gb = M.BoostedTrees(n_trees=150).fit(X, y)
-    ap = {m.name: M.pr_auc(yt, m.predict(Xt, mt)) for m in (clim, lr, gb)}
+    gb = M.BoostedTrees(max_iter=150).fit(X, y)
+    blend = M.Blend(lr, gb)
+    ap = {m.name: M.pr_auc(yt, m.predict(Xt, mt)) for m in (clim, lr, gb, blend)}
     assert ap["logistic"] > ap["climatology"] + 0.1
     assert ap["boosted_trees"] > ap["logistic"]            # it finds the interaction and extremes
+    assert ap["blend"] > ap["logistic"]
     # class weights were undone: average prediction close to the true rate
-    assert abs(gb.predict(Xt).mean() - yt.mean()) < 0.03
-    assert abs(lr.predict(Xt).mean() - yt.mean()) < 0.03
+    for m in (lr, gb, blend):
+        assert abs(m.predict(Xt).mean() - yt.mean()) < 0.03, m.name
 
 
-def test_boosted_trees_save_load_and_contributions():
-    X, y, meta = toy(n=2000)
-    gb = M.BoostedTrees(n_trees=30).fit(X, y)
-    again = M.BoostedTrees.from_dict(gb.to_dict())
-    assert np.allclose(gb.predict(X[:50]), again.predict(X[:50]))
-    row = np.array([3.0, 0.0, 0.0, 0.0, 0.0])
-    c, bias = again.contributions(row)
-    assert np.isclose(again.base + bias + c.sum(), again.raw_score(row[None, :])[0])
-    assert np.argmax(c) == 0                                 # the big feature 0 explains the high risk
+def test_boosted_trees_pick_size_on_validation():
+    X, y, _ = toy(n=3000)
+    Xv, yv, _ = toy(n=1500, seed=3)
+    gb = M.BoostedTrees(max_iter=300).fit(X, y, X_val=Xv, y_val=yv)
+    assert 1 <= gb.n_trees <= 300

@@ -79,9 +79,10 @@ STORM_EVENT_HAZARD = {
 STORM_EVENT_RADIUS_KM = 25   # events with coordinates count if this close to a site
 
 # ---------------------------------------------------------------------------
-# OSHA Severe Injury Reports (heat exposure is event code 531)
+# OSHA Severe Injury Reports. Heat exposure is event code 531; the file also
+# uses 5310 (unspecified) and 5312 (outdoor). 5311 (indoor heat) is left out.
 # ---------------------------------------------------------------------------
-OSHA_HEAT_CODES = ("531",)
+OSHA_HEAT_CODES = ("531", "5310", "5312")
 OSHA_FALL_PREFIXES = ("42", "43")             # 42x same level, 43x to a lower level
 OSHA_FOCUS_NAICS = ("2211", "237130", "238210")   # utilities, power lines, electricians
 OSHA_RADIUS_KM = 40          # an injury counts toward a site if this close

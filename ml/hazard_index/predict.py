@@ -39,7 +39,8 @@ from ml.hazard_index import labels as L
 from ml.hazard_index import static
 from ml.hazard_index.features import (HOURLY_VARS, OPEN_METEO_ARCHIVE, OPEN_METEO_DELAY_S, parse_spc,
                                       build_site_features, cutoff_utc)
-from ml.hazard_index.models import BoostedTrees
+import joblib
+
 from ml.hazard_index.sites import Site, distance_km, get_site, load_sites
 from ml.hazard_index.train import MODEL_PATH
 
@@ -58,10 +59,8 @@ FORECAST_SOIL = ("soil_moisture_0_to_1cm", "soil_moisture_1_to_3cm", "soil_moist
 
 @functools.lru_cache(maxsize=1)
 def load_model(path: str = str(MODEL_PATH)) -> dict:
-    m = json.loads(open(path).read())
-    m["_trees"] = {hz: {lv: (BoostedTrees.from_dict(d) if d else None) for lv, d in per.items()}
-                   for hz, per in m["models"].items()}
-    return m
+    """The trained models. A model is None when there were too few yes-days (climatology is used)."""
+    return joblib.load(path)
 
 
 def band(index: float) -> str:
@@ -171,37 +170,56 @@ def describe(feature: str, value: float) -> str:
     return feature
 
 
-def _reasons(model: dict, x: np.ndarray, probs: dict, hazard_index: dict, n: int = 3) -> list[dict]:
+def _hazard_probs(model: dict, X: np.ndarray, clim: dict) -> dict:
+    """P(level or worse) for every hazard and level, for each row of X.
+    Higher levels are capped at lower ones (they can't be likelier)."""
+    probs = {}
+    for hz in list(H.HAZARDS) + ["overall"]:
+        prev = np.ones(len(X))
+        probs[hz] = {}
+        for lv, _ in STEPS:
+            mdl = model["models"][hz].get(str(lv))
+            p = mdl.predict(X) if mdl is not None else np.full(len(X), clim[hz][lv])
+            prev = np.minimum(p, prev)
+            probs[hz][lv] = prev
+    return probs
+
+
+def _hazard_index(model: dict, probs: dict, hz: str) -> np.ndarray:
+    p = probs[hz]
+    return sum(step * p[lv] for lv, step in STEPS) + DEATH_STEP * p[H.DAMAGE] * model["death_given_damage"][hz]
+
+
+def _reasons(model: dict, x: np.ndarray, clim: dict, n: int = 3) -> list[dict]:
     """
-    Which features pushed each hazard's index up? For each level's model we take the
-    tree contributions (log-odds units) and turn them into index points with the slope
-    of the index: d(index) = step * p * (1 - p) * d(log-odds).
+    Which inputs pushed each hazard's index up? For each input we swap in a
+    typical value (the training median) and see how much the index drops.
+    The drop is that input's "points". Season is sin + cos of the day of year,
+    so those two are swapped together.
     """
     feats = model["features"]
+    groups = {}
+    for j, f in enumerate(feats):
+        groups.setdefault("season" if f.startswith("doy_") else f, []).append(j)
+    names = list(groups)
+    X = np.repeat(x[None, :], len(names) + 1, axis=0)       # row 0 = as is, row k = input k swapped
+    for k, name in enumerate(names, start=1):
+        for j in groups[name]:
+            med = model["feature_median"][feats[j]]
+            X[k, j] = med if med is not None else X[k, j]
+    probs = _hazard_probs(model, X, clim)
     pushes = []
     for hz in H.HAZARDS:
-        total = np.zeros(len(feats))
-        for lv, step in STEPS:
-            tree = model["_trees"][hz].get(str(lv))
-            if tree is None:
-                continue
-            c, _ = tree.contributions(x)
-            p = probs[hz][lv]
-            total += step * p * (1 - p) * c
-        # season is two features (sin and cos of day of year): report them together
-        named = {}
-        for f, val in zip(feats, total):
-            key = "season" if f.startswith("doy_") else f
-            named[key] = named.get(key, 0.0) + float(val)
-        for f, val in named.items():
-            if val > 0.05:
-                pushes.append((val, hz, f))
+        idx = _hazard_index(model, probs, hz)
+        for k, name in enumerate(names, start=1):
+            if idx[0] - idx[k] > 0.05:
+                pushes.append((float(idx[0] - idx[k]), hz, name))
     pushes.sort(reverse=True)
     out = []
     for val, hz, f in pushes[:n]:
         value = None if f == "season" else float(x[feats.index(f)])
         out.append(dict(hazard=hz, feature=f, value=value, points=round(val, 2),
-                        text=describe(f, value) if value is not None else describe(f, 0)))
+                        text=describe(f, value if value is not None else 0.0)))
     return out
 
 
@@ -232,17 +250,19 @@ def predict_index(site_id: str, date, offline: bool = False, sites: list[Site] |
     clim_site = site.site_id if site.site_id in model["sites"] else \
         min(xy, key=lambda s: distance_km(site.lat, site.lon, *xy[s]))
 
-    probs, clim_probs, out_h = {}, {}, {}
+    # climatology: how often each level happens this month at this (or the nearest) site
+    clim = {hz: {lv: (lambda c: c["site_month"].get(f"{clim_site}|{day.month}",
+                                                    c["month_rate"].get(str(day.month), 0.0)))(
+                     model["climatology"][hz][str(lv)]) for lv, _ in STEPS}
+            for hz in list(H.HAZARDS) + ["overall"]}
+    probs = _hazard_probs(model, x[None, :], clim)
+    out_h = {}
     for hz in list(H.HAZARDS) + ["overall"]:
-        p, pc, prev, prev_c = {}, {}, 1.0, 1.0
+        p = {lv: float(v[0]) for lv, v in probs[hz].items()}
+        pc, prev = {}, 1.0
         for lv, _ in STEPS:
-            c = model["climatology"][hz][str(lv)]
-            base = c["site_month"].get(f"{clim_site}|{day.month}", c["month_rate"].get(str(day.month), 0.0))
-            tree = model["_trees"][hz].get(str(lv))
-            val = float(tree.predict(x[None, :])[0]) if tree else base
-            prev, prev_c = min(val, prev), min(base, prev_c)   # P(>= higher level) can't exceed P(>= lower)
-            p[lv], pc[lv] = prev, prev_c
-        probs[hz], clim_probs[hz] = p, pc
+            prev = min(clim[hz][lv], prev)
+            pc[lv] = prev
         ratio = model["death_given_damage"][hz]
         out_h[hz] = dict(index=round(index_from_probs(p, ratio), 2),
                          p_advisory=round(p[H.ADVISORY], 3), p_warning=round(p[H.WARNING], 3),
@@ -265,7 +285,7 @@ def predict_index(site_id: str, date, offline: bool = False, sites: list[Site] |
         climatology_index=overall["climatology_index"],
         p_advisory=overall["p_advisory"], p_warning=overall["p_warning"], p_damage=overall["p_damage"],
         hazards=out_h,
-        top_reasons=_reasons(model, x, probs, out_h),
+        top_reasons=_reasons(model, x, clim),
         cutoff=cut.astimezone(ZoneInfo(site.timezone)).isoformat(),
         data_mode=inputs["mode"], model_version=model["version"], notes=notes,
     )

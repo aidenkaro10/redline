@@ -195,22 +195,38 @@ def load_osha() -> pd.DataFrame | None:
 
 
 def osha_records(sites: list[Site], osha: pd.DataFrame, years=YEARS) -> list[dict]:
-    """Heat injuries (event code 531) within OSHA_RADIUS_KM of a site -> heat INJURY."""
+    """
+    Heat injuries (codes in OSHA_HEAT_CODES) within OSHA_RADIUS_KM -> heat INJURY label.
+    Falls (42x, 43x) by utility / power line / electrical workers nearby are kept as
+    records with hazard "fall": not a weather label, but the briefing lists them as
+    past incidents near the site.
+    """
     col = {c.lower(): c for c in osha.columns}
     ev, lat, lon, date = (col.get("event"), col.get("latitude"), col.get("longitude"), col.get("eventdate"))
+    naics = col.get("primary naics")
     if not all((ev, lat, lon, date)):
         raise KeyError(f"OSHA columns not found; got {list(osha.columns)[:30]}")
-    df = osha[osha[ev].astype(str).str.strip().isin(H.OSHA_HEAT_CODES)].copy()
-    df["_date"] = pd.to_datetime(df[date], errors="coerce").dt.date
-    df = df[df["_date"].notna() & df[lat].notna() & df[lon].notna()]
+    code = osha[ev].astype(str).str.strip()
+    heat = code.isin(H.OSHA_HEAT_CODES)
+    fall = code.str.startswith(H.OSHA_FALL_PREFIXES)
+    if naics:
+        fall &= osha[naics].astype(str).str.startswith(H.OSHA_FOCUS_NAICS)
+    df = osha[heat | fall].copy()
+    df["_heat"] = heat[heat | fall]
+    df["_date"] = pd.to_datetime(df[date], errors="coerce", format="mixed").dt.date
+    df["_lat"] = pd.to_numeric(df[lat], errors="coerce")
+    df["_lon"] = pd.to_numeric(df[lon], errors="coerce")
+    df = df[df["_date"].notna() & df["_lat"].notna() & df["_lon"].notna()]
     out = []
     for _, r in df.iterrows():
         if r["_date"].year not in years:
             continue
         for s in sites:
-            if distance_km(s.lat, s.lon, float(r[lat]), float(r[lon])) <= H.OSHA_RADIUS_KM:
-                out.append(dict(site_id=s.site_id, date=r["_date"], hazard="heat", level=H.INJURY,
-                                source="OSHA", detail="Heat injury reported to OSHA nearby"))
+            if distance_km(s.lat, s.lon, r["_lat"], r["_lon"]) <= H.OSHA_RADIUS_KM:
+                out.append(dict(site_id=s.site_id, date=r["_date"], hazard="heat" if r["_heat"] else "fall",
+                                level=H.INJURY, source="OSHA",
+                                detail=("Heat injury" if r["_heat"] else "Fall injury (utility/electrical work)")
+                                       + " reported to OSHA nearby"))
     return out
 
 
