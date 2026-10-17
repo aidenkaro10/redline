@@ -22,6 +22,7 @@ inside a request. Instead:
 import hashlib
 import json
 import logging
+import os
 import threading
 from datetime import timedelta
 
@@ -89,35 +90,63 @@ def band_for(index):
 # ---------------------------------------------------------------------------
 # Real model
 # ---------------------------------------------------------------------------
-def _predict(site_id, day):
-    """One site from C2's model, or None if the model/data aren't available."""
+def index_mode():
+    """HAZARD_INDEX from .env: auto (cache first, then download) | offline (cache only) | off."""
+    mode = os.getenv("HAZARD_INDEX", "auto").strip().lower()
+    return mode if mode in ("auto", "offline", "off") else "auto"
+
+
+def _predict(site_id, day, offline=False):
+    """One site from C2's model. offline=True uses only data already downloaded."""
     from ml.hazard_index.predict import predict_index   # heavy import (sklearn, pandas), done lazily
-    return predict_index(site_id, day)
+    return predict_index(site_id, day, offline=offline)
 
 
-def _compute(key, sites, day, predict=None):
-    """Score every site and save after each one. Runs in the background thread."""
+def _compute(key, sites, day, predict=None, mode="auto"):
+    """Score every site and save after each one. Runs in the background thread.
+
+    Pass 1 uses only cached downloads (fast, no network), so the map fills in
+    quickly. Pass 2 (mode auto) downloads what is missing, one site at a time,
+    which is polite to the free weather APIs.
+    """
     predict = predict or _predict
     data = _memory.setdefault(key, {"computed_at": None, "model_version": None, "sites": {}})
-    first_error = None
-    for site in sites:
-        if site.site_id in data["sites"] and data["sites"][site.site_id] is not None:
-            continue
-        try:
-            r = predict(site.site_id, day)
-            data["sites"][site.site_id] = r
-            data["model_version"] = r.get("model_version")
-        except Exception as e:      # missing model, no internet, bad data: this site gets None
-            data["sites"][site.site_id] = None
-            first_error = first_error or f"{type(e).__name__}: {e}"[:200]
-            log.warning("hazard index failed for %s: %s", site.site_id, e)
+    errors = []
+
+    def finish(site, result, error=None):
+        data["sites"][site.site_id] = result
+        if result:
+            data["model_version"] = result.get("model_version")
+        if error:
+            errors.append(error)
         with _lock:
             _progress["done"] += 1
-            _progress["error"] = first_error
+            _progress["error"] = errors[0] if errors else None
         try:
             _save(key, data)
         except OSError:
             pass
+
+    todo = [s for s in sites if data["sites"].get(s.site_id) is None]
+    _progress["done"] = len(sites) - len(todo)
+    missing = []
+    for site in todo:
+        try:
+            finish(site, predict(site.site_id, day, offline=True))
+        except FileNotFoundError:
+            missing.append(site)          # not downloaded yet (or no model: pass 2 will say so)
+        except Exception as e:            # bad data, missing sklearn...: this site gets None
+            log.warning("hazard index failed for %s: %s", site.site_id, e)
+            finish(site, None, f"{type(e).__name__}: {e}"[:200])
+    for site in missing:
+        if mode != "auto":
+            finish(site, None, "not downloaded yet (HAZARD_INDEX is not auto)")
+            continue
+        try:
+            finish(site, predict(site.site_id, day, offline=False))
+        except Exception as e:            # no internet, missing model...: this site gets None
+            log.warning("hazard index failed for %s: %s", site.site_id, e)
+            finish(site, None, f"{type(e).__name__}: {e}"[:200])
     data["computed_at"] = iso(utc_now())
     try:
         _save(key, data)
@@ -131,7 +160,7 @@ def _start_worker(key, sites, day, predict=None):
         if _worker is not None and _worker.is_alive():
             return
         _progress.update(key=key, done=0, total=len(sites), error=None)
-        _worker = threading.Thread(target=_compute, args=(key, sites, day, predict),
+        _worker = threading.Thread(target=_compute, args=(key, sites, day, predict, index_mode()),
                                    name="hazard-index", daemon=True)
         _worker.start()
 
@@ -151,7 +180,7 @@ def hazard_indexes(sites, now=None, predict=None):
 
     Never blocks and never raises. status = {"date", "state", "done", "total",
     "computed_at", "model_version", "error"} where state is one of
-    ready | computing | partial | unavailable | fake.
+    ready | computing | partial | unavailable | fake (unavailable also when HAZARD_INDEX=off).
     """
     now = now or utc_now()
     day = tomorrow(now)
@@ -159,6 +188,10 @@ def hazard_indexes(sites, now=None, predict=None):
         return ({s.site_id: fake_index(s, day) for s in sites},
                 {"date": day.isoformat(), "state": "fake", "done": len(sites), "total": len(sites),
                  "computed_at": iso(now), "model_version": "mock", "error": None})
+    if index_mode() == "off":
+        return ({s.site_id: None for s in sites},
+                {"date": day.isoformat(), "state": "unavailable", "done": 0, "total": len(sites),
+                 "computed_at": None, "model_version": None, "error": "HAZARD_INDEX=off"})
     key = cache_key(now)
     data = _load(key)
     have_all = data is not None and data.get("computed_at") and all(

@@ -11,7 +11,7 @@ PM = parse_time("2026-07-20T23:00:00Z")      # 7 PM Florida
 SITES = [get_site("eia-663"), get_site("eia-645")]
 
 
-def fake_predict(site_id, day):
+def fake_predict(site_id, day, offline=False):
     return {"site_id": site_id, "date": day.isoformat(), "index": 4.2 if site_id == "eia-645" else 1.1,
             "band": "high", "climatology_index": 2.0, "p_advisory": 0.5, "p_warning": 0.2,
             "p_damage": 0.02, "hazards": {"heat": {"index": 3.0}, "storm": {"index": 1.0}},
@@ -33,7 +33,7 @@ def test_real_path_computes_in_background_then_caches_once(monkeypatch):
     hidx.reset()
     calls = []
 
-    def predict(site_id, day):
+    def predict(site_id, day, offline=False):
         calls.append(site_id)
         return fake_predict(site_id, day)
     got, status = hidx.hazard_indexes(SITES, AM, predict=predict)
@@ -45,7 +45,7 @@ def test_real_path_computes_in_background_then_caches_once(monkeypatch):
     assert sorted(calls) == ["eia-645", "eia-663"]
     # A fresh process reads the saved file instead of recomputing
     hidx.reset()
-    got, status = hidx.hazard_indexes(SITES, AM, predict=lambda *a: 1 / 0)
+    got, status = hidx.hazard_indexes(SITES, AM, predict=lambda *a, **k: 1 / 0)
     assert status["state"] == "ready" and got["eia-663"]["index"] == 1.1
     # After 6 PM it is a new key, so it recomputes once more
     hidx.hazard_indexes(SITES, PM, predict=predict)
@@ -57,7 +57,7 @@ def test_real_path_computes_in_background_then_caches_once(monkeypatch):
 def test_missing_model_gives_none_not_a_crash():
     hidx.reset()
 
-    def no_model(site_id, day):
+    def no_model(site_id, day, offline=False):
         raise FileNotFoundError("hazard_index.joblib")
     hidx.hazard_indexes(SITES, AM, predict=no_model)
     hidx.wait_for_worker(10)
@@ -70,7 +70,7 @@ def test_missing_model_gives_none_not_a_crash():
 def test_one_failing_site_keeps_the_others():
     hidx.reset()
 
-    def flaky(site_id, day):
+    def flaky(site_id, day, offline=False):
         if site_id == "eia-663":
             raise OSError("no internet")
         return fake_predict(site_id, day)
@@ -124,3 +124,40 @@ def test_picture_without_the_model_has_none_everywhere(monkeypatch):
     assert all(e["tomorrow_rank"] is None for e in pic["sites"])
     st = contract.site_status(pic["sites"][0], pic["generated_at"])
     assert st["index_tomorrow"] is None and st["index_drivers"] == [] and st["hazard_index"] is None
+
+
+def test_offline_pass_first_then_downloads_only_what_is_missing():
+    hidx.reset()
+    calls = []
+
+    def predict(site_id, day, offline=False):
+        calls.append((site_id, offline))
+        if site_id == "eia-645" and offline:
+            raise FileNotFoundError("not downloaded yet")
+        return fake_predict(site_id, day)
+    hidx.hazard_indexes(SITES, AM, predict=predict)
+    hidx.wait_for_worker(10)
+    assert calls == [("eia-663", True), ("eia-645", True), ("eia-645", False)]
+    got, status = hidx.hazard_indexes(SITES, AM, predict=predict)
+    assert status["state"] == "ready" and got["eia-645"]["index"] == 4.2
+    hidx.reset()
+
+
+def test_hazard_index_setting_offline_and_off(monkeypatch):
+    hidx.reset()
+    calls = []
+
+    def predict(site_id, day, offline=False):
+        calls.append((site_id, offline))
+        raise FileNotFoundError("not downloaded yet")
+    monkeypatch.setenv("HAZARD_INDEX", "offline")
+    hidx.hazard_indexes(SITES, AM, predict=predict)
+    hidx.wait_for_worker(10)
+    assert all(off for _, off in calls)                      # never went online
+    got, status = hidx.hazard_indexes(SITES, AM, predict=predict)
+    assert got == {"eia-663": None, "eia-645": None} and status["state"] == "unavailable"
+    hidx.reset()
+    calls.clear()
+    monkeypatch.setenv("HAZARD_INDEX", "off")
+    got, status = hidx.hazard_indexes(SITES, AM, predict=predict)
+    assert calls == [] and status["error"] == "HAZARD_INDEX=off" and set(got.values()) == {None}
