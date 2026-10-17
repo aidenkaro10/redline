@@ -128,6 +128,7 @@ FIRE_INCIDENT_WARNING_MI = 10        # active NIFC wildfire this close -> warnin
 # Soil saturation (Open-Meteo top-soil moisture, m³/m³; Florida sand saturates near 0.4)
 SOIL_WET_M3M3 = 0.30                 # advisory: soft ground, standing water likely
 SOIL_SATURATED_M3M3 = 0.38           # warning: saturated, flooding and equipment risk
+HEAVY_RAIN_24H_MM = 50               # this much rain in 24 h -> flooding advisory ("night of heavy rain")
 
 # Wildlife (iNaturalist sightings)
 WILDLIFE_RADIUS_MI = 5               # count sightings within this radius

@@ -36,8 +36,19 @@ class FeedResult:
         return {"fetched_at": self.fetched_at, "stale": self.stale, "error": self.error}
 
 
+_ALL_CACHES = []
+
+
+def clear_all_caches():
+    """Forget every in-memory copy (tests use this; disk copies stay)."""
+    for c in _ALL_CACHES:
+        c.clear()
+        c._loaded = False
+
+
 class FeedCache:
     def __init__(self, name, max_age_s):
+        _ALL_CACHES.append(self)
         self.name = name
         self.max_age_s = max_age_s
         self._lock = threading.Lock()

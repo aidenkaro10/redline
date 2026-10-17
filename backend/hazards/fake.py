@@ -105,3 +105,43 @@ def storm_flashes(sites, now):
         t += timedelta(seconds=40)
         i += 1
     return out
+
+
+def weather(sites, now):
+    """Fake hourly weather (same shape as weather.fetch_forecast): a hot humid
+    Florida summer day. Tampa Bay runs hottest, Orlando's soil is saturated,
+    and the St. Johns River site had a night of heavy rain."""
+    from backend.hazards.wbgt import cos_zenith
+    start = now.replace(minute=0, second=0, microsecond=0) - timedelta(hours=24)
+    times = [start + timedelta(hours=h) for h in range(24 * 4)]
+    out = {}
+    for s in sites:
+        hot = 2.5 if s.site_id == HEAT_SITE else (1.0 if s.lat < 28 else 0.0)
+        h = {k: [] for k in ("time", "temperature_2m", "relative_humidity_2m", "surface_pressure",
+                             "wind_speed_10m", "shortwave_radiation", "precipitation",
+                             "soil_moisture_0_to_1cm", "soil_moisture_1_to_3cm",
+                             "soil_moisture_3_to_9cm")}
+        for t in times:
+            # The heat peaks about an hour from NOW whatever the real time is,
+            # so the demo always shows a hot afternoon. (The sun still follows
+            # the real clock, so at night WBGT comes from heat and humidity only.)
+            hours_from_now = (t - now).total_seconds() / 3600
+            day = math.cos((hours_from_now - 1) / 24 * 2 * math.pi)
+            cza = cos_zenith(t - timedelta(minutes=30), s.lat, s.lon)
+            rain = 0.0
+            if s.site_id == FLOOD_SITE and -20 <= (t - now).total_seconds() / 3600 <= -8:
+                rain = 7.5          # ~90 mm over the night
+            h["time"].append(iso(t))
+            h["temperature_2m"].append(round(28.5 + hot + 5.0 * day, 1))
+            humid = 12 if s.site_id == HEAT_SITE else 0
+            h["relative_humidity_2m"].append(round(70 + humid - 18 * day, 0))
+            h["surface_pressure"].append(1013.0)
+            h["wind_speed_10m"].append(round(2.5 + 1.0 * max(day, 0), 2))
+            h["shortwave_radiation"].append(round(max(0.0, 950 * cza) * (0.4 if rain else 1.0), 0))
+            h["precipitation"].append(rain)
+            soil = 0.41 if s.site_id in (SOIL_SITE, FLOOD_SITE) else 0.16
+            h["soil_moisture_0_to_1cm"].append(soil)
+            h["soil_moisture_1_to_3cm"].append(soil)
+            h["soil_moisture_3_to_9cm"].append(soil - 0.01)
+        out[s.site_id] = h
+    return out
