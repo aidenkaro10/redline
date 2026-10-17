@@ -19,6 +19,7 @@
  * Whole thing: a little over 3 minutes.
  */
 
+import { isFinalStage } from "../lib/emergency.ts";
 import type { MockEngine } from "./engine.ts";
 
 export interface ScenarioStep {
@@ -87,7 +88,7 @@ export function scenarioReactions(e: MockEngine) {
     }
   }
   // Once the SOS is over (by script or by the presenter), go back to the replay speed.
-  if (em && em.worker_id === SOS_WORKER && (em.stage === "cancelled" || em.stage === "done") && !e.mandown
+  if (em && em.worker_id === SOS_WORKER && isFinalStage(em.stage) && !e.mandown
     && ![...e.workers.values()].some((w) => w.collapsed) && e.demo.speed !== SCENARIO_SPEED) {
     e.demo.speed = SCENARIO_SPEED;
     e.addLog(`Replay back to ${SCENARIO_SPEED}x`, "demo");

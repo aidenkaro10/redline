@@ -189,7 +189,11 @@ export interface ManDown {
   last_vitals: { core_temp: number | null; hr: number | null; at: number };
 }
 
-export type EmergencyStage = "notifying" | "cancel_window" | "calling" | "connected" | "done" | "cancelled";
+/**
+ * Where the emergency call is. "done", "cancelled" and "failed" are the end.
+ * "failed" = the emergency call did not go through: the screen tells the crew lead to call 911 themselves.
+ */
+export type EmergencyStage = "notifying" | "cancel_window" | "calling" | "connected" | "done" | "cancelled" | "failed";
 
 /** The band sent BTN:SOS (button held 3 s), or the worker held SOS on their phone. */
 export interface SosPress {
@@ -217,6 +221,35 @@ export interface EmergencyCall {
   steps: { at: number; stage: EmergencyStage; text: string }[];
   transcript: { at: number; speaker: "agent" | "dispatcher"; text: string }[];
   outcome: string | null;
+  /** Only when built from session D's events: dry_run = nothing dialed, fake = pretend phone, live = a real phone rang. */
+  mode?: EmergencyMode;
+}
+
+// ---------------------------------------------------------------------------
+// Session D's raw escalation events (backend/emergency, docs/interfaces/emergency.md)
+// ---------------------------------------------------------------------------
+
+export type EmergencyMode = "dry_run" | "fake" | "live";
+
+/**
+ * One update from session D's escalation manager. Session A passes these straight
+ * through the live connection. The UI folds them into one EmergencyCall
+ * (lib/emergency.ts), so the man-down screen reads the same shape either way.
+ */
+export interface EmergencyStatus {
+  incident_id: string;            // "inc-<worker_id>-<confirmed_at>"
+  worker_id: string;
+  worker_name?: string | null;
+  timestamp: number;              // when this update happened (same clock as `clock.sim_time`)
+  stage: "notify" | "cancel_window" | "emergency_call" | "done";
+  /** waiting = cancel window open. */
+  status: "calling" | "connected" | "completed" | "failed" | "cancelled" | "waiting";
+  target: "crew_lead" | "safety_officer" | "emergency" | null;   // null = about the whole incident
+  number_masked?: string | null;  // "+1 ••• ••• 1234"
+  mode?: EmergencyMode;
+  demo_label?: string | null;     // "Demo: would call 911" on every emergency-leg event
+  cancel_deadline?: number | null;
+  message?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -315,6 +348,7 @@ export type LiveEvent =
   | { type: "mandown"; mandown: ManDown | null }
   | { type: "sos"; sos: SosPress }
   | { type: "emergency"; emergency: EmergencyCall | null }
+  | ({ type: "emergency_status" } & EmergencyStatus)
   | { type: "site_status"; site: SiteStatus }
   | { type: "demo"; demo: DemoState }
   | { type: "band_command"; band: BandCommand }

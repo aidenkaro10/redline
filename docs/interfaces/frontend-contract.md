@@ -49,6 +49,7 @@ Exception: the man-down / SOS incident carries `last_vitals` (core temp, HR) for
 | `mandown` | Check starts, confirmed, cancelled, resolved (also used for SOS incidents) | `mandown`: ManDown, or `null` when closed |
 | `sos` | The band sent `BTN:SOS` (button held 3 s), or the phone's SOS button | `sos`: SosPress |
 | `emergency` | Every stage change and transcript line | `emergency`: EmergencyCall, or `null` |
+| `emergency_status` | Session D's step-by-step events, passed straight through | Flat EmergencyStatus fields (see "Session D's `emergency_status`" below). The UI folds them into `emergency` itself |
 | `site_status` | Hazard change at a site, worker flag change | `site`: SiteStatus |
 | `demo` | Any demo control change, scenario step | `demo`: DemoState |
 | `band_command` | Each command sent to a band (not to `crew`) | `band`: worker_id, command (`"BUZZ:HEAT_RED"`), at |
@@ -121,7 +122,8 @@ Sent once per press. `escalated: false` means it was ignored because an incident
 
 `id, mandown_id, worker_id, stage, started_at, cancel_deadline, demo, target_label, steps[], transcript[], outcome`.
 
-- `stage`: `notifying` → `cancel_window` → `calling` → `connected` → `done`, or `cancelled`.
+- `stage`: `notifying` → `cancel_window` → `calling` → `connected` → `done`, or `cancelled`, or `failed` (the emergency call didn't go through: the UI shows "Emergency call FAILED. Call 911 yourself now." huge, and it can't be minimized).
+- `mode` (optional, only when built from D's events): `dry_run`, `fake` or `live`.
 - `demo: true` + `target_label: "Demo: would call 911"`. The UI shows this label big. Never real 911.
 - `transcript`: `{at, speaker: "agent" | "dispatcher", text}` lines, appended as the call goes.
 - `steps`: the call log (time + text for each stage).
@@ -166,7 +168,8 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 | POST | `/api/workers/{id}/button` | | Same as the band's `BTN:1`: cancels a man-down check, else acknowledges a red alert. `{ok, action}` |
 | POST | `/api/workers/{id}/sos` | | Same as the band's `BTN:SOS` (the phone view has a hold-3-s SOS button). `{ok, action: "escalated" \| "ignored_active_incident"}` |
 | POST | `/api/mandown/{id}/resolve` | | Crew lead closes the man-down screen |
-| POST | `/api/emergency/{id}/cancel` | | Crew lead's "Cancel, false alarm" (only in `notifying` / `cancel_window`) |
+| POST | `/api/emergency/cancel` | `{worker_id}` | Crew lead's "Cancel, false alarm" (only in `notifying` / `cancel_window`). Session D's route; **the UI calls this one**. `{ok}` or `{ok: false, error}` when too late |
+| POST | `/api/emergency/{id}/cancel` | | Same, by call id (mock only, kept for older code) |
 
 `task` in the schedule: `heavy, moderate, light, break, stop_work, off`.
 
@@ -189,6 +192,7 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 | POST | `/api/demo/threshold` | `{on: bool}` | Demo thresholds (37.3 / 37.5 °C from `config.py`) |
 | POST | `/api/demo/mandown` | `{worker_id}` | Fakes a fall for that worker |
 | POST | `/api/demo/sos` | `{worker_id}` | Fakes an SOS (button held 3 s) for that worker |
+| POST | `/api/demo/emergency` | `{format?: "call" \| "status", fail_next?: bool}` | Mock only. `status` = send D's `emergency_status` events instead of `emergency`. `fail_next` = the next emergency call fails (tests the "Call 911 yourself" screen) |
 
 ## The scripted demo (what the mock plays)
 
@@ -240,9 +244,28 @@ Where the UI shows the band's state (demo view), it follows the firmware contrac
 | EmergencyCall | D (emergency escalation) |
 | PhotoReport storage | A |
 
-## Known gap: session D's `emergency_status`
+## Session D's `emergency_status` (built)
 
-Session D's interface (`docs/interfaces/emergency.md` on their branch) sends one flat `emergency_status` event per step (`stage: notify | cancel_window | emergency_call | done`, `status`, `target`, `demo_label`, `cancel_deadline`, `message`). The UI currently reads the aggregated `EmergencyCall` above. Plan: the frontend folds `emergency_status` events into `EmergencyCall` itself, so session A can pass D's events straight through. Not built yet. Also: show D's `done/failed` ("Emergency call FAILED. Call 911 yourself now.") big.
+Session A can broadcast D's `EmergencyStatus` events as they are (`model_dump()`, it already has `"type": "emergency_status"`). Shape: `docs/interfaces/emergency.md` on D's branch. The UI folds each one into the `EmergencyCall` above (`frontend/src/lib/emergency.ts`):
+
+| D event | UI stage |
+| --- | --- |
+| `notify` (any target, any status) | `notifying` |
+| `cancel_window` / `waiting` | `cancel_window` (countdown from `cancel_deadline`) |
+| `emergency_call` / `calling` | `calling` |
+| `emergency_call` / `connected` | `connected` |
+| `emergency_call` / `completed` | no change (the `done` event follows) |
+| `done` / `completed` | `done` |
+| any `cancelled` | `cancelled` |
+| `emergency_call` or `done` / `failed` | `failed` → "Emergency call FAILED. Call 911 yourself now." very big |
+
+- Every event adds one line to the call log, e.g. "Crew lead (+1 ••• ••• 0101): Connected". A crew-lead call failing does not mean the 911 leg failed.
+- The stage only moves forward, and nothing moves it out of `done` / `cancelled` / `failed`. A new `incident_id` starts a fresh call.
+- `id` = D's `incident_id`. The call is linked to the man-down on screen by worker (D's ids aren't the man-down id).
+- `demo` is always true, `target_label` = D's `demo_label` (default "Demo: would call 911"). No transcript from D.
+- Cancel: the UI sends `POST /api/emergency/cancel {worker_id}` → session A calls `manager.cancel(worker_id=...)`.
+- **For session A:** give D's `EscalationManager` the same clock as `clock.sim_time` (it takes `clock=`). Otherwise the cancel countdown is wrong in replay mode, where sim time isn't wall time.
+- Sending the aggregated `emergency` event still works too. Don't send both for the same incident.
 
 ## Open questions for session A
 

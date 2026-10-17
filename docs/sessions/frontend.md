@@ -42,6 +42,12 @@ Next: fold session D's `emergency_status` events into the UI's `EmergencyCall` (
 - No horizontal scroll at phone width on any page.
 
 Still open:
-- Session D's `emergency_status` → `EmergencyCall` adapter: being built in a side session (its own branch).
+- Session D's `emergency_status` adapter: done (round 4).
 - A needs to serve `GET /api/results` (and later `/api/twins`), and mount B's router so `/api/planner/chat`, `/api/schedule`, `/api/briefing` work on the real backend.
 - When A's replay runs at 10x, the SOS/man-down timers also run at 10x (A doesn't drop to 1x like the mock). Fine for now; say it out loud in the demo or ask A to slow down on incidents.
+
+## Round 4 (2026-10-17): session D's `emergency_status`
+
+- The UI now accepts D's flat `emergency_status` events straight from session A and folds them into the `EmergencyCall` view (`frontend/src/lib/emergency.ts`). New stage `failed`: huge "Emergency call FAILED. Call 911 yourself now." box on the man-down screen (can't be minimized), and "Automatic call failed. Call 911 now." on the SOS phone screen.
+- "Cancel, false alarm" now calls `POST /api/emergency/cancel {worker_id}` (D's suggested route). The mock supports both cancel routes.
+- Mock: `MOCK_EMERGENCY_EVENTS=status` in `frontend/.env.local` (or `POST /api/demo/emergency {"format": "status"}`) sends D-style events. `{"fail_next": true}` makes the next call fail. 7 new tests.

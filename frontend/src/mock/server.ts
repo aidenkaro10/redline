@@ -12,7 +12,10 @@ const g = globalThis as unknown as { __planitMock?: MockEngine };
 
 export function getEngine(): MockEngine {
   if (!g.__planitMock) {
-    g.__planitMock = new MockEngine();
+    // MOCK_EMERGENCY_EVENTS=status in .env.local makes the mock send session D's
+    // emergency_status events instead of the whole EmergencyCall.
+    const format = process.env.MOCK_EMERGENCY_EVENTS === "status" ? "status" : "call";
+    g.__planitMock = new MockEngine({ emergencyFormat: format });
     g.__planitMock.start();
   }
   return g.__planitMock;
