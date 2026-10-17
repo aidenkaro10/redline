@@ -1,0 +1,2023 @@
+{
+ "type": "FeatureCollection",
+ "name": "PlanIT Control job sites: Florida power plants",
+ "source": "U.S. Energy Information Administration, Form EIA-860M (august_generator2026.xlsx, inventory of operating generators as of August 2026). Public domain.",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.63278,
+     29.73306
+    ]
+   },
+   "properties": {
+    "plant_id": 136,
+    "name": "Seminole (FL)",
+    "operator": "Seminole Electric Cooperative Inc",
+    "county": "Putnam",
+    "fuel": "gas",
+    "technologies": [
+     "Conventional Steam Coal",
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1897.8,
+    "generators": 4,
+    "site_id": "eia-136",
+    "lat": 29.73306,
+    "lon": -81.63278
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.1678,
+     28.4822
+    ]
+   },
+   "properties": {
+    "plant_id": 564,
+    "name": "Stanton Energy Center",
+    "operator": "Orlando Utilities Comm",
+    "county": "Orange",
+    "fuel": "coal",
+    "technologies": [
+     "Conventional Steam Coal",
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1262.0,
+    "generators": 4,
+    "site_id": "eia-564",
+    "lat": 28.4822,
+    "lon": -81.1678
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.7644,
+     28.4698
+    ]
+   },
+   "properties": {
+    "plant_id": 609,
+    "name": "Cape Canaveral",
+    "operator": "Florida Power & Light Co",
+    "county": "Brevard",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1295.0,
+    "generators": 4,
+    "site_id": "eia-609",
+    "lat": 28.4698,
+    "lon": -80.7644
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.7831,
+     26.6967
+    ]
+   },
+   "properties": {
+    "plant_id": 612,
+    "name": "Fort Myers",
+    "operator": "Florida Power & Light Co",
+    "county": "Lee",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 2680.9,
+    "generators": 14,
+    "site_id": "eia-612",
+    "lat": 26.6967,
+    "lon": -81.7831
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.1253,
+     26.0856
+    ]
+   },
+   "properties": {
+    "plant_id": 617,
+    "name": "Port Everglades",
+    "operator": "Florida Power & Light Co",
+    "county": "Broward",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1352.0,
+    "generators": 4,
+    "site_id": "eia-617",
+    "lat": 26.0856,
+    "lon": -80.1253
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.0525,
+     26.7653
+    ]
+   },
+   "properties": {
+    "plant_id": 619,
+    "name": "Riviera",
+    "operator": "Florida Power & Light Co",
+    "county": "Palm Beach",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1295.0,
+    "generators": 4,
+    "site_id": "eia-619",
+    "lat": 26.7653,
+    "lon": -80.0525
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.3256,
+     28.8419
+    ]
+   },
+   "properties": {
+    "plant_id": 620,
+    "name": "Sanford",
+    "operator": "Florida Power & Light Co",
+    "county": "Volusia",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 2377.8,
+    "generators": 10,
+    "site_id": "eia-620",
+    "lat": 28.8419,
+    "lon": -81.3256
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.3308,
+     25.4356
+    ]
+   },
+   "properties": {
+    "plant_id": 621,
+    "name": "Turkey Point",
+    "operator": "Florida Power & Light Co",
+    "county": "Miami Dade",
+    "fuel": "nuclear",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Nuclear"
+    ],
+    "capacity_mw": 2978.4,
+    "generators": 7,
+    "site_id": "eia-621",
+    "lat": 25.4356,
+    "lon": -80.3308
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.63528,
+     27.75806
+    ]
+   },
+   "properties": {
+    "plant_id": 627,
+    "name": "Bayboro",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Pinellas",
+    "fuel": "oil",
+    "technologies": [
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 170.1,
+    "generators": 3,
+    "site_id": "eia-627",
+    "lat": 27.75806,
+    "lon": -82.63528
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.6977,
+     28.9656
+    ]
+   },
+   "properties": {
+    "plant_id": 628,
+    "name": "Crystal River",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Citrus",
+    "fuel": "gas",
+    "technologies": [
+     "Conventional Steam Coal",
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 3449.0,
+    "generators": 8,
+    "site_id": "eia-628",
+    "lat": 28.9656,
+    "lon": -82.6977
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.60176,
+     27.85954
+    ]
+   },
+   "properties": {
+    "plant_id": 634,
+    "name": "P L Bartow",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Pinellas",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 1475.6,
+    "generators": 9,
+    "site_id": "eia-634",
+    "lat": 27.85954,
+    "lon": -82.60176
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -87.2244,
+     30.5661
+    ]
+   },
+   "properties": {
+    "plant_id": 641,
+    "name": "Gulf Clean Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Escambia",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combustion Turbine",
+     "Natural Gas Steam Turbine"
+    ],
+    "capacity_mw": 2107.5,
+    "generators": 8,
+    "site_id": "eia-641",
+    "lat": 30.5661,
+    "lon": -87.2244
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.7003,
+     30.2686
+    ]
+   },
+   "properties": {
+    "plant_id": 643,
+    "name": "Lansing Smith",
+    "operator": "Florida Power & Light Co",
+    "county": "Bay",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 661.5,
+    "generators": 4,
+    "site_id": "eia-643",
+    "lat": 30.2686,
+    "lon": -85.7003
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.4036,
+     27.7944
+    ]
+   },
+   "properties": {
+    "plant_id": 645,
+    "name": "Big Bend",
+    "operator": "Tampa Electric Co",
+    "county": "Hillsborough",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine",
+     "Natural Gas Steam Turbine"
+    ],
+    "capacity_mw": 1797.0,
+    "generators": 5,
+    "site_id": "eia-645",
+    "lat": 27.7944,
+    "lon": -82.4036
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.3878,
+     29.7592
+    ]
+   },
+   "properties": {
+    "plant_id": 663,
+    "name": "Deerhaven Generating Station",
+    "operator": "Gainesville Regional Utilities",
+    "county": "Alachua",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combustion Turbine",
+     "Natural Gas Steam Turbine"
+    ],
+    "capacity_mw": 471.0,
+    "generators": 5,
+    "site_id": "eia-663",
+    "lat": 29.7592,
+    "lon": -82.3878
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.5525,
+     30.4172
+    ]
+   },
+   "properties": {
+    "plant_id": 667,
+    "name": "Northside Generating Station",
+    "operator": "JEA",
+    "county": "Duval",
+    "fuel": "coal",
+    "technologies": [
+     "Conventional Steam Coal",
+     "Natural Gas Steam Turbine",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 1407.1,
+    "generators": 7,
+    "site_id": "eia-667",
+    "lat": 30.4172,
+    "lon": -81.5525
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.9229,
+     28.0801
+    ]
+   },
+   "properties": {
+    "plant_id": 676,
+    "name": "C D McIntosh Jr",
+    "operator": "City of Lakeland - (FL)",
+    "county": "Polk",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine",
+     "Natural Gas Internal Combustion Engine",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 666.5,
+    "generators": 12,
+    "site_id": "eia-676",
+    "lat": 28.0801,
+    "lon": -81.9229
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -84.4,
+     30.4522
+    ]
+   },
+   "properties": {
+    "plant_id": 688,
+    "name": "Arvah B Hopkins",
+    "operator": "City of Tallahassee - (FL)",
+    "county": "Leon",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine",
+     "Natural Gas Internal Combustion Engine"
+    ],
+    "capacity_mw": 673.1,
+    "generators": 9,
+    "site_id": "eia-688",
+    "lat": 30.4522,
+    "lon": -84.4
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -84.86387,
+     30.70857
+    ]
+   },
+   "properties": {
+    "plant_id": 690,
+    "name": "J Woodruff",
+    "operator": "USCE-Mobile District",
+    "county": "Gadsden",
+    "fuel": "hydro",
+    "technologies": [
+     "Conventional Hydroelectric"
+    ],
+    "capacity_mw": 43.5,
+    "generators": 3,
+    "site_id": "eia-690",
+    "lat": 30.70857,
+    "lon": -84.86387
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.3456,
+     27.6058
+    ]
+   },
+   "properties": {
+    "plant_id": 6042,
+    "name": "Manatee",
+    "operator": "Florida Power & Light Co",
+    "county": "Manatee",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Steam Turbine"
+    ],
+    "capacity_mw": 2951.2,
+    "generators": 7,
+    "site_id": "eia-6042",
+    "lat": 27.6058,
+    "lon": -82.3456
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.5628,
+     27.0536
+    ]
+   },
+   "properties": {
+    "plant_id": 6043,
+    "name": "Martin",
+    "operator": "Florida Power & Light Co",
+    "county": "Martin",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 2448.5,
+    "generators": 11,
+    "site_id": "eia-6043",
+    "lat": 27.0536,
+    "lon": -80.5628
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.24639,
+     27.34861
+    ]
+   },
+   "properties": {
+    "plant_id": 6045,
+    "name": "St Lucie",
+    "operator": "Florida Power & Light Co",
+    "county": "St Lucie",
+    "fuel": "nuclear",
+    "technologies": [
+     "Nuclear"
+    ],
+    "capacity_mw": 2160.0,
+    "generators": 2,
+    "site_id": "eia-6045",
+    "lat": 27.34861,
+    "lon": -80.24639
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.33233,
+     28.90386
+    ]
+   },
+   "properties": {
+    "plant_id": 6046,
+    "name": "DeBary",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Volusia",
+    "fuel": "oil",
+    "technologies": [
+     "Natural Gas Fired Combustion Turbine",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 748.0,
+    "generators": 9,
+    "site_id": "eia-6046",
+    "lat": 28.90386,
+    "lon": -81.33233
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.7342,
+     24.56333
+    ]
+   },
+   "properties": {
+    "plant_id": 6584,
+    "name": "Stock Island",
+    "operator": "Utility Board of Key West City (FL)",
+    "county": "Monroe",
+    "fuel": "oil",
+    "technologies": [
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 126.5,
+    "generators": 7,
+    "site_id": "eia-6584",
+    "lat": 24.56333,
+    "lon": -81.7342
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.533,
+     28.2764
+    ]
+   },
+   "properties": {
+    "plant_id": 7238,
+    "name": "Cane Island",
+    "operator": "Kissimmee Utility Authority",
+    "county": "Osceola",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine"
+    ],
+    "capacity_mw": 706.0,
+    "generators": 7,
+    "site_id": "eia-7238",
+    "lat": 28.2764,
+    "lon": -81.533
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.9897,
+     27.7286
+    ]
+   },
+   "properties": {
+    "plant_id": 7242,
+    "name": "Polk",
+    "operator": "Tampa Electric Co",
+    "county": "Polk",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1458.2,
+    "generators": 6,
+    "site_id": "eia-7242",
+    "lat": 27.7286,
+    "lon": -81.9897
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.86998,
+     27.78822
+    ]
+   },
+   "properties": {
+    "plant_id": 7302,
+    "name": "Hines Energy Complex",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Polk",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 2266.3,
+    "generators": 12,
+    "site_id": "eia-7302",
+    "lat": 27.78822,
+    "lon": -81.86998
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.9625,
+     27.64167
+    ]
+   },
+   "properties": {
+    "plant_id": 7380,
+    "name": "Midulla Generating Station",
+    "operator": "Seminole Electric Cooperative Inc",
+    "county": "Hardee",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine"
+    ],
+    "capacity_mw": 853.3,
+    "generators": 8,
+    "site_id": "eia-7380",
+    "lat": 27.64167,
+    "lon": -81.9625
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.94722,
+     30.32056
+    ]
+   },
+   "properties": {
+    "plant_id": 7846,
+    "name": "Brandy Branch",
+    "operator": "JEA",
+    "county": "Duval",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine"
+    ],
+    "capacity_mw": 783.1,
+    "generators": 4,
+    "site_id": "eia-7846",
+    "lat": 30.32056,
+    "lon": -81.94722
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.4231,
+     27.9072
+    ]
+   },
+   "properties": {
+    "plant_id": 7873,
+    "name": "H L Culbreath Bayside Power Station",
+    "operator": "Tampa Electric Co",
+    "county": "Hillsborough",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle",
+     "Natural Gas Fired Combustion Turbine"
+    ],
+    "capacity_mw": 2293.7,
+    "generators": 13,
+    "site_id": "eia-7873",
+    "lat": 27.9072,
+    "lon": -82.4231
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.78861,
+     28.18444
+    ]
+   },
+   "properties": {
+    "plant_id": 8048,
+    "name": "Anclote",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Pasco",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Steam Turbine"
+    ],
+    "capacity_mw": 1112.4,
+    "generators": 2,
+    "site_id": "eia-8048",
+    "lat": 28.18444,
+    "lon": -82.78861
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.54861,
+     28.26278
+    ]
+   },
+   "properties": {
+    "plant_id": 8049,
+    "name": "Intercession City",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Osceola",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combustion Turbine",
+     "Petroleum Liquids"
+    ],
+    "capacity_mw": 1197.3,
+    "generators": 14,
+    "site_id": "eia-8049",
+    "lat": 28.26278,
+    "lon": -81.54861
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.45541,
+     30.68182
+    ]
+   },
+   "properties": {
+    "plant_id": 10202,
+    "name": "Fernandina Beach Mill",
+    "operator": "WestRock, Fernandina Beach",
+    "county": "Nassau",
+    "fuel": "biomass_waste",
+    "technologies": [
+     "Wood/Wood Waste Biomass"
+    ],
+    "capacity_mw": 96.9,
+    "generators": 2,
+    "site_id": "eia-10202",
+    "lat": 30.68182,
+    "lon": -81.45541
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.05194,
+     27.83364
+    ]
+   },
+   "properties": {
+    "plant_id": 10434,
+    "name": "Mosaic New Wales Operations",
+    "operator": "Mosaic Fertilizer LLC",
+    "county": "Polk",
+    "fuel": "biomass_waste",
+    "technologies": [
+     "All Other"
+    ],
+    "capacity_mw": 135.5,
+    "generators": 4,
+    "site_id": "eia-10434",
+    "lat": 27.83364,
+    "lon": -82.05194
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.7469,
+     26.5769
+    ]
+   },
+   "properties": {
+    "plant_id": 54627,
+    "name": "Okeelanta Cogeneration",
+    "operator": "New Hope Power Company",
+    "county": "Palm Beach",
+    "fuel": "biomass_waste",
+    "technologies": [
+     "Other Waste Biomass"
+    ],
+    "capacity_mw": 128.9,
+    "generators": 2,
+    "site_id": "eia-54627",
+    "lat": 26.5769,
+    "lon": -80.7469
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.7947,
+     28.3661
+    ]
+   },
+   "properties": {
+    "plant_id": 55286,
+    "name": "Oleander Power Project LP",
+    "operator": "Oleander Holdings LLC ",
+    "county": "Brevard",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combustion Turbine"
+    ],
+    "capacity_mw": 994.4,
+    "generators": 5,
+    "site_id": "eia-55286",
+    "lat": 28.3661,
+    "lon": -80.7947
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.78025,
+     28.49318
+    ]
+   },
+   "properties": {
+    "plant_id": 55318,
+    "name": "Indian River",
+    "operator": "Orlando Utilities Comm",
+    "county": "Brevard",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Steam Turbine"
+    ],
+    "capacity_mw": 609.0,
+    "generators": 3,
+    "site_id": "eia-55318",
+    "lat": 28.49318,
+    "lon": -80.78025
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.8083,
+     28.0525
+    ]
+   },
+   "properties": {
+    "plant_id": 55412,
+    "name": "Osprey Energy Center Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Polk",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 644.2,
+    "generators": 3,
+    "site_id": "eia-55412",
+    "lat": 28.0525,
+    "lon": -81.8083
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.92395,
+     27.52361
+    ]
+   },
+   "properties": {
+    "plant_id": 55415,
+    "name": "Vandolah Power Station",
+    "operator": "Vandolah Power Co LLC",
+    "county": "Hardee",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combustion Turbine"
+    ],
+    "capacity_mw": 728.0,
+    "generators": 4,
+    "site_id": "eia-55415",
+    "lat": 27.52361,
+    "lon": -81.92395
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.16694,
+     28.48825
+    ]
+   },
+   "properties": {
+    "plant_id": 55821,
+    "name": "Curtis H Stanton Energy Center",
+    "operator": "Stanton Clean Energy LLC",
+    "county": "Orange",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 688.3,
+    "generators": 3,
+    "site_id": "eia-55821",
+    "lat": 28.48825,
+    "lon": -81.16694
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.3747,
+     26.6986
+    ]
+   },
+   "properties": {
+    "plant_id": 56407,
+    "name": "West County Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Palm Beach",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 4263.0,
+    "generators": 12,
+    "site_id": "eia-56407",
+    "lat": 26.6986,
+    "lon": -80.3747
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.39639,
+     29.7675
+    ]
+   },
+   "properties": {
+    "plant_id": 57241,
+    "name": "Deerhaven Renewable",
+    "operator": "Gainesville Regional Utilities",
+    "county": "Alachua",
+    "fuel": "biomass_waste",
+    "technologies": [
+     "Wood/Wood Waste Biomass"
+    ],
+    "capacity_mw": 116.1,
+    "generators": 1,
+    "site_id": "eia-57241",
+    "lat": 29.7675,
+    "lon": -82.39639
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.75101,
+     26.86159
+    ]
+   },
+   "properties": {
+    "plant_id": 59993,
+    "name": "Babcock Solar Energy Center Hybrid",
+    "operator": "Florida Power & Light Co",
+    "county": "Charlotte",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 84.5,
+    "generators": 2,
+    "site_id": "eia-59993",
+    "lat": 26.86159,
+    "lon": -81.75101
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.35528,
+     27.60747
+    ]
+   },
+   "properties": {
+    "plant_id": 60014,
+    "name": "Manatee Solar Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Manatee",
+    "fuel": "battery",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 483.5,
+    "generators": 2,
+    "site_id": "eia-60014",
+    "lat": 27.60747,
+    "lon": -82.35528
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.80686,
+     27.32092
+    ]
+   },
+   "properties": {
+    "plant_id": 60061,
+    "name": "Citrus Solar Energy Center Hybrid",
+    "operator": "Florida Power & Light Co",
+    "county": "DeSoto",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 78.5,
+    "generators": 2,
+    "site_id": "eia-60061",
+    "lat": 27.32092,
+    "lon": -81.80686
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.79111,
+     27.63417
+    ]
+   },
+   "properties": {
+    "plant_id": 60345,
+    "name": "Okeechobee Clean Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Okeechobee",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1723.1,
+    "generators": 4,
+    "site_id": "eia-60345",
+    "lat": 27.63417,
+    "lon": -80.79111
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.26351,
+     27.73041
+    ]
+   },
+   "properties": {
+    "plant_id": 61667,
+    "name": "Wimauma Solar and Battery Storage",
+    "operator": "Tampa Electric Co",
+    "county": "Hillsborough",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 114.8,
+    "generators": 2,
+    "site_id": "eia-61667",
+    "lat": 27.73041,
+    "lon": -82.26351
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.75,
+     30.29
+    ]
+   },
+   "properties": {
+    "plant_id": 61763,
+    "name": "Sunshine Gateway Solar Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Columbia",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 104.5,
+    "generators": 2,
+    "site_id": "eia-61763",
+    "lat": 30.29,
+    "lon": -82.75
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.18694,
+     30.44432
+    ]
+   },
+   "properties": {
+    "plant_id": 61807,
+    "name": "Hamilton Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Hamilton",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-61807",
+    "lat": 30.44432,
+    "lon": -83.18694
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.69615,
+     29.88264
+    ]
+   },
+   "properties": {
+    "plant_id": 61982,
+    "name": "Columbia Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Columbia",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-61982",
+    "lat": 29.88264,
+    "lon": -82.69615
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.86433,
+     30.29621
+    ]
+   },
+   "properties": {
+    "plant_id": 62490,
+    "name": "Echo River Solar",
+    "operator": "Florida Power & Light Co",
+    "county": "Suwannee",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 104.5,
+    "generators": 2,
+    "site_id": "eia-62490",
+    "lat": 30.29621,
+    "lon": -82.86433
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.84309,
+     29.63505
+    ]
+   },
+   "properties": {
+    "plant_id": 62543,
+    "name": "Trenton Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Gilchrist",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-62543",
+    "lat": 29.63505,
+    "lon": -82.84309
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.73259,
+     29.88041
+    ]
+   },
+   "properties": {
+    "plant_id": 63517,
+    "name": "Santa Fe Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Columbia",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-63517",
+    "lat": 29.88041,
+    "lon": -82.73259
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.96872,
+     30.46643
+    ]
+   },
+   "properties": {
+    "plant_id": 63518,
+    "name": "Twin Rivers Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Hamilton",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-63518",
+    "lat": 30.46643,
+    "lon": -82.96872
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.65437,
+     27.63978
+    ]
+   },
+   "properties": {
+    "plant_id": 63982,
+    "name": "Charlie Creek Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Hardee",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-63982",
+    "lat": 27.63978,
+    "lon": -81.65437
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.67224,
+     28.99999
+    ]
+   },
+   "properties": {
+    "plant_id": 64145,
+    "name": "Bay Trail Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Citrus",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-64145",
+    "lat": 28.99999,
+    "lon": -82.67224
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.41039,
+     30.10314
+    ]
+   },
+   "properties": {
+    "plant_id": 64146,
+    "name": "Sandy Creek Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Bay",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-64146",
+    "lat": 30.10314,
+    "lon": -85.41039
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.94158,
+     27.64112
+    ]
+   },
+   "properties": {
+    "plant_id": 64533,
+    "name": "Fort Green Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Hardee",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-64533",
+    "lat": 27.64112,
+    "lon": -81.94158
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.8232,
+     29.96484
+    ]
+   },
+   "properties": {
+    "plant_id": 65170,
+    "name": "Hildreth Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Suwannee",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-65170",
+    "lat": 29.96484,
+    "lon": -82.8232
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.49179,
+     30.16475
+    ]
+   },
+   "properties": {
+    "plant_id": 65171,
+    "name": "Bay Ranch Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Bay",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-65171",
+    "lat": 30.16475,
+    "lon": -85.49179
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.63984,
+     29.81002
+    ]
+   },
+   "properties": {
+    "plant_id": 65172,
+    "name": "High Springs Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Alachua",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-65172",
+    "lat": 29.81002,
+    "lon": -82.63984
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.84346,
+     29.48562
+    ]
+   },
+   "properties": {
+    "plant_id": 65173,
+    "name": "Hardeetown Solar Power Plant",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Levy",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-65173",
+    "lat": 29.48562,
+    "lon": -82.84346
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.69886,
+     29.74118
+    ]
+   },
+   "properties": {
+    "plant_id": 65292,
+    "name": "Rice Creek",
+    "operator": "Origis Energy USA, Inc",
+    "county": "Putnam",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-65292",
+    "lat": 29.74118,
+    "lon": -81.69886
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.27853,
+     30.45463
+    ]
+   },
+   "properties": {
+    "plant_id": 65422,
+    "name": "FPL Chipola River Solar Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Calhoun",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65422",
+    "lat": 30.45463,
+    "lon": -85.27853
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.27966,
+     30.3962
+    ]
+   },
+   "properties": {
+    "plant_id": 65429,
+    "name": "FPL Shirer Branch Solar Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Calhoun",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65429",
+    "lat": 30.3962,
+    "lon": -85.27966
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -86.93821,
+     30.64691
+    ]
+   },
+   "properties": {
+    "plant_id": 65433,
+    "name": "Blackwater River Solar Energy Center",
+    "operator": "Florida Power & Light Co",
+    "county": "Santa Rosa",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65433",
+    "lat": 30.64691,
+    "lon": -86.93821
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.39761,
+     30.11054
+    ]
+   },
+   "properties": {
+    "plant_id": 65501,
+    "name": "Mule Creek Renewable Energy Center",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Bay",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-65501",
+    "lat": 30.11054,
+    "lon": -85.39761
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -86.78045,
+     30.68003
+    ]
+   },
+   "properties": {
+    "plant_id": 65866,
+    "name": "Canoe",
+    "operator": "Florida Power & Light Co",
+    "county": "Okaloosa",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65866",
+    "lat": 30.68003,
+    "lon": -86.78045
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.16738,
+     30.50364
+    ]
+   },
+   "properties": {
+    "plant_id": 65886,
+    "name": "Tenmile Creek",
+    "operator": "Florida Power & Light Co",
+    "county": "Calhoun",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65886",
+    "lat": 30.50364,
+    "lon": -85.16738
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -86.4233,
+     30.41514
+    ]
+   },
+   "properties": {
+    "plant_id": 65888,
+    "name": "Kayak",
+    "operator": "Florida Power & Light Co",
+    "county": "Okaloosa",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65888",
+    "lat": 30.41514,
+    "lon": -86.4233
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -85.27589,
+     30.43989
+    ]
+   },
+   "properties": {
+    "plant_id": 65927,
+    "name": "Fourmile Creek",
+    "operator": "Florida Power & Light Co",
+    "county": "Calhoun",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 149.0,
+    "generators": 2,
+    "site_id": "eia-65927",
+    "lat": 30.43989,
+    "lon": -85.27589
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.1984,
+     26.0686
+    ]
+   },
+   "properties": {
+    "plant_id": 65978,
+    "name": "Dania Beach 7",
+    "operator": "Florida Power & Light Co",
+    "county": "Broward",
+    "fuel": "gas",
+    "technologies": [
+     "Natural Gas Fired Combined Cycle"
+    ],
+    "capacity_mw": 1447.7,
+    "generators": 3,
+    "site_id": "eia-65978",
+    "lat": 26.0686,
+    "lon": -80.1984
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -81.61015,
+     27.9788
+    ]
+   },
+   "properties": {
+    "plant_id": 66128,
+    "name": "Lake Mabel Solar and Battery Storage",
+    "operator": "Tampa Electric Co",
+    "county": "Polk",
+    "fuel": "solar",
+    "technologies": [
+     "Batteries",
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 114.5,
+    "generators": 2,
+    "site_id": "eia-66128",
+    "lat": 27.9788,
+    "lon": -81.61015
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.29823,
+     30.2825
+    ]
+   },
+   "properties": {
+    "plant_id": 66553,
+    "name": "Winquepin Renewable Energy Center",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Madison",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-66553",
+    "lat": 30.2825,
+    "lon": -83.29823
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.1562,
+     30.3436
+    ]
+   },
+   "properties": {
+    "plant_id": 66639,
+    "name": "Falmouth Renewable Energy Center",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Suwannee",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-66639",
+    "lat": 30.3436,
+    "lon": -83.1562
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.67597,
+     29.81222
+    ]
+   },
+   "properties": {
+    "plant_id": 67049,
+    "name": "County Line Renewable Energy Center",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Gilchrist",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-67049",
+    "lat": 29.81222,
+    "lon": -82.67597
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -83.29554,
+     30.26683
+    ]
+   },
+   "properties": {
+    "plant_id": 67692,
+    "name": "Sundance Renewable Energy Center",
+    "operator": "Duke Energy Florida, LLC",
+    "county": "Madison",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-67692",
+    "lat": 30.26683,
+    "lon": -83.29554
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.17134,
+     27.62574
+    ]
+   },
+   "properties": {
+    "plant_id": 68472,
+    "name": "Long Branch Solar",
+    "operator": "Tampa Electric Co",
+    "county": "Manatee",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 74.9,
+    "generators": 1,
+    "site_id": "eia-68472",
+    "lat": 27.62574,
+    "lon": -82.17134
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -82.43088,
+     29.47222
+    ]
+   },
+   "properties": {
+    "plant_id": 68595,
+    "name": "Whistling Duck I",
+    "operator": "Origis Energy USA, Inc",
+    "county": "Levy",
+    "fuel": "solar",
+    "technologies": [
+     "Solar Photovoltaic"
+    ],
+    "capacity_mw": 75.0,
+    "generators": 1,
+    "site_id": "eia-68595",
+    "lat": 29.47222,
+    "lon": -82.43088
+   }
+  }
+ ]
+}

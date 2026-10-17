@@ -11,12 +11,15 @@ never teach tolerance. Only whitelisted hint types are allowed.
 """
 
 import json
+import os
 import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 HERE = Path(__file__).parent
-LEARNED_PATH = HERE / "playbook_learned.json"
+# Where the learned playbook lives. Session F (backend/learning/) writes it; the planner only reads it.
+# Override with PLANNER_PLAYBOOK=path/to/playbook.json.
+LEARNED_PATH = Path(os.getenv("PLANNER_PLAYBOOK", HERE.parent / "learning" / "playbook.json"))
 MAX_LESSONS = 40
 
 # Words that would let a lesson touch safety. Any match = rejected, no exceptions.

@@ -56,3 +56,10 @@ Raw files live in `data/raw/` (not committed). How to get each one is below.
 ## 3. Synthetic (our simulator)
 
 See PLAN.md Phase 1b. Pretraining data plus the adversarial curriculum.
+
+## Update: Mendeley study protocol found (2026-10-17)
+
+Northway, Jones & Buono (2023), International Journal of Occupational Medicine and Environmental Health: https://ijomeh.eu/Sensitivity-and-specificity-of-using-exercise-heart-rate-in-a-thermoneutral-environment,158477,0,2.html
+- 2-hour treadmill walking test (heat tolerance test) in a hot room (40 °C, 40% RH) or a neutral room (22 °C, 40% RH). 48 of 65 classified heat-intolerant.
+- Methods (checked in the full PDF): 5.31 km/h at 4% grade for 120 min (NHRC protocol); core temp by ingestible CorTemp pill; heart rate by Polar H7 chest strap each minute; stop at core >= 39 °C, HR >= 180, request, or 120 min; heat intolerant if core >= 38.6 °C or HR >= 160 in the heat.
+- `ml/data.py` fills `wbgt` (indoor: 32.0 °C heat, 16.4 °C neutral) and `workload` (5.35 met from the ACSM walking equation) for every Mendeley minute. Models trained before this saw those inputs as missing; the final ensemble is retrained with them.

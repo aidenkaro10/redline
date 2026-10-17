@@ -1,0 +1,19 @@
+{
+ "request": "POST /api/demo/scenario (stop)",
+ "status": 200,
+ "body": {
+  "source": "live",
+  "speed": 1.0,
+  "demo_threshold": false,
+  "thresholds": {
+   "warning": 38.0,
+   "danger": 38.5
+  },
+  "scenario": {
+   "running": false,
+   "step": null,
+   "started_at": null
+  },
+  "mock": false
+ }
+}

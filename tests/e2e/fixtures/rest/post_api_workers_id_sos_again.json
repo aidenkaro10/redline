@@ -1,0 +1,8 @@
+{
+ "request": "POST /api/workers/{id}/sos (again)",
+ "status": 200,
+ "body": {
+  "ok": true,
+  "action": "ignored_active_incident"
+ }
+}

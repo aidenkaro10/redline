@@ -1,0 +1,19 @@
+{
+ "request": "POST /api/demo/replay",
+ "status": 200,
+ "body": {
+  "source": "replay",
+  "speed": 30.0,
+  "demo_threshold": false,
+  "thresholds": {
+   "warning": 38.0,
+   "danger": 38.5
+  },
+  "scenario": {
+   "running": true,
+   "step": "sim shift 9647 + crew [9568, 8130, 4464], starting at minute 116",
+   "started_at": 1792000000.0
+  },
+  "mock": false
+ }
+}

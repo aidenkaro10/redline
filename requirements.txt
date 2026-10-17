@@ -5,6 +5,7 @@ uvicorn[standard] # runs FastAPI, includes WebSocket support
 python-dotenv    # loads secrets from .env
 pyserial         # reads the band over USB
 websockets       # Pulsoid heart rate client
+bleak            # Bluetooth heart rate (HeartCast / chest strap / Garmin), works with no internet
 
 # Testing
 pytest
@@ -15,6 +16,12 @@ torch            # neural nets (forecaster, twins)
 pythermalcomfort # physiology simulator (ISO 7933 heat strain)
 matplotlib       # evaluation plots and slide figures
 
+# Site hazard layer
+netCDF4          # reads GOES-19 lightning files
+
 # Later (uncomment when we get there)
 ortools          # schedule optimizer (planner, CP-SAT)
 anthropic        # planning agent (Claude API)
+
+# Hazard index (ml/hazard_index)
+scikit-learn     # logistic regression + boosted trees for the 0-10 site index (also installs joblib)

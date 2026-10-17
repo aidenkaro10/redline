@@ -22,12 +22,14 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from backend.planner.agent import PlannerSession
-from backend.planner.archon import plan_view, plan_with_agent
+from backend.planner.archon import NO_LLM_NOTE, plan_view, plan_with_agent
 from backend.planner.briefing import frontend_schedule, make_briefing
 from backend.planner.generate import demo_scenario
+from backend.planner.personal import apply_offsets, load_offsets
 from backend.planner.playbook import Playbook
 from backend.planner.rules import check_plan
 from backend.planner.scenario import Plan, Scenario
+from backend.planner.storm_risk import add_storm_probs
 
 router = APIRouter()
 _lock = threading.Lock()
@@ -39,12 +41,18 @@ def current_scenario() -> Scenario:
         from backend.planner.briefing import CREW_SITE
         sc = demo_scenario()
         sc.site = CREW_SITE
+        apply_offsets(sc, load_offsets())
         _state["scenario"] = sc
     return _state["scenario"]
 
 
-def set_scenario(scenario: Scenario) -> None:
-    """Session A calls this when the crew, tasks or forecast change (e.g. live core temps for a mid-shift replan)."""
+def set_scenario(scenario: Scenario, offsets: dict | None = None) -> None:
+    """
+    Session A calls this when the crew, tasks or forecast change (e.g. live core temps for a mid-shift replan).
+    offsets = {worker_id: PersonalOffset or its to_dict()}; default: load_offsets() (data/personal_offsets.json).
+    """
+    apply_offsets(scenario, load_offsets() if offsets is None else offsets)
+    add_storm_probs(scenario)          # soft cost only; PLANNER_STORM_MODE=live|fake|off
     with _lock:
         _state["scenario"], _state["result"] = scenario, None
 
@@ -75,7 +83,8 @@ class ChatRequest(BaseModel):
 def get_schedule():
     r = current_plan()
     sc = current_scenario()
-    return frontend_schedule(sc, r.plan, r.check, sc.date, [r.summary])
+    notes = [r.summary] + ([] if r.used_llm else [NO_LLM_NOTE])
+    return {**frontend_schedule(sc, r.plan, r.check, sc.date, notes), "llm": r.used_llm}
 
 
 @router.get("/api/briefing")
@@ -121,3 +130,32 @@ def post_chat(req: ChatRequest):
 @router.get("/api/planner/scenario")
 def get_scenario():
     return current_scenario().to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Acting on forecasts: the change feed and the crew lead's approvals (proactive.py)
+# ---------------------------------------------------------------------------
+@router.get("/api/planner/feed")
+def get_feed(limit: int = 50):
+    """planner_change events, newest first (applied, proposed, approved, rejected, expired)."""
+    from backend.planner.proactive import get_loop
+    return get_loop().feed.list(limit)
+
+
+@router.get("/api/planner/proposals")
+def get_proposals():
+    """Changes waiting for the crew lead."""
+    from backend.planner.proactive import get_loop
+    return get_loop().proposals()
+
+
+@router.post("/api/planner/proposals/{change_id}/{decision}")
+def post_decision(change_id: str, decision: str):
+    """decision = approve | reject. Approval re-runs the rule checker before anything changes."""
+    from backend.planner.proactive import get_loop
+    if decision not in ("approve", "reject"):
+        raise HTTPException(400, "decision must be approve or reject")
+    try:
+        return get_loop().decide(change_id, decision == "approve")
+    except KeyError:
+        raise HTTPException(404, f"no pending change {change_id} (already decided or expired)")

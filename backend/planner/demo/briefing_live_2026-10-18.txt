@@ -1,0 +1,43 @@
+PlanIT Control 6 PM briefing for 2026-10-18
+
+Tomorrow (2026-10-18): highest hazard index is Port Everglades at 0.7/10. Crew site Deerhaven Generating Station: plan optimizer:fairness. Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 96% of priority-weighted work done.
+
+Port Everglades (eia-617): index 0.7/10 low  [index: C2, hazards: C1, weather: C1, incidents: C2]
+   - heat (low): Max WBGT 26 °C around 3 PM
+   - heat (low): NWS HeatRisk: Minor
+   - lightning (extreme): Now: Lightning within 10 mi (1.0 mi): STOP WORK, all-clear in 29 min
+   - past: 2024-09-18 Lightning, 1 died [NOAA Storm Events]
+   - past: 2024-09-05 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+   - past: 2024-09-03 Lightning [NOAA Storm Events]
+Big Bend (eia-645): index 0.3/10 low  [index: C2, hazards: C1, weather: C1, incidents: C2]
+   - heat (low): Max WBGT 24 °C around 3 PM
+   - past: 2024-10-01 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+   - past: 2024-09-23 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+   - past: 2024-09-10 Heat injury reported to OSHA nearby [OSHA Severe Injury Reports]
+Deerhaven Generating Station (eia-663): index 0.2/10 low  [index: C2, hazards: C1, weather: C1, incidents: C2]
+   - heat (low): Max WBGT 20 °C around 4 PM
+   - heat (low): NWS HeatRisk: Little or none
+   - flood (moderate): Now: River at action stage: Santa Fe River at Worthington Springs (in NAVD88) (11.5 mi)
+   - past: 2024-09-26 Tropical Storm, 1 hurt [NOAA Storm Events]
+   - past: 2024-06-24 Thunderstorm Wind [NOAA Storm Events]
+   - past: 2024-06-11 Thunderstorm Wind [NOAA Storm Events]
+
+Suggested schedule for eia-663 (checked by rule checker: True):
+   07:00 07:30 08:00 08:30 09:00 09:30 10:00 10:30 11:00 11:30 12:00 12:30 13:00 13:30 14:00 14:30
+   Priya
+   HEAVY light light   .   light  mod   mod    .    mod   mod  light   .     .    mod  light light
+   Ana
+     .   HEAVY  mod  light   .    mod  light light   .    mod  light  mod    .   HEAVY light  mod 
+   Luis
+   HEAVY HEAVY HEAVY   .   HEAVY light   .   light light HEAVY   .   HEAVY   .     .     .     .  
+   Jada
+   HEAVY   .   HEAVY HEAVY   .   HEAVY HEAVY HEAVY   .     .   HEAVY   .   HEAVY   .     .     .  
+   Kofi (new hire)
+   HEAVY HEAVY light   .   HEAVY light   .   HEAVY light HEAVY   .   HEAVY   .   HEAVY   .   HEAVY
+
+* Heavy outdoor work is scheduled between 07:00 and 15:00.
+* Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 07:30, 09:00, 10:30, 11:30, 12:30, 13:30, 14:30, kept under the heat limit with breaks.
+* Won't finish safely tomorrow: Cable pulling, Inverter inspection.
+* Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 96% of priority-weighted work done.
+* Kofi (new hire) is not acclimatized: no very heavy work in high heat.
+* Alternatives: optimizer:throughput (95% work, peak 37.98 °C); optimizer:balanced (96% work, peak 37.99 °C)

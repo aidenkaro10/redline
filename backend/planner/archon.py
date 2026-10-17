@@ -32,10 +32,12 @@ from backend import config
 from backend.planner.baselines import rules_in_words, scenario_brief
 from backend.planner.heat_model import HeatModel, default_heat_model
 from backend.planner.llm import extract_json, get_llm
-from backend.planner.optimizer import OBJECTIVES, PRIORITY_WEIGHT, Objective, optimize
+from backend.planner.optimizer import OBJECTIVES, PRIORITY_WEIGHT, Objective, objectives_for, optimize
+from backend.planner.weights import PlannerWeights
 from backend.planner.playbook import Playbook
 from backend.planner.rules import CheckResult, check_plans
 from backend.planner.scenario import INTENSITIES, REST, Plan, Scenario, all_rest_plan
+from backend.planner.storm_risk import storm_reason
 
 HOT_INTENSITIES = {"heavy", "very_heavy"}
 
@@ -54,6 +56,7 @@ class AgentSettings:
     critic_instructions: str = ("Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy "
                                 "work early in the day, respect stated preferences, explain trade-offs.")
     time_limit_s: float = 3.0
+    weights: PlannerWeights | None = None   # the optimizer's soft weights (None = defaults). Session F searches these.
 
 
 @dataclass
@@ -78,6 +81,7 @@ class AgentResult:
     latency_s: float
     cost_usd: float
     candidates: list = field(default_factory=list)
+    used_llm: bool = False           # False = made without Claude (no key, or use_llm=False): optimizer + rule checker only
 
     def to_dict(self, scenario: Scenario) -> dict:
         return {
@@ -86,10 +90,14 @@ class AgentResult:
                              for c in self.alternatives],
             "summary": self.summary, "reasons": self.reasons, "lessons_used": self.lessons_used,
             "log": self.log, "latency_s": round(self.latency_s, 2), "cost_usd": round(self.cost_usd, 4),
+            "llm": self.used_llm,
             "candidates": [{"name": c.name, "verified": bool(c.check and c.check.ok),
                             "violations": c.check.n_safety if c.check else None, "score": c.score}
                            for c in self.candidates],
         }
+
+
+NO_LLM_NOTE = "Made without the LLM (no ANTHROPIC_API_KEY, or LLM off): optimizer + rule checker only."
 
 
 def floor2(x: float) -> float:
@@ -113,7 +121,9 @@ def score(scenario: Scenario, plan: Plan, check: CheckResult, s: AgentSettings) 
     peak = float(p90.max())
     spread = float(np.std(doses))
     rank = tp - s.w_peak * max(0.0, peak - 37.5) - s.w_fair * spread
-    return {"throughput": round(tp, 4), "peak_p90": round(peak, 3), "min_margin_c": round(min(slot_margin), 3),
+    # peak rounded DOWN and margin rounded DOWN, so neither can display as safer-looking or over the limit by rounding
+    return {"throughput": round(tp, 4), "peak_p90": math.floor(peak * 1000) / 1000,
+            "min_margin_c": math.floor(min(slot_margin) * 1000) / 1000,
             "slot_margin_c": [round(m, 3) for m in slot_margin], "heat_spread": round(spread, 1),
             "rank": round(rank, 4)}
 
@@ -198,7 +208,8 @@ def llm_ideas(llm, scenario: Scenario, playbook: Playbook | None, best: Candidat
                 and 0 < int(p.get("penalty", 0)) <= 50]
         forbid = [tuple(f) for f in idea.get("forbid", []) if isinstance(f, list) and len(f) == 3
                   and f[0] in workers and f[2] in tasks and (f[1] is None or isinstance(f[1], int))]
-        base = OBJECTIVES.get(idea.get("objective"), OBJECTIVES["balanced"])
+        objs = objectives_for(s.weights) if s.weights is not None else OBJECTIVES
+        base = objs.get(idea.get("objective"), objs["balanced"])
         ideas.append((str(idea.get("name", "idea"))[:60], replace(base, name=f"llm:{base.name}", soft=soft, forbid=forbid),
                       str(idea.get("why", ""))[:200]))
     direct = None
@@ -235,6 +246,9 @@ def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], les
     if blocked:
         reasons.append(f"No outdoor work {scenario.slot_time(blocked[0])}-{scenario.slot_time(blocked[-1] + 1)} "
                        f"({', '.join(sorted({h.kind for h in scenario.hazards if h.stops_outdoor_work()}))}).")
+    storm = storm_reason(scenario, best.plan)
+    if storm:
+        reasons.append(storm)
     for w in scenario.crew:
         if w.acclim < config.PLAN_UNACCLIM_LEVEL:
             reasons.append(f"{w.name} is not acclimatized: no very heavy work in high heat.")
@@ -272,7 +286,7 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
     cands: list[Candidate] = []
     prefs, lessons_used = (playbook.soft_preferences(scenario) if (playbook and s.use_playbook) else ([], []))
     for name in s.objectives:
-        obj = OBJECTIVES[name]
+        obj = (objectives_for(s.weights) if s.weights is not None else OBJECTIVES)[name]
         r = optimize(scenario, obj, heat_model, time_limit_s=s.time_limit_s)
         cands.append(Candidate(f"optimizer:{name}", r.plan, obj))
         if prefs:
@@ -310,7 +324,7 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
         fb = all_rest_plan(scenario)
         chk = check_plans(scenario, [fb], heat_model)[0]
         return AgentResult(fb, chk, [], "No verified plan: everyone rests in the shade.", [], [], log,
-                           time.time() - t0, llm.cost_usd if llm else 0.0, cands)
+                           time.time() - t0, llm.cost_usd if llm else 0.0, cands, used_llm=llm is not None)
 
     # 4. Cluster by outcome: same throughput and same per-worker peaks = same plan.
     clusters = {}
@@ -365,7 +379,7 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
     best.plan.lessons_used = used
     best.plan.source = f"agent:{best.name}"
     return AgentResult(best.plan, best.check, alts, summary, reasons, used, log, time.time() - t0,
-                       llm.cost_usd if llm else 0.0, cands)
+                       llm.cost_usd if llm else 0.0, cands, used_llm=llm is not None)
 
 
 # ---------------------------------------------------------------------------

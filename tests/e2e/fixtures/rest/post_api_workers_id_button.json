@@ -1,0 +1,7 @@
+{
+ "request": "POST /api/workers/{id}/button",
+ "status": 200,
+ "body": {
+  "ok": true
+ }
+}

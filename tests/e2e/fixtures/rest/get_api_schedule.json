@@ -1,0 +1,87 @@
+{
+ "request": "GET /api/schedule",
+ "status": 200,
+ "body": {
+  "date": "2026-07-15",
+  "slot_minutes": 30,
+  "day_start": 1784113200,
+  "rows": [
+   {
+    "worker_id": "w1",
+    "name": "Priya",
+    "slots": [
+     {
+      "start": 1784113200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1784115000,
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "start": 1784116800,
+      "task": "stop_work",
+      "label": "Stop work (lightning/storm)"
+     },
+     {
+      "start": 1784118600,
+      "task": "stop_work",
+      "label": "Stop work (lightning/storm)"
+     },
+     {
+      "start": 1784120400,
+      "task": "heavy",
+      "label": "Scaffold setup"
+     },
+     {
+      "start": 1784122200,
+      "task": "break",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker_id": "w2",
+    "name": "Ana",
+    "slots": [
+     {
+      "start": 1784113200,
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "start": 1784115000,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1784116800,
+      "task": "stop_work",
+      "label": "Stop work (lightning/storm)"
+     },
+     {
+      "start": 1784118600,
+      "task": "stop_work",
+      "label": "Stop work (lightning/storm)"
+     },
+     {
+      "start": 1784120400,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1784122200,
+      "task": "break",
+      "label": "Shade break"
+     }
+    ]
+   }
+  ],
+  "notes": [
+   "Recommended: fused. Peak 90th pct core temp 37.86 \u00b0C (limit 38.0), tightest margin 0.13 \u00b0C, 100% of priority-weighted work done."
+  ],
+  "checked_by_rules": true
+ }
+}

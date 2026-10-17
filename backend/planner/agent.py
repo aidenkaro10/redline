@@ -3,7 +3,8 @@ The chat agent: a crew lead talks to Claude, Claude uses tools, code does the sa
 
 Tools Claude can call:
     get_forecast        weather per 30-min slot + hazard windows (NWS, lightning) for the site
-    get_crew_status     who's on the crew, acclimatization, skills, live core temp / alert (from the live system)
+    get_crew_status     who's on the crew, acclimatization, skills, personal offset (spot checks),
+                        live core temp / alert (from the live system)
     run_optimizer       make a VERIFIED schedule, optionally with a what-if
                         (someone calls out, a storm window, hotter day, keep someone off a task)
     simulate_schedule   check any schedule with the rule checker + full heat model
@@ -28,6 +29,7 @@ from backend.planner.archon import floor2, plan_view, plan_with_agent
 from backend.planner.baselines import scenario_brief
 from backend.planner.llm import get_llm
 from backend.planner.optimizer import OBJECTIVES, optimize
+from backend.planner.personal import describe
 from backend.planner.playbook import Playbook
 from backend.planner.rules import check_plan
 from backend.planner.scenario import HazardWindow, Plan, Scenario
@@ -49,7 +51,7 @@ Answer in short, plain sentences. Name the trade-offs (work done vs heat margin)
 TOOLS = [
     {"name": "get_forecast", "description": "Weather per 30-min slot (air temp, humidity, WBGT) and hazard windows for the site.",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
-    {"name": "get_crew_status", "description": "The crew: names, ids, acclimatization, skills, who's on site, and live core temp estimates and alert levels if the live system has them.",
+    {"name": "get_crew_status", "description": "The crew: names, ids, acclimatization, skills, who's on site, personal offsets from thermometer spot checks, and live core temp estimates and alert levels if the live system has them.",
      "input_schema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "run_optimizer",
      "description": ("Make a schedule with the CP-SAT optimizer. It is verified by the rule checker before it's returned. "
@@ -141,6 +143,7 @@ class PlannerSession:
     def tool_get_crew_status(self) -> dict:
         crew = scenario_brief(self.scenario)["crew"]
         for c in crew:
+            c["personal_offset"] = describe(self.scenario.worker(c["id"]))
             live = self.crew_status_provider(c["id"]) if self.crew_status_provider else None
             c["live"] = live or {"note": "stub: no live data connected"}
         return {"crew": crew}

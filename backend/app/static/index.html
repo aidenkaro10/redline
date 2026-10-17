@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlanIT Control</title>
+<!-- Bare live chart page. The real dashboard is the Next.js frontend (session E). -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    color-scheme: light;
+    --surface: #fcfcfb; --panel: #f3f2ef; --border: #dcdad5;
+    --text: #0b0b0b; --text-2: #52514e; --muted: #8a8984;
+    --series-1: #2a78d6; --series-2: #eb6834; --truth: #8a8984;
+    --ok: #1baf7a; --warn: #eda100; --crit: #e34948;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --surface: #1a1a19; --panel: #242422; --border: #3a3936;
+      --text: #f0efec; --text-2: #c3c2b7; --muted: #8f8e88;
+      --series-1: #3987e5; --series-2: #d95926; --truth: #8f8e88;
+      --ok: #199e70; --warn: #c98500; --crit: #e66767;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --surface: #1a1a19; --panel: #242422; --border: #3a3936;
+    --text: #f0efec; --text-2: #c3c2b7; --muted: #8f8e88;
+    --series-1: #3987e5; --series-2: #d95926; --truth: #8f8e88;
+    --ok: #199e70; --warn: #c98500; --crit: #e66767;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--surface); color: var(--text);
+         font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  header, main { padding: 12px 16px; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 18px; margin: 0 8px 0 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button, select { font: inherit; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border);
+                   background: var(--panel); color: var(--text); cursor: pointer; }
+  button.on { outline: 2px solid var(--series-1); }
+  .muted { color: var(--text-2); }
+  .tag { padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); font-size: 12px; }
+  .demo-tag { background: var(--warn); color: #000; border: none; font-weight: 600; }
+  #workers { margin: 12px 0; }
+  .worker { display: flex; gap: 6px; align-items: center; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--ok); }
+  .dot.yellow { background: var(--warn); } .dot.red { background: var(--crit); }
+  .worker.sel { outline: 2px solid var(--series-1); }
+  .charts { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+  .card h2 { font-size: 14px; margin: 0 0 6px; }
+  .chartbox { position: relative; height: 300px; }
+  .chartbox.small { height: 180px; }
+  #log { max-height: 220px; overflow-y: auto; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  #mandown { display: none; background: var(--crit); color: #fff; padding: 14px 16px; font-size: 18px; font-weight: 700; }
+  #mandown button { margin-left: 12px; background: #fff; color: #000; }
+  .stats { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 6px; }
+  .stats b { font-size: 20px; }
+  @media (max-width: 600px) { .chartbox { height: 240px; } }
+</style>
+</head>
+<body>
+<div id="mandown"></div>
+<header>
+  <div class="row">
+    <h1>PlanIT Control</h1>
+    <span id="conn" class="tag">connecting…</span>
+    <span id="demoTag" class="tag demo-tag" hidden>DEMO THRESHOLDS</span>
+    <span id="replayTag" class="tag muted"></span>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <button id="btnDemo">Demo threshold</button>
+    <button id="btnReplay">Replay</button>
+    <select id="speed" aria-label="Replay speed">
+      <option value="1">1x</option><option value="5">5x</option><option value="10" selected>10x</option>
+      <option value="30">30x</option><option value="60">60x</option>
+    </select>
+    <button id="btnLightning">Test lightning</button>
+    <button id="btnFlood">Test flood/fire</button>
+    <button id="btnFall">Fake fall</button>
+    <button id="btnButton">Press band button</button>
+  </div>
+  <div id="workers" class="row"></div>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="charts">
+    <div class="card">
+      <h2>Core temperature (°C): estimate, forecast band (10th–90th pct), thresholds</h2>
+      <div class="chartbox"><canvas id="tempChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Heart rate (bpm, 1-minute average)</h2>
+      <div class="chartbox small"><canvas id="hrChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Band commands and alerts</h2>
+      <div id="log"></div>
+    </div>
+  </div>
+</main>
+<script>
+// ---------------------------------------------------------------------------
+// State: everything the page knows, filled from the /ws snapshot + live events.
+// ---------------------------------------------------------------------------
+const S = { workers: {}, selected: null, demo: false, thresholds: {warning_c: 38.0, danger_c: 38.5},
+            replay: {on: false}, hazards: {}, mandown: {} };
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const $ = id => document.getElementById(id);
+const post = (url, body) => fetch(url, {method: "POST", headers: {"Content-Type": "application/json"},
+                                        body: JSON.stringify(body || {})}).then(r => r.json());
+
+function worker(id) {
+  if (!S.workers[id]) S.workers[id] = {worker_id: id, name: id, history: [], heat_level: "clear"};
+  return S.workers[id];
+}
+
+// ---------------------------------------------------------------------------
+// Charts (two charts, one y-axis each)
+// ---------------------------------------------------------------------------
+Chart.defaults.color = css("--text-2");
+Chart.defaults.borderColor = css("--border");
+const lineOpts = (yTitle) => ({
+  animation: false, responsive: true, maintainAspectRatio: false, parsing: false,
+  interaction: {mode: "nearest", axis: "x", intersect: false},
+  scales: {x: {type: "linear", title: {display: true, text: "minute of shift"}, grid: {display: false}},
+           y: {title: {display: true, text: yTitle}}},
+  plugins: {legend: {labels: {boxWidth: 14, filter: i => !i.text.startsWith("_")}},
+            tooltip: {callbacks: {label: c => `${c.dataset.label.replace(/^_/, "")}: ${c.parsed.y.toFixed(2)}`}}},
+  elements: {point: {radius: 0, hitRadius: 8}, line: {borderWidth: 2}},
+});
+const tempChart = new Chart($("tempChart"), {type: "line", options: lineOpts("°C"), data: {datasets: [
+  {label: "Estimate", data: [], borderColor: css("--series-1")},
+  {label: "True core temp (simulator)", data: [], borderColor: css("--truth"), borderDash: [4, 4]},
+  {label: "_p10", data: [], borderColor: "transparent", fill: false},
+  {label: "Forecast 10–90th pct", data: [], borderColor: "transparent",
+   backgroundColor: css("--series-1") + "33", fill: "-1"},
+  {label: "Forecast median", data: [], borderColor: css("--series-1"), borderDash: [6, 4], borderWidth: 1.5},
+  {label: "Warning", data: [], borderColor: css("--warn"), borderWidth: 1.5},
+  {label: "Danger", data: [], borderColor: css("--crit"), borderWidth: 1.5},
+]}});
+const hrChart = new Chart($("hrChart"), {type: "line", options: lineOpts("bpm"),
+  data: {datasets: [{label: "Heart rate", data: [], borderColor: css("--series-2")}]}});
+
+function redraw() {
+  const w = S.workers[S.selected];
+  if (!w) return;
+  const h = w.history;
+  const pts = key => h.filter(e => e[key] != null).map(e => ({x: e.minute, y: e[key]}));
+  const ds = tempChart.data.datasets;
+  ds[0].data = pts("core_temp");
+  ds[1].data = pts("true_core_temp");
+  const last = h[h.length - 1];
+  const fc = last && last.forecast;
+  const band = q => fc ? [{x: last.minute, y: last.core_temp},
+                          ...fc.minutes.map((m, i) => ({x: last.minute + m, y: fc[q][i]}))] : [];
+  ds[2].data = band("p10"); ds[3].data = band("p90"); ds[4].data = band("p50");
+  const x0 = h.length ? h[0].minute : 0, x1 = last ? last.minute + 30 : 30;
+  ds[5].data = [{x: x0, y: S.thresholds.warning_c}, {x: x1, y: S.thresholds.warning_c}];
+  ds[6].data = [{x: x0, y: S.thresholds.danger_c}, {x: x1, y: S.thresholds.danger_c}];
+  tempChart.update();
+  hrChart.data.datasets[0].data = pts("hr");
+  hrChart.options.scales.x.max = x1;
+  tempChart.options.scales.x.max = x1;
+  hrChart.update();
+
+  const f = (v, d = 2) => v == null ? "–" : v.toFixed(d);
+  $("stats").innerHTML = `
+    <div><span class="muted">Worker</span><br><b>${w.name}</b></div>
+    <div><span class="muted">Heat status</span><br><b>${w.heat_level}</b></div>
+    <div><span class="muted">Core temp now</span><br><b>${f(last && last.core_temp)} °C</b></div>
+    <div><span class="muted">20-min forecast (90th)</span><br><b>${fc ? f(fc.p90[19]) : "–"} °C</b></div>
+    <div><span class="muted">Heart rate</span><br><b>${f(last && last.hr, 0)} bpm</b></div>
+    <div><span class="muted">Model</span><br><b>${(last && last.model) || "–"}</b></div>`;
+}
+
+function drawWorkers() {
+  $("workers").innerHTML = "";
+  for (const w of Object.values(S.workers)) {
+    const b = document.createElement("button");
+    b.className = "worker" + (w.worker_id === S.selected ? " sel" : "");
+    b.innerHTML = `<span class="dot ${w.heat_level}"></span>${w.name}` +
+                  (S.mandown[w.worker_id] ? " ⚠ man-down" : "");
+    b.onclick = () => { S.selected = w.worker_id; drawWorkers(); redraw(); };
+    $("workers").appendChild(b);
+  }
+}
+
+function drawControls() {
+  $("demoTag").hidden = !S.demo;
+  $("btnDemo").classList.toggle("on", S.demo);
+  $("btnReplay").classList.toggle("on", !!S.replay.on);
+  if (S.replay.on && S.replay.speed) {
+    if (![...$("speed").options].some(o => +o.value === S.replay.speed))
+      $("speed").add(new Option(`${S.replay.speed}x`, S.replay.speed));
+    $("speed").value = S.replay.speed;
+  }
+  $("replayTag").textContent =S.replay.on ? `replay ${S.replay.speed}x · ${S.replay.description || ""}` : "live";
+  const haz = S.hazards[siteOf()] || {};
+  $("btnLightning").classList.toggle("on", !!haz.lightning);
+  $("btnFlood").classList.toggle("on", !!haz.flood);
+  const md = Object.entries(S.mandown).find(([, v]) => v);
+  if (md) {
+    const [wid, ev] = md, w = worker(wid);
+    const label = ev.type === "mandown_confirmed" ? "MAN-DOWN CONFIRMED" : "Man-down check";
+    $("mandown").style.display = "block";
+    $("mandown").innerHTML = `${label}: ${w.name} (${ev.reason || ""}) ` +
+      `<button onclick="post('/api/mandown/${wid}/resolve')">Resolve</button>`;
+  } else {
+    $("mandown").style.display = "none";
+  }
+}
+const siteOf = () => (S.workers[S.selected] || {}).site_id;
+
+function log(text, color) {
+  const div = document.createElement("div");
+  div.textContent = `${new Date().toLocaleTimeString()}  ${text}`;
+  if (color) div.style.color = color;
+  $("log").prepend(div);
+  while ($("log").childNodes.length > 200) $("log").lastChild.remove();
+}
+
+// ---------------------------------------------------------------------------
+// Live events
+// ---------------------------------------------------------------------------
+function onEvent(ev) {
+  const w = ev.worker_id ? worker(ev.worker_id) : null;
+  switch (ev.type) {
+    case "snapshot":
+      S.workers = {}; S.mandown = {}; S.hazards = {};
+      S.demo = ev.demo; S.thresholds = ev.thresholds; S.replay = ev.replay;
+      for (const x of ev.workers) {
+        const wk = Object.assign(worker(x.worker_id), x);
+        // history points come without forecast curves; swap in the latest one, which has it
+        if (x.latest && wk.history.length) wk.history[wk.history.length - 1] = x.latest;
+        if (x.mandown !== "ok") S.mandown[x.worker_id] = {type: x.mandown === "confirmed" ? "mandown_confirmed" : "mandown_check",
+                                                           reason: x.mandown_reason};
+      }
+      for (const h of ev.hazards) (S.hazards[h.site_id] ||= {})[h.kind] = true;
+      if (!S.workers[S.selected]) S.selected = Object.keys(S.workers)[0] || null;
+      break;
+    case "worker":
+      Object.assign(w, {name: ev.name, site_id: ev.site_id, history: [], heat_level: "clear"});
+      if (!S.selected) S.selected = ev.worker_id;
+      break;
+    case "worker_removed":
+      delete S.workers[ev.worker_id]; delete S.mandown[ev.worker_id];
+      if (S.selected === ev.worker_id) S.selected = Object.keys(S.workers)[0] || null;
+      break;
+    case "estimate":
+      // keep the forecast curve only on the newest point
+      if (w.history.length) delete w.history[w.history.length - 1].forecast;
+      w.history.push(ev);
+      if (w.history.length > 600) w.history.shift();
+      if (ev.worker_id !== S.selected) return;
+      redraw(); return;
+    case "heat_alert":
+      w.heat_level = ev.level;
+      log(`${w.name}: heat ${ev.level} (${ev.value} °C vs ${ev.threshold}, ${ev.rule} rule)`,
+          ev.level === "red" ? css("--crit") : ev.level === "yellow" ? css("--warn") : null);
+      break;
+    case "band_command": log(`${w.name}: ${ev.line}`); break;
+    case "heat_ack": log(`${w.name}: acknowledged red alert`); break;
+    case "red_unacknowledged": log(`${w.name}: red alert NOT acknowledged`, css("--crit")); break;
+    case "mandown_check": S.mandown[ev.worker_id] = ev; log(`${w.name}: man-down check (${ev.reason})`, css("--crit")); break;
+    case "mandown_confirmed": S.mandown[ev.worker_id] = ev; log(`${w.name}: MAN-DOWN CONFIRMED`, css("--crit")); break;
+    case "mandown_cancelled": case "mandown_resolved":
+      S.mandown[ev.worker_id] = null; log(`${w.name}: man-down ${ev.type.split("_")[1]} (${ev.by})`); break;
+    case "hazard":
+      (S.hazards[ev.site_id] ||= {})[ev.kind === "lightning" ? "lightning" : "flood"] = ev.on;
+      log(`Hazard at ${ev.site_id}: ${ev.kind} ${ev.on ? "ON" : "off"} (${ev.source})`); break;
+    case "demo": S.demo = ev.demo; S.thresholds = {warning_c: ev.warning_c, danger_c: ev.danger_c};
+      log(`Demo thresholds ${ev.demo ? "ON" : "off"}`); redraw(); break;
+    case "replay": S.replay = ev; break;
+    default: return;          // readings etc.: nothing to draw
+  }
+  drawWorkers(); drawControls();
+  if (ev.type === "snapshot" || ev.type === "worker_removed") redraw();
+}
+
+function connect() {
+  const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`);
+  ws.onopen = () => { $("conn").textContent = "live"; };
+  ws.onclose = () => { $("conn").textContent = "disconnected, retrying…"; setTimeout(connect, 1500); };
+  ws.onmessage = m => onEvent(JSON.parse(m.data));
+}
+connect();
+
+// ---------------------------------------------------------------------------
+// Demo controls
+// ---------------------------------------------------------------------------
+$("btnDemo").onclick = () => post("/api/demo/threshold", {on: !S.demo});
+$("btnReplay").onclick = () => post("/api/replay", {on: !S.replay.on, speed: +$("speed").value});
+$("speed").onchange = () => S.replay.on && post("/api/replay/speed", {speed: +$("speed").value});
+$("btnLightning").onclick = () => post("/api/demo/hazard",
+  {kind: "lightning", on: !(S.hazards[siteOf()] || {}).lightning, site_id: siteOf()});
+$("btnFlood").onclick = () => post("/api/demo/hazard",
+  {kind: "flood", on: !(S.hazards[siteOf()] || {}).flood, site_id: siteOf()});
+$("btnFall").onclick = () => S.selected && post("/api/demo/fall", {worker_id: S.selected});
+$("btnButton").onclick = () => S.selected && post("/api/demo/button", {worker_id: S.selected});
+</script>
+</body>
+</html>

@@ -42,7 +42,7 @@ def test_chat_without_key_returns_verified_plan(demo):
 
 
 def test_briefing_renders_from_stubs():
-    b = make_briefing(for_date="2026-10-18", use_llm=False)
+    b = make_briefing(for_date="2026-10-18", use_llm=False, live=False)   # stubs only, even when C1/C2 are merged
     assert b["for_date"] == "2026-10-18" and b["schedule"]["checked_by_rules"]
     assert b["stubs"] and all(s["data_sources"]["index"] == "stub" for s in b["sites"])
     assert b["sites"] == sorted(b["sites"], key=lambda s: -s["index"])

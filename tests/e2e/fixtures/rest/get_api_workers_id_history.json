@@ -1,0 +1,1485 @@
+{
+ "request": "GET /api/workers/{id}/history",
+ "status": 200,
+ "body": {
+  "vitals": [
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002325.5,
+    "hr": 150.71,
+    "skin_temp": 34.68,
+    "activity": 10.85,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002330.5,
+    "hr": 150.71,
+    "skin_temp": 34.68,
+    "activity": 10.85,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002335.5,
+    "hr": 150.71,
+    "skin_temp": 34.68,
+    "activity": 10.85,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002340.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002345.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002350.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002355.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002360.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002365.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002370.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002375.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002380.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002385.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002390.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002395.5,
+    "hr": 149.41,
+    "skin_temp": 34.63,
+    "activity": 6.58,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002400.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002405.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002410.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002415.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002420.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002425.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002430.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002435.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002440.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002445.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002450.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002455.5,
+    "hr": 149.72,
+    "skin_temp": 34.83,
+    "activity": 11.57,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002460.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002465.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002470.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002475.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002480.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002485.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002490.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002495.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002500.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002505.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002510.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002515.5,
+    "hr": 153.54,
+    "skin_temp": 34.67,
+    "activity": 3.01,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002520.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002525.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002530.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002535.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002540.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002545.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002550.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002555.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002560.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002565.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002570.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002575.5,
+    "hr": 152.51,
+    "skin_temp": 35.01,
+    "activity": 4.43,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002580.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002585.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002590.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002595.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002600.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002605.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002610.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002615.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 8.47,
+    "tilt": 0
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002620.5,
+    "hr": 155.77,
+    "skin_temp": 34.74,
+    "activity": 0.0,
+    "tilt": 1
+   }
+  ],
+  "estimates": [
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002340.5,
+    "core": {
+     "mean": 37.964,
+     "p10": 37.782,
+     "p90": 38.146
+    },
+    "kalman": 38.163,
+    "forecast": [
+     {
+      "minutes_ahead": 1,
+      "p10": 37.726,
+      "p50": 37.963,
+      "p90": 38.185
+     },
+     {
+      "minutes_ahead": 2,
+      "p10": 37.756,
+      "p50": 37.99,
+      "p90": 38.216
+     },
+     {
+      "minutes_ahead": 3,
+      "p10": 37.786,
+      "p50": 38.02,
+      "p90": 38.25
+     },
+     {
+      "minutes_ahead": 4,
+      "p10": 37.814,
+      "p50": 38.049,
+      "p90": 38.283
+     },
+     {
+      "minutes_ahead": 5,
+      "p10": 37.842,
+      "p50": 38.079,
+      "p90": 38.316
+     },
+     {
+      "minutes_ahead": 6,
+      "p10": 37.868,
+      "p50": 38.107,
+      "p90": 38.348
+     },
+     {
+      "minutes_ahead": 7,
+      "p10": 37.893,
+      "p50": 38.135,
+      "p90": 38.379
+     },
+     {
+      "minutes_ahead": 8,
+      "p10": 37.915,
+      "p50": 38.16,
+      "p90": 38.408
+     },
+     {
+      "minutes_ahead": 9,
+      "p10": 37.935,
+      "p50": 38.184,
+      "p90": 38.435
+     },
+     {
+      "minutes_ahead": 10,
+      "p10": 37.953,
+      "p50": 38.205,
+      "p90": 38.461
+     },
+     {
+      "minutes_ahead": 11,
+      "p10": 37.969,
+      "p50": 38.224,
+      "p90": 38.485
+     },
+     {
+      "minutes_ahead": 12,
+      "p10": 37.983,
+      "p50": 38.242,
+      "p90": 38.507
+     },
+     {
+      "minutes_ahead": 13,
+      "p10": 37.995,
+      "p50": 38.258,
+      "p90": 38.528
+     },
+     {
+      "minutes_ahead": 14,
+      "p10": 38.007,
+      "p50": 38.273,
+      "p90": 38.547
+     },
+     {
+      "minutes_ahead": 15,
+      "p10": 38.017,
+      "p50": 38.287,
+      "p90": 38.566
+     },
+     {
+      "minutes_ahead": 16,
+      "p10": 38.028,
+      "p50": 38.301,
+      "p90": 38.584
+     },
+     {
+      "minutes_ahead": 17,
+      "p10": 38.037,
+      "p50": 38.313,
+      "p90": 38.601
+     },
+     {
+      "minutes_ahead": 18,
+      "p10": 38.046,
+      "p50": 38.326,
+      "p90": 38.617
+     },
+     {
+      "minutes_ahead": 19,
+      "p10": 38.055,
+      "p50": 38.338,
+      "p90": 38.633
+     },
+     {
+      "minutes_ahead": 20,
+      "p10": 38.064,
+      "p50": 38.349,
+      "p90": 38.649
+     },
+     {
+      "minutes_ahead": 21,
+      "p10": 38.072,
+      "p50": 38.361,
+      "p90": 38.665
+     },
+     {
+      "minutes_ahead": 22,
+      "p10": 38.081,
+      "p50": 38.373,
+      "p90": 38.68
+     },
+     {
+      "minutes_ahead": 23,
+      "p10": 38.089,
+      "p50": 38.384,
+      "p90": 38.696
+     },
+     {
+      "minutes_ahead": 24,
+      "p10": 38.098,
+      "p50": 38.396,
+      "p90": 38.712
+     },
+     {
+      "minutes_ahead": 25,
+      "p10": 38.106,
+      "p50": 38.408,
+      "p90": 38.728
+     },
+     {
+      "minutes_ahead": 26,
+      "p10": 38.114,
+      "p50": 38.42,
+      "p90": 38.744
+     },
+     {
+      "minutes_ahead": 27,
+      "p10": 38.122,
+      "p50": 38.431,
+      "p90": 38.76
+     },
+     {
+      "minutes_ahead": 28,
+      "p10": 38.13,
+      "p50": 38.443,
+      "p90": 38.775
+     },
+     {
+      "minutes_ahead": 29,
+      "p10": 38.138,
+      "p50": 38.454,
+      "p90": 38.791
+     },
+     {
+      "minutes_ahead": 30,
+      "p10": 38.146,
+      "p50": 38.466,
+      "p90": 38.807
+     }
+    ],
+    "why": "Heart rate 151 bpm, up 15 over 10 min, WBGT 31 °C.",
+    "thresholds": {
+     "warning": 38.0,
+     "danger": 38.5,
+     "demo": false
+    },
+    "model": "ens5"
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002400.5,
+    "core": {
+     "mean": 37.991,
+     "p10": 37.807,
+     "p90": 38.175
+    },
+    "kalman": 38.188,
+    "forecast": [
+     {
+      "minutes_ahead": 1,
+      "p10": 37.75,
+      "p50": 37.99,
+      "p90": 38.215
+     },
+     {
+      "minutes_ahead": 2,
+      "p10": 37.779,
+      "p50": 38.016,
+      "p90": 38.245
+     },
+     {
+      "minutes_ahead": 3,
+      "p10": 37.808,
+      "p50": 38.044,
+      "p90": 38.278
+     },
+     {
+      "minutes_ahead": 4,
+      "p10": 37.836,
+      "p50": 38.073,
+      "p90": 38.31
+     },
+     {
+      "minutes_ahead": 5,
+      "p10": 37.863,
+      "p50": 38.101,
+      "p90": 38.341
+     },
+     {
+      "minutes_ahead": 6,
+      "p10": 37.888,
+      "p50": 38.129,
+      "p90": 38.372
+     },
+     {
+      "minutes_ahead": 7,
+      "p10": 37.912,
+      "p50": 38.156,
+      "p90": 38.402
+     },
+     {
+      "minutes_ahead": 8,
+      "p10": 37.933,
+      "p50": 38.18,
+      "p90": 38.43
+     },
+     {
+      "minutes_ahead": 9,
+      "p10": 37.952,
+      "p50": 38.203,
+      "p90": 38.457
+     },
+     {
+      "minutes_ahead": 10,
+      "p10": 37.969,
+      "p50": 38.223,
+      "p90": 38.482
+     },
+     {
+      "minutes_ahead": 11,
+      "p10": 37.984,
+      "p50": 38.242,
+      "p90": 38.505
+     },
+     {
+      "minutes_ahead": 12,
+      "p10": 37.997,
+      "p50": 38.259,
+      "p90": 38.526
+     },
+     {
+      "minutes_ahead": 13,
+      "p10": 38.009,
+      "p50": 38.274,
+      "p90": 38.546
+     },
+     {
+      "minutes_ahead": 14,
+      "p10": 38.02,
+      "p50": 38.288,
+      "p90": 38.565
+     },
+     {
+      "minutes_ahead": 15,
+      "p10": 38.03,
+      "p50": 38.302,
+      "p90": 38.582
+     },
+     {
+      "minutes_ahead": 16,
+      "p10": 38.04,
+      "p50": 38.314,
+      "p90": 38.599
+     },
+     {
+      "minutes_ahead": 17,
+      "p10": 38.049,
+      "p50": 38.327,
+      "p90": 38.615
+     },
+     {
+      "minutes_ahead": 18,
+      "p10": 38.057,
+      "p50": 38.338,
+      "p90": 38.631
+     },
+     {
+      "minutes_ahead": 19,
+      "p10": 38.066,
+      "p50": 38.35,
+      "p90": 38.647
+     },
+     {
+      "minutes_ahead": 20,
+      "p10": 38.074,
+      "p50": 38.361,
+      "p90": 38.662
+     },
+     {
+      "minutes_ahead": 21,
+      "p10": 38.082,
+      "p50": 38.372,
+      "p90": 38.677
+     },
+     {
+      "minutes_ahead": 22,
+      "p10": 38.091,
+      "p50": 38.384,
+      "p90": 38.693
+     },
+     {
+      "minutes_ahead": 23,
+      "p10": 38.099,
+      "p50": 38.395,
+      "p90": 38.708
+     },
+     {
+      "minutes_ahead": 24,
+      "p10": 38.107,
+      "p50": 38.406,
+      "p90": 38.723
+     },
+     {
+      "minutes_ahead": 25,
+      "p10": 38.115,
+      "p50": 38.418,
+      "p90": 38.738
+     },
+     {
+      "minutes_ahead": 26,
+      "p10": 38.123,
+      "p50": 38.429,
+      "p90": 38.753
+     },
+     {
+      "minutes_ahead": 27,
+      "p10": 38.131,
+      "p50": 38.44,
+      "p90": 38.768
+     },
+     {
+      "minutes_ahead": 28,
+      "p10": 38.138,
+      "p50": 38.451,
+      "p90": 38.783
+     },
+     {
+      "minutes_ahead": 29,
+      "p10": 38.146,
+      "p50": 38.463,
+      "p90": 38.799
+     },
+     {
+      "minutes_ahead": 30,
+      "p10": 38.154,
+      "p50": 38.474,
+      "p90": 38.814
+     }
+    ],
+    "why": "Heart rate 149 bpm, up 9 over 10 min, WBGT 31 °C.",
+    "thresholds": {
+     "warning": 38.0,
+     "danger": 38.5,
+     "demo": false
+    },
+    "model": "ens5"
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002460.5,
+    "core": {
+     "mean": 38.014,
+     "p10": 37.828,
+     "p90": 38.2
+    },
+    "kalman": 38.213,
+    "forecast": [
+     {
+      "minutes_ahead": 1,
+      "p10": 37.768,
+      "p50": 38.011,
+      "p90": 38.238
+     },
+     {
+      "minutes_ahead": 2,
+      "p10": 37.797,
+      "p50": 38.036,
+      "p90": 38.266
+     },
+     {
+      "minutes_ahead": 3,
+      "p10": 37.824,
+      "p50": 38.062,
+      "p90": 38.297
+     },
+     {
+      "minutes_ahead": 4,
+      "p10": 37.85,
+      "p50": 38.089,
+      "p90": 38.328
+     },
+     {
+      "minutes_ahead": 5,
+      "p10": 37.876,
+      "p50": 38.116,
+      "p90": 38.359
+     },
+     {
+      "minutes_ahead": 6,
+      "p10": 37.9,
+      "p50": 38.143,
+      "p90": 38.388
+     },
+     {
+      "minutes_ahead": 7,
+      "p10": 37.922,
+      "p50": 38.168,
+      "p90": 38.417
+     },
+     {
+      "minutes_ahead": 8,
+      "p10": 37.942,
+      "p50": 38.191,
+      "p90": 38.444
+     },
+     {
+      "minutes_ahead": 9,
+      "p10": 37.96,
+      "p50": 38.213,
+      "p90": 38.469
+     },
+     {
+      "minutes_ahead": 10,
+      "p10": 37.976,
+      "p50": 38.232,
+      "p90": 38.492
+     },
+     {
+      "minutes_ahead": 11,
+      "p10": 37.99,
+      "p50": 38.25,
+      "p90": 38.514
+     },
+     {
+      "minutes_ahead": 12,
+      "p10": 38.002,
+      "p50": 38.266,
+      "p90": 38.535
+     },
+     {
+      "minutes_ahead": 13,
+      "p10": 38.013,
+      "p50": 38.28,
+      "p90": 38.554
+     },
+     {
+      "minutes_ahead": 14,
+      "p10": 38.023,
+      "p50": 38.294,
+      "p90": 38.572
+     },
+     {
+      "minutes_ahead": 15,
+      "p10": 38.033,
+      "p50": 38.306,
+      "p90": 38.589
+     },
+     {
+      "minutes_ahead": 16,
+      "p10": 38.042,
+      "p50": 38.318,
+      "p90": 38.605
+     },
+     {
+      "minutes_ahead": 17,
+      "p10": 38.05,
+      "p50": 38.33,
+      "p90": 38.62
+     },
+     {
+      "minutes_ahead": 18,
+      "p10": 38.058,
+      "p50": 38.341,
+      "p90": 38.636
+     },
+     {
+      "minutes_ahead": 19,
+      "p10": 38.066,
+      "p50": 38.352,
+      "p90": 38.65
+     },
+     {
+      "minutes_ahead": 20,
+      "p10": 38.074,
+      "p50": 38.363,
+      "p90": 38.665
+     },
+     {
+      "minutes_ahead": 21,
+      "p10": 38.082,
+      "p50": 38.374,
+      "p90": 38.679
+     },
+     {
+      "minutes_ahead": 22,
+      "p10": 38.09,
+      "p50": 38.384,
+      "p90": 38.694
+     },
+     {
+      "minutes_ahead": 23,
+      "p10": 38.098,
+      "p50": 38.395,
+      "p90": 38.709
+     },
+     {
+      "minutes_ahead": 24,
+      "p10": 38.106,
+      "p50": 38.406,
+      "p90": 38.723
+     },
+     {
+      "minutes_ahead": 25,
+      "p10": 38.113,
+      "p50": 38.417,
+      "p90": 38.737
+     },
+     {
+      "minutes_ahead": 26,
+      "p10": 38.121,
+      "p50": 38.428,
+      "p90": 38.751
+     },
+     {
+      "minutes_ahead": 27,
+      "p10": 38.129,
+      "p50": 38.438,
+      "p90": 38.766
+     },
+     {
+      "minutes_ahead": 28,
+      "p10": 38.136,
+      "p50": 38.449,
+      "p90": 38.78
+     },
+     {
+      "minutes_ahead": 29,
+      "p10": 38.144,
+      "p50": 38.46,
+      "p90": 38.795
+     },
+     {
+      "minutes_ahead": 30,
+      "p10": 38.152,
+      "p50": 38.471,
+      "p90": 38.81
+     }
+    ],
+    "why": "Heart rate 150 bpm, steady over 10 min, WBGT 31 °C.",
+    "thresholds": {
+     "warning": 38.0,
+     "danger": 38.5,
+     "demo": false
+    },
+    "model": "ens5"
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002520.5,
+    "core": {
+     "mean": 38.043,
+     "p10": 37.853,
+     "p90": 38.233
+    },
+    "kalman": 38.24,
+    "forecast": [
+     {
+      "minutes_ahead": 1,
+      "p10": 37.792,
+      "p50": 38.039,
+      "p90": 38.27
+     },
+     {
+      "minutes_ahead": 2,
+      "p10": 37.819,
+      "p50": 38.062,
+      "p90": 38.296
+     },
+     {
+      "minutes_ahead": 3,
+      "p10": 37.846,
+      "p50": 38.087,
+      "p90": 38.325
+     },
+     {
+      "minutes_ahead": 4,
+      "p10": 37.871,
+      "p50": 38.112,
+      "p90": 38.354
+     },
+     {
+      "minutes_ahead": 5,
+      "p10": 37.895,
+      "p50": 38.138,
+      "p90": 38.383
+     },
+     {
+      "minutes_ahead": 6,
+      "p10": 37.918,
+      "p50": 38.163,
+      "p90": 38.411
+     },
+     {
+      "minutes_ahead": 7,
+      "p10": 37.939,
+      "p50": 38.186,
+      "p90": 38.438
+     },
+     {
+      "minutes_ahead": 8,
+      "p10": 37.958,
+      "p50": 38.209,
+      "p90": 38.463
+     },
+     {
+      "minutes_ahead": 9,
+      "p10": 37.975,
+      "p50": 38.229,
+      "p90": 38.487
+     },
+     {
+      "minutes_ahead": 10,
+      "p10": 37.99,
+      "p50": 38.247,
+      "p90": 38.51
+     },
+     {
+      "minutes_ahead": 11,
+      "p10": 38.002,
+      "p50": 38.264,
+      "p90": 38.531
+     },
+     {
+      "minutes_ahead": 12,
+      "p10": 38.014,
+      "p50": 38.279,
+      "p90": 38.55
+     },
+     {
+      "minutes_ahead": 13,
+      "p10": 38.024,
+      "p50": 38.293,
+      "p90": 38.568
+     },
+     {
+      "minutes_ahead": 14,
+      "p10": 38.033,
+      "p50": 38.305,
+      "p90": 38.585
+     },
+     {
+      "minutes_ahead": 15,
+      "p10": 38.042,
+      "p50": 38.317,
+      "p90": 38.601
+     },
+     {
+      "minutes_ahead": 16,
+      "p10": 38.05,
+      "p50": 38.328,
+      "p90": 38.616
+     },
+     {
+      "minutes_ahead": 17,
+      "p10": 38.058,
+      "p50": 38.339,
+      "p90": 38.631
+     },
+     {
+      "minutes_ahead": 18,
+      "p10": 38.065,
+      "p50": 38.35,
+      "p90": 38.645
+     },
+     {
+      "minutes_ahead": 19,
+      "p10": 38.073,
+      "p50": 38.36,
+      "p90": 38.659
+     },
+     {
+      "minutes_ahead": 20,
+      "p10": 38.08,
+      "p50": 38.37,
+      "p90": 38.674
+     },
+     {
+      "minutes_ahead": 21,
+      "p10": 38.088,
+      "p50": 38.381,
+      "p90": 38.688
+     },
+     {
+      "minutes_ahead": 22,
+      "p10": 38.095,
+      "p50": 38.391,
+      "p90": 38.702
+     },
+     {
+      "minutes_ahead": 23,
+      "p10": 38.103,
+      "p50": 38.401,
+      "p90": 38.715
+     },
+     {
+      "minutes_ahead": 24,
+      "p10": 38.11,
+      "p50": 38.411,
+      "p90": 38.729
+     },
+     {
+      "minutes_ahead": 25,
+      "p10": 38.117,
+      "p50": 38.422,
+      "p90": 38.742
+     },
+     {
+      "minutes_ahead": 26,
+      "p10": 38.125,
+      "p50": 38.432,
+      "p90": 38.756
+     },
+     {
+      "minutes_ahead": 27,
+      "p10": 38.132,
+      "p50": 38.442,
+      "p90": 38.77
+     },
+     {
+      "minutes_ahead": 28,
+      "p10": 38.14,
+      "p50": 38.453,
+      "p90": 38.784
+     },
+     {
+      "minutes_ahead": 29,
+      "p10": 38.147,
+      "p50": 38.464,
+      "p90": 38.798
+     },
+     {
+      "minutes_ahead": 30,
+      "p10": 38.155,
+      "p50": 38.475,
+      "p90": 38.813
+     }
+    ],
+    "why": "Heart rate 154 bpm, up 9 over 10 min, WBGT 31 °C.",
+    "thresholds": {
+     "warning": 38.0,
+     "danger": 38.5,
+     "demo": false
+    },
+    "model": "ens5"
+   },
+   {
+    "worker_id": "demo-1",
+    "timestamp": 1792002580.5,
+    "core": {
+     "mean": 38.068,
+     "p10": 37.874,
+     "p90": 38.262
+    },
+    "kalman": 38.266,
+    "forecast": [
+     {
+      "minutes_ahead": 1,
+      "p10": 37.814,
+      "p50": 38.065,
+      "p90": 38.3
+     },
+     {
+      "minutes_ahead": 2,
+      "p10": 37.84,
+      "p50": 38.086,
+      "p90": 38.324
+     },
+     {
+      "minutes_ahead": 3,
+      "p10": 37.865,
+      "p50": 38.109,
+      "p90": 38.352
+     },
+     {
+      "minutes_ahead": 4,
+      "p10": 37.889,
+      "p50": 38.134,
+      "p90": 38.38
+     },
+     {
+      "minutes_ahead": 5,
+      "p10": 37.912,
+      "p50": 38.158,
+      "p90": 38.407
+     },
+     {
+      "minutes_ahead": 6,
+      "p10": 37.934,
+      "p50": 38.182,
+      "p90": 38.434
+     },
+     {
+      "minutes_ahead": 7,
+      "p10": 37.955,
+      "p50": 38.205,
+      "p90": 38.46
+     },
+     {
+      "minutes_ahead": 8,
+      "p10": 37.973,
+      "p50": 38.226,
+      "p90": 38.484
+     },
+     {
+      "minutes_ahead": 9,
+      "p10": 37.989,
+      "p50": 38.245,
+      "p90": 38.507
+     },
+     {
+      "minutes_ahead": 10,
+      "p10": 38.003,
+      "p50": 38.263,
+      "p90": 38.528
+     },
+     {
+      "minutes_ahead": 11,
+      "p10": 38.015,
+      "p50": 38.278,
+      "p90": 38.548
+     },
+     {
+      "minutes_ahead": 12,
+      "p10": 38.025,
+      "p50": 38.293,
+      "p90": 38.567
+     },
+     {
+      "minutes_ahead": 13,
+      "p10": 38.035,
+      "p50": 38.306,
+      "p90": 38.584
+     },
+     {
+      "minutes_ahead": 14,
+      "p10": 38.043,
+      "p50": 38.317,
+      "p90": 38.6
+     },
+     {
+      "minutes_ahead": 15,
+      "p10": 38.051,
+      "p50": 38.329,
+      "p90": 38.616
+     },
+     {
+      "minutes_ahead": 16,
+      "p10": 38.059,
+      "p50": 38.339,
+      "p90": 38.63
+     },
+     {
+      "minutes_ahead": 17,
+      "p10": 38.066,
+      "p50": 38.35,
+      "p90": 38.644
+     },
+     {
+      "minutes_ahead": 18,
+      "p10": 38.073,
+      "p50": 38.36,
+      "p90": 38.658
+     },
+     {
+      "minutes_ahead": 19,
+      "p10": 38.08,
+      "p50": 38.37,
+      "p90": 38.672
+     },
+     {
+      "minutes_ahead": 20,
+      "p10": 38.087,
+      "p50": 38.379,
+      "p90": 38.685
+     },
+     {
+      "minutes_ahead": 21,
+      "p10": 38.094,
+      "p50": 38.389,
+      "p90": 38.699
+     },
+     {
+      "minutes_ahead": 22,
+      "p10": 38.101,
+      "p50": 38.399,
+      "p90": 38.712
+     },
+     {
+      "minutes_ahead": 23,
+      "p10": 38.108,
+      "p50": 38.409,
+      "p90": 38.724
+     },
+     {
+      "minutes_ahead": 24,
+      "p10": 38.115,
+      "p50": 38.419,
+      "p90": 38.737
+     },
+     {
+      "minutes_ahead": 25,
+      "p10": 38.122,
+      "p50": 38.428,
+      "p90": 38.75
+     },
+     {
+      "minutes_ahead": 26,
+      "p10": 38.129,
+      "p50": 38.438,
+      "p90": 38.764
+     },
+     {
+      "minutes_ahead": 27,
+      "p10": 38.136,
+      "p50": 38.448,
+      "p90": 38.777
+     },
+     {
+      "minutes_ahead": 28,
+      "p10": 38.144,
+      "p50": 38.459,
+      "p90": 38.791
+     },
+     {
+      "minutes_ahead": 29,
+      "p10": 38.151,
+      "p50": 38.469,
+      "p90": 38.805
+     },
+     {
+      "minutes_ahead": 30,
+      "p10": 38.158,
+      "p50": 38.48,
+      "p90": 38.82
+     }
+    ],
+    "why": "Heart rate 153 bpm, up 14 over 10 min, WBGT 31 °C.",
+    "thresholds": {
+     "warning": 38.0,
+     "danger": 38.5,
+     "demo": false
+    },
+    "model": "ens5"
+   }
+  ]
+ }
+}
