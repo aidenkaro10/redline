@@ -1,0 +1,17 @@
+{
+ "id": "r3W8VP41iI4UBAHAUjpM",
+ "kind": "image",
+ "status": "completed",
+ "body": {
+  "model_id": "gemini-3-pro-image",
+  "prompt": "Extreme macro close-up inside the same miniature diorama as the reference image: the forearm and gloved hand of one tiny construction worker in an orange hi-vis vest, wearing a small black wristband with one glowing amber LED. Very shallow depth of field, the rest of the job site is a soft warm blur of sand, palm trees and the yellow crane. Harsh midday Florida sun, tilt-shift miniature photography, the same colors and lighting as the reference. No text, no logos.",
+  "aspect_ratio": "16:9",
+  "resolution": "2K",
+  "images": [
+   {
+    "type": "generation",
+    "generation_id": "zNFvm1yEovfTpHft26rM"
+   }
+  ]
+ }
+}
