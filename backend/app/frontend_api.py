@@ -256,7 +256,8 @@ class FrontendAdapter:
         elif any(self.hub.pipelines[w].heat.level != "clear" for w in on_site):
             flag = "heat"
         return {"site_id": site_id, "hazards": hazards,
-                "index_tomorrow": pushed.get("index_tomorrow", 0), "index_drivers": pushed.get("index_drivers", []),
+                "index_tomorrow": pushed.get("index_tomorrow"), "index_drivers": pushed.get("index_drivers", []),
+                "hazard_index": pushed.get("hazard_index"),
                 "worker_flag": flag, "workers_on_site": len(on_site), "updated_at": self.sim_time()}
 
     def demo_state(self) -> dict:
@@ -469,7 +470,23 @@ class FrontendAdapter:
             "emergency": self.emergency, "demo": self.demo_state(), "reports": self.reports,
             "log": list(self.log)[-100:], "history": history,
             "band": list(self.band) if f["view"] != "crew" else [],
+            # Saved personal offsets (thermometer spot checks), body data: same views as history.
+            "offsets": {wid: self.offset_snapshot(wid) for wid in history
+                        if self.hub.pipelines[wid].offset.misses},
         }
+
+    def offset_snapshot(self, wid: str) -> dict:
+        """A worker's personal offset in the frontend contract's OffsetUpdate shape, with its history."""
+        from backend.models.personal_offset import MAX_OFFSET_C, PRIOR_CHECKS
+        o = self.hub.pipelines[wid].offset
+        history, total = [], 0.0
+        for i, miss in enumerate(o.misses, 1):
+            total += miss
+            history.append({"timestamp": None, "checks": i, "confidence": round(i / (i + PRIOR_CHECKS), 3),
+                            "offset_c": round(max(-MAX_OFFSET_C, min(MAX_OFFSET_C, total / (i + PRIOR_CHECKS))), 4)})
+        history.insert(0, {"timestamp": None, "checks": 0, "confidence": 0.0, "offset_c": 0.0})
+        return {"worker_id": wid, "timestamp": self.sim_time(), "offset_c": round(o.offset_c, 4),
+                "confidence": round(o.confidence, 3), "checks": len(o.misses), "last_check": None, "history": history}
 
     def broadcast(self, msg: dict) -> None:
         for q, f in list(self.subscribers.items()):

@@ -155,3 +155,18 @@ def test_offset_update_is_body_data_not_for_crew(client):
                 if m["type"] == "alert" and m["alert"]["kind"] == "LIGHTNING":
                     break
         assert "offset_update" not in crew_types and "offset_update" in demo_types
+
+
+def test_snapshot_carries_saved_offsets_for_body_views_only(client):
+    # After a page reload the "Learning your body" card must still show the learned offset.
+    hub = main.app.state.hub
+    hot_worker(hub, minutes=5)
+    raw = hub.pipelines["w1"].estimates[-1]["core_temp_raw"]
+    client.post("/api/spot-check", json={"worker_id": "w1", "thermometer_c": raw - 0.3})
+    client.post("/api/spot-check", json={"worker_id": "w1", "thermometer_c": raw - 0.3})
+    demo = client.get("/api/state?view=demo").json()
+    o = demo["offsets"]["w1"]
+    assert o["checks"] == 2 and abs(o["offset_c"] - 0.15) < 0.01          # 0.6 / (2 + 2)
+    assert [h["checks"] for h in o["history"]] == [0, 1, 2]
+    assert client.get("/api/state?view=crew").json()["offsets"] == {}     # body data: never for crew leads
+    assert client.get("/api/state?view=worker&worker_id=w2").json()["offsets"] == {}

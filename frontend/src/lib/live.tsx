@@ -84,7 +84,8 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
           workers: Object.fromEntries(ev.workers.map((w) => [w.worker_id, w])),
           sites: Object.fromEntries(ev.sites.map((x) => [x.site_id, normalizeSite(x)])),
           alerts: ev.alerts, mandown: ev.mandown, emergency: ev.emergency, demo: ev.demo,
-          reports: ev.reports, log: ev.log, history: ev.history, band: ev.band, offsets: ev.offsets ?? {},
+          reports: ev.reports, log: ev.log, history: ev.history, band: ev.band, offsets: Object.fromEntries(Object.entries(ev.offsets ?? {})
+            .map(([id, o]) => [id, toOffsetUpdate(o)] as const).filter((x): x is readonly [string, OffsetUpdate] => x[1] !== null)),
         });
         break;
       case "clock":

@@ -89,7 +89,10 @@ def site_status(entry, generated_at=None, worker_flag=None, workers_on_site=None
                          for e in events if e["hazard"] == "weather"],
         "band_pattern": entry["band_pattern"],
         "index_tomorrow": index.get("index") if isinstance(index, dict) else index,
-        "index_drivers": index.get("drivers", []) if isinstance(index, dict) else [],
+        "index_drivers": (index.get("drivers") or [r["text"] for r in index.get("top_reasons", []) if r.get("text")])
+                         if isinstance(index, dict) else [],
+        # C2's full predict_index() result, for the frontend's per-hazard breakdown (or None)
+        "hazard_index": index if isinstance(index, dict) and index else None,
         "worker_flag": worker_flag,
         "workers_on_site": workers_on_site,
         "static_flood": entry["static"]["summary"],

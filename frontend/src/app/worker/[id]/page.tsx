@@ -112,6 +112,7 @@ export default function WorkerPhone() {
   const look = stopWork ? STOP_LOOK : LOOK[w.status];
   const redUnacked = w.status === "red" && w.alert_acknowledged === false;
   const breakIn = w.break_at ? w.break_at - now : null;
+  const hasBreaks = w.on_break || w.break_at !== null;    // no planner schedule yet = no break tile
 
   return (
     <Frame bg={look.bg} fg={look.fg} pulse={redUnacked ? "red" : undefined}>
@@ -140,7 +141,7 @@ export default function WorkerPhone() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className={`grid gap-2 ${hasBreaks ? "grid-cols-2" : "grid-cols-1"}`}>
         <Tile label={hazard?.stop_work ? "Stop work" : "Hazard"}>
           {hazard ? (
             <>
@@ -149,11 +150,11 @@ export default function WorkerPhone() {
             </>
           ) : "None"}
         </Tile>
-        <Tile label={w.on_break ? "On break" : "Next break"}>
+        {hasBreaks && <Tile label={w.on_break ? "On break" : "Next break"}>
           <span className="tabular">
             {breakIn === null ? "--" : w.on_break ? `${Math.max(1, Math.ceil(breakIn / 60))} min left` : `in ${Math.max(0, Math.round(breakIn / 60))} min`}
           </span>
-        </Tile>
+        </Tile>}
       </div>
 
       <div className="mt-3 flex items-center gap-2">

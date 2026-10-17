@@ -27,7 +27,9 @@ export interface FlatOffset {
 export function toOffsetUpdate(raw: unknown, prev?: OffsetUpdate): OffsetUpdate | null {
   if (!raw || typeof raw !== "object") return null;
   const r = raw as { offset?: OffsetUpdate } & FlatOffset;
-  if (r.offset && typeof r.offset === "object") return r.offset;          // our shape
+  if (r.offset && typeof r.offset === "object") return r.offset;          // our shape, wrapped
+  const full = raw as Partial<OffsetUpdate>;
+  if (typeof full.checks === "number" && Array.isArray(full.history) && full.worker_id) return full as OffsetUpdate;   // our shape, bare
   if (typeof r.offset_c !== "number" || !r.worker_id) return null;          // not an offset event
 
   const t = r.timestamp ?? Date.now() / 1000;

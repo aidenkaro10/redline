@@ -151,8 +151,8 @@ function WorkerRow({ w, now, open, onToggle, down }: { w: WorkerStatus; now: num
             <dt className="text-muted">Alert</dt>
             <dd className={w.hazard ? alertTone(w.hazard) : ""}>{w.hazard ? ALERT_LABEL[w.hazard] : "None"}</dd>
             {w.alert_acknowledged !== null && (<><dt className="text-muted">Acknowledged</dt><dd>{w.alert_acknowledged ? "Yes" : "Not yet"}</dd></>)}
-            <dt className="text-muted">{w.on_break ? "Back to work" : "Next break"}</dt>
-            <dd className="tabular">{breakIn === null ? "--" : `in ${Math.max(0, Math.round(breakIn / 60))} min`}</dd>
+            {breakIn !== null && (<><dt className="text-muted">{w.on_break ? "Back to work" : "Next break"}</dt>
+            <dd className="tabular">in {Math.max(0, Math.round(breakIn / 60))} min</dd></>)}
             <dt className="text-muted">Role</dt><dd>{w.role}</dd>
             <dt className="text-muted">Band</dt><dd>{w.band_connected ? "Connected" : "Not connected"}</dd>
           </dl>

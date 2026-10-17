@@ -187,3 +187,7 @@ Every line is timestamped on the laptop when it arrives. UDP listener on `UDP_PO
 ## 6. Storage (SQLite, `data/planit.db`)
 
 Tables: `workers`, `sites`, `readings` (with `source`), `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `offsets` (personal offset per worker), `spot_checks`, `estimates` (one row per worker per minute: inputs, `hr_watch`/`hr_band`/`hr_sources`, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.
+
+## Snapshot offsets (added by session E, 2026-10-17)
+
+`/api/state` and the first `/ws/live` message now carry `offsets: {worker_id: OffsetUpdate}` (contract shape: `offset_c, confidence, checks, history[]`) for the views allowed to see body data (demo, and the worker's own). So the "Learning your body" card survives a page reload. `site_status` also passes C2's `hazard_index` through, and `index_tomorrow` is `null` (not 0) until the index exists. Test: `test_snapshot_carries_saved_offsets_for_body_views_only`.

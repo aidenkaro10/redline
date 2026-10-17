@@ -93,3 +93,10 @@ Backend gaps (not frontend code, for the main session / A):
 2. Session C2's index isn't wired into C1's picture (`backend/hazards/picture.py` sets `hazard_index: None`): every site's 0-10 index is "--", so "Riskiest tomorrow" isn't ranked.
 3. `/api/state` snapshot has no `offsets`, so the "Learning your body" card resets to "Not personalized yet" on page reload even though A saved the offset (SQLite). Add `offsets: {worker_id: offset_update}` for demo/worker views.
 4. Old man-down incidents stay open until a crew lead closes them (replay falls stack up); only one shows at a time. Fine for now.
+
+## Round 9 (2026-10-17): fixed the clear backend gaps (Aiden: "fix the clear stuff")
+
+- Saved spot-check offsets now come with the snapshot (A's `frontend_api.py`, contract shape with history). Survives page reloads and backend restarts (SQLite). Crew never gets them. Test added.
+- Session C2's index wired into C1's picture (`backend/hazards/index_bridge.py`): cached sites first, then downloads the rest in the background, hourly. Full `hazard_index` + reason texts reach the frontend. `HAZARD_INDEX=auto|offline|off`. Tests added.
+- Break times: NOT wired. Session B's planner uses its own sample crew and date, so mapping it onto the live crew is a design call. Until then the worker app hides the break tile instead of showing "--", and the crew row hides "Next break".
+- Backend suite: 261 tests pass.
