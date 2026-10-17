@@ -12,12 +12,13 @@ Features (one row per site per day D):
                       tomorrow's heat is persistence: archived day-ahead forecasts
                       don't exist for 2018-2022, so we don't pretend to have them.
     hi_max_3d         max heat index over the 3 days before the cutoff
-    t_max_today, td_mean_today, gust_max_today
+    t_max_today, td_mean_today, gust_max_today, rh_min_today (dry air feeds fires)
     rain_24h, rain_72h, rain_7d   rain (mm) in the hours before the cutoff
     soil_0_7, soil_7_28           soil moisture (m³/m³) at the cutoff
   Forecasts issued before the cutoff:
     spc_day2_cat      SPC Day 2 convective outlook for D (0 none .. 6 high risk)
-    spc_day2_fire     SPC Day 2 fire weather outlook for D (0 none .. 3 extreme)
+    (SPC fire weather outlooks are left out: IEM can't search their history by
+    point, only one day at a time, which would be ~30,000 calls.)
   NWS products, issued before the cutoff:
     nws_now_<hazard>  worst watch/advisory/warning in effect AT the cutoff
     nws_24h_<hazard>  worst one issued in the 24 h before the cutoff
@@ -49,11 +50,10 @@ HOURLY_VARS = ("temperature_2m", "dew_point_2m", "relative_humidity_2m", "precip
                "wind_gusts_10m", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm")
 
 SPC_CAT = {"TSTM": 1, "MRGL": 2, "SLGT": 3, "ENH": 4, "MDT": 5, "HIGH": 6}
-SPC_FIRE = {"ELEV": 1, "CRIT": 2, "EXTM": 3}
 
-WEATHER_FEATURES = ["hi_max_today", "hi_max_3d", "t_max_today", "td_mean_today", "gust_max_today",
-                    "rain_24h", "rain_72h", "rain_7d", "soil_0_7", "soil_7_28"]
-OUTLOOK_FEATURES = ["spc_day2_cat", "spc_day2_fire"]
+WEATHER_FEATURES = ["hi_max_today", "hi_max_3d", "t_max_today", "td_mean_today", "rh_min_today",
+                    "gust_max_today", "rain_24h", "rain_72h", "rain_7d", "soil_0_7", "soil_7_28"]
+OUTLOOK_FEATURES = ["spc_day2_cat"]
 NWS_FEATURES = [f"nws_now_{h}" for h in H.HAZARDS] + [f"nws_24h_{h}" for h in H.HAZARDS] + ["lsr_24h"]
 STATIC_FEATURES = ["flood_zone_score", "levee", "gauge_km"]
 SEASON_FEATURES = ["doy_sin", "doy_cos"]
@@ -101,16 +101,16 @@ def fetch_weather(site: Site, years=L.YEARS, offline: bool = False) -> pd.DataFr
 
 
 def fetch_spc(site: Site, offline: bool = False) -> list[dict]:
-    """Every SPC Day 2 outlook (convective and fire) that put this point in a risk area."""
-    out = []
-    for cat, table in (("CATEGORICAL", SPC_CAT), ("FIRE WEATHER CATEGORICAL", SPC_FIRE)):
-        d = fetch.get_json("https://mesonet.agron.iastate.edu/json/spcoutlook.py",
-                           dict(lat=site.lat, lon=site.lon, last=0, day=2, cat=cat), offline=offline)
-        for o in d.get("outlooks", []):
-            if o.get("threshold") in table:
-                out.append(dict(kind="fire" if table is SPC_FIRE else "cat", level=table[o["threshold"]],
-                                valid=L._utc(o["utc_issue"]), issued=L._utc(o["utc_product_issue"])))
-    return out
+    """Every SPC Day 2 convective outlook that put this point in a risk area."""
+    d = fetch.get_json("https://mesonet.agron.iastate.edu/json/spcoutlook.py",
+                       dict(lat=site.lat, lon=site.lon, last=0, day=2, cat="CATEGORICAL"), offline=offline)
+    return parse_spc(d)
+
+
+def parse_spc(d: dict) -> list[dict]:
+    return [dict(kind="cat", level=SPC_CAT[o["threshold"]], valid=L._utc(o["utc_issue"]),
+                 issued=L._utc(o["utc_product_issue"]))
+            for o in d.get("outlooks", []) if o.get("threshold") in SPC_CAT]
 
 
 # ---------------------------------------------------------------------------
@@ -126,6 +126,7 @@ def build_site_features(site: Site, days: list[dt.date], weather: pd.DataFrame,
     t = weather["time"].to_numpy(dtype="datetime64[ns]")
     hi = heat_index_f(weather["temperature_2m"].to_numpy(float), weather["relative_humidity_2m"].to_numpy(float))
     temp = weather["temperature_2m"].to_numpy(float)
+    rh = weather["relative_humidity_2m"].to_numpy(float)
     dew = weather["dew_point_2m"].to_numpy(float)
     gust = weather["wind_gusts_10m"].to_numpy(float)
     rain = np.nan_to_num(weather["precipitation"].to_numpy(float))
@@ -154,6 +155,7 @@ def build_site_features(site: Site, days: list[dt.date], weather: pd.DataFrame,
         seg = dew[s_today:e]
         r["td_mean_today"] = float(np.nanmean(seg)) if len(seg) and not np.all(np.isnan(seg)) else np.nan
         r["gust_max_today"] = window_max(gust, s_today)
+        r["rh_min_today"] = -window_max(-rh, s_today)
         for name, hours in (("rain_24h", 24), ("rain_72h", 72), ("rain_7d", 168)):
             r[name] = float(rain_cum[e] - rain_cum[max(e - hours, 0)]) if e > 0 else np.nan
         r["soil_0_7"] = float(soil1[e - 1]) if e > 0 else np.nan
@@ -162,18 +164,15 @@ def build_site_features(site: Site, days: list[dt.date], weather: pd.DataFrame,
     df = pd.DataFrame(rows)
 
     # --- SPC Day 2 outlooks valid for D (12Z on D) and issued before the cutoff -----
-    cat, fire = np.zeros(len(days)), np.zeros(len(days))
+    cat = np.zeros(len(days))
     by_valid: dict[dt.date, list[dict]] = {}
     for o in spc:
         by_valid.setdefault(o["valid"].date(), []).append(o)
     for i, day in enumerate(days):
         for o in by_valid.get(day, []):
-            if o["issued"] <= cut[i]:
-                if o["kind"] == "cat":
-                    cat[i] = max(cat[i], o["level"])
-                else:
-                    fire[i] = max(fire[i], o["level"])
-    df["spc_day2_cat"], df["spc_day2_fire"] = cat, fire
+            if o["issued"] <= cut[i] and o["kind"] == "cat":
+                cat[i] = max(cat[i], o["level"])
+    df["spc_day2_cat"] = cat
 
     # --- NWS products and storm reports known by the cutoff -------------------------
     now = {h: np.zeros(len(days)) for h in H.HAZARDS}

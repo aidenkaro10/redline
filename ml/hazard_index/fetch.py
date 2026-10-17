@@ -96,12 +96,14 @@ def _curl(url: str, timeout: float) -> bytes:
 
 
 def get_json(base: str, params: dict | None = None, offline: bool = False,
-             delay: float = POLITE_DELAY_S) -> dict:
+             delay: float = POLITE_DELAY_S, max_age_s: float | None = None) -> dict:
     """GET a JSON url, cached on disk. offline=True never touches the network.
-    delay: minimum seconds since the last real call (bigger for heavy requests)."""
+    delay: minimum seconds since the last real call (bigger for heavy requests).
+    max_age_s: re-download if the cached copy is older than this (for live data)."""
     url = base + ("?" + urllib.parse.urlencode(params) if params else "")
     path = _cache_path(url, ".json")
-    if path.exists():
+    fresh = max_age_s is None or (path.exists() and time.time() - path.stat().st_mtime < max_age_s)
+    if path.exists() and (fresh or offline):
         return json.loads(path.read_text())
     if offline:
         raise FileNotFoundError(f"not cached (offline mode): {url}")

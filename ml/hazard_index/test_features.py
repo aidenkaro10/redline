@@ -39,7 +39,7 @@ def fake_inputs(seed: int):
         lsrs.append(dict(valid=times[rng.integers(0, n)].isoformat(), typetext="HAIL"))
         valid_day = DAYS[rng.integers(len(DAYS))]
         valid = dt.datetime(valid_day.year, valid_day.month, valid_day.day, 12, tzinfo=dt.timezone.utc)
-        spc.append(dict(kind=["cat", "fire"][rng.integers(2)], level=int(rng.integers(1, 4)),
+        spc.append(dict(kind="cat", level=int(rng.integers(1, 4)),
                         valid=valid, issued=valid - dt.timedelta(hours=int(rng.integers(10, 40)))))
     return weather, warnings, lsrs, spc
 
@@ -56,8 +56,8 @@ def scramble_after(cut: dt.datetime, weather, warnings, lsrs, spc, seed: int):
                     expire=(t0 + dt.timedelta(days=3)).isoformat(), ph_name="x", sig_name="x", ugc="FLC001")]
     extra_l = [dict(valid=t0.isoformat(), typetext="TORNADO")] * 5
     spc2 = [dict(o, level=6) if o["issued"] > cut else o for o in spc]
-    spc2 += [dict(kind=k, level=6, issued=t0, valid=dict_valid) for k in ("cat", "fire")
-             for dict_valid in [dt.datetime.combine(d, dt.time(12), dt.timezone.utc) for d in DAYS]]
+    spc2 += [dict(kind="cat", level=6, issued=t0, valid=dt.datetime.combine(d, dt.time(12), dt.timezone.utc))
+             for d in DAYS]
     return w, warnings + extra_w, lsrs + extra_l, spc2
 
 
