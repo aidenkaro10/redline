@@ -140,3 +140,44 @@ HEAVY_RAIN_24H_MM = 50               # this much rain in 24 h -> flooding adviso
 WILDLIFE_RADIUS_MI = 5               # count sightings within this radius
 WILDLIFE_DAYS = 7                    # ...in the last this many days
 WILDLIFE_CLOSE_MI = 1                # alligator or venomous snake this close -> advisory
+
+# ===========================================================================
+# Emergency escalation (session D, backend/emergency/)
+# Confirmed man-down -> call crew lead + safety officer -> cancel window ->
+# emergency call. The prototype NEVER dials 911. The emergency leg goes to a
+# teammate's test phone and the screen says "Demo: would call 911".
+# ===========================================================================
+# How long the crew lead has to press "cancel, false alarm" after being
+# notified, before the emergency call goes out.
+EMERGENCY_CANCEL_WINDOW_S = 30
+# Shorter window for live demos, so judges aren't waiting. Labeled on screen.
+EMERGENCY_DEMO_CANCEL_WINDOW_S = 10
+
+# Numbers the code refuses to dial, no matter what .env says.
+# 911 (US), 112 (EU/mobile), 999 (UK), 000 (AU), 111 (NZ), 110/119 (JP/CN),
+# 988 (US crisis line), 933 (US 911 address test line).
+EMERGENCY_BLOCKED_NUMBERS = ("911", "112", "999", "000", "111", "110", "119", "988", "933")
+# Real phone numbers have at least this many digits. Anything shorter is a
+# short code (like 911) and is refused.
+EMERGENCY_MIN_DIGITS = 10
+
+# Text shown on the dashboard for the emergency leg in the prototype.
+EMERGENCY_DEMO_LABEL = "Demo: would call 911"
+
+# Live calling is OFF unless .env says EMERGENCY_LIVE_CALLS=1.
+# Off = dry run: the call script is printed and logged, no phone rings.
+EMERGENCY_LIVE_CALLS = os.getenv("EMERGENCY_LIVE_CALLS", "0") == "1"
+
+# The only numbers the system may ever call (the allowlist). From .env.
+# Use full international format, e.g. +13525551234.
+CREW_LEAD_NUMBER = os.getenv("CREW_LEAD_NUMBER", "")
+SAFETY_OFFICER_NUMBER = os.getenv("SAFETY_OFFICER_NUMBER", "")
+EMERGENCY_TEST_NUMBER = os.getenv("EMERGENCY_TEST_NUMBER", "")  # teammate playing dispatcher
+
+# Every escalation step is appended here, one JSON object per line.
+EMERGENCY_LOG_PATH = os.getenv("EMERGENCY_LOG_PATH", "data/emergency_log.jsonl")
+
+# ElevenLabs voice agent (only used when EMERGENCY_LIVE_CALLS=1). From .env.
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_AGENT_ID = os.getenv("ELEVENLABS_AGENT_ID", "")
+ELEVENLABS_PHONE_NUMBER_ID = os.getenv("ELEVENLABS_PHONE_NUMBER_ID", "")
