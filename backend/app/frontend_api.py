@@ -38,7 +38,9 @@ STATUS = {"clear": "green", "yellow": "yellow", "red": "red"}
 MANDOWN_REASON = {"fall": "fall", "heat_red_unacknowledged": "no_response_to_red"}
 BAND_SEEN_S = 30                  # band counts as connected if we heard from it this recently
 KEEP = 500
-MAX_PHOTO_CHARS = 2_000_000       # ~1.5 MB JPEG as a base64 data URL
+PLANNER_BODY_FIELDS = ("forecast_p90_c", "peak_before_c", "peak_after_c")   # planner_change: not for crew
+MAX_PHOTO_CHARS = 2_000_000
+HR_MISSING_S = 120                 # no heart rate this long -> the card says "Heart rate missing"       # ~1.5 MB JPEG as a base64 data URL
 
 
 class FrontendAdapter:
@@ -100,6 +102,9 @@ class FrontendAdapter:
             for e in reversed(self.estimates.get(wid, [])):
                 e["why"] = ev["why"] or e["why"]
                 break
+        elif kind == "planner_change":
+            # Session B's act-on-forecast feed (upsert by id). Body numbers are dropped for crew in broadcast().
+            out.append(dict(ev))
         elif kind == "hr_link":
             # Heart rate link status (Bluetooth searching / connected / stale / lost). No body numbers.
             out.append(dict(ev))
@@ -188,6 +193,14 @@ class FrontendAdapter:
                 return m
         return None
 
+    def hr_missing(self, wid: str) -> bool:
+        """No heart rate for HR_MISSING_S of this worker's own data time (other readings still coming)."""
+        p = self.hub.pipelines[wid]
+        if p.last_t is None:
+            return False
+        since = p.last_reading.get("hr_at", p.t0)
+        return since is not None and p.last_t - since >= HR_MISSING_S
+
     def worker_status(self, wid: str) -> dict:
         p, info = self.hub.pipelines[wid], self.hub.workers[wid]
         status = STATUS[p.heat.level]
@@ -199,6 +212,9 @@ class FrontendAdapter:
             reason = "Man-down check" if p.mandown.state == "checking" else "Man-down confirmed"
         elif status == "red":
             reason = "In heat danger now"
+        elif self.hr_missing(wid):
+            # Without heart rate the Kalman only predicts: don't show a confident "Normal".
+            reason = "Heart rate missing"
         elif mins is not None:
             reason = f"Forecast to reach danger in ~{mins} min"
         elif status == "yellow":
@@ -490,11 +506,18 @@ class FrontendAdapter:
         return {"type": "offset_update", "worker_id": wid, "timestamp": p.last_t, "accepted": True,
                 **p.offset_status()}
 
+    @staticmethod
+    def for_view(f: dict, msg: dict) -> dict:
+        """The version of a message this view may see (crew: no body numbers in planner_change)."""
+        if msg["type"] == "planner_change" and f["view"] == "crew":
+            return {k: v for k, v in msg.items() if k not in PLANNER_BODY_FIELDS}
+        return msg
+
     def broadcast(self, msg: dict) -> None:
         for q, f in list(self.subscribers.items()):
             if self.can_see(f, msg):
                 try:
-                    q.put_nowait(msg)
+                    q.put_nowait(self.for_view(f, msg))
                 except asyncio.QueueFull:
                     pass
 

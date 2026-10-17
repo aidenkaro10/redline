@@ -12,7 +12,8 @@ system and brings its schedule back into the hub:
     verified plan WITHOUT the LLM (~5 s, on a thread) so "Next break" works right away.
     The LLM is only used when someone asks for it (POST /api/planner/plan, chat), and
     only if ANTHROPIC_API_KEY is set (the planner's own rule).
-  - It pre-builds tomorrow's 6 PM briefing on a thread at startup (the first build is slow).
+  - It pre-builds tomorrow's 6 PM briefing on a thread right after the first plan (the first
+    build is slow; never in parallel with the first plan, see e2e bug #1).
   - Whenever the planner's current plan changes, it pushes the schedule to the hub
     ("schedule" event), which fills WorkerStatus.on_break / break_at.
 
@@ -37,6 +38,7 @@ class PlannerBridge:
         self.hub = hub
         self.crew_key = None                        # the crew the current scenario was built for
         self.result_seen = None                     # the planner result we last pushed
+        self.briefing_started = False               # the briefing pre-build waits for the first plan
 
     # -- scenario for our crew --------------------------------------------------
     def build_scenario(self):
@@ -83,6 +85,11 @@ class PlannerBridge:
             self.crew_key = key
             scenario, offsets = self.build_scenario()
             await asyncio.to_thread(self.plan_now, scenario, offsets)
+            if not self.briefing_started:
+                # Only now: B's heat model must never run on two threads at once (it aborts the
+                # process), so the slow briefing build starts after the first plan is done.
+                self.briefing_started = True
+                asyncio.get_running_loop().run_in_executor(None, self.warm_briefing)
         result = self.api._state.get("result")
         if result is not None and result is not self.result_seen:
             self.result_seen = result
@@ -99,7 +106,6 @@ class PlannerBridge:
             log.warning("briefing pre-build failed (%s); it will be built on first request", e)
 
     async def run(self) -> None:
-        asyncio.get_running_loop().run_in_executor(None, self.warm_briefing)
         while True:
             try:
                 await self.step()

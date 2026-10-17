@@ -4,6 +4,7 @@ Man-down rules (version 1, tilt switch). One detector per worker.
     ok ──(tipped + no movement for MANDOWN_STILL_S)──> checking   (band: BUZZ:MANDOWN)
     ok ──(red heat alert not acknowledged in time)───> checking
     checking ──(button press or movement)──────────────> ok       ("mandown_cancelled")
+                (red-alert checks: button press only; a hot worker may still be walking)
     checking ──(nothing for MANDOWN_ESCALATE_S)────────> confirmed ("mandown_confirmed")
     confirmed ──(crew lead resolves on the dashboard)──> ok       ("mandown_resolved")
 
@@ -42,7 +43,9 @@ class ManDownDetector:
             self.last_movement_at = t
 
         events = []
-        if self.state == CHECKING and moving:
+        if self.state == CHECKING and moving and self.reason != "heat_red_unacknowledged":
+            # A fall check ends when the worker moves. A "red alert, no button press" check doesn't:
+            # an overheating worker can still be walking. Only the button (or the crew lead) ends it.
             events.append(self._cancel(t, "movement"))
         elif self.state == OK:
             if moving or tilt == 0:

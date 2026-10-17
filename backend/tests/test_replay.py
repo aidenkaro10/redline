@@ -74,11 +74,14 @@ def test_synthetic_replay_full_demo_story():
 
 def test_no_ack_means_red_unacknowledged_triggers_check():
     plan = shifts.synthetic(minutes=90, fall_worker=None, auto_ack_s=None, n_crew=0)
-    # Replay readings carry activity, so the moving worker cancels the check right away.
+    # The worker keeps walking (replay readings carry activity), but movement doesn't end a
+    # "red, no button press" check: only the button does. So it escalates.
     hub, lines, events = run_replay(plan)
     checks = [e for e in events if e["type"] == "mandown_check"]
     assert checks and checks[0]["reason"] == "heat_red_unacknowledged"
-    assert any(e["type"] == "mandown_cancelled" and e["by"] == "movement" for e in events)
+    assert not any(e["type"] == "mandown_cancelled" for e in events)
+    conf = [e for e in events if e["type"] == "mandown_confirmed"]
+    assert conf and conf[0]["trigger"] == "heat_red_unacked"
 
 
 def test_injected_fall_on_replay_worker():

@@ -62,3 +62,12 @@ def test_trigger_is_idempotent_and_temp_only_lines_dont_reset():
     assert d.still_since == 0
     d.trigger(12, "demo")
     assert d.trigger(13, "demo") == []
+
+
+def test_red_alert_check_ignores_movement_but_not_the_button():
+    d = ManDownDetector()
+    d.trigger(0, "heat_red_unacknowledged")
+    assert d.on_reading(5, tilt=0, activity=6.0) == [] and d.state == CHECKING     # still walking: keeps checking
+    assert d.on_button(10)[0]["by"] == "button" and d.state == OK
+    d.trigger(20, "fall")                                                          # other checks: movement still cancels
+    assert d.on_reading(25, tilt=0, activity=6.0)[0]["by"] == "movement"

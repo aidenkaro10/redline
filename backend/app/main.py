@@ -144,6 +144,12 @@ async def lifespan(app: FastAPI):
     app.state.planner = make_planner_bridge(hub) if s.planner else None
     if app.state.planner is not None:
         tasks.append(asyncio.create_task(app.state.planner.run()))
+        try:
+            # Session B's act-on-forecast: reads estimates, changes only the plan, sends planner_change events.
+            from backend.planner.proactive import attach
+            attach(hub)
+        except ImportError:
+            pass
 
     if s.source == "replay":
         hub.start_replay(make_replay(hub, s))

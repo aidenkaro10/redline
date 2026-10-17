@@ -147,8 +147,6 @@ def test_A05_no_heart_rate_runs_predict_only_and_recovers():
     assert after[-1]["kalman"] != gap[-1]["kalman"]                    # updates again once HR is back
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: with no heart rate for 10 minutes the crew card still "
-                   "shows a plain 'Normal' green; WorkerStatus has nothing saying heart rate is missing")
 def test_A05_crew_card_says_heart_rate_is_missing(live_app):
     app = live_app()
     for m in range(5):
@@ -262,10 +260,6 @@ def test_A14_unacknowledged_red_starts_a_man_down_check(live_app):
     assert "BUZZ:MANDOWN" in app.band.lines_for("demo-1")
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: the 'red, no button press' man-down check is cancelled in "
-                   "the same second by movement (the overheating worker is still walking), so it never escalates; "
-                   "only a button press (or a fall) should cancel this kind of check. The --no-ack demo path never "
-                   "reaches mandown_confirmed.")
 def test_A14_unacknowledged_red_escalates_while_the_worker_still_moves(live_app):
     app = live_app()
     app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None, auto_ack_s=None))
