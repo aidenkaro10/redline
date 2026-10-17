@@ -23,6 +23,7 @@ The ML is the main event. The plumbing is one fast phase, because nothing runs w
 | Twin method | Per-person embeddings, then CAVIA-style "practice adapting" training | Matches exactly what happens live |
 | Results | Headline numbers on real data only, split by person | Simulator results are for development |
 | Agent | LLM keeps notes on preferences, never safety | LLM never makes safety calls |
+| Agent learning | Hand-written GEPA and ACE loops, no extra libraries | Small, fewer dependencies, judges can read it |
 
 ## How it fits together
 
@@ -195,7 +196,6 @@ Sweat, man-down classifier, explainability, CAVIA training (keep plain twins), a
 ## Waiting on
 
 - Aiden: dataset names/links (found + requested).
-- Aiden: OK on hand-writing the GEPA and ACE loops instead of installing their libraries.
 - Hardware team: UDP on port 5005? Button stops the repeat buzz on its own and still sends `BTN:1`? Diode calibration on the band?
 
 ## Risks
