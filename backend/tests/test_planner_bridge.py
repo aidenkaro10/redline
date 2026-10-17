@@ -41,6 +41,7 @@ def test_planner_bridge_plans_for_our_crew(monkeypatch):
     got = []
     hub.add_listener(lambda e: e["type"] == "schedule" and got.append(e))
     bridge = PlannerBridge(hub)
+    built_at = hub.now("demo-1")                 # planning can take minutes on a busy laptop
     asyncio.run(bridge.step())
 
     assert got, "schedule event pushed"
@@ -49,10 +50,15 @@ def test_planner_bridge_plans_for_our_crew(monkeypatch):
     assert schedule["checked_by_rules"] is True
     assert api.get_schedule()["rows"][0]["worker_id"] == "demo-1"     # the planner's own route agrees
     first = schedule["rows"][0]["slots"][0]["start"]
-    assert first <= hub.now("demo-1") < first + STEP                  # the shift starts now
+    assert first <= built_at < first + STEP                           # the shift starts when it was planned
     st = FrontendAdapter(hub).worker_status("demo-1")
     assert isinstance(st["on_break"], bool) and (st["break_at"] is None or st["break_at"] > first)
     # Same crew again: no replan.
     seen = bridge.result_seen
     asyncio.run(bridge.step())
     assert bridge.result_seen is seen
+
+
+def test_no_background_briefing_build_inside_tests():
+    from backend.app.planner_bridge import warm_briefing_enabled
+    assert warm_briefing_enabled() is False

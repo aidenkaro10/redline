@@ -19,6 +19,11 @@ macOS asks once for Bluetooth permission for the app running Python (Terminal, i
 VS Code ...). Say yes, or nothing will be found. System Settings > Privacy & Security >
 Bluetooth if you said no.
 
+In the server, Bluetooth runs in a small HELPER PROCESS (BleHelper below) that prints
+JSON lines. If macOS refuses Bluetooth for the app that started Python, it kills that
+process on the spot; with the helper, only the helper dies (and is restarted with a
+clear status message), never the server and its alerts.
+
 Check it without the server:
     python -m backend.ingest.ble_hr --scan      list nearby heart rate devices
     python -m backend.ingest.ble_hr             print heart rate as it arrives
@@ -26,7 +31,10 @@ Check it without the server:
 
 import argparse
 import asyncio
+import json
 import logging
+import os
+import sys
 import time
 from dataclasses import dataclass, field
 
@@ -211,13 +219,95 @@ class BleHeartRate:
             await asyncio.sleep(pause)
 
 
+# ---------------------------------------------------------------------------
+# The server side: run the reader in a helper process
+# ---------------------------------------------------------------------------
+class BleHelper:
+    """
+    Starts `python -m backend.ingest.ble_hr --json` and turns its lines into Readings
+    (laptop timestamp on arrival, source "ble") and "hr_link" status events. If the helper
+    exits (Bluetooth refused, adapter off, crash), it says so and starts it again.
+    """
+
+    def __init__(self, hub, worker_id: str, wanted: str | None = None, cmd: list[str] | None = None,
+                 clock=time.time, restart_s: float = 5.0, max_restart_s: float = 60.0):
+        self.hub, self.worker_id, self.clock = hub, worker_id, clock
+        self.restart_s, self.max_restart_s = restart_s, max_restart_s
+        self.cmd = cmd or helper_command(wanted)
+        self.state = "off"
+        self.device = self.address = None
+        self.readings = 0
+
+    def _status(self, state: str, message: str, device=None, address=None) -> None:
+        self.device = device or self.device
+        self.address = address or self.address
+        if state == self.state:
+            return
+        self.state = state
+        log.info("Bluetooth heart rate: %s", message)
+        self.hub.dispatch([{"type": "hr_link", "timestamp": self.clock(), "worker_id": self.worker_id,
+                            "source": "ble", "state": state, "device": self.device, "address": self.address,
+                            "message": message}])
+
+    def handle_line(self, line: str) -> None:
+        try:
+            msg = json.loads(line)
+        except ValueError:
+            return                                        # not ours (a stray print)
+        if msg.get("kind") == "hr" and isinstance(msg.get("hr"), (int, float)):
+            self.readings += 1
+            self.hub.handle_input(Reading(worker_id=self.worker_id, timestamp=self.clock(), hr=float(msg["hr"]),
+                                          source="ble"), source="ble")
+        elif msg.get("kind") == "link" and msg.get("state"):
+            self._status(msg["state"], msg.get("message") or msg["state"], msg.get("device"), msg.get("address"))
+
+    async def run(self) -> None:
+        """Forever: keep the helper running. Cancel the task to stop it (and the helper)."""
+        pause = self.restart_s
+        while True:
+            before = self.readings
+            proc = await asyncio.create_subprocess_exec(
+                *self.cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
+            try:
+                while True:
+                    raw = await proc.stdout.readline()
+                    if not raw:
+                        break
+                    self.handle_line(raw.decode(errors="replace"))
+                code = await proc.wait()
+            except asyncio.CancelledError:
+                if proc.returncode is None:
+                    proc.kill()
+                raise
+            how = f"killed by signal {-code}" if code < 0 else f"exit code {code}"
+            hint = ("" if code == 0 else
+                    ". If this repeats: System Settings > Privacy & Security > Bluetooth, allow the app running "
+                    "Python (Terminal), or start with --no-ble")
+            # Got heart rate this time -> retry soon; nothing at all -> back off (5 s, 10 s ... 60 s).
+            pause = self.restart_s if self.readings > before else min(pause * 2, self.max_restart_s)
+            self._status("lost", f"Bluetooth heart rate unavailable (helper {how}){hint}; "
+                                 f"trying again in {pause:.0f} s")
+            self.state = "restarting"                     # so the next "lost" is reported again
+            await asyncio.sleep(pause)
+
+
+def helper_command(wanted: str | None = None) -> list[str]:
+    """The helper process the server runs (tests swap this for a fake)."""
+    return [sys.executable, "-m", "backend.ingest.ble_hr", "--json"] + (["--device", wanted] if wanted else [])
+
+
+def safe_to_scan() -> bool:
+    """
+    Never touch real Bluetooth inside the test suite: no adapter in CI, and on a Mac a process
+    without Bluetooth permission is killed outright. PLANIT_BLE=off turns it off anywhere.
+    """
+    return "PYTEST_CURRENT_TEST" not in os.environ and os.getenv("PLANIT_BLE", "on").lower() != "off"
+
+
 def available() -> bool:
-    """True if bleak is installed (it doesn't check the adapter: that happens on first scan)."""
-    try:
-        import bleak  # noqa: F401
-        return True
-    except ImportError:
-        return False
+    """True if bleak is installed. Looks it up WITHOUT importing it (importing loads CoreBluetooth)."""
+    import importlib.util
+    return importlib.util.find_spec("bleak") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +322,18 @@ async def _scan() -> None:
               "Did macOS allow Bluetooth for this app?")
     for d, a in rows:
         print(f"{a.local_name or d.name or '(no name)'}  address={d.address}  signal={a.rssi} dBm")
+
+
+class _JsonHub:
+    """Stand-in hub for the helper process: one JSON line per reading or status change."""
+
+    def handle_input(self, reading, source="ble"):
+        print(json.dumps({"kind": "hr", "hr": reading.hr}), flush=True)
+
+    def dispatch(self, events):
+        for e in events:
+            print(json.dumps({"kind": "link", **{k: e.get(k) for k in ("state", "device", "address", "message")}}),
+                  flush=True)
 
 
 class _PrintHub:
@@ -249,13 +351,15 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Bluetooth heart rate check")
     ap.add_argument("--scan", action="store_true", help="list nearby heart rate devices and exit")
     ap.add_argument("--device", default=config.BLE_HR_DEVICE or None, help="name part or address (default: BLE_HR_DEVICE)")
+    ap.add_argument("--json", action="store_true", help="helper mode for the server: JSON lines on stdout")
     a = ap.parse_args(argv)
     logging.basicConfig(level=logging.WARNING)
     try:
         if a.scan:
             asyncio.run(_scan())
         else:
-            asyncio.run(BleHeartRate(_PrintHub(), "check", wanted=a.device).run())
+            hub = _JsonHub() if a.json else _PrintHub()
+            asyncio.run(BleHeartRate(hub, "check", wanted=a.device).run())
     except KeyboardInterrupt:
         pass
 

@@ -60,8 +60,6 @@ def test_A01_fuzzed_lines_never_crash_and_near_misses_never_make_readings():
         assert len(events_from_line(line, "w", 1.0)) == 1, line
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: the parser accepts impossible values (TEMP:nan, HR:inf, "
-                   "HR:-80, TEMP:1e9) as readings; one glitched line can poison a minute average / the Kalman")
 def test_A01_impossible_values_never_make_readings():
     assert [line for line in BAD_VALUES if events_from_line(line, "w", 1.0)] == []
 
@@ -147,8 +145,6 @@ def test_A05_no_heart_rate_runs_predict_only_and_recovers():
     assert after[-1]["kalman"] != gap[-1]["kalman"]                    # updates again once HR is back
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: with no heart rate for 10 minutes the crew card still "
-                   "shows a plain 'Normal' green; WorkerStatus has nothing saying heart rate is missing")
 def test_A05_crew_card_says_heart_rate_is_missing(live_app):
     app = live_app()
     for m in range(5):
@@ -262,10 +258,6 @@ def test_A14_unacknowledged_red_starts_a_man_down_check(live_app):
     assert "BUZZ:MANDOWN" in app.band.lines_for("demo-1")
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: the 'red, no button press' man-down check is cancelled in "
-                   "the same second by movement (the overheating worker is still walking), so it never escalates; "
-                   "only a button press (or a fall) should cancel this kind of check. The --no-ack demo path never "
-                   "reaches mandown_confirmed.")
 def test_A14_unacknowledged_red_escalates_while_the_worker_still_moves(live_app):
     app = live_app()
     app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None, auto_ack_s=None))
@@ -482,15 +474,11 @@ def test_A30_bad_requests_get_4xx_not_500(live_app):
     assert [r.status_code for r in cases if not 400 <= r.status_code < 500] == []
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: POST /api/demo/replay {speed: 'fast'} crashes with 500 "
-                   "(float('fast') unguarded) instead of a 4xx")
 def test_A30_demo_replay_bad_speed_is_4xx(live_app):
     r = live_app().client.post("/api/demo/replay", json={"speed": "fast"})
     assert 400 <= r.status_code < 500
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: spot checks outside 34-42 °C are accepted with 200 "
-                   "(contract: 400); they're only 'rejected' as bad readings after the fact")
 def test_A30_out_of_range_spot_check_is_4xx(live_app):
     app = live_app()
     app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None))
@@ -572,15 +560,11 @@ def test_A34_alert_log_is_saved_in_sqlite(live_app):
     assert {"heat_alert", "band_command", "mandown_confirmed"} <= kinds
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: after a restart the dashboard's alert history is empty "
-                   "(FrontendAdapter keeps alerts in memory only; SQLite has them)")
 def test_A34_alert_history_comes_back_after_restart(live_app):
     alerts, again = restart_after_alerts(live_app)
     assert again.client.get("/api/state?view=crew").json()["alerts"]
 
 
-@pytest.mark.xfail(strict=True, reason="BUG -> session A: after a restart hub.schedule is empty (breaks gone from "
-                   "the worker cards) until the planner bridge replans; the current schedule isn't saved")
 def test_A34_current_schedule_comes_back_after_restart(live_app):
     _, again = restart_after_alerts(live_app)
     assert again.hub.schedule is not None

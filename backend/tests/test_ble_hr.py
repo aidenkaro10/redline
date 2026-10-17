@@ -130,7 +130,8 @@ def test_live_mode_starts_bluetooth_automatically(monkeypatch, tmp_path):
         async def run(self):
             await asyncio.sleep(3600)
 
-    monkeypatch.setattr(ble_hr, "BleHeartRate", Recorder)
+    monkeypatch.setattr(ble_hr, "BleHelper", Recorder)
+    monkeypatch.setattr(ble_hr, "safe_to_scan", lambda: True)
     monkeypatch.setattr(config, "PULSOID_TOKEN", "")
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.bind(("127.0.0.1", 0))
@@ -142,3 +143,31 @@ def test_live_mode_starts_bluetooth_automatically(monkeypatch, tmp_path):
     with TestClient(main.app):
         pass
     assert started == [(config.WORKER_ID, "HeartCast")]
+
+
+def test_no_real_bluetooth_inside_the_test_suite():
+    assert ble_hr.safe_to_scan() is False
+
+
+def test_helper_process_lines_become_readings_and_a_crash_is_reported():
+    import sys
+    script = ("import json,sys\n"
+              "print(json.dumps({'kind':'link','state':'connected','device':'HeartCast','message':'receiving'}))\n"
+              "print('stray debug text')\n"
+              "print(json.dumps({'kind':'hr','hr':84}))\n"
+              "print(json.dumps({'kind':'hr','hr':86}))\n"
+              "sys.stdout.flush(); sys.exit(-6 % 256)\n")
+    hub = Hub(band=MultiBand([]))
+    readings, links = collect(hub)
+    helper = ble_hr.BleHelper(hub, "w1", cmd=[sys.executable, "-c", script], restart_s=60)
+
+    async def go():
+        task = asyncio.create_task(helper.run())
+        while not any(l["state"] == "lost" for l in links):
+            await asyncio.sleep(0.02)
+        task.cancel()
+
+    asyncio.run(asyncio.wait_for(go(), timeout=20))
+    assert [r["hr"] for r in readings] == [84.0, 86.0] and all(r["source"] == "ble" for r in readings)
+    assert [l["state"] for l in links] == ["connected", "lost"]
+    assert links[0]["device"] == "HeartCast" and "exit code" in links[1]["message"]

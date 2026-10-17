@@ -52,3 +52,9 @@ def test_format_command():
 def test_reading_round_trips_through_json():
     r = Reading(worker_id="w1", timestamp=1.5, hr=90, accel=(0.1, 0.2, 0.3))
     assert Reading.model_validate_json(r.model_dump_json()) == r
+
+
+def test_impossible_values_are_dropped_but_good_fields_kept():
+    for bad in ("TEMP:nan", "HR:inf", "HR:-80", "TEMP:1e9", "TILT:7", "ACC:99,0,0"):
+        assert parse_line(bad) is None, bad
+    assert parse_line("TEMP:nan,TILT:1,ACT:4") == {"tilt": 1, "activity": 4.0}

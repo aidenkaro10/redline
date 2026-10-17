@@ -6,6 +6,7 @@ a Reading. Everything downstream only ever sees Readings, so real and fake data
 are interchangeable.
 """
 
+import math
 from typing import Literal
 
 from pydantic import BaseModel
@@ -42,6 +43,15 @@ class ButtonPress(BaseModel):
     kind: Literal["press", "sos"] = "press"
 
 
+# Values outside these ranges can't be real (a glitched line, a loose wire): the field is dropped,
+# so one bad line can't poison a minute average or the Kalman. NaN and infinity are always dropped.
+_VALID_RANGE = {
+    "skin_temp": (20.0, 45.0),     # °C on the skin
+    "hr": (25.0, 240.0),           # bpm
+    "activity": (0.0, 200.0),      # tilt switch changes per second
+    "accel": (-16.0, 16.0),        # g, each axis
+}
+
 # What each key in a band line means, and which Reading field it fills.
 _LINE_KEYS = {
     "TEMP": "skin_temp",
@@ -51,6 +61,11 @@ _LINE_KEYS = {
     "HR": "hr",      # the band's own pulse sensor (only sent when its reading is confident)
     "BTN": "button",
 }
+
+
+def _plausible(name: str, value: float) -> bool:
+    lo, hi = _VALID_RANGE[name]
+    return math.isfinite(value) and lo <= value <= hi
 
 
 def parse_line(line: str) -> dict | None:
@@ -93,9 +108,13 @@ def parse_line(line: str) -> dict | None:
             if name == "accel":
                 if len(values) != 3:
                     return None
-                fields["accel"] = tuple(float(v) for v in values)
+                xyz = tuple(float(v) for v in values)
+                if all(_plausible("accel", v) for v in xyz):
+                    fields["accel"] = xyz
             elif name == "tilt":
-                fields["tilt"] = int(float(values[0]))
+                tilt = float(values[0])
+                if tilt in (0.0, 1.0):
+                    fields["tilt"] = int(tilt)
             elif name == "button":
                 value = values[0].upper()
                 if value == "SOS":
@@ -103,7 +122,9 @@ def parse_line(line: str) -> dict | None:
                 elif value == "1":
                     fields["button"] = "press"
             else:
-                fields[name] = float(values[0])
+                value = float(values[0])
+                if _plausible(name, value):
+                    fields[name] = value
     except ValueError:
         return None
 

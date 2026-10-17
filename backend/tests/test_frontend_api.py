@@ -42,7 +42,8 @@ def test_snapshot_shapes_and_privacy(client):
     assert {a["kind"] for a in demo["alerts"]} >= {"HEAT_YELLOW", "HEAT_RED"}
     assert any(b["command"] == "BUZZ:HEAT_RED" for b in demo["band"])
     assert client.get("/api/workers/w1/history?view=crew").status_code == 403
-    assert client.get("/api/workers/w1/history?view=worker&minutes=10").json()["vitals"]
+    assert client.get("/api/workers/w1/history?view=worker&worker_id=w1&minutes=10").json()["vitals"]
+    assert client.get("/api/workers/w1/history?view=worker&worker_id=w2").status_code == 403
 
 
 def test_ws_live_filters_by_view(client):

@@ -185,9 +185,6 @@ def test_A08_A17_A20_synthetic_demo_replay_kalman_only(live_app):
     assert jake[0]["value"] >= 38.0 and jake[1]["value"] >= 38.5
 
 
-@pytest.mark.xfail(strict=True, reason="BUG (session A, minor): hub.dispatch calls listeners before broadcasting, and "
-                   "session D's listener emits its emergency_status events synchronously, so raw /ws clients (bare "
-                   "chart page, Python consumers) get 'notify/calling...' BEFORE the mandown_confirmed that caused it")
 def test_raw_stream_sends_mandown_confirmed_before_its_escalation(live_app):
     app = live_app()
     app.start_replay(shifts.synthetic(n_crew=1))

@@ -284,10 +284,31 @@ class WorkerPipeline:
                    "miss_c": _r(est["core_temp_raw"] - thermometer_c),
                    "reason": None if accepted else "reading too far from the model, ignored as a bad reading",
                    **self.offset_status()}]
+        if accepted:
+            events += self._reapply_offset()
         if accepted and self.raw_inputs is not None and self.last_t is not None:
             self.last_inputs = self._corrected(self.raw_inputs)
             events += self._react(self.heat.update(self.last_t, self.last_inputs), self.last_t)
         return self._stamp(events)
+
+    def _reapply_offset(self) -> list[dict]:
+        """
+        Re-send the latest minute's estimate with the NEW offset (same minute, same timestamp),
+        so the chart moves right after a spot check instead of at the next minute.
+        """
+        if not self.estimates:
+            return []
+        e = self.estimates[-1]
+        if e.get("core_temp_raw") is None:
+            return []
+        old, new = e.get("offset_c") or 0.0, self.offset.offset_c
+        shift = old - new                                  # values were raw - old; now raw - new
+        e["core_temp"] = _r(e["core_temp_raw"] - new)
+        if e.get("forecast"):
+            for q in ("p10", "p50", "p90"):
+                e["forecast"][q] = [None if v is None else _r(v + shift) for v in e["forecast"][q]]
+        e["offset_c"] = _r(new, 4)
+        return [{**e, "forecast": dict(e["forecast"]) if e.get("forecast") else None, "refresh": True}]
 
     def offset_status(self) -> dict:
         return {"offset_c": round(self.offset.offset_c, 4), "confidence": round(self.offset.confidence, 3),

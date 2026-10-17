@@ -7,7 +7,7 @@ import pytest
 
 from backend.app.model_runner import load_best_predictor, predict_at
 
-ENS5, V1 = Path("ml/checkpoints/ens5.pt"), Path("ml/checkpoints/v1.pt")
+FINAL, ENS5, V1 = Path("ml/checkpoints/final_cv.pt"), Path("ml/checkpoints/ens5.pt"), Path("ml/checkpoints/v1.pt")
 
 
 def signals(n=90):
@@ -19,7 +19,7 @@ def signals(n=90):
     return sig
 
 
-@pytest.mark.parametrize("path", [ENS5, V1])
+@pytest.mark.parametrize("path", [FINAL, ENS5, V1])
 def test_predict_at_matches_predict_signals(path):
     if not path.exists():
         pytest.skip(f"{path} not in this checkout")

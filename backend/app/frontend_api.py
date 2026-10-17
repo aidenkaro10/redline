@@ -28,6 +28,7 @@ import time
 from collections import deque
 
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 
 from backend import config
 from backend.app.planner_bridge import schedule_status
@@ -38,7 +39,10 @@ STATUS = {"clear": "green", "yellow": "yellow", "red": "red"}
 MANDOWN_REASON = {"fall": "fall", "heat_red_unacknowledged": "no_response_to_red"}
 BAND_SEEN_S = 30                  # band counts as connected if we heard from it this recently
 KEEP = 500
-MAX_PHOTO_CHARS = 2_000_000       # ~1.5 MB JPEG as a base64 data URL
+PLANNER_BODY_FIELDS = ("forecast_p90_c", "peak_before_c", "peak_after_c")   # planner_change: not for crew
+ALERT_WORDS = {"HEAT_YELLOW": "Heat warning", "HEAT_RED": "Heat danger"}
+MAX_PHOTO_CHARS = 2_000_000
+HR_MISSING_S = 120                 # no heart rate this long -> the card says "Heart rate missing"       # ~1.5 MB JPEG as a base64 data URL
 
 
 class FrontendAdapter:
@@ -49,7 +53,10 @@ class FrontendAdapter:
         self.active_heat_alert: dict[str, dict] = {}            # worker -> their open heat Alert
         self.active_hazard_alert: dict[tuple, dict] = {}        # (site, kind) -> open hazard Alert
         self.incidents: dict[str, dict] = {}                     # worker -> open man-down / SOS incident
-        self.emergency: dict | None = None
+        # One EmergencyCall per incident, keyed by session D's incident id. Never shared between
+        # incidents: two SOS presses seconds apart must never mix names, ids or cancel buttons.
+        self.calls: dict[str, dict] = {}
+        self.shown_incident: str | None = None          # the man-down/SOS incident the dashboards show
         self.band: deque = deque(maxlen=100)
         self.log: deque = deque(maxlen=200)
         self.vitals: dict[str, deque] = {}
@@ -71,7 +78,11 @@ class FrontendAdapter:
             out.append({"type": "vitals", "vitals": v})
         elif kind == "estimate":
             e = self.estimate(ev)
-            self.estimates.setdefault(wid, deque(maxlen=KEEP)).append(e)
+            hist = self.estimates.setdefault(wid, deque(maxlen=KEEP))
+            if hist and hist[-1]["timestamp"] == e["timestamp"]:
+                hist[-1] = e                      # same minute re-sent (after a spot check): replace, don't add
+            else:
+                hist.append(e)
             out.append({"type": "estimate", "estimate": e})
         elif kind == "heat_alert":
             out += self._heat_alert(ev)
@@ -88,8 +99,10 @@ class FrontendAdapter:
             out.append({"type": "band_command", "band": b})
         elif kind.startswith("mandown_"):
             out += self._mandown(ev)
+            out += self._pair_if_shown_changed()
         elif kind == "sos":
             out += self._sos(ev)
+            out += self._pair_if_shown_changed()
         elif kind == "emergency_status":
             out += self._emergency(ev)
         elif kind == "worker_removed":
@@ -100,6 +113,9 @@ class FrontendAdapter:
             for e in reversed(self.estimates.get(wid, [])):
                 e["why"] = ev["why"] or e["why"]
                 break
+        elif kind == "planner_change":
+            # Session B's act-on-forecast feed (upsert by id). Body numbers are dropped for crew in broadcast().
+            out.append(dict(ev))
         elif kind == "hr_link":
             # Heart rate link status (Bluetooth searching / connected / stale / lost). No body numbers.
             out.append(dict(ev))
@@ -188,6 +204,14 @@ class FrontendAdapter:
                 return m
         return None
 
+    def hr_missing(self, wid: str) -> bool:
+        """No heart rate for HR_MISSING_S of this worker's own data time (other readings still coming)."""
+        p = self.hub.pipelines[wid]
+        if p.last_t is None:
+            return False
+        since = p.last_reading.get("hr_at", p.t0)
+        return since is not None and p.last_t - since >= HR_MISSING_S
+
     def worker_status(self, wid: str) -> dict:
         p, info = self.hub.pipelines[wid], self.hub.workers[wid]
         status = STATUS[p.heat.level]
@@ -199,6 +223,9 @@ class FrontendAdapter:
             reason = "Man-down check" if p.mandown.state == "checking" else "Man-down confirmed"
         elif status == "red":
             reason = "In heat danger now"
+        elif self.hr_missing(wid):
+            # Without heart rate the Kalman only predicts: don't show a confident "Normal".
+            reason = "Heart rate missing"
         elif mins is not None:
             reason = f"Forecast to reach danger in ~{mins} min"
         elif status == "yellow":
@@ -410,14 +437,20 @@ class FrontendAdapter:
             mapped = "connected" if status in ("connected", "completed") else "calling"
         else:
             mapped = "cancelled" if status == "cancelled" else "done"
-        call = self.emergency if self.emergency and self.emergency["id"] == ev["incident_id"] else None
+        call = self.calls.get(ev["incident_id"])
         if call is None:
-            call = self.emergency = {
-                "id": ev["incident_id"], "mandown_id": (self.mandown or {}).get("id", ""),
-                "worker_id": ev["worker_id"], "stage": mapped, "started_at": ev["timestamp"],
+            # The call belongs to THIS worker's incident (not whichever incident is newest).
+            wid = ev["worker_id"]
+            incident = self.incidents.get(wid) or {}
+            call = self.calls[ev["incident_id"]] = {
+                "id": ev["incident_id"], "mandown_id": incident.get("id", ""),
+                "worker_id": wid, "worker_name": self.hub.workers.get(wid, {}).get("name", wid),
+                "stage": mapped, "started_at": ev["timestamp"],
                 "cancel_deadline": None, "demo": True, "target_label": "Demo: would call 911",
                 "steps": [], "transcript": [], "outcome": None,
             }
+            while len(self.calls) > 50:
+                self.calls.pop(next(iter(self.calls)))
         call["stage"] = mapped
         call["demo"] = ev.get("mode") != "live" or bool(ev.get("demo_label"))
         if ev.get("demo_label"):
@@ -427,7 +460,34 @@ class FrontendAdapter:
         call["steps"].append({"at": ev["timestamp"], "stage": mapped, "text": ev.get("message", "")})
         if mapped in ("done", "cancelled"):
             call["outcome"] = ev.get("message") or mapped
-        return [{"type": "emergency", "emergency": call}]
+        # The contract has ONE emergency slot next to ONE man-down: only send the call that belongs
+        # to the incident on screen, so a projector never shows one worker's call beside another's alert.
+        if call["mandown_id"] and call["mandown_id"] == self.shown_incident:
+            return [{"type": "emergency", "emergency": self._copy_call(call)}]
+        return []
+
+    @property
+    def emergency(self) -> dict | None:
+        """The call for the incident on screen (None if it has no call yet)."""
+        md = self.mandown
+        if md is None:
+            return None
+        return next((c for c in reversed(list(self.calls.values())) if c["mandown_id"] == md["id"]), None)
+
+    @staticmethod
+    def _copy_call(call: dict | None) -> dict | None:
+        if call is None:
+            return None
+        return {**call, "steps": [dict(s) for s in call["steps"]], "transcript": list(call["transcript"])}
+
+    def _pair_if_shown_changed(self) -> list[dict]:
+        """When the incident on screen changes, send its own call (or none) right after it."""
+        md = self.mandown
+        shown = md["id"] if md else None
+        if shown == self.shown_incident:
+            return []
+        self.shown_incident = shown
+        return [{"type": "emergency", "emergency": self._copy_call(self.emergency)}]
 
     def _log_text(self, ev: dict) -> str | None:
         kind = ev["type"]
@@ -477,12 +537,37 @@ class FrontendAdapter:
             "sites": [self.site_status(s) for s in self.hub.sites],
             "alerts": list(self.alerts),
             "mandown": None if self.mandown is None else self._public(self.mandown),
-            "emergency": self.emergency, "demo": self.demo_state(), "reports": self.reports,
+            "emergency": self._copy_call(self.emergency), "demo": self.demo_state(), "reports": self.reports,
             "log": list(self.log)[-100:], "history": history,
             "band": list(self.band) if f["view"] != "crew" else [],
             # Personal offsets (body data): same rule as history, demo view or the worker's own.
             "offsets": {wid: self.offset_state(wid) for wid in history},
         }
+
+    def restore_alerts(self, events: list[dict]) -> None:
+        """
+        Rebuild the alert history from SQLite after a restart. History only: every restored alert is
+        closed (the live state restarts from scratch, so anything still true raises a fresh alert).
+        """
+        now = time.time()
+        for ev in events:
+            kind = ev.get("type")
+            wid, t = ev.get("worker_id"), ev.get("timestamp", now)
+            if kind == "heat_alert" and ev.get("level") in ("yellow", "red"):
+                k = "HEAT_YELLOW" if ev["level"] == "yellow" else "HEAT_RED"
+                a = self._new_alert(k, wid, ev.get("site_id"), t, f"{ALERT_WORDS[k]}: {wid}",
+                                    "forecaster" if ev.get("rule") == "forecast" else "Kalman estimate")
+            elif kind == "hazard" and ev.get("on"):
+                a = self._new_alert(ev["pattern"], None, ev.get("site_id"), t,
+                                    f"{ev['kind'].replace('_', ' ').capitalize()} at {ev.get('site_id')}", ev.get("source", ""))
+            elif kind == "mandown_check":
+                a = self._new_alert("MANDOWN", wid, ev.get("site_id"), t, f"Man-down check: {wid}", "tilt switch")
+            elif kind == "sos":
+                a = self._new_alert("SOS", wid, ev.get("site_id"), t, f"SOS from {ev.get('worker_name') or wid}",
+                                    f"SOS ({ev.get('source', 'band')})")
+            else:
+                continue
+            a["cleared_at"] = now
 
     def offset_state(self, wid: str) -> dict:
         """A worker's personal offset in the same flat shape as the offset_update event."""
@@ -490,11 +575,18 @@ class FrontendAdapter:
         return {"type": "offset_update", "worker_id": wid, "timestamp": p.last_t, "accepted": True,
                 **p.offset_status()}
 
+    @staticmethod
+    def for_view(f: dict, msg: dict) -> dict:
+        """The version of a message this view may see (crew: no body numbers in planner_change)."""
+        if msg["type"] == "planner_change" and f["view"] == "crew":
+            return {k: v for k, v in msg.items() if k not in PLANNER_BODY_FIELDS}
+        return msg
+
     def broadcast(self, msg: dict) -> None:
         for q, f in list(self.subscribers.items()):
             if self.can_see(f, msg):
                 try:
-                    q.put_nowait(msg)
+                    q.put_nowait(self.for_view(f, msg))
                 except asyncio.QueueFull:
                     pass
 
@@ -553,6 +645,9 @@ async def history(request: Request, worker_id: str, view: str = "crew", minutes:
         raise HTTPException(404, "unknown worker")
     if f["view"] == "crew":
         raise HTTPException(403, "crew view cannot read raw biometrics")
+    # A worker's phone may only read its own data: ?view=worker&worker_id=<the same worker>.
+    if f["view"] == "worker" and request.query_params.get("worker_id") != worker_id:
+        raise HTTPException(403, "a worker view can only read its own history")
     since = (a.hub.pipelines[worker_id].last_t or a.hub.now(worker_id)) - minutes * 60   # last N minutes of data
     return _clean({"vitals": [v for v in a.vitals.get(worker_id, []) if v["timestamp"] >= since],
                    "estimates": [e for e in a.estimates.get(worker_id, []) if e["timestamp"] >= since]})
@@ -661,8 +756,8 @@ async def resolve(request: Request, mandown_id: str):
     if wid not in a.hub.pipelines:
         raise HTTPException(404, "unknown man-down")
     if md and md["reason"] == "sos":
-        for msg in a._close_incident(wid, a.hub.now(wid), "resolved"):   # SOS never touched the detector
-            a.broadcast(msg)
+        for msg in a._close_incident(wid, a.hub.now(wid), "resolved") + a._pair_if_shown_changed():
+            a.broadcast(msg)                                              # SOS never touched the detector
     else:
         a.hub.resolve_mandown(wid)
     return {"ok": True}
@@ -674,8 +769,10 @@ async def cancel_call(request: Request, call_id: str):
     manager = getattr(request.app.state, "emergency", None)
     if manager is None:
         raise HTTPException(409, "emergency escalation (session D) is not merged in")
-    wid = a.emergency["worker_id"] if a.emergency and a.emergency["id"] == call_id else None
-    return {"ok": manager.cancel(incident_id=call_id, worker_id=wid)}
+    # By incident id ONLY: with two incidents open, a worker id could cancel the wrong call.
+    if call_id not in a.calls:
+        raise HTTPException(404, "unknown emergency call")
+    return {"ok": manager.cancel(incident_id=call_id)}
 
 
 @router.post("/api/demo/test-alert")
@@ -685,9 +782,10 @@ async def test_alert(request: Request, body: dict):
     if kind is None:
         raise HTTPException(400, "kind must be LIGHTNING or FLOOD_FIRE")
     bridge = getattr(request.app.state, "sites", None)
-    if bridge is not None:
-        bridge.test_alert(pattern, body.get("site_id"))     # C1's rules + countdown pick it up on refresh
     _a(request).hub.set_site_hazard(body.get("site_id"), kind, True, source="demo button")   # band reacts now
+    if bridge is not None:
+        bridge.test_alert(pattern, body.get("site_id"))     # C1's real rules + 30-min countdown
+        await bridge.rebuild_now()                          # ...and the site card shows it right away
     return {"ok": True}
 
 
@@ -696,27 +794,30 @@ async def clear_hazards(request: Request):
     hub = _a(request).hub
     bridge = getattr(request.app.state, "sites", None)
     if bridge is not None:
-        bridge.clear_test_hazards()
+        bridge.clear_test_hazards()      # bands clear now (below); the site card on C1's next rebuild
     for site, kinds in list(hub.hazards.items()):
         for kind in list(kinds):
             hub.set_site_hazard(site, kind, False, source="demo button")
     return {"ok": True}
 
 
+class DemoReplay(BaseModel):
+    on: bool | None = None
+    speed: float | None = Field(default=None, gt=0, le=600)
+
+
 @router.post("/api/demo/replay")
-async def demo_replay(request: Request, body: dict):
-    """{on?: bool, speed?: number}. Turning replay on starts the demo shift."""
+async def demo_replay(request: Request, body: DemoReplay):
+    """{on?: bool, speed?: number}. Turning replay on starts the demo shift. Bad values -> 422."""
     from backend.app.main import SETTINGS, make_replay
     a = _a(request)
-    speed = body.get("speed")
-    if speed is not None and not (0 < float(speed) <= 600):
-        raise HTTPException(400, "speed must be between 0 and 600")
-    if body.get("on") is True and a.hub.replay is None:
-        a.hub.start_replay(make_replay(a.hub, SETTINGS, speed=float(speed) if speed else None))
-    elif body.get("on") is False:
+    speed = body.speed
+    if body.on is True and a.hub.replay is None:
+        a.hub.start_replay(make_replay(a.hub, SETTINGS, speed=speed))
+    elif body.on is False:
         a.hub.stop_replay()
     elif speed is not None and a.hub.replay is not None:
-        a.hub.set_speed(float(speed))
+        a.hub.set_speed(speed)
     return a.demo_state()
 
 

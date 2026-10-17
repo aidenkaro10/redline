@@ -27,7 +27,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand, UDPBand
@@ -131,6 +131,8 @@ async def lifespan(app: FastAPI):
                  else "off until session H's ml/explain is merged")
     app.state.hub = hub
     app.state.frontend = FrontendAdapter(hub)           # the Next.js dashboard's contract (/ws/live)
+    if db:
+        app.state.frontend.restore_alerts(db.recent_alert_events())   # alert history survives a restart
     hub.add_listener(app.state.frontend.on_event)
     tasks = [asyncio.create_task(_tick_forever(hub, app.state.frontend))]
 
@@ -144,6 +146,12 @@ async def lifespan(app: FastAPI):
     app.state.planner = make_planner_bridge(hub) if s.planner else None
     if app.state.planner is not None:
         tasks.append(asyncio.create_task(app.state.planner.run()))
+        try:
+            # Session B's act-on-forecast: reads estimates, changes only the plan, sends planner_change events.
+            from backend.planner.proactive import attach
+            attach(hub)
+        except ImportError:
+            pass
 
     if s.source == "replay":
         hub.start_replay(make_replay(hub, s))
@@ -253,14 +261,17 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     ble_on = False
     if s.ble:
         from backend.ingest import ble_hr
-        if ble_hr.available():
-            reader = ble_hr.BleHeartRate(hub, config.WORKER_ID, wanted=s.ble_device or None)
+        if not ble_hr.safe_to_scan():
+            log.info("Bluetooth heart rate off (test suite or PLANIT_BLE=off)")
+        elif not ble_hr.available():
+            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
+        else:
+            # In a helper process: if macOS refuses Bluetooth it kills that process, not this server.
+            reader = ble_hr.BleHelper(hub, config.WORKER_ID, wanted=s.ble_device or None)
             tasks.append(asyncio.create_task(reader.run()))
             ble_on = True
             log.info("Bluetooth heart rate started (%s). macOS asks for Bluetooth permission the first time.",
                      f"device {s.ble_device!r}" if s.ble_device else "first heart rate device found")
-        else:
-            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
     if config.PULSOID_TOKEN and not s.no_pulsoid:
         tasks.append(asyncio.create_task(pulsoid_client.run(hub, config.PULSOID_TOKEN, worker_id=config.WORKER_ID)))
         log.info("Pulsoid heart rate client started")
@@ -450,7 +461,7 @@ class SiteRequest(BaseModel, extra="allow"):
 
 class SpotCheck(BaseModel):
     worker_id: str
-    thermometer_c: float                # ear or oral thermometer reading, °C
+    thermometer_c: float = Field(ge=34, le=42)   # ear or oral thermometer reading, °C (outside: 422)
     timestamp: float | None = None      # when it was taken (default: now on that worker's clock)
 
 

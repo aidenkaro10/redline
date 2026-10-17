@@ -76,6 +76,12 @@ class SiteBridge:
     def clear_test_hazards(self) -> None:
         self.contract.clear_test_hazards()
 
+    async def rebuild_now(self) -> None:
+        """Rebuild C1's picture right away (on a thread) and refresh, so a demo button shows on the
+        site card at once instead of after C1's next 60 s rebuild + our 15 s poll."""
+        await asyncio.to_thread(self.picture.hazard_picture)
+        self.refresh()
+
     async def run(self) -> None:
         self.picture.start_background_refresh(60)
         while True:

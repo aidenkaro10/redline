@@ -61,6 +61,8 @@ class Hub:
         self.demo = demo
         self.sites: dict[str, dict] = {}
         self.default_site_id = self.add_site(site or DEFAULT_SITE)
+        if self.db:
+            self.schedule = self.db.load_kv("schedule")  # last schedule survives a restart (breaks on cards)
         self.workers: dict[str, dict] = {}
         self.pipelines: dict[str, WorkerPipeline] = {}
         self.clocks: dict[str, object] = {}
@@ -70,7 +72,8 @@ class Hub:
         self.hazards: dict[str, dict[str, dict]] = {}     # site_id -> kind -> latest hazard event
         self.site_status: dict[str, dict] = {}            # site_id -> full status pushed by session C1
         self.plans: list[dict] = []
-        self.schedule: dict | None = None               # the planner's current verified schedule (session B)
+        if not hasattr(self, "schedule"):
+            self.schedule: dict | None = None           # the planner's current verified schedule (session B)
         self.replay = None              # the running Replay, if any
         self.replay_task: asyncio.Task | None = None
         self.real_clock = RealClock()
@@ -222,12 +225,14 @@ class Hub:
                 self.db.log_event(ev)
             if kind not in QUIET_EVENTS:
                 self.recent.append(ev)
+            # Broadcast first: a listener (session D) may react with events of its own, and those
+            # must reach the dashboards AFTER the event that caused them.
+            self.broadcast(ev)
             for listener in self.listeners:
                 try:
                     listener(ev)
                 except Exception as e:
                     log.warning("listener failed on %s: %s", kind, e)
-            self.broadcast(ev)
 
     def _add_why(self, ev: dict) -> None:
         """
@@ -237,7 +242,8 @@ class Hub:
         wid = ev["worker_id"]
         ev["why"] = self.whys.get(wid, {}).get("why")
         p = self.pipelines.get(wid)
-        if self.why is not None and self.why.enabled and ev.get("forecast") and p and not ev.get("preroll"):
+        if (self.why is not None and self.why.enabled and ev.get("forecast") and p
+                and not ev.get("preroll") and not ev.get("refresh")):
             self.why.request(wid, p._model_arrays(), p.n_minutes - 1)
 
     def on_why(self, worker_id: str, minute: int, result: dict) -> None:
@@ -330,6 +336,8 @@ class Hub:
     def set_schedule(self, schedule: dict) -> None:
         """Session B's current schedule (frontend Schedule shape). Drives on_break / break_at."""
         self.schedule = schedule
+        if self.db:
+            self.db.save_kv("schedule", schedule)
         self.dispatch([{"type": "schedule", "timestamp": self.real_clock.now(), "schedule": schedule}])
 
     def set_site_status(self, site_id: str, status: dict) -> None:
