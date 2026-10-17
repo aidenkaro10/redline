@@ -20,7 +20,8 @@ import argparse
 import json
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import multiprocessing
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from ml.local_planner.common import DATA_DIR, limit_solver_threads, out_dir
 
@@ -41,25 +42,33 @@ class BudgetExceeded(RuntimeError):
 
 
 class Budget:
-    """Dollars spent so far, shared by all threads. Refuses calls that could push us over the cap."""
+    """
+    Dollars spent so far, shared by all worker processes. Refuses calls that could push us over the cap.
+    Pass state=manager.dict() and lock=manager.Lock() to share it across processes.
+    """
 
-    def __init__(self, cap_usd: float, already_spent: float = 0.0):
+    def __init__(self, cap_usd: float, already_spent: float = 0.0, state=None, lock=None):
         self.cap = cap_usd
-        self.spent = already_spent
-        self.reserved = 0.0
-        self.lock = threading.Lock()
+        self.state = state if state is not None else {}
+        self.state.update({"spent": already_spent, "reserved": 0.0})
+        self.lock = lock if lock is not None else threading.Lock()
+
+    @property
+    def spent(self) -> float:
+        return self.state["spent"]
 
     def reserve(self, est: float) -> None:
         with self.lock:
-            if self.spent + self.reserved + est > self.cap:
-                raise BudgetExceeded(f"cap ${self.cap:.2f}: spent ${self.spent:.2f}, in flight ${self.reserved:.2f}")
-            self.reserved += est
+            spent, reserved = self.state["spent"], self.state["reserved"]
+            if spent + reserved + est > self.cap:
+                raise BudgetExceeded(f"cap ${self.cap:.2f}: spent ${spent:.2f}, in flight ${reserved:.2f}")
+            self.state["reserved"] = reserved + est
 
     def settle(self, est: float, actual: float) -> float:
         with self.lock:
-            self.reserved -= est
-            self.spent += actual
-            return self.spent
+            self.state["reserved"] = self.state["reserved"] - est
+            self.state["spent"] = self.state["spent"] + actual
+            return self.state["spent"]
 
 
 def call_kind(system: str | None, prompt: str) -> str:
@@ -154,7 +163,7 @@ def load_pool() -> list[Scenario]:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--cap", type=float, default=30.0, help="hard US$ cap for ALL teacher runs together")
-    ap.add_argument("--workers", type=int, default=3, help="scenarios planned at once")
+    ap.add_argument("--workers", type=int, default=3, help="scenarios planned at once (separate processes)")
     ap.add_argument("--with-critic", action="store_true", help="also ask Claude for the critic step (2x cost)")
     ap.add_argument("--limit", type=int, default=0, help="only run this many new scenarios (0 = all)")
     args = ap.parse_args()
@@ -165,12 +174,14 @@ def main():
     todo = [sc for sc in pool if not (RUNS_DIR / f"{sc.id}.json").exists()]
     if args.limit:
         todo = todo[:args.limit]
-    budget = Budget(args.cap, spent_so_far())
+    manager = multiprocessing.Manager()           # shares the budget between worker processes
+    budget = Budget(args.cap, spent_so_far(), state=manager.dict(), lock=manager.Lock())
     print(f"{len(pool)} training scenarios, {len(todo)} to run. Spent so far ${budget.spent:.2f} of ${args.cap:.2f}.",
           flush=True)
 
     t0, done, stopped = time.time(), 0, 0
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
+    # Processes, not threads: the heat model's numba code isn't thread-safe.
+    with ProcessPoolExecutor(max_workers=args.workers, initializer=limit_solver_threads) as ex:
         futs = {ex.submit(run_one, sc, budget, not args.with_critic): sc for sc in todo}
         for fut in as_completed(futs):
             sc = futs[fut]

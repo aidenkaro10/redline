@@ -15,6 +15,8 @@ from pathlib import Path
 # Keep numpy single-threaded per process (other sessions train on this laptop too).
 for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "MKL_NUM_THREADS"):
     os.environ.setdefault(_var, "1")
+# The heat model's PHS code runs on numba; 2 threads per process keeps 3 processes at ~6 threads.
+os.environ.setdefault("NUMBA_NUM_THREADS", os.getenv("LOCAL_PLANNER_NUMBA_THREADS", "2"))
 
 DATA_DIR = Path(os.getenv("LOCAL_PLANNER_DATA", "data/local_planner"))
 CKPT_DIR = Path(os.getenv("LOCAL_PLANNER_CKPT", "ml/checkpoints/local_planner"))
