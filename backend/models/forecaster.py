@@ -115,8 +115,9 @@ class ForecasterPredictor:
             models.append(m)
         cal = ckpt.get("calibration") if calibrated else None
         name = ckpt.get("name", Path(path).stem) + ("+conformal" if cal else "")
-        # People used for calibration count as "seen": the harness won't score on them.
-        seen = set(ckpt.get("trained_on", [])) | set(ckpt.get("calibrated_on", []))
+        # People used for calibration count as "seen" (the harness won't score on them),
+        # but only when that calibration is actually applied.
+        seen = set(ckpt.get("trained_on", [])) | (set(ckpt.get("calibrated_on", [])) if cal else set())
         return cls(models, seen, name, cal)
 
     def fit(self, sessions):

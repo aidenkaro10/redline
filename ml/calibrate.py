@@ -79,27 +79,52 @@ def fit_calibration(predictor: ForecasterPredictor, sessions: list[Session]) -> 
     return {"offsets": offsets.tolist(), "now_scale": now_scale}
 
 
+def coverage(predictor: ForecasterPredictor, cal: dict, sessions: list[Session]) -> dict[int, float]:
+    """Share of truths under the calibrated 90th percentile at +10/+20/+30 min."""
+    misses, _ = collect_misses(predictor, sessions)
+    off = np.array(cal["offsets"])
+    return {k: float(np.mean(misses[k - 1][2] <= off[k - 1, 2])) for k in (10, 20, 30)}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", required=True)
+    ap.add_argument("--people", default="calib", choices=["calib", "calib+val"],
+                    help="who to calibrate on; calib+val (20 people) is steadier but uses up the val people")
+    ap.add_argument("--swap-check", action="store_true",
+                    help="calibrate on calib -> measure on val, and val -> calib, then report (writes nothing)")
     args = ap.parse_args()
 
     raw = ForecasterPredictor.load(args.model, calibrated=False)
     split = load_split("mendeley")
-    calib = sessions_in(load_mendeley(), split["calib"])
-    assert_no_overlap(raw.trained_on, set(split["calib"]))
+    data = load_mendeley()
+
+    if args.swap_check:
+        a, b = sessions_in(data, split["calib"]), sessions_in(data, split["val"])
+        assert_no_overlap(raw.trained_on, set(split["calib"]) | set(split["val"]))
+        for name_fit, fit_on, name_test, test_on in (("calib", a, "val", b), ("val", b, "calib", a)):
+            cov = coverage(raw, fit_calibration(raw, fit_on), test_on)
+            print(f"fit on {name_fit:5} -> 90th pct coverage on {name_test:5}: "
+                  + "  ".join(f"+{k}m {v:.2f}" for k, v in cov.items()) + "   (target 0.90)")
+        return
+
+    people = split["calib"] + (split["val"] if args.people == "calib+val" else [])
+    calib = sessions_in(data, people)
+    assert_no_overlap(raw.trained_on, set(people))
 
     cal = fit_calibration(raw, calib)
     ckpt = torch.load(args.model, map_location="cpu", weights_only=False)
     ckpt["calibration"] = cal
-    ckpt["calibrated_on"] = sorted(split["calib"])
+    ckpt["calibrated_on"] = sorted(people)
     torch.save(ckpt, args.model)
 
     off = np.array(cal["offsets"])
-    print(f"Calibrated on {len(split['calib'])} people ({len(calib)} sessions).")
+    print(f"Calibrated on {len(people)} people ({len(calib)} sessions).")
     for k in (10, 20, 30):
         print(f"  +{k} min: 10th pct shift {off[k - 1, 0]:+.3f} °C, 90th pct shift {off[k - 1, 2]:+.3f} °C")
     print(f"  NOW uncertainty scale x{cal['now_scale']:.2f}")
+    if args.people == "calib+val":
+        print("  Note: val people are now 'seen'. Score on test people only from here (once).")
 
 
 if __name__ == "__main__":
