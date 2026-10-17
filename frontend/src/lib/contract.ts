@@ -227,6 +227,8 @@ export interface EmergencyCall {
   outcome: string | null;
   /** Only when built from session D's events: dry_run = nothing dialed, fake = pretend phone, live = a real phone rang. */
   mode?: EmergencyMode;
+  /** Who the notify step couldn't reach by phone (e.g. "Crew lead"), so the screen never shows a false check mark. */
+  unreached?: string[];
 }
 
 // ---------------------------------------------------------------------------

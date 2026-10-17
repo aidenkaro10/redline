@@ -197,16 +197,22 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
           const done = call.stage !== "cancelled" && i < idx;
           const current = i === idx;
           const broke = current && call.stage === "failed";
+          // Notify step done, but a phone call didn't go through: a "!" instead of a check mark.
+          const partial = done && s.stage === "notifying" && (call.unreached?.length ?? 0) > 0;
           return (
             <li key={s.stage} className="flex flex-col gap-1.5">
-              <span className={`h-1.5 rounded-full ${done ? "bg-ok" : current ? "bg-danger" : "bg-surface-2"}`} />
-              <span className={`text-[11px] leading-tight sm:text-xs ${broke ? "font-black text-danger-ink" : current ? "font-bold text-ink" : done ? "text-ink-2" : "text-muted"}`}>
-                {done ? "✓ " : ""}{broke ? "✗ Call failed" : s.label}
+              <span className={`h-1.5 rounded-full ${partial ? "bg-warn" : done || (current && call.stage === "done") ? "bg-ok" : current ? "bg-danger" : "bg-surface-2"}`} />
+              <span className={`text-[11px] leading-tight sm:text-xs ${broke ? "font-black text-danger-ink" : partial ? "font-bold text-warn-ink" : current ? "font-bold text-ink" : done ? "text-ink-2" : "text-muted"}`}>
+                {partial ? "! " : done ? "✓ " : ""}{broke ? "✗ Call failed" : s.label}
               </span>
             </li>
           );
         })}
       </ol>
+
+      {(call.unreached?.length ?? 0) > 0 && (
+        <p className="mt-3 text-sm font-semibold text-warn-ink">Phone alert didn&apos;t go through to: {call.unreached!.join(", ")}. Tell them yourself.</p>
+      )}
 
       {call.stage === "cancelled" && <p className="mt-3 font-semibold text-ok-ink">{call.outcome}</p>}
 

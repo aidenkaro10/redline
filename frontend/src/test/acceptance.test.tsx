@@ -374,6 +374,24 @@ test("11 crew: emergency call steps show in order; a failed call shows the big c
   assert.ok(text(render(<CrewApp />, f)).includes(CALL_FAILED_TEXT));
 });
 
+test("11 crew: a notify call that didn't go through never shows a green check", () => {
+  const fall = msgs("crew", "mandown").filter((e) => (e as { mandown: { stage: string; reason: string } | null }).mandown?.stage === "confirmed"
+    && (e as { mandown: { reason: string } }).mandown.reason === "fall").at(-1)!;
+  let s: LiveState = { ...stateOf(CREW, [snapshot("crew"), clone(fall)]), emergency: null };
+  const seq = dSequence("demo-4");
+  // Same as the replay run without phone numbers in .env: the safety officer call fails.
+  const skipped = { ...(seq[1] as object), target: "safety_officer", status: "failed", message: "No safety_officer number set in .env. Call skipped." } as unknown as LiveEvent;
+  s = applyEvents(s, [seq[0], seq[1], skipped, seq[2]]);
+  assert.deepEqual(s.emergency!.unreached, ["Safety officer"]);
+  const t = text(render(<CrewApp />, s));
+  assert.match(t, /! Notify crew lead \+ safety officer/);
+  assert.doesNotMatch(t, /✓ Notify/);
+  assert.match(t, /didn't go through to: Safety officer/);
+  // The happy path keeps its check mark.
+  const ok = applyEvents({ ...stateOf(CREW, [snapshot("crew"), clone(fall)]), emergency: null }, seq.slice(0, 3));
+  assert.match(text(render(<CrewApp />, ok)), /✓ Notify/);
+});
+
 test("11 crew (real payload): the recorded call passes through calling and connected", { todo: "backend gap: in dry-run mode the live feed's emergency goes cancel_window -> done; no calling / connected step is ever sent, so those steps never light up" }, () => {
   const stages = new Set(msgs("crew", "emergency").map((e) => (e as { emergency: { stage: string } | null }).emergency?.stage));
   assert.ok(stages.has("calling") && stages.has("connected"), "our recording");
