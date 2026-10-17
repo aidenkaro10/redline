@@ -53,7 +53,10 @@ class FrontendAdapter:
         self.active_heat_alert: dict[str, dict] = {}            # worker -> their open heat Alert
         self.active_hazard_alert: dict[tuple, dict] = {}        # (site, kind) -> open hazard Alert
         self.incidents: dict[str, dict] = {}                     # worker -> open man-down / SOS incident
-        self.emergency: dict | None = None
+        # One EmergencyCall per incident, keyed by session D's incident id. Never shared between
+        # incidents: two SOS presses seconds apart must never mix names, ids or cancel buttons.
+        self.calls: dict[str, dict] = {}
+        self.shown_incident: str | None = None          # the man-down/SOS incident the dashboards show
         self.band: deque = deque(maxlen=100)
         self.log: deque = deque(maxlen=200)
         self.vitals: dict[str, deque] = {}
@@ -96,8 +99,10 @@ class FrontendAdapter:
             out.append({"type": "band_command", "band": b})
         elif kind.startswith("mandown_"):
             out += self._mandown(ev)
+            out += self._pair_if_shown_changed()
         elif kind == "sos":
             out += self._sos(ev)
+            out += self._pair_if_shown_changed()
         elif kind == "emergency_status":
             out += self._emergency(ev)
         elif kind == "worker_removed":
@@ -432,14 +437,20 @@ class FrontendAdapter:
             mapped = "connected" if status in ("connected", "completed") else "calling"
         else:
             mapped = "cancelled" if status == "cancelled" else "done"
-        call = self.emergency if self.emergency and self.emergency["id"] == ev["incident_id"] else None
+        call = self.calls.get(ev["incident_id"])
         if call is None:
-            call = self.emergency = {
-                "id": ev["incident_id"], "mandown_id": (self.mandown or {}).get("id", ""),
-                "worker_id": ev["worker_id"], "stage": mapped, "started_at": ev["timestamp"],
+            # The call belongs to THIS worker's incident (not whichever incident is newest).
+            wid = ev["worker_id"]
+            incident = self.incidents.get(wid) or {}
+            call = self.calls[ev["incident_id"]] = {
+                "id": ev["incident_id"], "mandown_id": incident.get("id", ""),
+                "worker_id": wid, "worker_name": self.hub.workers.get(wid, {}).get("name", wid),
+                "stage": mapped, "started_at": ev["timestamp"],
                 "cancel_deadline": None, "demo": True, "target_label": "Demo: would call 911",
                 "steps": [], "transcript": [], "outcome": None,
             }
+            while len(self.calls) > 50:
+                self.calls.pop(next(iter(self.calls)))
         call["stage"] = mapped
         call["demo"] = ev.get("mode") != "live" or bool(ev.get("demo_label"))
         if ev.get("demo_label"):
@@ -449,7 +460,34 @@ class FrontendAdapter:
         call["steps"].append({"at": ev["timestamp"], "stage": mapped, "text": ev.get("message", "")})
         if mapped in ("done", "cancelled"):
             call["outcome"] = ev.get("message") or mapped
-        return [{"type": "emergency", "emergency": call}]
+        # The contract has ONE emergency slot next to ONE man-down: only send the call that belongs
+        # to the incident on screen, so a projector never shows one worker's call beside another's alert.
+        if call["mandown_id"] and call["mandown_id"] == self.shown_incident:
+            return [{"type": "emergency", "emergency": self._copy_call(call)}]
+        return []
+
+    @property
+    def emergency(self) -> dict | None:
+        """The call for the incident on screen (None if it has no call yet)."""
+        md = self.mandown
+        if md is None:
+            return None
+        return next((c for c in reversed(list(self.calls.values())) if c["mandown_id"] == md["id"]), None)
+
+    @staticmethod
+    def _copy_call(call: dict | None) -> dict | None:
+        if call is None:
+            return None
+        return {**call, "steps": [dict(s) for s in call["steps"]], "transcript": list(call["transcript"])}
+
+    def _pair_if_shown_changed(self) -> list[dict]:
+        """When the incident on screen changes, send its own call (or none) right after it."""
+        md = self.mandown
+        shown = md["id"] if md else None
+        if shown == self.shown_incident:
+            return []
+        self.shown_incident = shown
+        return [{"type": "emergency", "emergency": self._copy_call(self.emergency)}]
 
     def _log_text(self, ev: dict) -> str | None:
         kind = ev["type"]
@@ -499,7 +537,7 @@ class FrontendAdapter:
             "sites": [self.site_status(s) for s in self.hub.sites],
             "alerts": list(self.alerts),
             "mandown": None if self.mandown is None else self._public(self.mandown),
-            "emergency": self.emergency, "demo": self.demo_state(), "reports": self.reports,
+            "emergency": self._copy_call(self.emergency), "demo": self.demo_state(), "reports": self.reports,
             "log": list(self.log)[-100:], "history": history,
             "band": list(self.band) if f["view"] != "crew" else [],
             # Personal offsets (body data): same rule as history, demo view or the worker's own.
@@ -718,8 +756,8 @@ async def resolve(request: Request, mandown_id: str):
     if wid not in a.hub.pipelines:
         raise HTTPException(404, "unknown man-down")
     if md and md["reason"] == "sos":
-        for msg in a._close_incident(wid, a.hub.now(wid), "resolved"):   # SOS never touched the detector
-            a.broadcast(msg)
+        for msg in a._close_incident(wid, a.hub.now(wid), "resolved") + a._pair_if_shown_changed():
+            a.broadcast(msg)                                              # SOS never touched the detector
     else:
         a.hub.resolve_mandown(wid)
     return {"ok": True}
@@ -731,8 +769,10 @@ async def cancel_call(request: Request, call_id: str):
     manager = getattr(request.app.state, "emergency", None)
     if manager is None:
         raise HTTPException(409, "emergency escalation (session D) is not merged in")
-    wid = a.emergency["worker_id"] if a.emergency and a.emergency["id"] == call_id else None
-    return {"ok": manager.cancel(incident_id=call_id, worker_id=wid)}
+    # By incident id ONLY: with two incidents open, a worker id could cancel the wrong call.
+    if call_id not in a.calls:
+        raise HTTPException(404, "unknown emergency call")
+    return {"ok": manager.cancel(incident_id=call_id)}
 
 
 @router.post("/api/demo/test-alert")

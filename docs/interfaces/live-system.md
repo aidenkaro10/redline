@@ -84,6 +84,8 @@ Heart rate can also come from the watch through Pulsoid (online, tagged `watch`)
 
 ### Small rules worth knowing
 
+- One `EmergencyCall` per incident, keyed by session D's incident id; its `mandown_id` is that worker's own incident. The single `emergency` slot (snapshot and live) always holds the call that belongs to the `mandown` on screen; when the incident on screen changes, its own call (or `null`) is sent right after it. Calls for other open incidents keep running and show when their incident is on screen. `EmergencyCall.worker_name` is an extra field.
+
 - `WorkerStatus.status_reason` says "Heart rate missing" when a worker's other readings keep coming but no heart rate arrived for 2 minutes (the Kalman then only predicts; red, man-down and SOS still take priority).
 - `/api/demo/test-alert` turns the bands on at once AND rebuilds C1's picture so the site card shows the stop-work right away. `/api/demo/clear-hazards` clears the bands at once; the site card follows on C1's next rebuild.
 - Events are broadcast before in-process listeners run, so an `emergency_status` always arrives after the `mandown_confirmed` that caused it.
@@ -120,7 +122,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | POST | `/api/workers/{id}/sos` | | same as band `BTN:SOS`; `{ok, action: escalated \| ignored_active_incident}` |
 | POST | `/api/alerts/{id}/ack` | | HEAT_RED = band button press; others marked seen |
 | POST | `/api/mandown/{id}/resolve` | | closes a man-down or SOS incident (incident id or worker id) |
-| POST | `/api/emergency/{id}/cancel` | | crew lead "cancel, false alarm" (D's manager) |
+| POST | `/api/emergency/{id}/cancel` | | crew lead "cancel, false alarm" for THAT call: `id` is the call's incident id (`EmergencyCall.id`); 404 if unknown. Never by worker id, so two open incidents can't be mixed up |
 | POST | `/api/demo/threshold` | `{on}` | DemoState |
 | POST | `/api/demo/replay` | `{on?, speed?}` (speed > 0 and ≤ 600, else 422) | DemoState |
 | POST | `/api/demo/scenario` | `{action: start\|stop}` | DemoState (start = restart the demo shift) |
