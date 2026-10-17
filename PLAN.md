@@ -135,17 +135,24 @@ The trick: we can't observe core temp live, but we can observe heart rate.
 7. **The proof (simulator, where truth is known):** show that adapting on HR alone lowers core temp forecast error. Then check on real data. If it fails, we know early.
 8. **Guardrails, hard-coded:** safety thresholds never learned, updates capped, uncertain predictions lean cautious, ignored alerts never teach the system someone "can handle more."
 9. **Demo:** two simulated weeks for one worker, with a chart of their error dropping day by day.
+10. **Adversarial curriculum (Loop 4, Absolute Zero style):** a proposer searches simulator settings for cases where the 90th percentile misses the true core temp. Keep the ones the model gets right only sometimes, train on them, repeat. Gate on held-out real data.
 
-## Phase 7: planning agent
+## Phase 7: self-improving planning agent
 
-Self-improving agent design waits for the Stanford course material. Base version:
+Full design: [docs/research/self-improving-design.md](docs/research/self-improving-design.md). Course notes: [docs/research/cs329a-notes.md](docs/research/cs329a-notes.md).
 
-1. **Precompute** with the twins: how much heat each task adds for each worker in each 30-min slot.
-2. **Optimizer** (OR-Tools CP-SAT): schedule tasks and breaks under each worker's heat budget, avoiding NWS hazard windows.
-3. **Verify** the schedule with the full model. If anyone's 90th percentile crosses the limit, block it and solve again.
-4. **Claude agent** with tools (`get_forecast`, `get_crew_status`, `run_optimizer`, `simulate_schedule`): chat, morning briefing, what-if questions.
-5. **Learns over time:** logs planned vs actual strain; keeps notes on non-safety preferences.
-6. **Hard line:** alerts never go through the LLM. It can't change limits. Every schedule must pass the optimizer and the full-model check.
+1. **Scenario benchmark first:** scenario format, automatic scoring (safety violations, peak strain, throughput, fairness, latency, cost, reliability over 5 runs), fixed held-out test scenarios, the 5 baselines.
+2. **Rule checker** (code, not LLM): every hard safety rule. Every plan passes through it.
+3. **Heat costs:** use the twins to precompute how much heat each task adds per worker per 30-min slot.
+4. **Optimizer** (OR-Tools CP-SAT) under each worker's heat budget, avoiding NWS windows. Solve, check with the full model, block and re-solve if anyone crosses the limit.
+5. **Claude agent with tools** (`get_forecast`, `get_crew_status`, `run_optimizer`, `simulate_schedule`): chat, morning briefing, what-ifs.
+6. **Archon-style planning:** many candidates (varied optimizer objectives + LLM ideas), verify all, cluster by outcome, critic + meta-check, fuse, re-verify.
+7. **Weaver-style verifier weights:** learn how much to trust each forecaster model, simulator and twin from real outcomes.
+8. **Loop 2, playbook (ACE + Reflexion):** after each shift, reflect on plan vs actual, curate small lesson updates, gate on held-out past days, code-filter anything touching safety.
+9. **Loop 4 for the planner:** a proposer generates stress scenarios at the edge of what the agent handles. They become the training scenario bank.
+10. **Loop 3, agent evolution (GEPA + Darwin Gödel Machine), offline:** evolve the prompt and strategy settings with reflective mutation and a Pareto archive. Final pick on held-out scenarios.
+11. **Demo:** day 1 vs day 14 agent on the same heat wave, the growing playbook, the agent family tree, zero violations in every version.
+12. **Hard line:** alerts never go through the LLM. It can't change limits. The LLM proposes; the rule checker approves.
 
 ## Phase 8: hazards and man-down
 
@@ -188,7 +195,7 @@ Sweat, man-down classifier, explainability, CAVIA training (keep plain twins), a
 ## Waiting on
 
 - Aiden: dataset names/links (found + requested).
-- Aiden: Stanford self-improving agents course material.
+- Aiden: OK on hand-writing the GEPA and ACE loops instead of installing their libraries.
 - Hardware team: UDP on port 5005? Button stops the repeat buzz on its own and still sends `BTN:1`? Diode calibration on the band?
 
 ## Risks
