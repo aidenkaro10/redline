@@ -131,3 +131,25 @@ def test_known_future_context_reaches_forecaster():
     eb = of(feed(b, 20, 140), "estimate")[-1]
     assert ea["kalman"] == eb["kalman"]                          # same heart rate, same Kalman
     assert ea["forecast"]["p90"][19] != eb["forecast"]["p90"][19]
+
+
+def test_mandown_confirmed_matches_session_d_fields():
+    p = WorkerPipeline("w1", site={"site_id": "s1", "name": "Plant A", "lat": 29.6, "lon": -82.3})
+    p.trigger_mandown(0.0, "heat_red_unacknowledged")
+    ev = of(p.tick(config.MANDOWN_ESCALATE_S), "mandown_confirmed")[0]
+    for key in ("worker_id", "worker_name", "site_id", "site_name", "lat", "lon", "trigger",
+                "started_at", "confirmed_at", "last_movement_at", "core_temp_c", "hr_bpm", "skin_temp_c"):
+        assert key in ev
+    assert ev["trigger"] == "heat_red_unacked" and ev["confirmed_at"] == config.MANDOWN_ESCALATE_S
+
+
+def test_sos_line_emits_sos_event_without_cancelling():
+    from backend.app.schemas import events_from_line
+    p = WorkerPipeline("w1")
+    p.trigger_mandown(0.0, "demo")
+    events = []
+    for e in events_from_line("BTN:SOS", "w1", 5.0):
+        events += p.handle(e)
+    sos = of(events, "sos")
+    assert sos and sos[0]["pressed_at"] == 5.0 and "worker_name" in sos[0]
+    assert p.mandown.state == "checking"

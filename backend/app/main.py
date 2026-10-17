@@ -61,6 +61,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
     ap.add_argument("--record", action="store_true", help="save live inputs to data/recordings/*.jsonl")
     ap.add_argument("--db", default=config.DB_PATH, help="SQLite file ('' = no database)")
+    ap.add_argument("--emergency-phone", choices=["dry_run", "fake", "live"], default="dry_run",
+                    help="session D's phone backend for confirmed man-down calls (never dials 911)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=config.SERVER_PORT)
     return ap.parse_args(argv)
@@ -121,6 +123,8 @@ async def lifespan(app: FastAPI):
     app.state.hub = hub
     tasks = [asyncio.create_task(_tick_forever(hub))]
 
+    tasks += wire_emergency(hub, s)
+
     if s.source == "replay":
         hub.start_replay(make_replay(hub, s))
     elif s.source == "live":
@@ -148,6 +152,10 @@ def print_key_event(ev: dict) -> None:
         v = ev["last_vitals"]
         text = (f"MANDOWN_CONFIRMED {ev['worker_name']} at {ev['site_name']} ({ev['reason']}, "
                 f"{ev['seconds_since_start']:.0f} s, core {v['core_temp']} °C, HR {v['hr']})")
+    elif kind == "sos":
+        text = f"SOS from {ev['worker_name']} at {ev['site_name']}"
+    elif kind == "emergency_status":
+        text = f"emergency {ev['stage']}/{ev['status']} {ev.get('target') or ''} {ev.get('demo_label') or ''}".strip()
     elif kind in ("mandown_check", "mandown_cancelled", "mandown_resolved", "heat_ack", "red_unacknowledged"):
         text = kind + "".join(f" {k}={ev[k]}" for k in ("reason", "by") if ev.get(k))
     elif kind == "hazard":
@@ -155,6 +163,32 @@ def print_key_event(ev: dict) -> None:
     else:
         return
     print(f"{time.strftime('%H:%M:%S')} [event {who}] {text}", flush=True)
+
+
+def wire_emergency(hub: Hub, s) -> list[asyncio.Task]:
+    """
+    Session D's escalation (backend/emergency/), if that code is merged in.
+    Fixed rule, plain code: every "mandown_confirmed" or "sos" event goes to the
+    manager; its "emergency_status" updates go back out to the dashboard.
+    """
+    try:
+        from backend.emergency.escalation import EscalationManager
+        from backend.emergency.voice_agent import make_phone
+    except ImportError:
+        log.info("Emergency escalation (session D) not merged yet: man-down events still go to the dashboard")
+        app.state.emergency = None
+        return []
+    manager = EscalationManager(phone=make_phone(s.emergency_phone),
+                                emit=lambda status: hub.dispatch([status.model_dump()]))
+
+    def on_event(ev: dict) -> None:
+        if ev["type"] in ("mandown_confirmed", "sos"):
+            manager.handle(ev)
+
+    hub.add_listener(on_event)
+    app.state.emergency = manager
+    log.info("Emergency escalation wired (%s phone)", s.emergency_phone)
+    return [asyncio.create_task(manager.run())]
 
 
 async def _tick_forever(hub: Hub):
@@ -326,6 +360,22 @@ def demo_button(body: WorkerRequest):
     _worker(body.worker_id)
     hub_of().press_button(body.worker_id)
     return {"ok": True}
+
+
+@app.post("/api/demo/sos")
+def demo_sos(body: WorkerRequest):
+    _worker(body.worker_id)
+    hub_of().press_sos(body.worker_id)
+    return {"ok": True}
+
+
+@app.post("/api/emergency/cancel")
+def emergency_cancel(body: WorkerRequest):
+    """Crew lead: "cancel, false alarm". False if there's nothing to cancel or it's too late."""
+    manager = getattr(app.state, "emergency", None)
+    if manager is None:
+        raise HTTPException(409, "emergency escalation (session D) is not merged in")
+    return {"cancelled": manager.cancel(worker_id=body.worker_id)}
 
 
 @app.post("/api/mandown/{worker_id}/resolve")

@@ -17,7 +17,7 @@ import heapq
 import itertools
 import logging
 
-from backend.app.schemas import ButtonPress, Reading
+from backend.app.schemas import ButtonPress, Reading, SosPress
 from backend.replay.clock import VirtualClock
 from backend.replay.shifts import READ_EVERY_S, ReplayPlan, ScheduledItem
 
@@ -84,6 +84,8 @@ class Replay:
             self.sink.set_context(item.worker_id, **item.data)
         elif item.kind == "button":
             self.sink.handle_input(ButtonPress(worker_id=item.worker_id, timestamp=t), source="replay")
+        elif item.kind == "sos":
+            self.sink.handle_input(SosPress(worker_id=item.worker_id, timestamp=t), source="replay")
         elif item.kind == "reading":
             data = dict(item.data)
             if self.fallen_until.get(item.worker_id, -1e18) > t - self.start:

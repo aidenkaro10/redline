@@ -22,7 +22,7 @@ from backend import config
 from backend.alerts.heat import RED, YELLOW, HeatAlerter, HeatInputs
 from backend.alerts.mandown import ManDownDetector
 from backend.alerts.router import BandRouter
-from backend.app.schemas import ButtonPress, Reading
+from backend.app.schemas import ButtonPress, Reading, SosPress
 from backend.models.kalman import ECTempKalman
 
 log = logging.getLogger(__name__)
@@ -78,10 +78,15 @@ class WorkerPipeline:
     # ------------------------------------------------------------------
     # Inputs
     # ------------------------------------------------------------------
-    def handle(self, event: Reading | ButtonPress) -> list[dict]:
+    def handle(self, event: Reading | ButtonPress | SosPress) -> list[dict]:
         t = event.timestamp
         events = self._advance(t)
-        if isinstance(event, ButtonPress):
+        if isinstance(event, SosPress):
+            # Held the button 3 s: session D escalates right away. A deliberate press is also
+            # movement, but it must NOT cancel anything, so it skips the man-down detector.
+            self.mandown.last_movement_at = t
+            events.append({"type": "sos", "timestamp": t, "pressed_at": t, **self.mandown_payload()})
+        elif isinstance(event, ButtonPress):
             events += self.heat.acknowledge(t)
             events += self._mandown(self.mandown.on_button(t))
         else:
@@ -99,9 +104,8 @@ class WorkerPipeline:
 
     def tick(self, t: float) -> list[dict]:
         """Called about once a second with the source's clock. Closes quiet minutes and checks timers."""
-        if self.t0 is None:
-            return []                                    # the shift starts at the first reading, not a tick
-        events = self._advance(t)                        # already reacted to inside
+        # The shift starts at the first reading, not at a tick. Timers still run.
+        events = self._advance(t) if self.t0 is not None else []   # already reacted to inside
         events += self._react(self.heat.tick(t), t)
         events += self._mandown(self.mandown.tick(t))
         return self._stamp(events)
@@ -260,19 +264,29 @@ class WorkerPipeline:
             elif ev["type"] in ("mandown_cancelled", "mandown_resolved"):
                 out += [ev] + self.router.set("MANDOWN", False, ev["timestamp"])
             elif ev["type"] == "mandown_confirmed":
-                out.append({**ev, **self.mandown_payload(ev)})
+                payload = self.mandown_payload()
+                trigger = "heat_red_unacked" if ev["reason"] == "heat_red_unacknowledged" else "fall"
+                out.append({**ev, **payload, "trigger": trigger, "confirmed_at": ev["timestamp"]})
             else:
                 out.append(ev)
         return out
 
-    def mandown_payload(self, ev: dict) -> dict:
-        """Who, where, and last vitals: what session D's voice agent reads out."""
+    def mandown_payload(self) -> dict:
+        """
+        Who, where, and last vitals: what session D's voice agent reads out.
+        Flat fields (lat, lon, core_temp_c, hr_bpm, skin_temp_c) match D's
+        MandownConfirmed / SosPressed models; the nested ones are for the dashboard.
+        """
         last = self.estimates[-1] if self.estimates else {}
         r = self.last_reading
         return {
             "worker_name": self.info.get("name", self.worker_id),
             "site_id": self.site.get("site_id"),
             "site_name": self.site.get("name"),
+            "lat": self.site.get("lat"), "lon": self.site.get("lon"),
+            "core_temp_c": last.get("core_temp"),
+            "hr_bpm": _r(r.get("hr"), 1),
+            "skin_temp_c": _r(r.get("skin_temp"), 2),
             "location": {"lat": self.site.get("lat"), "lon": self.site.get("lon")},
             "last_vitals": {
                 "core_temp": last.get("core_temp"),

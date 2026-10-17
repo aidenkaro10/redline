@@ -58,7 +58,8 @@ ALERT_EVENTS = {
     "heat_alert": "level", "heat_ack": None, "red_unacknowledged": None,
     "band_command": "pattern", "hazard": "kind",
     "mandown_check": "reason", "mandown_cancelled": "by", "mandown_confirmed": "reason",
-    "mandown_resolved": "by", "mandown_worker_responded": "by",
+    "mandown_resolved": "by", "mandown_worker_responded": "by", "sos": None,
+    "emergency_status": "status",
 }
 COMMIT_EVERY_S = 1.0
 

@@ -34,6 +34,17 @@ class ButtonPress(BaseModel):
     timestamp: float
 
 
+class SosPress(BaseModel):
+    """
+    The worker held the band's button for 3 s: "I need help now" (line BTN:SOS).
+    Not in the original protocol table: added for session D's emergency escalation.
+    """
+
+    type: Literal["sos"] = "sos"
+    worker_id: str
+    timestamp: float
+
+
 # What each key in a band line means, and which Reading field it fills.
 _LINE_KEYS = {
     "TEMP": "skin_temp",
@@ -54,6 +65,7 @@ def parse_line(line: str) -> dict | None:
         "TILT:1,ACT:7"        -> {"tilt": 1, "activity": 7.0}
         "ACC:0.98,0.02,0.11"  -> {"accel": (0.98, 0.02, 0.11)}
         "BTN:1"               -> {"button": True}
+        "BTN:SOS"             -> {"sos": True}     (button held 3 s)
 
     Returns None for garbage (boards print junk on boot, cables glitch).
     """
@@ -87,7 +99,10 @@ def parse_line(line: str) -> dict | None:
             elif name == "tilt":
                 fields["tilt"] = int(float(values[0]))
             elif name == "button":
-                fields["button"] = values[0] == "1"
+                if values[0].upper() == "SOS":
+                    fields["sos"] = True
+                else:
+                    fields["button"] = values[0] == "1"
             else:
                 fields[name] = float(values[0])
     except ValueError:
@@ -96,13 +111,15 @@ def parse_line(line: str) -> dict | None:
     return fields or None
 
 
-def events_from_line(line: str, worker_id: str, timestamp: float) -> list[Reading | ButtonPress]:
+def events_from_line(line: str, worker_id: str, timestamp: float) -> list[Reading | ButtonPress | SosPress]:
     """Parse a band line and wrap it as events with the laptop timestamp."""
     fields = parse_line(line)
     if fields is None:
         return []
-    events: list[Reading | ButtonPress] = []
+    events: list[Reading | ButtonPress | SosPress] = []
     pressed = fields.pop("button", False)
+    if fields.pop("sos", False):
+        events.append(SosPress(worker_id=worker_id, timestamp=timestamp))
     if fields:
         events.append(Reading(worker_id=worker_id, timestamp=timestamp, **fields))
     if pressed:
