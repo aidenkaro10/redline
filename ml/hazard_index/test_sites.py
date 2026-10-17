@@ -35,3 +35,13 @@ def test_neighbor_groups_chain_and_split():
 def test_panhandle_timezone():
     assert S.Site("p", "p", 30.5, -87.2).timezone == "America/Chicago"
     assert S.Site("g", "g", 29.6, -82.3).timezone == "America/New_York"
+
+
+def test_spatial_folds_and_buffer():
+    sites = [S.Site(f"n{i}", "", 30.4, -84.0 + 0.3 * i) for i in range(4)] + \
+            [S.Site(f"s{i}", "", 25.8, -80.4 + 0.1 * i) for i in range(4)]
+    folds = S.spatial_folds(sites, k=2)
+    assert len({folds[f"n{i}"] for i in range(4)}) == 1 and folds["n0"] != folds["s0"]
+    train = S.far_from(sites, {"n0"})
+    assert "n1" not in train          # ~29 km from the test site: too close to train on
+    assert "n3" in train and "s0" in train

@@ -93,3 +93,8 @@ def test_heat_index_matches_nws_table():
     # NWS chart: 96 °F at 65% humidity -> heat index about 121 °F; 80 °F at 40% -> about 80 °F
     assert abs(F.heat_index_f(np.array([(96 - 32) * 5 / 9]), np.array([65.0]))[0] - 121) < 2
     assert abs(F.heat_index_f(np.array([(80 - 32) * 5 / 9]), np.array([40.0]))[0] - 80) < 2
+
+
+def test_dew_point_from_humidity():
+    # 30 °C at 70% humidity -> dew point about 23.9 °C
+    assert abs(F.dew_point_c(np.array([30.0]), np.array([70.0]))[0] - 23.9) < 0.3

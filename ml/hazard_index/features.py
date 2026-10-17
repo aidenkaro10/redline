@@ -45,8 +45,12 @@ from ml.hazard_index.sites import Site, load_sites
 
 CUTOFF_HOUR = 18             # 6 PM local, the evening before
 OPEN_METEO_ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
-OPEN_METEO_DELAY_S = 6.0     # a year of hourly data is a "heavy" call: space them out
-HOURLY_VARS = ("temperature_2m", "dew_point_2m", "relative_humidity_2m", "precipitation",
+# A year of hourly data counts as ~26 calls against Open-Meteo's free limits
+# (10,000 a day, 5,000 an hour). 25 s apart keeps us near 3,700 an hour.
+OPEN_METEO_DELAY_S = 25.0
+WEATHER_GRID_DEG = 0.1       # sites in the same 0.1° cell (~10 km) share one weather download
+# Dew point isn't downloaded: it's computed from temperature and humidity (saves budget).
+HOURLY_VARS = ("temperature_2m", "relative_humidity_2m", "precipitation",
                "wind_gusts_10m", "soil_moisture_0_to_7cm", "soil_moisture_7_to_28cm")
 
 SPC_CAT = {"TSTM": 1, "MRGL": 2, "SLGT": 3, "ENH": 4, "MDT": 5, "HIGH": 6}
@@ -65,6 +69,13 @@ def cutoff_utc(day: dt.date, tz: str) -> dt.datetime:
     prev = day - dt.timedelta(days=1)
     local = dt.datetime(prev.year, prev.month, prev.day, CUTOFF_HOUR, tzinfo=ZoneInfo(tz))
     return local.astimezone(dt.timezone.utc)
+
+
+def dew_point_c(t_c: np.ndarray, rh: np.ndarray) -> np.ndarray:
+    """Dew point from temperature and humidity (Magnus formula, good to ~0.2 °C)."""
+    a, b = 17.62, 243.12
+    g = np.log(np.clip(rh, 1, 100) / 100) + a * t_c / (b + t_c)
+    return b * g / (a - g)
 
 
 def heat_index_f(t_c: np.ndarray, rh: np.ndarray) -> np.ndarray:
@@ -86,12 +97,14 @@ def heat_index_f(t_c: np.ndarray, rh: np.ndarray) -> np.ndarray:
 # Downloads (cached)
 # ---------------------------------------------------------------------------
 def fetch_weather(site: Site, years=L.YEARS, offline: bool = False) -> pd.DataFrame:
-    """Hourly ERA5 weather in UTC, one cached call per site per year (plus 10 days before)."""
+    """Hourly ERA5 weather in UTC, one cached call per weather cell per year (plus 10 days before)."""
+    lat = round(round(site.lat / WEATHER_GRID_DEG) * WEATHER_GRID_DEG, 2)
+    lon = round(round(site.lon / WEATHER_GRID_DEG) * WEATHER_GRID_DEG, 2)
     frames = []
     for y in years:
         start = dt.date(y, 1, 1) - dt.timedelta(days=10) if y == min(years) else dt.date(y, 1, 1)
         d = fetch.get_json(OPEN_METEO_ARCHIVE, dict(
-            latitude=site.lat, longitude=site.lon, start_date=start.isoformat(),
+            latitude=lat, longitude=lon, start_date=start.isoformat(),
             end_date=f"{y}-12-31", hourly=",".join(HOURLY_VARS), timezone="GMT"),
             offline=offline, delay=OPEN_METEO_DELAY_S)
         frames.append(pd.DataFrame(d["hourly"]))
@@ -127,7 +140,8 @@ def build_site_features(site: Site, days: list[dt.date], weather: pd.DataFrame,
     hi = heat_index_f(weather["temperature_2m"].to_numpy(float), weather["relative_humidity_2m"].to_numpy(float))
     temp = weather["temperature_2m"].to_numpy(float)
     rh = weather["relative_humidity_2m"].to_numpy(float)
-    dew = weather["dew_point_2m"].to_numpy(float)
+    dew = (weather["dew_point_2m"].to_numpy(float) if "dew_point_2m" in weather
+           else dew_point_c(temp, weather["relative_humidity_2m"].to_numpy(float)))
     gust = weather["wind_gusts_10m"].to_numpy(float)
     rain = np.nan_to_num(weather["precipitation"].to_numpy(float))
     rain_cum = np.concatenate([[0.0], np.cumsum(rain)])
@@ -211,11 +225,16 @@ def build_site_features(site: Site, days: list[dt.date], weather: pd.DataFrame,
 
 def build_features(sites: list[Site], years=L.YEARS, offline: bool = False, verbose: bool = True) -> pd.DataFrame:
     days = list(pd.date_range(f"{min(years)}-01-01", f"{max(years)}-12-31", freq="D").date)
-    frames = []
-    for s in sites:
+    frames, failed = [], []
+    for n, s in enumerate(sites, start=1):
         if verbose:
-            print(f"  features {s.site_id}", flush=True)
-        weather = fetch_weather(s, years, offline)
+            print(f"  features {s.site_id} ({n}/{len(sites)})", flush=True)
+        try:
+            weather = fetch_weather(s, years, offline)
+        except Exception as e:                    # e.g. Open-Meteo's daily limit: skip, rerun later
+            print(f"    skipped {s.site_id}: {str(e)[:120]}", flush=True)
+            failed.append(s.site_id)
+            continue
         warnings, lsrs = [], []
         for y in years:
             warnings += L.fetch_warnings(s, y, offline)
@@ -224,6 +243,8 @@ def build_features(sites: list[Site], years=L.YEARS, offline: bool = False, verb
         warnings += L.fetch_warnings(s, min(years) - 1, offline)
         frames.append(build_site_features(s, days, weather, warnings, lsrs, fetch_spc(s, offline),
                                           static.site_static(s, offline)))
+    if failed:
+        print(f"  {len(failed)} sites skipped (rerun later; finished downloads are cached): {failed}")
     return pd.concat(frames, ignore_index=True)
 
 

@@ -2,9 +2,15 @@
 The job sites the hazard index scores.
 
 Two sources, picked by the HAZARD_SITES setting (or the `source` argument):
-  "auto"         (default) use backend/sites/plants.geojson if it exists, else the placeholder
-  "geojson"      always use backend/sites/plants.geojson (session C1 builds it from EIA-860M)
+  "auto"         (default) use C1's plants.geojson if we can find it, else the placeholder
+  "geojson"      always use C1's plants.geojson (79 real plants from EIA-860M)
   "placeholder"  the small hand-made list below
+
+Where we look for plants.geojson, in order:
+  1. backend/sites/plants.geojson   (once C1's branch is merged)
+  2. the file named by HAZARD_SITES_FILE in .env
+  3. data/raw/hazard_index/plants.geojson   (a copy, before the merge:
+     git show claude/site-hazards-72b44b:backend/sites/plants.geojson > that path)
 
 PLACEHOLDER WARNING: the coordinates below are approximate (typed from public maps),
 just good enough to pull weather and warnings while C1 finishes the real file.
@@ -18,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 GEOJSON_PATH = Path(__file__).resolve().parents[2] / "backend" / "sites" / "plants.geojson"
+N_SPATIAL_FOLDS = 4      # the time+space check splits Florida into this many blocks
 
 # Sites closer than this are "neighbors". Neighbors share warnings (NWS warns by
 # county), so they must land on the same side of the train/test split.
@@ -68,11 +75,24 @@ def _from_geojson(path: Path) -> list[Site]:
     return sites
 
 
+def find_geojson() -> Path | None:
+    """The first plants.geojson that exists (see the list at the top), or None."""
+    from ml.hazard_index.fetch import data_dir
+    candidates = [GEOJSON_PATH]
+    if os.getenv("HAZARD_SITES_FILE"):
+        candidates.append(Path(os.getenv("HAZARD_SITES_FILE")))
+    candidates.append(data_dir() / "plants.geojson")
+    return next((c for c in candidates if c.exists()), None)
+
+
 def load_sites(source: str | None = None) -> list[Site]:
     """The list of sites to build labels, features and predictions for."""
     source = source or os.getenv("HAZARD_SITES", "auto")
-    if source == "geojson" or (source == "auto" and GEOJSON_PATH.exists()):
-        return _from_geojson(GEOJSON_PATH)
+    path = find_geojson() if source in ("auto", "geojson") else None
+    if path is not None:
+        return _from_geojson(path)
+    if source == "geojson":
+        raise FileNotFoundError("no plants.geojson found (see the top of ml/hazard_index/sites.py)")
     if source in ("placeholder", "auto"):
         return [Site(*row) for row in PLACEHOLDER_SITES]
     raise ValueError(f"unknown site source {source!r}; use auto, geojson or placeholder")
@@ -111,3 +131,30 @@ def neighbor_groups(sites: list[Site], km: float = NEIGHBOR_KM) -> dict[str, int
                     group[b.site_id] = g
                     todo.append(b)
     return group
+
+
+def spatial_folds(sites: list[Site], k: int = N_SPATIAL_FOLDS) -> dict[str, int]:
+    """
+    Split the map into k blocks of nearby sites (k-means on position, fixed start
+    so it's the same every run). Used to test on places the model never saw.
+    """
+    import numpy as np
+    xy = np.array([[s.lat, s.lon * math.cos(math.radians(s.lat))] for s in sites])
+    k = min(k, len(sites))
+    # start from spread-out sites: first the northernmost, then the farthest from those picked
+    centers = [xy[int(np.argmax(xy[:, 0]))]]
+    while len(centers) < k:
+        d = np.min([np.sum((xy - c) ** 2, axis=1) for c in centers], axis=0)
+        centers.append(xy[int(np.argmax(d))])
+    centers = np.array(centers)
+    for _ in range(50):
+        label = np.argmin(((xy[:, None, :] - centers[None]) ** 2).sum(-1), axis=1)
+        centers = np.array([xy[label == j].mean(0) if (label == j).any() else centers[j] for j in range(k)])
+    return {s.site_id: int(label[i]) for i, s in enumerate(sites)}
+
+
+def far_from(sites: list[Site], test_ids: set[str], km: float = NEIGHBOR_KM) -> set[str]:
+    """Sites more than `km` from every test site: the only ones allowed in training."""
+    test = [s for s in sites if s.site_id in test_ids]
+    return {s.site_id for s in sites if s.site_id not in test_ids
+            and all(distance_km(s.lat, s.lon, t.lat, t.lon) > km for t in test)}

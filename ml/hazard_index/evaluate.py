@@ -3,9 +3,10 @@ Scoring harness for the hazard index. Every model is scored next to climatology.
 
 Splits (never random):
   time         all sites; train 2018-2022, test 2023-2024
-  time+space   sites are grouped with their neighbors (within 60 km). Each group
-               is held out in turn: train on the OTHER groups 2018-2022, test the
-               held-out group 2023-2024. Neighbors never sit on both sides.
+  time+space   the map is split into 4 blocks of nearby sites. Each block is held
+               out in turn: test on it 2023-2024, train 2018-2022 only on sites
+               more than 60 km from every test site. Neighbors (which share NWS
+               county warnings) never sit on both sides.
 
 What we report per question ("hazard H reaches level K tomorrow"):
   base rate, PR-AUC (random guessing scores the base rate), Brier score,
@@ -32,7 +33,7 @@ from ml.hazard_index import hazards as H
 from ml.hazard_index import models as M
 from ml.hazard_index.features import FEATURES, load_features
 from ml.hazard_index.labels import load_labels
-from ml.hazard_index.sites import load_sites, neighbor_groups
+from ml.hazard_index.sites import far_from, load_sites, spatial_folds
 
 TRAIN_YEARS = (2018, 2019, 2020, 2021, 2022)
 TEST_YEARS = (2023, 2024)
@@ -121,13 +122,14 @@ def run_split(df: pd.DataFrame, split: str, features, n_trees: int, sites) -> li
     if split == "time":
         folds = [(df["year"].isin(TRAIN_YEARS), df["year"].isin(TEST_YEARS))]
     else:
-        groups = neighbor_groups(sites)
-        g = df["site_id"].map(groups)
-        # 3 folds of neighbor groups (all of a group stays together)
-        fold_of_group = {grp: i % 3 for i, grp in enumerate(sorted(set(groups.values())))}
-        f = g.map(fold_of_group)
-        folds = [((f != k) & df["year"].isin(TRAIN_YEARS), (f == k) & df["year"].isin(TEST_YEARS))
-                 for k in range(3)]
+        block = spatial_folds(sites)
+        folds = []
+        for k in sorted(set(block.values())):
+            test_ids = {sid for sid, b in block.items() if b == k}
+            train_ids = far_from(sites, test_ids)
+            print(f"  block {k}: test {len(test_ids)} sites, train {len(train_ids)} sites (>60 km away)")
+            folds.append((df["site_id"].isin(train_ids) & df["year"].isin(TRAIN_YEARS),
+                          df["site_id"].isin(test_ids) & df["year"].isin(TEST_YEARS)))
 
     results = []
     for hz in TARGETS:
