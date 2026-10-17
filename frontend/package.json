@@ -5,11 +5,13 @@
   "scripts": {
     "predev": "node scripts/copy-figures.mjs",
     "dev": "next dev",
+    "dev:real": "NEXT_DIST_DIR=.next-real NEXT_PUBLIC_BACKEND_URL=${BACKEND_URL:-http://localhost:8000} next dev",
     "prebuild": "node scripts/copy-figures.mjs",
     "build": "next build",
     "start": "next start",
     "test": "node --test \"src/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "check": "tsc --noEmit && npm test && npm run build"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

@@ -52,7 +52,8 @@ function stream(req: Request, filter: ViewFilter) {
   const body = new ReadableStream({
     start(controller) {
       const send = (ev: unknown) => controller.enqueue(enc.encode(`data: ${JSON.stringify(ev)}\n\n`));
-      unsubscribe = engine.subscribe(filter, send);
+      const close = () => { try { controller.close(); } catch { /* already closed */ } };
+      unsubscribe = engine.subscribe(filter, send, close);
       req.signal.addEventListener("abort", () => {
         unsubscribe();
         try { controller.close(); } catch { /* already closed */ }

@@ -59,3 +59,13 @@ Still open:
 - /results: ens5 headline (+20 min 0.230 vs 0.456 °C, red caught 88% vs 75%), personalization table, planner safety table (AI alone 92% of runs break a rule, 0% with the rule checker), session H's 5 figures (copied from docs/figures by a predev/prebuild script; shows a placeholder until merged). Removed the heart-rate twins panel (twins were a negative result).
 - C2 hazard index: SiteStatus.hazard_index carries the full predict_index() result; hazard panel shows per-hazard bars vs a usual day + reasons; map tooltip shows band + top reason. Mock data until wired.
 - Fixed: dev server reload loop after the merge (stale .next cache; `rm -rf frontend/.next` fixes it).
+
+## Round 6 (2026-10-17): technical hardening before the UI pass
+
+- Tested against session A's latest branch (18497d9, ens5 forecaster): every page works or shows a clear "not posted yet" state. Spot check works end to end with A's flat `offset_update` (new adapter `src/lib/offset.ts` + tests).
+- Found and reported to A: `offset_update` reaches `view=crew` on `/ws/live`. Frontend now drops anything a view may not see (canSee) and strips raw history from crew snapshots, so the crew page never holds it.
+- Mock engine is replaced automatically after code edits (no more stale engine); old streams are closed and pages reconnect.
+- Live connection: 8 s silence watchdog reconnects; a malformed message is skipped instead of breaking the page.
+- `npm run dev:real` (separate build folder, runs next to the mock) and `npm run check` (types + tests + build).
+- Production build (`next build` + `next start`) checked in mock mode: all pages, stream, spot check, scripted demo.
+- README: troubleshooting + which files are looks vs logic for cutting features.

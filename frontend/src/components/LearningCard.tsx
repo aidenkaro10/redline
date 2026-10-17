@@ -113,9 +113,15 @@ export function SpotCheckForm({ workerId, glass }: { workerId: string; glass?: b
     if (!Number.isFinite(t)) return;
     setBusy(true);
     try {
-      const r = await apiPost<SpotCheckResult>("/spot-check", { worker_id: workerId, thermometer_c: t });
-      setMsg({ ok: !!r.accepted, text: r.message ?? (r.accepted ? "Reading added." : "Reading ignored.") });
-      if (r.accepted) setValue("");
+      // Our mock answers with SpotCheckResult; session A answers with its flat offset_update event.
+      const r = await apiPost<Partial<SpotCheckResult> & { offset_c?: number; reason?: string; detail?: unknown }>("/spot-check", { worker_id: workerId, thermometer_c: t });
+      const accepted = r.accepted === true;
+      const text = r.message
+        ?? (accepted && typeof r.offset_c === "number" ? `Learned: ${bodyText(r.offset_c)}.` : null)
+        ?? (typeof r.reason === "string" ? r.reason : null)
+        ?? (r.detail ? "The backend refused that reading." : accepted ? "Reading added." : "Reading ignored (too far from the model, probably a bad reading).");
+      setMsg({ ok: accepted, text });
+      if (accepted) setValue("");
     } catch {
       setMsg({ ok: false, text: "Couldn't send the reading. Is the backend running?" });
     } finally {

@@ -58,3 +58,38 @@ The data contract is in `docs/interfaces/frontend-contract.md` (types: `src/lib/
 
 - Map tiles come from OpenStreetMap and need internet. Without it, the site dots still show on a plain background.
 - If you edit `src/mock/engine.ts`, restart `npm run dev` (the mock keeps running between hot reloads).
+
+## Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Mock backend, http://localhost:3000 |
+| `npm run dev:real` | Real backend at http://localhost:8000 (or `BACKEND_URL=... npm run dev:real`). Uses its own build folder, so it can run next to `npm run dev`. If both run, this one takes the next free port (3001): add it to the backend's `FRONTEND_ORIGINS`. |
+| `npm run check` | Type check + tests + production build. Run before you commit. |
+| `npm test` | Just the tests |
+
+## If something looks stuck
+
+- **Page keeps reloading or says "Reconnecting…" forever:** stop the server (Ctrl+C), run `rm -rf .next`, then `npm run dev` again.
+- **Edited `src/mock/engine.ts`:** no restart needed. The mock swaps in a fresh engine and open pages reconnect within a few seconds (the demo restarts at 1:00 PM).
+- **Live stream goes quiet:** the page notices after 8 seconds and reconnects by itself.
+
+## Cutting features and restyling: what's safe to touch
+
+Logic and looks are split, so you can delete pages or restyle freely.
+
+**Pure looks (change or delete freely):**
+- `src/app/*/page.tsx`: one folder per screen. Delete a folder to drop a screen, then remove its link in `LINKS` in `src/components/Nav.tsx`.
+- `src/components/*`: the pieces (cards, map, charts, man-down screen, demo controls). Each one only reads data, nothing else depends on it.
+- `src/app/globals.css`: all colors live here as tokens (`--ok`, `--danger`, `--surface`...), light and dark. Change them in one place.
+
+**Logic (keep, or change carefully):**
+- `src/lib/contract.ts` and `contract-extra.ts`: the data shapes. Session A's backend follows them.
+- `src/lib/live.tsx`: the live connection, reconnects, and the privacy filter (crew view never keeps raw biometrics).
+- `src/lib/emergency.ts`, `src/lib/offset.ts`: adapters that turn sessions D's and A's event shapes into ours.
+- `src/lib/crew.ts`: worker and site lookups (no hardcoded ids).
+- `src/mock/*`: the mock backend and the scripted demo. Only used when `NEXT_PUBLIC_BACKEND_URL` is empty.
+
+**Safe screens to cut** (nothing else depends on them): `/planner`, `/briefing`, `/report`, `/results`. The crew dashboard, demo view, worker phone view and the man-down/SOS screen carry the demo.
+
+After cutting, run `npm run check`. It catches anything that still points at a deleted file.

@@ -19,6 +19,8 @@ import type {
   Alert, BandCommand, DemoState, EmergencyCall, Estimate, LiveEvent, LogEntry, ManDown, PhotoReport,
   SiteStatus, ViewFilter, Vitals, WorkerStatus, OffsetUpdate,
 } from "./contract";
+import { canSee } from "./contract";
+import { toOffsetUpdate } from "./offset";
 import { foldEmergencyStatus } from "./emergency.ts";
 
 const BACKEND = (process.env.NEXT_PUBLIC_BACKEND_URL ?? "").replace(/\/$/, "");
@@ -134,9 +136,14 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
       case "log":
         s.log = [...s.log, ev.entry].slice(-120);
         break;
-      case "offset_update":
-        s.offsets = { ...s.offsets, [ev.offset.worker_id]: ev.offset };
+      case "offset_update": {
+        // Accepts this contract's shape and session A's flat one (lib/offset.ts).
+        const flatId = (ev as unknown as { worker_id?: string }).worker_id;
+        const id = ev.offset?.worker_id ?? flatId;
+        const u = id ? toOffsetUpdate(ev, s.offsets[id]) : null;
+        if (u) s.offsets = { ...s.offsets, [u.worker_id]: u };
         break;
+      }
     }
   }
   return s;
@@ -146,33 +153,62 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
 // Connection (mock = Server-Sent Events, real = WebSocket)
 // ---------------------------------------------------------------------------
 
+/** If nothing arrives for this long, the connection is treated as dead and reopened. */
+const SILENCE_MS = 8000;
+
 function connect(filter: ViewFilter, onEvent: (ev: LiveEvent) => void, onStatus: (up: boolean) => void) {
   const qs = new URLSearchParams({ view: filter.view, ...(filter.worker_id ? { worker_id: filter.worker_id } : {}) });
+  let closed = false;
+  let lastMsg = Date.now();
+  let reopen: () => void = () => {};
+
+  // One bad message must never kill the whole page.
+  const handle = (data: string) => {
+    lastMsg = Date.now();
+    try { onEvent(JSON.parse(data)); } catch (e) { console.warn("live: skipped a bad message", e); }
+  };
+
+  // Watchdog: both backends send a "clock" event twice a second, so silence means trouble.
+  const watchdog = setInterval(() => {
+    if (!closed && Date.now() - lastMsg > SILENCE_MS) {
+      lastMsg = Date.now();
+      onStatus(false);
+      reopen();
+    }
+  }, 2000);
 
   if (USING_MOCK) {
-    const es = new EventSource(`/api/stream?${qs}`);
-    es.onopen = () => onStatus(true);
-    es.onerror = () => onStatus(false);       // EventSource reconnects by itself
-    es.onmessage = (m) => onEvent(JSON.parse(m.data));
-    return () => es.close();
+    let es: EventSource | null = null;
+    reopen = () => {
+      es?.close();
+      es = new EventSource(`/api/stream?${qs}`);
+      es.onopen = () => onStatus(true);
+      es.onerror = () => onStatus(false);       // EventSource reconnects by itself
+      es.onmessage = (m) => handle(m.data);
+    };
+    reopen();
+    return () => { closed = true; clearInterval(watchdog); es?.close(); };
   }
 
   // Real backend: WebSocket with a simple reconnect (1 s, 2 s, 4 s ... up to 10 s).
   let ws: WebSocket | null = null;
-  let closed = false;
   let delay = 1000;
   const open = () => {
-    ws = new WebSocket(`${BACKEND.replace(/^http/, "ws")}/ws/live?${qs}`);
-    ws.onopen = () => { delay = 1000; onStatus(true); };
-    ws.onmessage = (m) => onEvent(JSON.parse(m.data));
-    ws.onclose = () => {
+    if (closed) return;
+    const sock = new WebSocket(`${BACKEND.replace(/^http/, "ws")}/ws/live?${qs}`);
+    ws = sock;
+    sock.onopen = () => { delay = 1000; onStatus(true); };
+    sock.onmessage = (m) => handle(m.data);
+    sock.onclose = () => {
+      if (ws !== sock) return;                 // an old socket we already replaced
       onStatus(false);
       if (!closed) setTimeout(open, delay);
       delay = Math.min(delay * 2, 10000);
     };
   };
+  reopen = () => { const old = ws; ws = null; old?.close(); open(); };
   open();
-  return () => { closed = true; ws?.close(); };
+  return () => { closed = true; clearInterval(watchdog); ws?.close(); };
 }
 
 /** Which view this page is, from its URL. Decides what the server sends us. */
@@ -209,6 +245,9 @@ export function LiveProvider({ children }: { children: React.ReactNode }) {
     const stop = connect(
       filter,
       (ev) => {
+        // Belt and braces for privacy: drop anything this view may not see, even if a backend sends it.
+        if (!canSee(filter, ev)) return;
+        if (ev.type === "snapshot" && filter.view === "crew") { ev.history = {}; ev.offsets = {}; }
         if (ev.type === "snapshot") queue.current = [];   // a snapshot replaces everything before it
         queue.current.push(ev);
       },

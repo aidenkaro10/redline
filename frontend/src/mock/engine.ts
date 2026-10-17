@@ -294,6 +294,7 @@ function baselineSite(siteId: string, t: number): SiteSim {
 interface Subscriber {
   filter: ViewFilter;
   send: (ev: LiveEvent) => void;
+  close?: () => void;          // ends the connection (used when this engine is replaced)
 }
 
 export interface EngineOptions {
@@ -366,6 +367,13 @@ export class MockEngine {
     this.timer = setInterval(() => this.tick(), periodMs);
   }
 
+  /** Stop for good and hang up on every listener (their browsers reconnect to the new engine). */
+  shutdown() {
+    this.stop();
+    for (const s of this.subs) { try { s.close?.(); } catch { /* already gone */ } }
+    this.subs.clear();
+  }
+
   stop() {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
@@ -413,8 +421,8 @@ export class MockEngine {
   // ---- subscriptions -----------------------------------------------------
 
   /** Listen for events. Sends a snapshot right away. Returns an unsubscribe function. */
-  subscribe(filter: ViewFilter, send: (ev: LiveEvent) => void): () => void {
-    const sub: Subscriber = { filter, send };
+  subscribe(filter: ViewFilter, send: (ev: LiveEvent) => void, close?: () => void): () => void {
+    const sub: Subscriber = { filter, send, close };
     this.subs.add(sub);
     send(this.snapshot(filter));
     return () => { this.subs.delete(sub); };
@@ -606,8 +614,10 @@ export class MockEngine {
     const u = this.offsetUpdate(workerId);
     this.emit({ type: "offset_update", offset: u });
     const body = -u.offset_c;
+    const first = w.def.name.split(" ")[0];
+    const how = Math.abs(body) < 0.005 ? "the same as" : `${Math.abs(body).toFixed(2)} °C ${body > 0 ? "hotter" : "cooler"} than`;
     const message = accepted
-      ? `Learned: ${w.def.name.split(" ")[0]} runs ${Math.abs(body).toFixed(2)} °C ${body >= 0 ? "hotter" : "cooler"} than the average person (${u.checks} check${u.checks === 1 ? "" : "s"}, ${Math.round(u.confidence * 100)}% confident).`
+      ? `Learned: ${first} runs ${how} the average person (${u.checks} check${u.checks === 1 ? "" : "s"}, ${Math.round(u.confidence * 100)}% confident).`
       : `Ignored: ${thermometer.toFixed(1)} °C is ${Math.abs(miss).toFixed(1)} °C away from the model. Probably a bad reading, try again.`;
     this.addLog(`Spot check ${w.def.name}: ${thermometer.toFixed(1)} °C. ${message}`, "thermometer");
     if (accepted) {

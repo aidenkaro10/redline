@@ -121,6 +121,7 @@ The demo centerpiece: a judge takes one ear-thermometer reading, types it on the
 - `offset = sum(misses) / (checks + 2)`, capped at ±0.6 °C; `miss = model estimate - thermometer`.
 - After an accepted check, send a fresh `estimate` right away (with the offset applied) so the chart moves while the judge watches.
 - Snapshot carries `offsets: {worker_id: OffsetUpdate}` for views allowed to see biometrics (optional field).
+- Session A's live system sends a flat shape instead (`{type: "offset_update", worker_id, timestamp, offset_c, confidence, n_checks, accepted, thermometer_c, model_c, miss_c, reason}`), and `POST /spot-check` returns that same object. The frontend accepts both (`frontend/src/lib/offset.ts`) and builds the history itself. Tested against A's branch at 18497d9.
 - Never changes a safety threshold.
 
 ### Alert
