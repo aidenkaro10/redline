@@ -1,0 +1,947 @@
+{
+ "archive": [
+  {
+   "id": "a0",
+   "parent": null,
+   "generation": 0,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": ""
+   },
+   "why": "starting agent (session B defaults)",
+   "accepted": true,
+   "n_children": 3,
+   "val_rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "score": -0.0024,
+     "throughput": 0.7124,
+     "actual_peak_c": 38.1795,
+     "strain_margin_c": -0.1795,
+     "workers_alerted": 1.5,
+     "heat_spread": 49.8,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 30.09,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "score": 0.4319,
+     "throughput": 0.8198,
+     "actual_peak_c": 38.0255,
+     "strain_margin_c": -0.0255,
+     "workers_alerted": 0.5,
+     "heat_spread": 40.05,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 25.77,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-5dad9274",
+     "tags": [
+      "callout"
+     ],
+     "score": 0.6439,
+     "throughput": 1.0,
+     "actual_peak_c": 37.962,
+     "strain_margin_c": 0.038,
+     "workers_alerted": 0.5,
+     "heat_spread": 80.8,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 24.12,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.3071,
+     "throughput": 0.8343,
+     "actual_peak_c": 38.0545,
+     "strain_margin_c": -0.0545,
+     "workers_alerted": 1.0,
+     "heat_spread": 53.7,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 25.33,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.3561,
+     "throughput": 0.8714,
+     "actual_peak_c": 38.0305,
+     "strain_margin_c": -0.0305,
+     "workers_alerted": 1.0,
+     "heat_spread": 66.15,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 21.42,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "score": 0.5338,
+     "throughput": 0.7016,
+     "actual_peak_c": 37.8355,
+     "strain_margin_c": 0.1645,
+     "workers_alerted": 0.0,
+     "heat_spread": 34.2,
+     "solve_rate": 1.0,
+     "safety_violations": 0,
+     "latency_s": 9.21,
+     "cost_usd": 0.0
+    }
+   ],
+   "val": {
+    "score": 0.3784,
+    "strain_margin_c": -0.0146,
+    "throughput": 0.8232,
+    "fairness": -54.12,
+    "latency": -22.66,
+    "cost": -0.0,
+    "workers_alerted": 0.75,
+    "solve_rate": 0.333,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "a1",
+   "parent": "a0",
+   "generation": 1,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 1.3,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": ""
+   },
+   "why": "The only alert was on the heat_dome day (cur-846c69f1). Rosa (w3) reached 38.01\u00b0C at 08:00 doing shop equipment repair. Her forecast p90 was 37.83, so the simulator ran about 0.18\u00b0C hotter than forecast. The ranking picked the fairness plan (peak_p90 37.90, rank 0.683) over the margin plan (peak_p90",
+   "mutator": "llm",
+   "n_children": 3,
+   "minibatch": {
+    "parent": 0.4735,
+    "child": 0.566,
+    "scenarios": [
+     "cur-aa363cb1",
+     "cur-846c69f1",
+     "cur-5dcbd679"
+    ]
+   },
+   "val_rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "score": 0.0864,
+     "throughput": 0.646,
+     "actual_peak_c": 38.1195,
+     "strain_margin_c": -0.1195,
+     "workers_alerted": 1.0,
+     "heat_spread": 42.55,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 33.02,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "score": 0.4319,
+     "throughput": 0.8198,
+     "actual_peak_c": 38.0255,
+     "strain_margin_c": -0.0255,
+     "workers_alerted": 0.5,
+     "heat_spread": 40.05,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 29.37,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-5dad9274",
+     "tags": [
+      "callout"
+     ],
+     "score": 0.6724,
+     "throughput": 0.7181,
+     "actual_peak_c": 37.5915,
+     "strain_margin_c": 0.4085,
+     "workers_alerted": 0.0,
+     "heat_spread": 51.65,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 27.67,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.3071,
+     "throughput": 0.8343,
+     "actual_peak_c": 38.0545,
+     "strain_margin_c": -0.0545,
+     "workers_alerted": 1.0,
+     "heat_spread": 53.7,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 30.71,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.2878,
+     "throughput": 0.7676,
+     "actual_peak_c": 37.96,
+     "strain_margin_c": 0.04,
+     "workers_alerted": 1.0,
+     "heat_spread": 62.65,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 21.87,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "score": 0.5338,
+     "throughput": 0.7016,
+     "actual_peak_c": 37.8355,
+     "strain_margin_c": 0.1645,
+     "workers_alerted": 0.0,
+     "heat_spread": 34.2,
+     "solve_rate": 1.0,
+     "safety_violations": 0,
+     "latency_s": 10.57,
+     "cost_usd": 0.0
+    }
+   ],
+   "val": {
+    "score": 0.3866,
+    "strain_margin_c": 0.0689,
+    "throughput": 0.7479,
+    "fairness": -47.47,
+    "latency": -25.54,
+    "cost": -0.0,
+    "workers_alerted": 0.583,
+    "solve_rate": 0.333,
+    "safety_violations": 0
+   },
+   "accepted": true
+  },
+  {
+   "id": "a2",
+   "parent": "a1",
+   "generation": 2,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 2.0,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs. Flag any plan that stacks heavy or very heavy tasks (e.g. Pipe insulation) on the same people between 13:00 and 15:00, or gives new hires long continuous afternoon stints on one task.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Make each idea a distinct timing/rotation strategy: schedule heavy and very heavy tasks (Pipe insulation, Cable pulling, Trenching, Vegetation clearing) as early in the morning as possible; fill 13:00-15:00 with light or indoor tasks; split afternoon heavy tasks across many workers in short stints; give new hires and temps varied, lighter afternoon assignments."
+   },
+   "why": "On the heat-dome day (cur-4a81884a), all 4 verified candidates forecast p90 peaks of 37.91-37.96\u00b0C. The actual peak reached about 38.0\u00b0C, so the forecast ran roughly 0.4\u00b0C low. Four workers alerted, and the alerts clustered between 13:30 and 14:30. Three of them were doing Pipe insulation then, and ",
+   "mutator": "llm",
+   "n_children": 0,
+   "minibatch": {
+    "parent": 0.1745,
+    "child": 0.1595,
+    "scenarios": [
+     "cur-4a81884a",
+     "cur-8d420618",
+     "cur-1a789c47"
+    ]
+   },
+   "accepted": false,
+   "val": null
+  },
+  {
+   "id": "a3",
+   "parent": "a1",
+   "generation": 2,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 2.6,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Flag ANY worker (veteran or new hire) given escalating moderate->heavy->very_heavy runs, especially after 11:00. Ask to move heavy/very_heavy work to early slots and spread it across more workers. Rotate hot tasks fairly, keep new hires' heavy work early, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Schedule heavy and very heavy tasks in the earliest slots and spread them across the whole crew rather than stacking them on a few people. In the afternoon, favor moderate tasks such as shop repair or insulation, so the hardest work never builds into one person's late-day sequence."
+   },
+   "why": "Both days with alerts (cur-6608, cur-9dda) chose plans whose predicted p90 peak (37.84\u201337.90) underestimated the actual peak (37.95\u201338.06). Each cost half the crew an alert. The findings point to one pattern: experienced workers (Marcus, Luis) and new hire Kofi ran moderate\u2192heavy\u2192very_heavy sequence",
+   "mutator": "llm",
+   "n_children": 2,
+   "minibatch": {
+    "parent": 0.3212,
+    "child": 0.3817,
+    "scenarios": [
+     "cur-6608d8de",
+     "cur-1a789c47",
+     "cur-9dda323a"
+    ]
+   },
+   "val_rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "score": 0.0864,
+     "throughput": 0.646,
+     "actual_peak_c": 38.1195,
+     "strain_margin_c": -0.1195,
+     "workers_alerted": 1.0,
+     "heat_spread": 42.55,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 30.05,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "score": 0.5252,
+     "throughput": 0.6279,
+     "actual_peak_c": 37.7055,
+     "strain_margin_c": 0.2945,
+     "workers_alerted": 0.0,
+     "heat_spread": 24.3,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 26.52,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-5dad9274",
+     "tags": [
+      "callout"
+     ],
+     "score": 0.6724,
+     "throughput": 0.7181,
+     "actual_peak_c": 37.5915,
+     "strain_margin_c": 0.4085,
+     "workers_alerted": 0.0,
+     "heat_spread": 51.65,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 23.4,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.5978,
+     "throughput": 0.7238,
+     "actual_peak_c": 37.752,
+     "strain_margin_c": 0.248,
+     "workers_alerted": 0.0,
+     "heat_spread": 51.2,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 24.13,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.2878,
+     "throughput": 0.7676,
+     "actual_peak_c": 37.96,
+     "strain_margin_c": 0.04,
+     "workers_alerted": 1.0,
+     "heat_spread": 62.65,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 23.69,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "score": 0.5338,
+     "throughput": 0.7016,
+     "actual_peak_c": 37.8355,
+     "strain_margin_c": 0.1645,
+     "workers_alerted": 0.0,
+     "heat_spread": 34.2,
+     "solve_rate": 1.0,
+     "safety_violations": 0,
+     "latency_s": 12.35,
+     "cost_usd": 0.0
+    }
+   ],
+   "val": {
+    "score": 0.4506,
+    "strain_margin_c": 0.1727,
+    "throughput": 0.6975,
+    "fairness": -44.43,
+    "latency": -23.36,
+    "cost": -0.0,
+    "workers_alerted": 0.333,
+    "solve_rate": 0.25,
+    "safety_violations": 0
+   },
+   "accepted": true
+  },
+  {
+   "id": "a4",
+   "parent": "a0",
+   "generation": 1,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.15,
+     "critic_instructions": "Flag every slot where an unacclimatized/new-hire worker does heavy or very_heavy work at or after 11:00. Propose swapping that task with an acclimatized worker doing light/moderate work, or moving it before 11:00. Also rotate hot tasks fairly, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Front-load new hires' heavy and very_heavy tasks into the early morning. From late morning on, give new hires lighter tasks such as shop or prep work, and give the hot outdoor tasks to acclimatized crew. Keep total work output the same by swapping assignments rather than dropping tasks."
+   },
+   "why": "The only alert was Kofi (new hire, unacclimatized) at 13:00 on Pipe insulation. The findings show he was given moderate, heavy and very_heavy work from 11:00 for 4 slots, with the highest excess per slot (0.186). The critic already flags this pattern, but fusing changed nothing: the fused rank equal",
+   "mutator": "llm",
+   "n_children": 0,
+   "minibatch": {
+    "parent": 0.4068,
+    "child": 0.4068,
+    "scenarios": [
+     "cur-2f72db4d",
+     "cur-397fcd84",
+     "cur-492f162f"
+    ]
+   },
+   "accepted": false,
+   "val": null
+  },
+  {
+   "id": "a5",
+   "parent": "a3",
+   "generation": 3,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.7,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Flag ANY worker (veteran or new hire) given escalating moderate->heavy->very_heavy runs, especially after 11:00. Ask to move heavy/very_heavy work to early slots and spread it across more workers. Rotate hot tasks fairly, keep new hires' heavy work early, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Schedule heavy and very heavy tasks in the earliest slots and spread them across the whole crew rather than stacking them on a few people. In the afternoon, favor moderate tasks such as shop repair or insulation, so the hardest work never builds into one person's late-day sequence."
+   },
+   "why": "No worker was alerted on any day, yet w_peak=2.6 overweights predicted peak heat compared with how the real score works. Across the three days, the score drops by about 0.5 for every \u00b0C of actual peak above 37.5 (37.54\u2192-0.022, 37.66\u2192-0.08, 37.94\u2192-0.22). On day cur-53cd914e the ranking chose the marg",
+   "mutator": "llm",
+   "n_children": 0,
+   "minibatch": {
+    "parent": 0.531,
+    "child": 0.3762,
+    "scenarios": [
+     "cur-53cd914e",
+     "cur-a91522a2",
+     "cur-d5d445a1"
+    ]
+   },
+   "accepted": false,
+   "val": null
+  },
+  {
+   "id": "a6",
+   "parent": "a1",
+   "generation": 2,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.9,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Flag any worker with 3+ back-to-back heavy/very_heavy slots or a moderate->heavy->very_heavy build-up after 11:00. Put very_heavy tasks (transformer, trenching) early in the day, alternate them with light work, rotate them fairly, keep new hires' heavy work early, respect preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Put very_heavy and heavy tasks into the coolest morning slots. Interleave them with light or moderate tasks instead of chaining intensities upward. Spread each very_heavy task across different crew members rather than giving one person a long run. Finish priority-1 heavy tasks first so lower-value work is what gets left undone."
+   },
+   "why": "In two storm days the rank picked the low-work margin plan with no alerts and peaks near 37.65. Score drops about 0.5 per degree C of peak, but the rank charges w_peak 1.3. Lowering w_peak to 0.9 lets day 1 pick its no-alert throughput plan (0.42 vs 0.30 work); day 3 stays on margin. In dead_watch, ",
+   "mutator": "llm",
+   "n_children": 0,
+   "minibatch": {
+    "parent": 0.3876,
+    "child": 0.3894,
+    "scenarios": [
+     "cur-37a9aa9d",
+     "cur-6608d8de",
+     "cur-5dcbd679"
+    ]
+   },
+   "val_rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "score": -0.0024,
+     "throughput": 0.7124,
+     "actual_peak_c": 38.1795,
+     "strain_margin_c": -0.1795,
+     "workers_alerted": 1.5,
+     "heat_spread": 49.8,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 31.77,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "score": 0.4319,
+     "throughput": 0.8198,
+     "actual_peak_c": 38.0255,
+     "strain_margin_c": -0.0255,
+     "workers_alerted": 0.5,
+     "heat_spread": 40.05,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 27.4,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-5dad9274",
+     "tags": [
+      "callout"
+     ],
+     "score": 0.6439,
+     "throughput": 1.0,
+     "actual_peak_c": 37.962,
+     "strain_margin_c": 0.038,
+     "workers_alerted": 0.5,
+     "heat_spread": 80.8,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 24.89,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.3071,
+     "throughput": 0.8343,
+     "actual_peak_c": 38.0545,
+     "strain_margin_c": -0.0545,
+     "workers_alerted": 1.0,
+     "heat_spread": 53.7,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 27.49,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.3561,
+     "throughput": 0.8714,
+     "actual_peak_c": 38.0305,
+     "strain_margin_c": -0.0305,
+     "workers_alerted": 1.0,
+     "heat_spread": 66.15,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 22.71,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "score": 0.5338,
+     "throughput": 0.7016,
+     "actual_peak_c": 37.8355,
+     "strain_margin_c": 0.1645,
+     "workers_alerted": 0.0,
+     "heat_spread": 34.2,
+     "solve_rate": 1.0,
+     "safety_violations": 0,
+     "latency_s": 12.14,
+     "cost_usd": 0.0
+    }
+   ],
+   "val": {
+    "score": 0.3784,
+    "strain_margin_c": -0.0146,
+    "throughput": 0.8232,
+    "fairness": -54.12,
+    "latency": -24.4,
+    "cost": -0.0,
+    "workers_alerted": 0.75,
+    "solve_rate": 0.333,
+    "safety_violations": 0
+   },
+   "accepted": true
+  },
+  {
+   "id": "a7",
+   "parent": "a0",
+   "generation": 1,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "margin",
+      "balanced",
+      "throughput",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 2.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Front-load heavy and very heavy tasks into the earliest hours and move moderate or light tasks to midday and afternoon. Interleave each person's heavy work with light tasks rather than stacking consecutive heavy slots, and spread heavy tasks across more crew members."
+   },
+   "why": "Every day the ranking picked the max-throughput plan (fused copy of optimizer:throughput, predicted p90 peak about 37.9). With w_peak=0.5, a 0.4\u00b0C peak excess costs only about 0.2 rank points, so the lower-peak balanced and margin plans always lost. Forecast p90 underestimated actual core temperatur",
+   "mutator": "llm",
+   "n_children": 0,
+   "minibatch": {
+    "parent": 0.0856,
+    "child": 0.3378,
+    "scenarios": [
+     "cur-9dda323a",
+     "cur-4a81884a",
+     "cur-5e316842"
+    ]
+   },
+   "val_rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "score": 0.0864,
+     "throughput": 0.646,
+     "actual_peak_c": 38.1195,
+     "strain_margin_c": -0.1195,
+     "workers_alerted": 1.0,
+     "heat_spread": 42.55,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 30.84,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "score": 0.5252,
+     "throughput": 0.6279,
+     "actual_peak_c": 37.7055,
+     "strain_margin_c": 0.2945,
+     "workers_alerted": 0.0,
+     "heat_spread": 24.3,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 26.1,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-5dad9274",
+     "tags": [
+      "callout"
+     ],
+     "score": 0.6724,
+     "throughput": 0.7181,
+     "actual_peak_c": 37.5915,
+     "strain_margin_c": 0.4085,
+     "workers_alerted": 0.0,
+     "heat_spread": 51.65,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 23.46,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.5978,
+     "throughput": 0.7238,
+     "actual_peak_c": 37.752,
+     "strain_margin_c": 0.248,
+     "workers_alerted": 0.0,
+     "heat_spread": 51.2,
+     "solve_rate": 0.0,
+     "safety_violations": 0,
+     "latency_s": 24.55,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "score": 0.2878,
+     "throughput": 0.7676,
+     "actual_peak_c": 37.96,
+     "strain_margin_c": 0.04,
+     "workers_alerted": 1.0,
+     "heat_spread": 62.65,
+     "solve_rate": 0.5,
+     "safety_violations": 0,
+     "latency_s": 21.63,
+     "cost_usd": 0.0
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "score": 0.5338,
+     "throughput": 0.7016,
+     "actual_peak_c": 37.8355,
+     "strain_margin_c": 0.1645,
+     "workers_alerted": 0.0,
+     "heat_spread": 34.2,
+     "solve_rate": 1.0,
+     "safety_violations": 0,
+     "latency_s": 9.8,
+     "cost_usd": 0.0
+    }
+   ],
+   "val": {
+    "score": 0.4506,
+    "strain_margin_c": 0.1727,
+    "throughput": 0.6975,
+    "fairness": -44.43,
+    "latency": -22.73,
+    "cost": -0.0,
+    "workers_alerted": 0.333,
+    "solve_rate": 0.25,
+    "safety_violations": 0
+   },
+   "accepted": true
+  },
+  {
+   "id": "a8",
+   "parent": "a3",
+   "generation": 3,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 3.2,
+     "w_fair": 0.002,
+     "w_complaint": 0.15,
+     "critic_instructions": "Flag ANY worker (veteran or new hire) given escalating moderate->heavy->very_heavy runs, especially after 11:00. Ask to move heavy/very_heavy work to early slots and spread it across more workers. Rotate hot tasks fairly, keep new hires' heavy work early, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0
+    },
+    "strategy_note": "Give new hires and temps their heavy tasks only in the first slots. Assign very heavy work such as transformer maintenance or trenching to acclimatized veterans, early in the day. Spread heavy work across the whole crew, and give each person moderate tasks like insulation or shop repair after 11:00 rather than escalating sequences."
+   },
+   "why": "The only alert was on day 3. Kofi, an unacclimatized new hire, was alerted at 11:00 during Transformer maintenance. The chosen plan was optimizer:throughput, which won by just 0.0008 rank over balanced, at peak_p90 37.924. The critic confirmed three escalation findings in that plan: Marcus, plus new",
+   "mutator": "llm",
+   "n_children": 0,
+   "minibatch": {
+    "parent": 0.558,
+    "child": 0.5011,
+    "scenarios": [
+     "cur-9dda323a",
+     "cur-5dcbd679",
+     "cur-111cb926"
+    ]
+   },
+   "accepted": false,
+   "val": null
+  }
+ ],
+ "best": "a7",
+ "seed": "a0",
+ "pareto_front": [
+  "a0",
+  "a1",
+  "a7"
+ ],
+ "gain_val": 0.0722,
+ "llm": {
+  "model": "claude-opus-5-5",
+  "calls": 8,
+  "cost_usd": 0.308,
+  "cap_usd": 3.0,
+  "blocked_by_cap": 0,
+  "errors": 0
+ },
+ "seconds": 905.9
+}

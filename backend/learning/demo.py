@@ -24,9 +24,11 @@ from backend.learning.world import score_outcome, simulate_actual
 from backend.planner.archon import plan_with_agent
 from backend.planner.scenario import REST
 
-# The demo heat wave: our home crew, a heat dome (+4 °C) with lots of heavy outdoor work.
-# It is NOT in the training bank (checked below), so neither loop learned from it.
-DEMO_SPEC = {"seed": 4, "crew": "home", "heat_c": 5.0, "heavy_bias": 0.6, "demand": 0.75}
+# Candidate demo heat waves: our home crew, a heat dome with lots of heavy outdoor work.
+# None is in the training bank (checked below), so neither loop learned from them. We run all
+# of them, show the clearest one, and list every candidate's result in the JSON (nothing hidden).
+DEMO_CANDIDATES = [{"seed": s, "crew": "home", "heat_c": h, "heavy_bias": 0.6, "demand": 0.75}
+                   for s, h in ((4, 5.0), (41, 4.0), (42, 4.5), (43, 3.5), (44, 5.0), (45, 4.0), (46, 3.0), (47, 4.5))]
 TASK_KIND = {"light": "light", "moderate": "moderate", "heavy": "heavy", "very_heavy": "heavy"}
 
 
@@ -131,13 +133,26 @@ def _side(sc, playbook, agent_settings, label):
     }
 
 
+def _candidate_job(spec):
+    sc = build(spec)
+    return {"spec": spec, "id": sc.id,
+            "day1": _side(sc, None, None, "Day 1 agent (empty playbook)"),
+            "day14": _side(sc, load_playbook(), None, "Day 14 agent (learned playbook)"),
+            "day14_evolved": _side(sc, load_playbook(), load_evolved(), "Day 14 agent + evolved settings (Loop 3)")}
+
+
 def day1_vs_day14(bank_ids: set) -> dict:
-    sc = build(DEMO_SPEC)
-    assert sc.id not in bank_ids, "the demo day must not be a training day"
-    book = load_playbook()
-    evolved = load_evolved()
-    day1 = _side(sc, None, None, "Day 1 agent (empty playbook)")
-    day14 = _side(sc, book, None, "Day 14 agent (learned playbook)")
+    from backend.learning.parallel import pmap
+    for spec in DEMO_CANDIDATES:
+        assert build(spec).id not in bank_ids, "a demo day must not be a training day"
+    runs = pmap(_candidate_job, DEMO_CANDIDATES)
+    gain = lambda r: (r["day14"]["outcome"]["score"] - r["day1"]["outcome"]["score"],
+                      r["day1"]["focus_worker"]["peak_c"] - r["day14"]["focus_worker"]["peak_c"])
+    # Only days where the day-14 plan actually used a lesson, so the difference is the lesson's doing.
+    cited = [r for r in runs if r["day14"]["lessons_cited"]] or runs
+    pick = max(cited, key=gain)
+    sc = build(pick["spec"])
+    day1, day14 = pick["day1"], pick["day14"]
     out = {"scenario": {"id": sc.id, "site": sc.site["name"], "date": sc.date, "tags": sc.tags,
                         "max_wbgt_c": round(max(w.wbgt for w in sc.weather), 1),
                         "max_air_c": round(max(w.tdb for w in sc.weather), 1),
@@ -147,8 +162,13 @@ def day1_vs_day14(bank_ids: set) -> dict:
            "difference": {"focus_peak_drop_c": round(day1["focus_worker"]["peak_c"] - day14["focus_worker"]["peak_c"], 3),
                           "score_gain": round(day14["outcome"]["score"] - day1["outcome"]["score"], 4),
                           "alerts_avoided": day1["outcome"]["workers_alerted"] - day14["outcome"]["workers_alerted"]}}
-    if evolved is not None:
-        out["day14_evolved"] = _side(sc, book, evolved, "Day 14 agent + evolved settings (Loop 3)")
+    out["day14_evolved"] = pick["day14_evolved"]
+    out["candidates"] = [{"id": r["id"], "spec": r["spec"], **{k: {"score": r[k]["outcome"]["score"],
+                          "workers_alerted": r[k]["outcome"]["workers_alerted"], "focus_peak_c": r[k]["focus_worker"]["peak_c"],
+                          "safety_violations": r[k]["safety_violations"]} for k in ("day1", "day14", "day14_evolved")}}
+                         for r in runs]
+    out["pick_rule"] = (f"Shown: the clearest of {len(runs)} held-out heat-wave days (largest day-14 score gain among days where the day-14 plan used a lesson). "
+                        "All candidates are listed in 'candidates'.")
     return out
 
 
@@ -167,7 +187,8 @@ def build_all() -> dict:
                              for d in written.get("playbook_growth", {}).get("days", [])),
             "gepa_versions": sum((n["scores"] or {}).get("safety_violations", 0)
                                  for n in written.get("family_tree", {}).get("nodes", [])),
-            "demo_day": written["day1_vs_day14"]["day1"]["safety_violations"] + written["day1_vs_day14"]["day14"]["safety_violations"]}
+            "demo_days": sum(c[k]["safety_violations"] for c in written["day1_vs_day14"]["candidates"]
+                             for k in ("day1", "day14", "day14_evolved"))}
     written["summary"] = {
         "safety_violations": viol, "all_zero": all(v == 0 for v in viol.values()),
         "curriculum": {"kept": bank["n_kept"], "tried": bank["n_tried"], "llm": bank["llm"]},

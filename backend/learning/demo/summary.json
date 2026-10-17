@@ -1,0 +1,131 @@
+{
+ "safety_violations": {
+  "ace_days": 0,
+  "ace_gates": 0,
+  "gepa_versions": 0,
+  "demo_days": 0
+ },
+ "all_zero": true,
+ "curriculum": {
+  "kept": 27,
+  "tried": 93,
+  "llm": {
+   "model": "claude-opus-5-5",
+   "calls": 7,
+   "cost_usd": 0.335,
+   "cap_usd": 0.5,
+   "blocked_by_cap": 1,
+   "errors": 0
+  }
+ },
+ "ace": {
+  "days": 14,
+  "final_version": 2,
+  "gate_score_start": 0.2732,
+  "gate_score_end": 0.3112,
+  "llm": {
+   "model": "claude-opus-5-5",
+   "calls": 16,
+   "cost_usd": 0.2107,
+   "cap_usd": 1.5,
+   "blocked_by_cap": 0,
+   "errors": 0
+  }
+ },
+ "gepa": {
+  "versions": 9,
+  "best": "a7",
+  "gain_val": 0.0722,
+  "llm": {
+   "model": "claude-opus-5-5",
+   "calls": 8,
+   "cost_usd": 0.308,
+   "cap_usd": 3.0,
+   "blocked_by_cap": 0,
+   "errors": 0
+  }
+ },
+ "held_out": {
+  "test": {
+   "fixed": {
+    "success_rate": 0.0,
+    "safety_violations": 107,
+    "throughput": 0.86,
+    "world_score": -0.0908,
+    "world_alerted_per_day": 1.944
+   },
+   "optimizer": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.684,
+    "world_score": 0.4366,
+    "world_alerted_per_day": 0.194
+   },
+   "llm_only": {
+    "success_rate": 0.083,
+    "safety_violations": 38,
+    "throughput": 0.861,
+    "world_score": 0.1378,
+    "world_alerted_per_day": 1.667
+   },
+   "agent_day1": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.666,
+    "world_score": 0.4419,
+    "world_alerted_per_day": 0.167
+   },
+   "agent_day14": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.681,
+    "world_score": 0.465,
+    "world_alerted_per_day": 0.139
+   },
+   "agent_evolved": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.604,
+    "world_score": 0.4607,
+    "world_alerted_per_day": 0.028
+   }
+  },
+  "home_val": {
+   "fixed": {
+    "success_rate": 0.0,
+    "safety_violations": 84,
+    "throughput": 0.984,
+    "world_score": -0.2065,
+    "world_alerted_per_day": 2.667
+   },
+   "optimizer": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.788,
+    "world_score": 0.3081,
+    "world_alerted_per_day": 0.867
+   },
+   "agent_day1": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.788,
+    "world_score": 0.3328,
+    "world_alerted_per_day": 0.8
+   },
+   "agent_day14": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.788,
+    "world_score": 0.3368,
+    "world_alerted_per_day": 0.8
+   },
+   "agent_evolved": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.695,
+    "world_score": 0.4445,
+    "world_alerted_per_day": 0.267
+   }
+  }
+ }
+}

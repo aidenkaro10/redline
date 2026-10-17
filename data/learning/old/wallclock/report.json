@@ -1,0 +1,2854 @@
+{
+ "test": {
+  "fixed": {
+   "n": 12,
+   "success_rate": 0.0,
+   "safety_violations": 107,
+   "invalid_plans": 0,
+   "throughput": 0.86,
+   "peak_p90_max": 40.48,
+   "world_score": -0.0908,
+   "world_alerted_per_day": 1.944,
+   "world_peak_c": 38.428,
+   "latency_s": 0.0,
+   "rows": [
+    {
+     "scenario": "test-1000",
+     "tags": [
+      "normal"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 3,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 3
+      },
+      "peak_p90": 38.57796555931555,
+      "throughput": 0.8928571428571429,
+      "fairness": 33.86018511950329
+     },
+     "world": {
+      "score": -0.1799,
+      "throughput": 0.8929,
+      "actual_peak_c": 38.4787,
+      "strain_margin_c": -0.4787,
+      "workers_alerted": 2.3333,
+      "heat_spread": 76.1,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1001",
+     "tags": [
+      "normal",
+      "callout"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 13,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 10,
+       "heat": 3
+      },
+      "peak_p90": 38.42953938950596,
+      "throughput": 1.0,
+      "fairness": 96.88251943418919
+     },
+     "world": {
+      "score": -0.1118,
+      "throughput": 1.0,
+      "actual_peak_c": 38.2237,
+      "strain_margin_c": -0.2237,
+      "workers_alerted": 3.0,
+      "heat_spread": 78.1667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1002",
+     "tags": [
+      "new_hire"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 7,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 4,
+       "heat": 3
+      },
+      "peak_p90": 38.22171171746949,
+      "throughput": 1.0,
+      "fairness": 78.2219144936843
+     },
+     "world": {
+      "score": 0.4595,
+      "throughput": 1.0,
+      "actual_peak_c": 38.081,
+      "strain_margin_c": -0.081,
+      "workers_alerted": 1.0,
+      "heat_spread": 85.6667,
+      "solve_rate": 0.333
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1003",
+     "tags": [
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 5,
+      "n_invalid": 0,
+      "rules": {
+       "lightning": 3,
+       "heat": 2
+      },
+      "peak_p90": 38.63557259757799,
+      "throughput": 0.9433198380566802,
+      "fairness": 113.39747895875695
+     },
+     "world": {
+      "score": -0.0597,
+      "throughput": 0.9433,
+      "actual_peak_c": 38.6723,
+      "strain_margin_c": -0.6723,
+      "workers_alerted": 1.6667,
+      "heat_spread": 160.1,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1004",
+     "tags": [
+      "warning"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "hazard": 2,
+       "heat": 2
+      },
+      "peak_p90": 38.26917935549823,
+      "throughput": 0.6444444444444445,
+      "fairness": 60.92517986504427
+     },
+     "world": {
+      "score": 0.0226,
+      "throughput": 0.6444,
+      "actual_peak_c": 38.077,
+      "strain_margin_c": -0.077,
+      "workers_alerted": 1.3333,
+      "heat_spread": 107.3,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1005",
+     "tags": [
+      "heat_dome"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 18,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 13,
+       "heat": 5
+      },
+      "peak_p90": 39.616438163363505,
+      "throughput": 0.9150141643059491,
+      "fairness": 129.41143918546973
+     },
+     "world": {
+      "score": -0.9073,
+      "throughput": 0.915,
+      "actual_peak_c": 39.3113,
+      "strain_margin_c": -1.3113,
+      "workers_alerted": 3.6667,
+      "heat_spread": 167.5,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1006",
+     "tags": [
+      "heat_dome",
+      "new_hire"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 2,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 2
+      },
+      "peak_p90": 38.2172273343737,
+      "throughput": 0.8846153846153846,
+      "fairness": 103.35357552176994
+     },
+     "world": {
+      "score": 0.2575,
+      "throughput": 0.8846,
+      "actual_peak_c": 38.0877,
+      "strain_margin_c": -0.0877,
+      "workers_alerted": 1.3333,
+      "heat_spread": 105.5,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1007",
+     "tags": [
+      "heat_dome",
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 18,
+      "n_invalid": 0,
+      "rules": {
+       "lightning": 2,
+       "breaks": 13,
+       "heat": 3
+      },
+      "peak_p90": 40.477042875491975,
+      "throughput": 0.9615384615384616,
+      "fairness": 145.66628498977275
+     },
+     "world": {
+      "score": -0.4527,
+      "throughput": 0.9615,
+      "actual_peak_c": 39.1617,
+      "strain_margin_c": -1.1617,
+      "workers_alerted": 2.3333,
+      "heat_spread": 132.2333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1008",
+     "tags": [
+      "heat_dome",
+      "warning",
+      "new_hire"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 17,
+      "n_invalid": 0,
+      "rules": {
+       "hazard": 4,
+       "breaks": 12,
+       "heat": 1
+      },
+      "peak_p90": 38.27623519365347,
+      "throughput": 0.6902654867256637,
+      "fairness": 62.35587638419256
+     },
+     "world": {
+      "score": 0.1245,
+      "throughput": 0.6903,
+      "actual_peak_c": 38.1313,
+      "strain_margin_c": -0.1313,
+      "workers_alerted": 1.0,
+      "heat_spread": 76.3667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1009",
+     "tags": [
+      "replan"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 3,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 3
+      },
+      "peak_p90": 38.263417627259805,
+      "throughput": 0.7272727272727273,
+      "fairness": 44.42874003988152
+     },
+     "world": {
+      "score": 0.0563,
+      "throughput": 0.7273,
+      "actual_peak_c": 38.1753,
+      "strain_margin_c": -0.1753,
+      "workers_alerted": 1.3333,
+      "heat_spread": 61.8333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1010",
+     "tags": [
+      "heat_dome",
+      "replan"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 13,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 8,
+       "heat": 5
+      },
+      "peak_p90": 39.720694935684094,
+      "throughput": 0.7025316455696202,
+      "fairness": 50.35525062272958
+     },
+     "world": {
+      "score": -0.4659,
+      "throughput": 0.7025,
+      "actual_peak_c": 38.3367,
+      "strain_margin_c": -0.3367,
+      "workers_alerted": 3.0,
+      "heat_spread": 28.6667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1011",
+     "tags": [
+      "storm_2pm",
+      "new_hire",
+      "callout"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "lightning": 3,
+       "heat": 1
+      },
+      "peak_p90": 38.495545462629146,
+      "throughput": 0.9523809523809523,
+      "fairness": 70.99524459099122
+     },
+     "world": {
+      "score": 0.1671,
+      "throughput": 0.9524,
+      "actual_peak_c": 38.404,
+      "strain_margin_c": -0.404,
+      "workers_alerted": 1.3333,
+      "heat_spread": 76.1,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    }
+   ]
+  },
+  "optimizer": {
+   "n": 12,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.684,
+   "peak_p90_max": 37.99,
+   "world_score": 0.4366,
+   "world_alerted_per_day": 0.194,
+   "world_peak_c": 37.898,
+   "latency_s": 6.8,
+   "rows": [
+    {
+     "scenario": "test-1000",
+     "tags": [
+      "normal"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.99303773232761,
+      "throughput": 0.7976190476190477,
+      "fairness": 37.618507032312806
+     },
+     "world": {
+      "score": 0.6021,
+      "throughput": 0.7976,
+      "actual_peak_c": 37.891,
+      "strain_margin_c": 0.109,
+      "workers_alerted": 0.0,
+      "heat_spread": 66.6667,
+      "solve_rate": 1.0
+     },
+     "latency_s": 12.2
+    },
+    {
+     "scenario": "test-1001",
+     "tags": [
+      "normal",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.98417710525881,
+      "throughput": 0.6453900709219859,
+      "fairness": 28.444698166653804
+     },
+     "world": {
+      "score": 0.3394,
+      "throughput": 0.6454,
+      "actual_peak_c": 37.9453,
+      "strain_margin_c": 0.0547,
+      "workers_alerted": 0.3333,
+      "heat_spread": 56.3667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 12.6
+    },
+    {
+     "scenario": "test-1002",
+     "tags": [
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.92176790647429,
+      "throughput": 0.8014440433212996,
+      "fairness": 56.284136037189214
+     },
+     "world": {
+      "score": 0.4361,
+      "throughput": 0.8014,
+      "actual_peak_c": 38.064,
+      "strain_margin_c": -0.064,
+      "workers_alerted": 0.3333,
+      "heat_spread": 92.8333,
+      "solve_rate": 0.667
+     },
+     "latency_s": 12.1
+    },
+    {
+     "scenario": "test-1003",
+     "tags": [
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.98174850451662,
+      "throughput": 0.6437246963562753,
+      "fairness": 48.66076960723313
+     },
+     "world": {
+      "score": 0.3092,
+      "throughput": 0.6437,
+      "actual_peak_c": 38.0023,
+      "strain_margin_c": -0.0023,
+      "workers_alerted": 0.3333,
+      "heat_spread": 67.6,
+      "solve_rate": 0.0
+     },
+     "latency_s": 5.8
+    },
+    {
+     "scenario": "test-1004",
+     "tags": [
+      "warning"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.94889693117932,
+      "throughput": 0.6370370370370371,
+      "fairness": 40.11908543065562
+     },
+     "world": {
+      "score": 0.4725,
+      "throughput": 0.637,
+      "actual_peak_c": 37.829,
+      "strain_margin_c": 0.171,
+      "workers_alerted": 0.0,
+      "heat_spread": 45.5667,
+      "solve_rate": 1.0
+     },
+     "latency_s": 6.7
+    },
+    {
+     "scenario": "test-1005",
+     "tags": [
+      "heat_dome"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.99090409923433,
+      "throughput": 0.7648725212464589,
+      "fairness": 40.436975769966686
+     },
+     "world": {
+      "score": 0.2773,
+      "throughput": 0.7649,
+      "actual_peak_c": 37.975,
+      "strain_margin_c": 0.025,
+      "workers_alerted": 1.0,
+      "heat_spread": 60.5,
+      "solve_rate": 0.667
+     },
+     "latency_s": 11.3
+    },
+    {
+     "scenario": "test-1006",
+     "tags": [
+      "heat_dome",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.937857060993494,
+      "throughput": 0.6923076923076923,
+      "fairness": 45.9526176411868
+     },
+     "world": {
+      "score": 0.5262,
+      "throughput": 0.6923,
+      "actual_peak_c": 37.832,
+      "strain_margin_c": 0.168,
+      "workers_alerted": 0.0,
+      "heat_spread": 50.5,
+      "solve_rate": 1.0
+     },
+     "latency_s": 5.8
+    },
+    {
+     "scenario": "test-1007",
+     "tags": [
+      "heat_dome",
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.93098978386564,
+      "throughput": 0.5512820512820513,
+      "fairness": 26.99882631764081
+     },
+     "world": {
+      "score": 0.3661,
+      "throughput": 0.5513,
+      "actual_peak_c": 37.8703,
+      "strain_margin_c": 0.1297,
+      "workers_alerted": 0.0,
+      "heat_spread": 46.0333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 2.7
+    },
+    {
+     "scenario": "test-1008",
+     "tags": [
+      "heat_dome",
+      "warning",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.90064781004092,
+      "throughput": 0.9380530973451328,
+      "fairness": 21.65056510992789
+     },
+     "world": {
+      "score": 0.7133,
+      "throughput": 0.9381,
+      "actual_peak_c": 37.9493,
+      "strain_margin_c": 0.0507,
+      "workers_alerted": 0.0,
+      "heat_spread": 51.0333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 6.0
+    },
+    {
+     "scenario": "test-1009",
+     "tags": [
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.941057176026305,
+      "throughput": 0.45454545454545453,
+      "fairness": 15.89554867648861
+     },
+     "world": {
+      "score": 0.3555,
+      "throughput": 0.4545,
+      "actual_peak_c": 37.6983,
+      "strain_margin_c": 0.3017,
+      "workers_alerted": 0.0,
+      "heat_spread": 33.0,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.6
+    },
+    {
+     "scenario": "test-1010",
+     "tags": [
+      "heat_dome",
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.98772517218921,
+      "throughput": 0.379746835443038,
+      "fairness": 25.784256254163193
+     },
+     "world": {
+      "score": 0.2367,
+      "throughput": 0.3797,
+      "actual_peak_c": 37.786,
+      "strain_margin_c": 0.214,
+      "workers_alerted": 0.0,
+      "heat_spread": 31.2333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.5
+    },
+    {
+     "scenario": "test-1011",
+     "tags": [
+      "storm_2pm",
+      "new_hire",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.94847791908903,
+      "throughput": 0.9047619047619048,
+      "fairness": 38.22104481211484
+     },
+     "world": {
+      "score": 0.6043,
+      "throughput": 0.9048,
+      "actual_peak_c": 37.9343,
+      "strain_margin_c": 0.0657,
+      "workers_alerted": 0.3333,
+      "heat_spread": 39.4,
+      "solve_rate": 0.667
+     },
+     "latency_s": 5.7
+    }
+   ]
+  },
+  "llm_only": {
+   "n": 12,
+   "success_rate": 0.083,
+   "safety_violations": 38,
+   "invalid_plans": 0,
+   "throughput": 0.861,
+   "peak_p90_max": 38.66,
+   "world_score": 0.1378,
+   "world_alerted_per_day": 1.667,
+   "world_peak_c": 38.112,
+   "latency_s": 0.0,
+   "rows": [
+    {
+     "scenario": "test-1000",
+     "tags": [
+      "normal"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 3,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 3
+      },
+      "peak_p90": 38.35865633761172,
+      "throughput": 0.8571428571428571,
+      "fairness": 35.48904653066255
+     },
+     "world": {
+      "score": 0.0184,
+      "throughput": 0.8571,
+      "actual_peak_c": 38.1773,
+      "strain_margin_c": -0.1773,
+      "workers_alerted": 2.0,
+      "heat_spread": 79.3,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1001",
+     "tags": [
+      "normal",
+      "callout"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 4
+      },
+      "peak_p90": 38.0539891581664,
+      "throughput": 0.8226950354609929,
+      "fairness": 21.499515724462956
+     },
+     "world": {
+      "score": 0.197,
+      "throughput": 0.8227,
+      "actual_peak_c": 38.0847,
+      "strain_margin_c": -0.0847,
+      "workers_alerted": 1.3333,
+      "heat_spread": 48.6667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1002",
+     "tags": [
+      "new_hire"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 3,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 3
+      },
+      "peak_p90": 38.18781658126649,
+      "throughput": 1.0,
+      "fairness": 51.23967444342619
+     },
+     "world": {
+      "score": 0.6722,
+      "throughput": 1.0,
+      "actual_peak_c": 37.989,
+      "strain_margin_c": 0.011,
+      "workers_alerted": 0.3333,
+      "heat_spread": 76.5667,
+      "solve_rate": 0.667
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1003",
+     "tags": [
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 4
+      },
+      "peak_p90": 38.37338914856524,
+      "throughput": 1.0,
+      "fairness": 34.014446298793786
+     },
+     "world": {
+      "score": -0.1979,
+      "throughput": 1.0,
+      "actual_peak_c": 38.3957,
+      "strain_margin_c": -0.3957,
+      "workers_alerted": 3.0,
+      "heat_spread": 61.5,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1004",
+     "tags": [
+      "warning"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 3,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 3
+      },
+      "peak_p90": 38.1749924273968,
+      "throughput": 0.8074074074074075,
+      "fairness": 32.07050987397543
+     },
+     "world": {
+      "score": 0.2984,
+      "throughput": 0.8074,
+      "actual_peak_c": 38.0183,
+      "strain_margin_c": -0.0183,
+      "workers_alerted": 1.0,
+      "heat_spread": 55.0,
+      "solve_rate": 0.333
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1005",
+     "tags": [
+      "heat_dome"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 4
+      },
+      "peak_p90": 38.658075620567715,
+      "throughput": 0.8923512747875354,
+      "fairness": 75.89063643222862
+     },
+     "world": {
+      "score": -0.6368,
+      "throughput": 0.8924,
+      "actual_peak_c": 38.5583,
+      "strain_margin_c": -0.5583,
+      "workers_alerted": 4.0,
+      "heat_spread": 98.6333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1006",
+     "tags": [
+      "heat_dome",
+      "new_hire"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 2,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 2
+      },
+      "peak_p90": 38.180301034000024,
+      "throughput": 0.9230769230769231,
+      "fairness": 50.56717518402616
+     },
+     "world": {
+      "score": 0.3182,
+      "throughput": 0.9231,
+      "actual_peak_c": 38.0433,
+      "strain_margin_c": -0.0433,
+      "workers_alerted": 1.3333,
+      "heat_spread": 48.6333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1007",
+     "tags": [
+      "heat_dome",
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 6,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 6
+      },
+      "peak_p90": 38.43736778634668,
+      "throughput": 0.9038461538461539,
+      "fairness": 34.133888177927936
+     },
+     "world": {
+      "score": -0.2743,
+      "throughput": 0.9038,
+      "actual_peak_c": 38.1897,
+      "strain_margin_c": -0.1897,
+      "workers_alerted": 3.3333,
+      "heat_spread": 37.7667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1008",
+     "tags": [
+      "heat_dome",
+      "warning",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.95460042946008,
+      "throughput": 0.9203539823008849,
+      "fairness": 9.88599062107965
+     },
+     "world": {
+      "score": 0.7613,
+      "throughput": 0.9204,
+      "actual_peak_c": 37.818,
+      "strain_margin_c": 0.182,
+      "workers_alerted": 0.0,
+      "heat_spread": 35.7,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1009",
+     "tags": [
+      "replan"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 4
+      },
+      "peak_p90": 38.28708020479575,
+      "throughput": 0.7575757575757576,
+      "fairness": 21.732511838403894
+     },
+     "world": {
+      "score": 0.134,
+      "throughput": 0.7576,
+      "actual_peak_c": 38.0807,
+      "strain_margin_c": -0.0807,
+      "workers_alerted": 1.3333,
+      "heat_spread": 19.8667,
+      "solve_rate": 0.333
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1010",
+     "tags": [
+      "heat_dome",
+      "replan"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 1,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 1
+      },
+      "peak_p90": 38.17886499465001,
+      "throughput": 0.4430379746835443,
+      "fairness": 26.54633502167416
+     },
+     "world": {
+      "score": 0.2645,
+      "throughput": 0.443,
+      "actual_peak_c": 37.857,
+      "strain_margin_c": 0.143,
+      "workers_alerted": 0.0,
+      "heat_spread": 23.3,
+      "solve_rate": 1.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "test-1011",
+     "tags": [
+      "storm_2pm",
+      "new_hire",
+      "callout"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 4,
+      "n_invalid": 0,
+      "rules": {
+       "heat": 4
+      },
+      "peak_p90": 38.38297852542691,
+      "throughput": 1.0,
+      "fairness": 31.0145474231875
+     },
+     "world": {
+      "score": 0.0987,
+      "throughput": 1.0,
+      "actual_peak_c": 38.136,
+      "strain_margin_c": -0.136,
+      "workers_alerted": 2.3333,
+      "heat_spread": 39.0,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    }
+   ]
+  },
+  "agent_day1": {
+   "n": 12,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.666,
+   "peak_p90_max": 37.99,
+   "world_score": 0.4419,
+   "world_alerted_per_day": 0.167,
+   "world_peak_c": 37.865,
+   "latency_s": 22.8,
+   "rows": [
+    {
+     "scenario": "test-1000",
+     "tags": [
+      "normal"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.9882974632895,
+      "throughput": 0.7976190476190477,
+      "fairness": 29.80867178957337
+     },
+     "world": {
+      "score": 0.6087,
+      "throughput": 0.7976,
+      "actual_peak_c": 37.8777,
+      "strain_margin_c": 0.1223,
+      "workers_alerted": 0.0,
+      "heat_spread": 72.8667,
+      "solve_rate": 1.0
+     },
+     "latency_s": 27.4
+    },
+    {
+     "scenario": "test-1001",
+     "tags": [
+      "normal",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.90412217369331,
+      "throughput": 0.6099290780141844,
+      "fairness": 27.784368641996878
+     },
+     "world": {
+      "score": 0.4186,
+      "throughput": 0.6099,
+      "actual_peak_c": 37.8827,
+      "strain_margin_c": 0.1173,
+      "workers_alerted": 0.0,
+      "heat_spread": 61.1333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 28.5
+    },
+    {
+     "scenario": "test-1002",
+     "tags": [
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.92794032695594,
+      "throughput": 0.7833935018050542,
+      "fairness": 28.8901941413374
+     },
+     "world": {
+      "score": 0.4463,
+      "throughput": 0.7834,
+      "actual_peak_c": 38.0073,
+      "strain_margin_c": -0.0073,
+      "workers_alerted": 0.3333,
+      "heat_spread": 64.9333,
+      "solve_rate": 0.667
+     },
+     "latency_s": 27.5
+    },
+    {
+     "scenario": "test-1003",
+     "tags": [
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.80267159272161,
+      "throughput": 0.6275303643724697,
+      "fairness": 23.803154873629644
+     },
+     "world": {
+      "score": 0.4431,
+      "throughput": 0.6275,
+      "actual_peak_c": 37.8687,
+      "strain_margin_c": 0.1313,
+      "workers_alerted": 0.0,
+      "heat_spread": 50.5667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 19.3
+    },
+    {
+     "scenario": "test-1004",
+     "tags": [
+      "warning"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.945821674984074,
+      "throughput": 0.6222222222222222,
+      "fairness": 20.500270446388217
+     },
+     "world": {
+      "score": 0.4643,
+      "throughput": 0.6222,
+      "actual_peak_c": 37.816,
+      "strain_margin_c": 0.184,
+      "workers_alerted": 0.0,
+      "heat_spread": 52.1,
+      "solve_rate": 1.0
+     },
+     "latency_s": 22.4
+    },
+    {
+     "scenario": "test-1005",
+     "tags": [
+      "heat_dome"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.99090409923433,
+      "throughput": 0.7648725212464589,
+      "fairness": 40.436975769966686
+     },
+     "world": {
+      "score": 0.2773,
+      "throughput": 0.7649,
+      "actual_peak_c": 37.975,
+      "strain_margin_c": 0.025,
+      "workers_alerted": 1.0,
+      "heat_spread": 60.5,
+      "solve_rate": 0.667
+     },
+     "latency_s": 47.7
+    },
+    {
+     "scenario": "test-1006",
+     "tags": [
+      "heat_dome",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.81385657283042,
+      "throughput": 0.5961538461538461,
+      "fairness": 12.492893638748042
+     },
+     "world": {
+      "score": 0.2877,
+      "throughput": 0.5962,
+      "actual_peak_c": 37.9503,
+      "strain_margin_c": 0.0497,
+      "workers_alerted": 0.3333,
+      "heat_spread": 32.0667,
+      "solve_rate": 0.667
+     },
+     "latency_s": 21.3
+    },
+    {
+     "scenario": "test-1007",
+     "tags": [
+      "heat_dome",
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.93098978386564,
+      "throughput": 0.5512820512820513,
+      "fairness": 26.99882631764081
+     },
+     "world": {
+      "score": 0.3661,
+      "throughput": 0.5513,
+      "actual_peak_c": 37.8703,
+      "strain_margin_c": 0.1297,
+      "workers_alerted": 0.0,
+      "heat_spread": 46.0333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 18.7
+    },
+    {
+     "scenario": "test-1008",
+     "tags": [
+      "heat_dome",
+      "warning",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.92821007435398,
+      "throughput": 0.9292035398230089,
+      "fairness": 8.172997677419023
+     },
+     "world": {
+      "score": 0.7743,
+      "throughput": 0.9292,
+      "actual_peak_c": 37.81,
+      "strain_margin_c": 0.19,
+      "workers_alerted": 0.0,
+      "heat_spread": 38.6,
+      "solve_rate": 0.0
+     },
+     "latency_s": 21.9
+    },
+    {
+     "scenario": "test-1009",
+     "tags": [
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.904741711474216,
+      "throughput": 0.45454545454545453,
+      "fairness": 13.82957982036647
+     },
+     "world": {
+      "score": 0.3555,
+      "throughput": 0.4545,
+      "actual_peak_c": 37.6983,
+      "strain_margin_c": 0.3017,
+      "workers_alerted": 0.0,
+      "heat_spread": 32.6,
+      "solve_rate": 0.0
+     },
+     "latency_s": 13.5
+    },
+    {
+     "scenario": "test-1010",
+     "tags": [
+      "heat_dome",
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.83344233427103,
+      "throughput": 0.35443037974683544,
+      "fairness": 19.377398118801118
+     },
+     "world": {
+      "score": 0.2537,
+      "throughput": 0.3544,
+      "actual_peak_c": 37.7013,
+      "strain_margin_c": 0.2987,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.6667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 4.1
+    },
+    {
+     "scenario": "test-1011",
+     "tags": [
+      "storm_2pm",
+      "new_hire",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.87406073870408,
+      "throughput": 0.9047619047619048,
+      "fairness": 19.420395192843284
+     },
+     "world": {
+      "score": 0.6075,
+      "throughput": 0.9048,
+      "actual_peak_c": 37.9277,
+      "strain_margin_c": 0.0723,
+      "workers_alerted": 0.3333,
+      "heat_spread": 39.7,
+      "solve_rate": 0.667
+     },
+     "latency_s": 21.2
+    }
+   ]
+  },
+  "agent_day14": {
+   "n": 12,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.681,
+   "peak_p90_max": 37.99,
+   "world_score": 0.465,
+   "world_alerted_per_day": 0.139,
+   "world_peak_c": 37.862,
+   "latency_s": 41.8,
+   "rows": [
+    {
+     "scenario": "test-1000",
+     "tags": [
+      "normal"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.9882974632895,
+      "throughput": 0.7976190476190477,
+      "fairness": 29.80867178957337
+     },
+     "world": {
+      "score": 0.6087,
+      "throughput": 0.7976,
+      "actual_peak_c": 37.8777,
+      "strain_margin_c": 0.1223,
+      "workers_alerted": 0.0,
+      "heat_spread": 72.8667,
+      "solve_rate": 1.0
+     },
+     "latency_s": 66.2
+    },
+    {
+     "scenario": "test-1001",
+     "tags": [
+      "normal",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.97928346489604,
+      "throughput": 0.6808510638297872,
+      "fairness": 36.21542237270737
+     },
+     "world": {
+      "score": 0.4643,
+      "throughput": 0.6809,
+      "actual_peak_c": 37.933,
+      "strain_margin_c": 0.067,
+      "workers_alerted": 0.0,
+      "heat_spread": 66.7333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 44.3
+    },
+    {
+     "scenario": "test-1002",
+     "tags": [
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.92794032695594,
+      "throughput": 0.7833935018050542,
+      "fairness": 28.8901941413374
+     },
+     "world": {
+      "score": 0.4463,
+      "throughput": 0.7834,
+      "actual_peak_c": 38.0073,
+      "strain_margin_c": -0.0073,
+      "workers_alerted": 0.3333,
+      "heat_spread": 64.9333,
+      "solve_rate": 0.667
+     },
+     "latency_s": 46.7
+    },
+    {
+     "scenario": "test-1003",
+     "tags": [
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.80267159272161,
+      "throughput": 0.6275303643724697,
+      "fairness": 23.803154873629644
+     },
+     "world": {
+      "score": 0.4431,
+      "throughput": 0.6275,
+      "actual_peak_c": 37.8687,
+      "strain_margin_c": 0.1313,
+      "workers_alerted": 0.0,
+      "heat_spread": 50.5667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 33.8
+    },
+    {
+     "scenario": "test-1004",
+     "tags": [
+      "warning"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.945821674984074,
+      "throughput": 0.6222222222222222,
+      "fairness": 20.500270446388217
+     },
+     "world": {
+      "score": 0.4643,
+      "throughput": 0.6222,
+      "actual_peak_c": 37.816,
+      "strain_margin_c": 0.184,
+      "workers_alerted": 0.0,
+      "heat_spread": 52.1,
+      "solve_rate": 1.0
+     },
+     "latency_s": 38.1
+    },
+    {
+     "scenario": "test-1005",
+     "tags": [
+      "heat_dome"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.99090409923433,
+      "throughput": 0.7648725212464589,
+      "fairness": 40.436975769966686
+     },
+     "world": {
+      "score": 0.2773,
+      "throughput": 0.7649,
+      "actual_peak_c": 37.975,
+      "strain_margin_c": 0.025,
+      "workers_alerted": 1.0,
+      "heat_spread": 60.5,
+      "solve_rate": 0.667
+     },
+     "latency_s": 98.9
+    },
+    {
+     "scenario": "test-1006",
+     "tags": [
+      "heat_dome",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.91992746761118,
+      "throughput": 0.6923076923076923,
+      "fairness": 16.630216184063293
+     },
+     "world": {
+      "score": 0.5386,
+      "throughput": 0.6923,
+      "actual_peak_c": 37.8073,
+      "strain_margin_c": 0.1927,
+      "workers_alerted": 0.0,
+      "heat_spread": 34.9333,
+      "solve_rate": 1.0
+     },
+     "latency_s": 35.9
+    },
+    {
+     "scenario": "test-1007",
+     "tags": [
+      "heat_dome",
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.93098978386564,
+      "throughput": 0.5512820512820513,
+      "fairness": 26.99882631764081
+     },
+     "world": {
+      "score": 0.3661,
+      "throughput": 0.5513,
+      "actual_peak_c": 37.8703,
+      "strain_margin_c": 0.1297,
+      "workers_alerted": 0.0,
+      "heat_spread": 46.0333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 26.6
+    },
+    {
+     "scenario": "test-1008",
+     "tags": [
+      "heat_dome",
+      "warning",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.895054430074296,
+      "throughput": 0.9380530973451328,
+      "fairness": 13.228824757163125
+     },
+     "world": {
+      "score": 0.7545,
+      "throughput": 0.9381,
+      "actual_peak_c": 37.8673,
+      "strain_margin_c": 0.1327,
+      "workers_alerted": 0.0,
+      "heat_spread": 40.9,
+      "solve_rate": 0.0
+     },
+     "latency_s": 42.4
+    },
+    {
+     "scenario": "test-1009",
+     "tags": [
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.904741711474216,
+      "throughput": 0.45454545454545453,
+      "fairness": 13.82957982036647
+     },
+     "world": {
+      "score": 0.3555,
+      "throughput": 0.4545,
+      "actual_peak_c": 37.6983,
+      "strain_margin_c": 0.3017,
+      "workers_alerted": 0.0,
+      "heat_spread": 32.6,
+      "solve_rate": 0.0
+     },
+     "latency_s": 23.4
+    },
+    {
+     "scenario": "test-1010",
+     "tags": [
+      "heat_dome",
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.83344233427103,
+      "throughput": 0.35443037974683544,
+      "fairness": 19.377398118801118
+     },
+     "world": {
+      "score": 0.2537,
+      "throughput": 0.3544,
+      "actual_peak_c": 37.7013,
+      "strain_margin_c": 0.2987,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.6667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 8.1
+    },
+    {
+     "scenario": "test-1011",
+     "tags": [
+      "storm_2pm",
+      "new_hire",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.87406073870408,
+      "throughput": 0.9047619047619048,
+      "fairness": 19.420395192843284
+     },
+     "world": {
+      "score": 0.6075,
+      "throughput": 0.9048,
+      "actual_peak_c": 37.9277,
+      "strain_margin_c": 0.0723,
+      "workers_alerted": 0.3333,
+      "heat_spread": 39.7,
+      "solve_rate": 0.667
+     },
+     "latency_s": 36.6
+    }
+   ]
+  },
+  "agent_evolved": {
+   "n": 12,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.604,
+   "peak_p90_max": 37.95,
+   "world_score": 0.4607,
+   "world_alerted_per_day": 0.028,
+   "world_peak_c": 37.773,
+   "latency_s": 42.8,
+   "rows": [
+    {
+     "scenario": "test-1000",
+     "tags": [
+      "normal"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.91276082542284,
+      "throughput": 0.7142857142857143,
+      "fairness": 45.53978954801678
+     },
+     "world": {
+      "score": 0.5415,
+      "throughput": 0.7143,
+      "actual_peak_c": 37.8453,
+      "strain_margin_c": 0.1547,
+      "workers_alerted": 0.0,
+      "heat_spread": 92.8,
+      "solve_rate": 1.0
+     },
+     "latency_s": 76.8
+    },
+    {
+     "scenario": "test-1001",
+     "tags": [
+      "normal",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.80761383288947,
+      "throughput": 0.5567375886524822,
+      "fairness": 55.083150324409154
+     },
+     "world": {
+      "score": 0.4905,
+      "throughput": 0.5567,
+      "actual_peak_c": 37.632,
+      "strain_margin_c": 0.368,
+      "workers_alerted": 0.0,
+      "heat_spread": 42.1333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 43.8
+    },
+    {
+     "scenario": "test-1002",
+     "tags": [
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.834452430125076,
+      "throughput": 0.7292418772563177,
+      "fairness": 37.98578370683896
+     },
+     "world": {
+      "score": 0.621,
+      "throughput": 0.7292,
+      "actual_peak_c": 37.7167,
+      "strain_margin_c": 0.2833,
+      "workers_alerted": 0.0,
+      "heat_spread": 50.8333,
+      "solve_rate": 1.0
+     },
+     "latency_s": 46.1
+    },
+    {
+     "scenario": "test-1003",
+     "tags": [
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.80267159272161,
+      "throughput": 0.6275303643724697,
+      "fairness": 23.803154873629644
+     },
+     "world": {
+      "score": 0.4431,
+      "throughput": 0.6275,
+      "actual_peak_c": 37.8687,
+      "strain_margin_c": 0.1313,
+      "workers_alerted": 0.0,
+      "heat_spread": 50.5667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 33.7
+    },
+    {
+     "scenario": "test-1004",
+     "tags": [
+      "warning"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.945821674984074,
+      "throughput": 0.6222222222222222,
+      "fairness": 20.500270446388217
+     },
+     "world": {
+      "score": 0.4643,
+      "throughput": 0.6222,
+      "actual_peak_c": 37.816,
+      "strain_margin_c": 0.184,
+      "workers_alerted": 0.0,
+      "heat_spread": 52.1,
+      "solve_rate": 1.0
+     },
+     "latency_s": 36.6
+    },
+    {
+     "scenario": "test-1005",
+     "tags": [
+      "heat_dome"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.85052279620052,
+      "throughput": 0.48158640226628896,
+      "fairness": 47.9979452418989
+     },
+     "world": {
+      "score": 0.185,
+      "throughput": 0.4816,
+      "actual_peak_c": 37.9267,
+      "strain_margin_c": 0.0733,
+      "workers_alerted": 0.3333,
+      "heat_spread": 77.9333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 105.5
+    },
+    {
+     "scenario": "test-1006",
+     "tags": [
+      "heat_dome",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.80916331646496,
+      "throughput": 0.5961538461538461,
+      "fairness": 27.532633646068835
+     },
+     "world": {
+      "score": 0.4968,
+      "throughput": 0.5962,
+      "actual_peak_c": 37.699,
+      "strain_margin_c": 0.301,
+      "workers_alerted": 0.0,
+      "heat_spread": 44.1333,
+      "solve_rate": 1.0
+     },
+     "latency_s": 35.6
+    },
+    {
+     "scenario": "test-1007",
+     "tags": [
+      "heat_dome",
+      "storm_2pm"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.84148254054601,
+      "throughput": 0.5064102564102564,
+      "fairness": 48.53940789932486
+     },
+     "world": {
+      "score": 0.3837,
+      "throughput": 0.5064,
+      "actual_peak_c": 37.7457,
+      "strain_margin_c": 0.2543,
+      "workers_alerted": 0.0,
+      "heat_spread": 60.5333,
+      "solve_rate": 0.0
+     },
+     "latency_s": 27.3
+    },
+    {
+     "scenario": "test-1008",
+     "tags": [
+      "heat_dome",
+      "warning",
+      "new_hire"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.83001970346578,
+      "throughput": 0.9070796460176991,
+      "fairness": 14.572379524911614
+     },
+     "world": {
+      "score": 0.7523,
+      "throughput": 0.9071,
+      "actual_peak_c": 37.8097,
+      "strain_margin_c": 0.1903,
+      "workers_alerted": 0.0,
+      "heat_spread": 40.2,
+      "solve_rate": 0.0
+     },
+     "latency_s": 42.2
+    },
+    {
+     "scenario": "test-1009",
+     "tags": [
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.904741711474216,
+      "throughput": 0.45454545454545453,
+      "fairness": 13.82957982036647
+     },
+     "world": {
+      "score": 0.3555,
+      "throughput": 0.4545,
+      "actual_peak_c": 37.6983,
+      "strain_margin_c": 0.3017,
+      "workers_alerted": 0.0,
+      "heat_spread": 32.6,
+      "solve_rate": 0.0
+     },
+     "latency_s": 22.6
+    },
+    {
+     "scenario": "test-1010",
+     "tags": [
+      "heat_dome",
+      "replan"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.83344233427103,
+      "throughput": 0.35443037974683544,
+      "fairness": 19.377398118801118
+     },
+     "world": {
+      "score": 0.2537,
+      "throughput": 0.3544,
+      "actual_peak_c": 37.7013,
+      "strain_margin_c": 0.2987,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.6667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 7.5
+    },
+    {
+     "scenario": "test-1011",
+     "tags": [
+      "storm_2pm",
+      "new_hire",
+      "callout"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.77564291028692,
+      "throughput": 0.7,
+      "fairness": 10.170533510276634
+     },
+     "world": {
+      "score": 0.5407,
+      "throughput": 0.7,
+      "actual_peak_c": 37.8187,
+      "strain_margin_c": 0.1813,
+      "workers_alerted": 0.0,
+      "heat_spread": 24.4333,
+      "solve_rate": 1.0
+     },
+     "latency_s": 36.0
+    }
+   ]
+  }
+ },
+ "home_val": {
+  "fixed": {
+   "n": 5,
+   "success_rate": 0.0,
+   "safety_violations": 84,
+   "invalid_plans": 0,
+   "throughput": 0.984,
+   "peak_p90_max": 38.7,
+   "world_score": -0.2065,
+   "world_alerted_per_day": 2.667,
+   "world_peak_c": 38.548,
+   "latency_s": 0.0,
+   "rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 16,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 12,
+       "heat": 4
+      },
+      "peak_p90": 38.42485180442617,
+      "throughput": 0.9778761061946902,
+      "fairness": 24.33934372967182
+     },
+     "world": {
+      "score": -0.4226,
+      "throughput": 0.9779,
+      "actual_peak_c": 38.6343,
+      "strain_margin_c": -0.6343,
+      "workers_alerted": 3.3333,
+      "heat_spread": 30.0,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 27,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 21,
+       "heat": 6
+      },
+      "peak_p90": 38.41407617149994,
+      "throughput": 0.9418604651162791,
+      "fairness": 81.78972239430838
+     },
+     "world": {
+      "score": -0.7448,
+      "throughput": 0.9419,
+      "actual_peak_c": 38.3733,
+      "strain_margin_c": -0.3733,
+      "workers_alerted": 5.0,
+      "heat_spread": 88.3,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 21,
+      "n_invalid": 0,
+      "rules": {
+       "hazard": 4,
+       "lightning": 2,
+       "breaks": 12,
+       "heat": 3
+      },
+      "peak_p90": 38.69738159036746,
+      "throughput": 1.0,
+      "fairness": 116.14593541795931
+     },
+     "world": {
+      "score": 0.2548,
+      "throughput": 1.0,
+      "actual_peak_c": 38.4903,
+      "strain_margin_c": -0.4903,
+      "workers_alerted": 1.0,
+      "heat_spread": 111.4667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 15,
+      "n_invalid": 0,
+      "rules": {
+       "hazard": 4,
+       "lightning": 1,
+       "breaks": 7,
+       "heat": 3
+      },
+      "peak_p90": 38.68059764528104,
+      "throughput": 1.0,
+      "fairness": 100.54900237465621
+     },
+     "world": {
+      "score": -0.1771,
+      "throughput": 1.0,
+      "actual_peak_c": 38.854,
+      "strain_margin_c": -0.854,
+      "workers_alerted": 2.0,
+      "heat_spread": 139.5,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "bench": {
+      "success": false,
+      "valid": true,
+      "n_safety": 5,
+      "n_invalid": 0,
+      "rules": {
+       "breaks": 3,
+       "heat": 2
+      },
+      "peak_p90": 38.546932448205666,
+      "throughput": 1.0,
+      "fairness": 116.41303363682697
+     },
+     "world": {
+      "score": 0.057,
+      "throughput": 1.0,
+      "actual_peak_c": 38.386,
+      "strain_margin_c": -0.386,
+      "workers_alerted": 2.0,
+      "heat_spread": 110.2667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 0.0
+    }
+   ]
+  },
+  "optimizer": {
+   "n": 5,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.788,
+   "peak_p90_max": 38.0,
+   "world_score": 0.3081,
+   "world_alerted_per_day": 0.867,
+   "world_peak_c": 38.026,
+   "latency_s": 7.6,
+   "rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.96277227208148,
+      "throughput": 0.7123893805309734,
+      "fairness": 23.70487972082263
+     },
+     "world": {
+      "score": 0.1576,
+      "throughput": 0.7124,
+      "actual_peak_c": 38.1097,
+      "strain_margin_c": -0.1097,
+      "workers_alerted": 1.0,
+      "heat_spread": 49.2667,
+      "solve_rate": 0.333
+     },
+     "latency_s": 9.0
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.9769018605716,
+      "throughput": 0.8197674418604651,
+      "fairness": 23.8573950376843
+     },
+     "world": {
+      "score": 0.0889,
+      "throughput": 0.8198,
+      "actual_peak_c": 38.1283,
+      "strain_margin_c": -0.1283,
+      "workers_alerted": 1.6667,
+      "heat_spread": 46.6,
+      "solve_rate": 0.333
+     },
+     "latency_s": 2.7
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.9976033248648,
+      "throughput": 0.8342541436464088,
+      "fairness": 27.885204181814622
+     },
+     "world": {
+      "score": 0.2873,
+      "throughput": 0.8343,
+      "actual_peak_c": 38.094,
+      "strain_margin_c": -0.094,
+      "workers_alerted": 1.0,
+      "heat_spread": 45.4,
+      "solve_rate": 0.0
+     },
+     "latency_s": 18.3
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.91898836031323,
+      "throughput": 0.8713692946058091,
+      "fairness": 65.73958187438153
+     },
+     "world": {
+      "score": 0.4655,
+      "throughput": 0.8714,
+      "actual_peak_c": 37.9783,
+      "strain_margin_c": 0.0217,
+      "workers_alerted": 0.6667,
+      "heat_spread": 74.4,
+      "solve_rate": 0.333
+     },
+     "latency_s": 6.5
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.95837524374526,
+      "throughput": 0.7015706806282722,
+      "fairness": 19.440761785704048
+     },
+     "world": {
+      "score": 0.5411,
+      "throughput": 0.7016,
+      "actual_peak_c": 37.821,
+      "strain_margin_c": 0.179,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.2,
+      "solve_rate": 1.0
+     },
+     "latency_s": 1.3
+    }
+   ]
+  },
+  "llm_only": {
+   "skipped": true
+  },
+  "agent_day1": {
+   "n": 5,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.788,
+   "peak_p90_max": 37.98,
+   "world_score": 0.3328,
+   "world_alerted_per_day": 0.8,
+   "world_peak_c": 38.01,
+   "latency_s": 23.1,
+   "rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.96277227208148,
+      "throughput": 0.7123893805309734,
+      "fairness": 23.70487972082263
+     },
+     "world": {
+      "score": 0.1576,
+      "throughput": 0.7124,
+      "actual_peak_c": 38.1097,
+      "strain_margin_c": -0.1097,
+      "workers_alerted": 1.0,
+      "heat_spread": 49.2667,
+      "solve_rate": 0.333
+     },
+     "latency_s": 30.5
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.9769018605716,
+      "throughput": 0.8197674418604651,
+      "fairness": 23.8573950376843
+     },
+     "world": {
+      "score": 0.0889,
+      "throughput": 0.8198,
+      "actual_peak_c": 38.1283,
+      "strain_margin_c": -0.1283,
+      "workers_alerted": 1.6667,
+      "heat_spread": 46.6,
+      "solve_rate": 0.333
+     },
+     "latency_s": 25.4
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.93170000238993,
+      "throughput": 0.8342541436464088,
+      "fairness": 7.883980297142918
+     },
+     "world": {
+      "score": 0.411,
+      "throughput": 0.8343,
+      "actual_peak_c": 38.0133,
+      "strain_margin_c": -0.0133,
+      "workers_alerted": 0.6667,
+      "heat_spread": 43.1,
+      "solve_rate": 0.333
+     },
+     "latency_s": 25.4
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.91898836031323,
+      "throughput": 0.8713692946058091,
+      "fairness": 65.73958187438153
+     },
+     "world": {
+      "score": 0.4655,
+      "throughput": 0.8714,
+      "actual_peak_c": 37.9783,
+      "strain_margin_c": 0.0217,
+      "workers_alerted": 0.6667,
+      "heat_spread": 74.4,
+      "solve_rate": 0.333
+     },
+     "latency_s": 24.3
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.95837524374526,
+      "throughput": 0.7015706806282722,
+      "fairness": 19.440761785704048
+     },
+     "world": {
+      "score": 0.5411,
+      "throughput": 0.7016,
+      "actual_peak_c": 37.821,
+      "strain_margin_c": 0.179,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.2,
+      "solve_rate": 1.0
+     },
+     "latency_s": 10.1
+    }
+   ]
+  },
+  "agent_day14": {
+   "n": 5,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.788,
+   "peak_p90_max": 37.98,
+   "world_score": 0.3368,
+   "world_alerted_per_day": 0.8,
+   "world_peak_c": 38.002,
+   "latency_s": 40.8,
+   "rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.97727292951909,
+      "throughput": 0.7123893805309734,
+      "fairness": 17.388171091583192
+     },
+     "world": {
+      "score": 0.241,
+      "throughput": 0.7124,
+      "actual_peak_c": 38.1097,
+      "strain_margin_c": -0.1097,
+      "workers_alerted": 0.6667,
+      "heat_spread": 46.5333,
+      "solve_rate": 0.333
+     },
+     "latency_s": 51.7
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.962242014063705,
+      "throughput": 0.8197674418604651,
+      "fairness": 24.827606569856936
+     },
+     "world": {
+      "score": 0.1348,
+      "throughput": 0.8198,
+      "actual_peak_c": 38.037,
+      "strain_margin_c": -0.037,
+      "workers_alerted": 1.6667,
+      "heat_spread": 33.4333,
+      "solve_rate": 0.333
+     },
+     "latency_s": 48.4
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.93170000238993,
+      "throughput": 0.8342541436464088,
+      "fairness": 7.883980297142918
+     },
+     "world": {
+      "score": 0.411,
+      "throughput": 0.8343,
+      "actual_peak_c": 38.0133,
+      "strain_margin_c": -0.0133,
+      "workers_alerted": 0.6667,
+      "heat_spread": 43.1,
+      "solve_rate": 0.333
+     },
+     "latency_s": 45.5
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.92081879864138,
+      "throughput": 0.8713692946058091,
+      "fairness": 31.02481345768459
+     },
+     "world": {
+      "score": 0.356,
+      "throughput": 0.8714,
+      "actual_peak_c": 38.0307,
+      "strain_margin_c": -0.0307,
+      "workers_alerted": 1.0,
+      "heat_spread": 48.1667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 40.8
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.95837524374526,
+      "throughput": 0.7015706806282722,
+      "fairness": 19.440761785704048
+     },
+     "world": {
+      "score": 0.5411,
+      "throughput": 0.7016,
+      "actual_peak_c": 37.821,
+      "strain_margin_c": 0.179,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.2,
+      "solve_rate": 1.0
+     },
+     "latency_s": 17.7
+    }
+   ]
+  },
+  "agent_evolved": {
+   "n": 5,
+   "success_rate": 1.0,
+   "safety_violations": 0,
+   "invalid_plans": 0,
+   "throughput": 0.695,
+   "peak_p90_max": 37.96,
+   "world_score": 0.4445,
+   "world_alerted_per_day": 0.267,
+   "world_peak_c": 37.867,
+   "latency_s": 39.9,
+   "rows": [
+    {
+     "scenario": "cur-d2513b23",
+     "tags": [
+      "heat_dome",
+      "dead_watch",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.92999769558165,
+      "throughput": 0.6460176991150443,
+      "fairness": 11.497270982641426
+     },
+     "world": {
+      "score": 0.2019,
+      "throughput": 0.646,
+      "actual_peak_c": 38.055,
+      "strain_margin_c": -0.055,
+      "workers_alerted": 0.6667,
+      "heat_spread": 41.0333,
+      "solve_rate": 0.333
+     },
+     "latency_s": 51.5
+    },
+    {
+     "scenario": "cur-a76e021e",
+     "tags": [
+      "heat_dome",
+      "new_hire",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.85433809805487,
+      "throughput": 0.6337209302325582,
+      "fairness": 26.325026329742638
+     },
+     "world": {
+      "score": 0.5097,
+      "throughput": 0.6337,
+      "actual_peak_c": 37.748,
+      "strain_margin_c": 0.252,
+      "workers_alerted": 0.0,
+      "heat_spread": 33.4667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 46.5
+    },
+    {
+     "scenario": "cur-c7b6541e",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.86741232219359,
+      "throughput": 0.7237569060773481,
+      "fairness": 25.9621316709091
+     },
+     "world": {
+      "score": 0.6085,
+      "throughput": 0.7238,
+      "actual_peak_c": 37.7307,
+      "strain_margin_c": 0.2693,
+      "workers_alerted": 0.0,
+      "heat_spread": 43.9667,
+      "solve_rate": 0.0
+     },
+     "latency_s": 44.5
+    },
+    {
+     "scenario": "cur-c1aec237",
+     "tags": [
+      "storm_2pm",
+      "warning",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.86470878432036,
+      "throughput": 0.7676348547717843,
+      "fairness": 29.992056028913368
+     },
+     "world": {
+      "score": 0.3615,
+      "throughput": 0.7676,
+      "actual_peak_c": 37.9787,
+      "strain_margin_c": 0.0213,
+      "workers_alerted": 0.6667,
+      "heat_spread": 60.8,
+      "solve_rate": 0.333
+     },
+     "latency_s": 40.8
+    },
+    {
+     "scenario": "cur-fcfe293e",
+     "tags": [
+      "callout",
+      "home_crew"
+     ],
+     "bench": {
+      "success": true,
+      "valid": true,
+      "n_safety": 0,
+      "n_invalid": 0,
+      "rules": {},
+      "peak_p90": 37.95837524374526,
+      "throughput": 0.7015706806282722,
+      "fairness": 19.440761785704048
+     },
+     "world": {
+      "score": 0.5411,
+      "throughput": 0.7016,
+      "actual_peak_c": 37.821,
+      "strain_margin_c": 0.179,
+      "workers_alerted": 0.0,
+      "heat_spread": 29.2,
+      "solve_rate": 1.0
+     },
+     "latency_s": 16.0
+    }
+   ]
+  }
+ }
+}

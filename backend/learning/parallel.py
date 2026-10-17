@@ -14,6 +14,10 @@ WORKERS = int(os.getenv("LEARNING_WORKERS", "4"))
 # Threads per CP-SAT solve inside the loops. B's optimizer asks for 8; with 4 processes that
 # would be 32 threads on a laptop the ML session also trains on. Default 1 thread per process.
 SOLVER_THREADS = int(os.getenv("LEARNING_SOLVER_THREADS", "1"))
+# Deterministic solver budget: the planner's wall-clock time limit becomes a "work units" limit, so
+# the same day always gives the same plan, however busy the laptop is. Without this, a gate or a
+# day-1 vs day-14 comparison can differ just because another session was using the CPU.
+DETERMINISTIC = os.getenv("LEARNING_DETERMINISTIC", "1") != "0"
 for _var in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "MKL_NUM_THREADS"):
     os.environ.setdefault(_var, "1")       # numpy math stays single-threaded per process
 
@@ -28,6 +32,9 @@ def limit_solver_threads(n: int = SOLVER_THREADS) -> None:
     def solve(self, *args, **kwargs):
         if self.parameters.num_workers == 0 or self.parameters.num_workers > n:
             self.parameters.num_workers = n
+        if DETERMINISTIC and self.parameters.max_time_in_seconds < 1e6:
+            self.parameters.max_deterministic_time = self.parameters.max_time_in_seconds
+            self.parameters.max_time_in_seconds = self.parameters.max_time_in_seconds * 10   # safety stop only
         return original(self, *args, **kwargs)
 
     cp_model.CpSolver.solve = solve
