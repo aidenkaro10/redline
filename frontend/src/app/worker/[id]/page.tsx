@@ -53,6 +53,13 @@ export default function WorkerPhone() {
 
   const press = () => apiPost(`/workers/${id}/button`);
 
+  // The worker is OK after all: stop the emergency call if it can still be stopped, then close the incident.
+  const imOk = async () => {
+    if (!md) return;
+    if (call && (call.stage === "notifying" || call.stage === "cancel_window")) await apiPost(`/emergency/${call.id}/cancel`);
+    await apiPost(`/mandown/${md.id}/resolve`);
+  };
+
   if (!w) {
     return <Frame bg="var(--surface)" fg="var(--ink)"><p className="m-auto text-sm opacity-70">{live.ready ? `No worker "${id}"` : "Connecting…"}</p></Frame>;
   }
@@ -73,6 +80,7 @@ export default function WorkerPhone() {
             </p>
           )}
         </div>
+        <OkButton onClick={imOk} calling={call?.stage === "calling" || call?.stage === "connected"} />
       </Frame>
     );
   }
@@ -93,6 +101,7 @@ export default function WorkerPhone() {
             <p className="text-lg">Your crew lead and crewmates have your location.<br />An emergency report is being sent.</p>
           )}
         </div>
+        {md.stage === "confirmed" && <OkButton onClick={imOk} calling={call?.stage === "calling" || call?.stage === "connected"} />}
       </Frame>
     );
   }
@@ -175,6 +184,20 @@ export default function WorkerPhone() {
         </div>
       )}
     </Frame>
+  );
+}
+
+/** "I'm OK" on the worker's own emergency screen, so they're never stuck there. */
+function OkButton({ onClick, calling }: { onClick: () => void; calling: boolean }) {
+  return (
+    <div className="flex flex-col items-center gap-1.5 pb-2">
+      <button onClick={onClick} className="w-full rounded-2xl bg-white/90 px-6 py-3 text-lg font-bold text-black active:scale-95">
+        I&apos;m OK, close this
+      </button>
+      <p className="text-center text-xs opacity-80">
+        {calling ? "The emergency call already went out. Tell your crew lead you're OK." : "Stops the alert for your crew lead too."}
+      </p>
+    </div>
   );
 }
 
