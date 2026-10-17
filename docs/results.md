@@ -62,3 +62,17 @@ Ensemble forecasts ~50% better than ECTemp and barely degrade with horizon. Rang
 Gate kept 5 of 19 twins. Those improved heart-rate prediction but made core temp worse: the gate's signal (HR) is misaligned with the goal (core temp), the course's misaligned-verifier lesson. The 16-dim twin space learned in the simulator does not transfer to real people as-is.
 
 Fix in progress: (1) CAVIA-style meta-training in the simulator so HR-based adaptation provably improves core temp, (2) a small physiology-based twin (3-4 numbers), (3) a stricter gate that also checks core temp in simulator replays. Until then, twins stay OFF in the live system.
+
+## Twins v2 (meta4): CAVIA meta-learned 4-number twin (2026-10-17)
+
+`python -m ml.meta --name meta4` then `--proof ml/checkpoints/meta4.pt`: 20 unseen real people, adapt on one session's HR (3 steps), score the other session, both directions (38 sessions).
+
+| | average person | meta twin |
+| --- | --- | --- |
+| NOW RMSE °C | 0.297 | 0.297 |
+| +20 min RMSE °C | 0.326 | 0.327 |
+| Red caught | 69% | 69% |
+
+Meta-learning removed the harm from twins v1 (0.30 -> 0.42), but there is no gain yet: the twin stays near the average person. Twins stay OFF live. Next ideas: more inner steps or a larger LR_INNER, adapt on more than one session, and a twin targeted at the personal HR offset.
+
+Other sessions (their branches, not merged): G curriculum loop works but hasn't improved real-people scores yet; H Weaver weights gave no gain over equal weights, explain() and 5 figures done; F agent loops built (29 tests), curriculum bank made for $0.34, ACE/GEPA runs not done yet.
