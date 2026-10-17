@@ -129,6 +129,10 @@ async def lifespan(app: FastAPI):
     tasks = [asyncio.create_task(_tick_forever(hub, app.state.frontend))]
 
     tasks += wire_emergency(hub, s)
+    from backend.app.site_bridge import make_bridge
+    app.state.sites = make_bridge(hub)                  # session C1's 79 sites + live hazards, if merged
+    if app.state.sites is not None:
+        tasks.append(asyncio.create_task(app.state.sites.run()))
 
     if s.source == "replay":
         hub.start_replay(make_replay(hub, s))

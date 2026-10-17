@@ -640,16 +640,23 @@ async def cancel_call(request: Request, call_id: str):
 
 @router.post("/api/demo/test-alert")
 async def test_alert(request: Request, body: dict):
-    kind = {"LIGHTNING": "lightning", "FLOOD_FIRE": "flood"}.get(str(body.get("kind", "LIGHTNING")).upper())
+    pattern = str(body.get("kind", "LIGHTNING")).upper()
+    kind = {"LIGHTNING": "lightning", "FLOOD_FIRE": "flood"}.get(pattern)
     if kind is None:
         raise HTTPException(400, "kind must be LIGHTNING or FLOOD_FIRE")
-    _a(request).hub.set_site_hazard(body.get("site_id"), kind, True, source="demo button")
+    bridge = getattr(request.app.state, "sites", None)
+    if bridge is not None:
+        bridge.test_alert(pattern, body.get("site_id"))     # C1's rules + countdown pick it up on refresh
+    _a(request).hub.set_site_hazard(body.get("site_id"), kind, True, source="demo button")   # band reacts now
     return {"ok": True}
 
 
 @router.post("/api/demo/clear-hazards")
 async def clear_hazards(request: Request):
     hub = _a(request).hub
+    bridge = getattr(request.app.state, "sites", None)
+    if bridge is not None:
+        bridge.clear_test_hazards()
     for site, kinds in list(hub.hazards.items()):
         for kind in list(kinds):
             hub.set_site_hazard(site, kind, False, source="demo button")
