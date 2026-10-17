@@ -90,13 +90,29 @@ def gate(new: dict, best: dict, min_gain: float = 0.0) -> tuple[bool, str]:
 # ---------------------------------------------------------------------------
 # Training (wraps ml/train.py's own functions, no changes there)
 # ---------------------------------------------------------------------------
-def train_model(sim_train, sim_val, real_train, real_val, cfg: dict, seed: int, log_path: Path) -> HeatForecaster:
-    """Pretrain on simulated shifts, then fine-tune on real people. Same settings as ml/train.py main()."""
+def rehearsal_sample(base: list, cur: list, n: int, seed: int) -> list:
+    """
+    n simulated shifts to mix into fine-tuning, half from the curriculum (if any), half from the base sim.
+    Without this, fine-tuning on the short lab sessions pulls the model away from field shifts
+    and the curriculum's lessons get washed out.
+    """
+    rng = np.random.default_rng(seed)
+    n_cur = min(len(cur), n // 2)
+    pick = lambda items, k: [items[i] for i in rng.choice(len(items), size=k, replace=False)] if k else []
+    return pick(cur, n_cur) + pick(base, n - n_cur)
+
+
+def train_model(sim_train, sim_val, real_train, real_val, cfg: dict, seed: int, log_path: Path,
+                rehearse: list | None = None) -> HeatForecaster:
+    """
+    Pretrain on simulated shifts, then fine-tune on real people. Same settings as ml/train.py main().
+    rehearse: extra simulated shifts mixed into the fine-tuning set (None = plain ml/train.py recipe).
+    """
     torch.manual_seed(seed)
     model = HeatForecaster(hidden=cfg["hidden"], layers=cfg["layers"], dropout=0.1)
     train_stage(model, sim_train, sim_val, lr=1e-3, max_epochs=cfg["pretrain_epochs"], patience=3,
                 batch_size=64, k_times=16, seed=seed, log_path=log_path, stage="pretrain")
-    train_stage(model, real_train, real_val, lr=3e-4, max_epochs=cfg["finetune_epochs"], patience=10,
+    train_stage(model, real_train + (rehearse or []), real_val, lr=3e-4, max_epochs=cfg["finetune_epochs"], patience=10,
                 batch_size=16, k_times=32, seed=seed, log_path=log_path, stage="finetune")
     return model
 
@@ -166,18 +182,32 @@ def run(args):
     write({"event": "baselines", "val": baselines, "cfg": cfg, "args": vars(args)})
 
     def train_and_score(round_num, mix, tag):
+        """
+        Train on base + curriculum mix with --gate-seeds seeds. The gate uses the AVERAGE
+        val score over seeds (less luck). The proposer attacks the first seed's model.
+        """
         cur = build_mix_sessions(mix)
         cur_t = [to_tensors(s) for s in cur]
-        name = f"cur_{args.name}_r{round_num}{tag}"
-        t0 = time.time()
-        model = train_model(base_train + cur_t, sim_val, real_train, real_val, cfg, seed=args.seed,
-                            log_path=out_dir / f"train_r{round_num}{tag}.csv")
         trained_on = set(sim_split["train"]) | {s.person_id for s in cur} | set(split["train"])
-        path = ckpt_dir / f"{name}.pt"
-        save_checkpoint(model, cfg, trained_on, name, path)
-        pred = ForecasterPredictor([model], trained_on, name)
-        val = summary(evaluate(name, pred, val_sessions, trained_on=trained_on))
-        return pred, path, val, len(cur), time.time() - t0
+        t0 = time.time()
+        first, per_seed = None, []
+        for k in range(args.gate_seeds):
+            seed = args.seed + k
+            name = f"cur_{args.name}_r{round_num}{tag}" + (f"_s{seed}" if k else "")
+            rehearse = (rehearsal_sample(base_train, cur_t, int(args.rehearse * len(real_train)), seed)
+                        if args.rehearse else None)
+            model = train_model(base_train + cur_t, sim_val, real_train, real_val, cfg, seed=seed,
+                                log_path=out_dir / f"train_r{round_num}{tag}.csv", rehearse=rehearse)
+            path = ckpt_dir / f"{name}.pt"
+            save_checkpoint(model, cfg, trained_on, name, path)
+            pred = ForecasterPredictor([model], trained_on, name)
+            per_seed.append(summary(evaluate(name, pred, val_sessions, trained_on=trained_on)))
+            if first is None:
+                first = (pred, path)
+        val = {k: float(np.mean([v[k] for v in per_seed])) for k in per_seed[0]}
+        if len(per_seed) > 1:
+            val["per_seed"] = per_seed
+        return first[0], first[1], val, len(cur), time.time() - t0
 
     # --- Round 0: base simulator only.
     accepted_mix: list[dict] = []
@@ -248,6 +278,9 @@ def main():
     ap.add_argument("--max-keep", type=int, default=40, help="max scenarios kept per round")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--gate-seeds", type=int, default=1, help="train each round with this many seeds; gate on the average")
+    ap.add_argument("--rehearse", type=float, default=0.0,
+                    help="mix this many sim shifts per real session into fine-tuning (e.g. 1.0 = as many as real)")
     ap.add_argument("--min-gain", type=float, default=0.0, help="quantile loss must improve by more than this")
     ap.add_argument("--noise-check", action="store_true", help="also train round 0 with a 2nd seed")
     run(ap.parse_args())

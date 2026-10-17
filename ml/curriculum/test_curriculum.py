@@ -4,7 +4,7 @@ import numpy as np
 
 from ml.curriculum.learnability import filter_learnable, learnability_reward, summarize
 from ml.curriculum.proposer import ScenarioResult, ShiftScore, score_shift
-from ml.curriculum.rounds import gate
+from ml.curriculum.rounds import gate, rehearsal_sample
 from ml.curriculum.scenario import KNOBS, Scenario, mutate, random_scenario, simulate_scenarios
 from ml.data import Session
 from ml.evaluate import HORIZONS, QUANTILES, Prediction
@@ -91,3 +91,10 @@ def test_gate_keeps_only_real_improvements():
 def test_gate_min_gain_blocks_gains_smaller_than_noise():
     assert not gate({**BEST, "qloss": 0.0795}, BEST, min_gain=0.001)[0]
     assert gate({**BEST, "qloss": 0.0785}, BEST, min_gain=0.001)[0]
+
+
+def test_rehearsal_sample_is_half_curriculum():
+    base, cur = [("b", i) for i in range(100)], [("c", i) for i in range(30)]
+    out = rehearsal_sample(base, cur, 20, seed=0)
+    assert len(out) == 20 and sum(x[0] == "c" for x in out) == 10 and len(set(out)) == 20
+    assert all(x[0] == "b" for x in rehearsal_sample(base, [], 20, seed=0))
