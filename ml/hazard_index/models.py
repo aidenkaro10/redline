@@ -118,21 +118,19 @@ class BoostedTrees:
                            l2_regularization=l2, min_samples_leaf=min_samples_leaf, random_state=seed)
 
     def fit(self, X, y, meta=None, X_val=None, y_val=None):
+        """Fit. With validation rows, first keep only as many trees as help on them."""
         self.cw = class_weight(y)
-        cw = {0: 1.0, 1: self.cw}
+        self.model = HistGradientBoostingClassifier(class_weight={0: 1.0, 1: self.cw},
+                                                    early_stopping=False, **self.params)
+        self.model.fit(X, y)
         if X_val is not None:
-            # pick the number of trees on the validation rows, then refit on everything
-            probe = HistGradientBoostingClassifier(class_weight=cw, early_stopping=False, **self.params)
-            probe.fit(X, y)
             best, best_n = np.inf, 1
-            for n, z in enumerate(probe.staged_decision_function(X_val), start=1):
+            for n, z in enumerate(self.model.staged_decision_function(X_val), start=1):
                 p = sigmoid(np.ravel(z) - np.log(self.cw))
                 loss = -np.mean(y_val * np.log(p + 1e-12) + (1 - y_val) * np.log(1 - p + 1e-12))
                 if loss < best - 1e-6:
                     best, best_n = loss, n
-            self.params["max_iter"] = best_n
-        self.model = HistGradientBoostingClassifier(class_weight=cw, early_stopping=False, **self.params)
-        self.model.fit(X, y)
+            self.best_n = best_n          # how many trees the caller should use when refitting
         self.n_trees = self.model.n_iter_
         return self
 

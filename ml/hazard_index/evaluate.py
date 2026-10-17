@@ -68,7 +68,7 @@ def fit_boosted(train: pd.DataFrame, y: np.ndarray, features, n_trees: int, val_
     n = n_trees // 2
     if val.any() and (~val).any() and y[val].sum() >= 5 and y[~val].sum() >= 5:
         probe = M.BoostedTrees(max_iter=n_trees).fit(X[~val], y[~val], X_val=X[val], y_val=y[val])
-        n = probe.n_trees
+        n = probe.best_n
     return M.BoostedTrees(max_iter=n).fit(X, y)
 
 

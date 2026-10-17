@@ -47,4 +47,4 @@ def test_boosted_trees_pick_size_on_validation():
     X, y, _ = toy(n=3000)
     Xv, yv, _ = toy(n=1500, seed=3)
     gb = M.BoostedTrees(max_iter=300).fit(X, y, X_val=Xv, y_val=yv)
-    assert 1 <= gb.n_trees <= 300
+    assert 1 <= gb.best_n <= 300
