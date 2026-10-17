@@ -31,6 +31,20 @@ Branch `claude/planner-e28a9e`. Owns `backend/planner/`. Interface for A and E: 
 - Deterministic planners run once and count 5 times. The agent is deterministic without the LLM.
 - Safety numbers are from our planning heat model (PHS ensemble), not real people. Say so in the pitch.
 
+## Round 2: real site data + personal offsets
+
+- **C1 + C2 adapters** (`sources.py`): tomorrow's hourly weather + Liljegren WBGT, NWS/lightning hazard windows, C2's 0-10 index and real past incidents (NOAA Storm Events, OSHA). Every adapter falls back to a labeled stub. Checked for real by combining the three branches in a throwaway detached worktree (deleted after; no branch changed).
+- **Personal offsets** (`personal.py`): thermometer-learned offsets from `backend/models/personal_offset.py` shift each worker's heat forecast and shrink their uncertainty. Crew status in chat says it in words. New config guardrails: `PLAN_MAX_COOLER_OFFSET_C` (0.3), `PLAN_PERSON_SD_C`, `PLAN_MIN_PERSON_SD_C`.
+- **Demo briefings** in `backend/planner/demo/` (no LLM, free, repeatable):
+  - `briefing_live_2026-10-18.*`: Deerhaven (crew), Port Everglades, Big Bend. All real data. Tomorrow is a cool October day (index 0.2-0.7, max WBGT 20-26 °C), so the crew gets 96% of the work done.
+  - `briefing_demo_fake_2026-10-18.*`: same crew and sites on C1's built-in fake hot day (`HAZARD_MODE=fake`, labeled in the file). Only 67% of the work fits under the heat limit; heavy work moves before 10:30. The C2 index there is still the real (low) October one, so don't quote it next to the fake heat.
+- Fixed along the way: current conditions no longer show up as tomorrow's hazards ("Now:" prefix), a C1 WBGT "(red flag)" title was being read as a fire warning, a template line claimed the new hire got lighter work when they didn't, and peaks could display as "38.00" by rounding up.
+- **Re-render:** after merging C1 + C2, run `python -m backend.planner.briefing --no-llm --sites eia-663,eia-617,eia-645 --text-out briefing.txt` (add `HAZARD_MODE=fake` for the hot demo day).
+
+### Merge heads-up for Aiden
+
+Merging this branch with C1 and C2 conflicts only in the files everyone appends to: `backend/config.py`, `.env.example`, `requirements.txt`. Keep both sides of each (they're separate blocks). Nothing else conflicted.
+
 ## Decisions made (small, told after)
 
 - **Plan limit = the yellow line.** Planned 90th pct must stay below `HEAT_WARNING_C` (38.0 °C), so a good plan never triggers a heat warning. `PLAN_*` constants appended to `config.py`.
@@ -44,6 +58,6 @@ Branch `claude/planner-e28a9e`. Owns `backend/planner/`. Interface for A and E: 
 
 1. LLM-only is measured: 92% of runs have safety violations (mostly heat). The full agent, with the same LLM plus the rule checker, has 0. Full run cost about $12. llm_only answers are cached in `data/planner/llm_cache/`.
 2. Loops 2-4 belong to session F. `agent_day14` in the benchmark lights up once F writes `backend/learning/playbook.json`.
-3. Briefing: wire C1's hourly WBGT + NWS windows into the crew scenario, and real past incidents.
+3. Briefing: a real past-summer replay day would need hourly solar + wind from the Open-Meteo archive (C2's archive pull has neither). Not built.
 4. Weaver-style verifier weights (Phase 7 step 7): needs real outcomes.
 5. `pytest.ini` doesn't list `backend/planner`; run `pytest backend/planner` (or add it when merging).

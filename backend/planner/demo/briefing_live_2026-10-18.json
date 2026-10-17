@@ -1,7 +1,7 @@
 {
  "generated_at": 1792274400,
  "for_date": "2026-10-18",
- "summary": "Tomorrow (2026-10-18): highest hazard index is Port Everglades at 0.7/10. Crew site Deerhaven Generating Station: plan optimizer:balanced. Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 96% of priority-weighted work done.",
+ "summary": "Tomorrow (2026-10-18): highest hazard index is Port Everglades at 0.7/10. Crew site Deerhaven Generating Station: plan optimizer:fairness. Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 96% of priority-weighted work done.",
  "sites": [
   {
    "site_id": "eia-617",
@@ -199,11 +199,11 @@
  ],
  "schedule_suggestions": [
   "Heavy outdoor work is scheduled between 07:00 and 15:00.",
-  "Kofi (new hire) is new to the heat: lighter tasks and extra breaks.",
+  "Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 07:30, 09:00, 10:30, 11:30, 12:30, 13:30, 14:30, kept under the heat limit with breaks.",
   "Won't finish safely tomorrow: Cable pulling, Inverter inspection.",
   "Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 96% of priority-weighted work done.",
   "Kofi (new hire) is not acclimatized: no very heavy work in high heat.",
-  "Alternatives: optimizer:throughput (96% work, peak 37.98 \u00b0C); optimizer:fairness (96% work, peak 37.99 \u00b0C)"
+  "Alternatives: optimizer:throughput (95% work, peak 37.98 \u00b0C); optimizer:balanced (96% work, peak 37.99 \u00b0C)"
  ],
  "schedule": {
   "date": "2026-10-18",
@@ -216,13 +216,13 @@
     "slots": [
      {
       "start": 1792321200,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "heavy",
+      "label": "Trenching for conduit"
      },
      {
       "start": 1792323000,
-      "task": "heavy",
-      "label": "Trenching for conduit"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792324800,
@@ -236,18 +236,18 @@
      },
      {
       "start": 1792328400,
-      "task": "heavy",
-      "label": "Cable pulling"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792330200,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      },
      {
       "start": 1792332000,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      },
      {
       "start": 1792333800,
@@ -261,18 +261,18 @@
      },
      {
       "start": 1792337400,
-      "task": "break",
-      "label": "Shade break"
-     },
-     {
-      "start": 1792339200,
       "task": "moderate",
       "label": "Transformer maintenance"
      },
      {
-      "start": 1792341000,
+      "start": 1792339200,
       "task": "light",
       "label": "Inverter inspection"
+     },
+     {
+      "start": 1792341000,
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792342800,
@@ -286,8 +286,8 @@
      },
      {
       "start": 1792346400,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792348200,
@@ -302,8 +302,8 @@
     "slots": [
      {
       "start": 1792321200,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792323000,
@@ -312,18 +312,18 @@
      },
      {
       "start": 1792324800,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      },
      {
       "start": 1792326600,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792328400,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792330200,
@@ -332,53 +332,53 @@
      },
      {
       "start": 1792332000,
-      "task": "moderate",
-      "label": "Transformer maintenance"
-     },
-     {
-      "start": 1792333800,
-      "task": "break",
-      "label": "Shade break"
-     },
-     {
-      "start": 1792335600,
-      "task": "moderate",
-      "label": "Transformer maintenance"
-     },
-     {
-      "start": 1792337400,
       "task": "light",
       "label": "Inverter inspection"
      },
      {
-      "start": 1792339200,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "start": 1792333800,
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
-      "start": 1792341000,
+      "start": 1792335600,
       "task": "break",
       "label": "Shade break"
      },
      {
+      "start": 1792337400,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792339200,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792341000,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
       "start": 1792342800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792344600,
       "task": "heavy",
       "label": "Cable pulling"
      },
      {
-      "start": 1792344600,
-      "task": "moderate",
-      "label": "Transformer maintenance"
-     },
-     {
       "start": 1792346400,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792348200,
-      "task": "break",
-      "label": "Shade break"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      }
     ]
    },
@@ -393,8 +393,8 @@
      },
      {
       "start": 1792323000,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792324800,
@@ -418,13 +418,13 @@
      },
      {
       "start": 1792332000,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792333800,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792335600,
@@ -489,13 +489,13 @@
      },
      {
       "start": 1792326600,
-      "task": "break",
-      "label": "Shade break"
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792328400,
-      "task": "heavy",
-      "label": "Vegetation clearing"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792330200,
@@ -504,8 +504,8 @@
      },
      {
       "start": 1792332000,
-      "task": "break",
-      "label": "Shade break"
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792333800,
@@ -514,33 +514,33 @@
      },
      {
       "start": 1792335600,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792337400,
-      "task": "heavy",
-      "label": "Vegetation clearing"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792339200,
-      "task": "break",
-      "label": "Shade break"
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792341000,
-      "task": "heavy",
-      "label": "Vegetation clearing"
-     },
-     {
-      "start": 1792342800,
       "task": "break",
       "label": "Shade break"
      },
      {
-      "start": 1792344600,
+      "start": 1792342800,
       "task": "heavy",
       "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792344600,
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792346400,
@@ -570,8 +570,8 @@
      },
      {
       "start": 1792324800,
-      "task": "heavy",
-      "label": "Vegetation clearing"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792326600,
@@ -585,38 +585,38 @@
      },
      {
       "start": 1792330200,
-      "task": "heavy",
-      "label": "Vegetation clearing"
-     },
-     {
-      "start": 1792332000,
       "task": "light",
       "label": "Control room checks (indoors)"
      },
      {
-      "start": 1792333800,
+      "start": 1792332000,
       "task": "break",
       "label": "Shade break"
+     },
+     {
+      "start": 1792333800,
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792335600,
-      "task": "heavy",
-      "label": "Vegetation clearing"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792337400,
-      "task": "break",
-      "label": "Shade break"
-     },
-     {
-      "start": 1792339200,
       "task": "heavy",
       "label": "Vegetation clearing"
      },
      {
-      "start": 1792341000,
+      "start": 1792339200,
       "task": "break",
       "label": "Shade break"
+     },
+     {
+      "start": 1792341000,
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792342800,
@@ -642,15 +642,15 @@
    }
   ],
   "notes": [
-   "Recommended: optimizer:balanced. Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 96% of priority-weighted work done.",
+   "Recommended: optimizer:fairness. Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 96% of priority-weighted work done.",
    "Heavy outdoor work is scheduled between 07:00 and 15:00.",
-   "Kofi (new hire) is new to the heat: lighter tasks and extra breaks.",
+   "Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 07:30, 09:00, 10:30, 11:30, 12:30, 13:30, 14:30, kept under the heat limit with breaks.",
    "Won't finish safely tomorrow: Cable pulling, Inverter inspection."
   ],
   "checked_by_rules": true
  },
  "plan": {
-  "source": "agent:optimizer:balanced",
+  "source": "agent:optimizer:fairness",
   "verified": true,
   "violations": [],
   "workers": [
@@ -661,14 +661,14 @@
      {
       "slot": 0,
       "time": "07:00",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t6",
+      "task_name": "Trenching for conduit"
      },
      {
       "slot": 1,
       "time": "07:30",
-      "task": "t6",
-      "task_name": "Trenching for conduit"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 2,
@@ -685,20 +685,20 @@
      {
       "slot": 4,
       "time": "09:00",
-      "task": "t2",
-      "task_name": "Cable pulling"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 5,
       "time": "09:30",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 6,
       "time": "10:00",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 7,
@@ -715,20 +715,20 @@
      {
       "slot": 9,
       "time": "11:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
-     },
-     {
-      "slot": 10,
-      "time": "12:00",
       "task": "t4",
       "task_name": "Transformer maintenance"
      },
      {
-      "slot": 11,
-      "time": "12:30",
+      "slot": 10,
+      "time": "12:00",
       "task": "t5",
       "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 12,
@@ -745,8 +745,8 @@
      {
       "slot": 14,
       "time": "14:00",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 15,
@@ -755,7 +755,7 @@
       "task_name": "Inverter inspection"
      }
     ],
-    "peak_p90_c": 37.88
+    "peak_p90_c": 37.86
    },
    {
     "id": "w2",
@@ -764,8 +764,8 @@
      {
       "slot": 0,
       "time": "07:00",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 1,
@@ -776,20 +776,20 @@
      {
       "slot": 2,
       "time": "08:00",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 3,
       "time": "08:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 4,
       "time": "09:00",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 5,
@@ -800,62 +800,62 @@
      {
       "slot": 6,
       "time": "10:00",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
-     },
-     {
-      "slot": 7,
-      "time": "10:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
-     },
-     {
-      "slot": 8,
-      "time": "11:00",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
-     },
-     {
-      "slot": 9,
-      "time": "11:30",
       "task": "t5",
       "task_name": "Inverter inspection"
      },
      {
-      "slot": 10,
-      "time": "12:00",
+      "slot": 7,
+      "time": "10:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
       "task": "t4",
       "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 11,
       "time": "12:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 12,
       "time": "13:00",
-      "task": "t2",
-      "task_name": "Cable pulling"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 13,
       "time": "13:30",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "t2",
+      "task_name": "Cable pulling"
      },
      {
       "slot": 14,
       "time": "14:00",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 15,
       "time": "14:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      }
     ],
     "peak_p90_c": 37.75
@@ -873,8 +873,8 @@
      {
       "slot": 1,
       "time": "07:30",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 2,
@@ -903,14 +903,14 @@
      {
       "slot": 6,
       "time": "10:00",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 7,
       "time": "10:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 8,
@@ -961,7 +961,7 @@
       "task_name": "Rest (shade)"
      }
     ],
-    "peak_p90_c": 37.95
+    "peak_p90_c": 37.96
    },
    {
     "id": "w4",
@@ -988,14 +988,14 @@
      {
       "slot": 3,
       "time": "08:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 4,
       "time": "09:00",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 5,
@@ -1006,8 +1006,8 @@
      {
       "slot": 6,
       "time": "10:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 7,
@@ -1018,38 +1018,38 @@
      {
       "slot": 8,
       "time": "11:00",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 9,
       "time": "11:30",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 10,
       "time": "12:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 11,
       "time": "12:30",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
-     },
-     {
-      "slot": 12,
-      "time": "13:00",
       "task": "rest",
       "task_name": "Rest (shade)"
      },
      {
-      "slot": 13,
-      "time": "13:30",
+      "slot": 12,
+      "time": "13:00",
       "task": "t7",
       "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 14,
@@ -1085,8 +1085,8 @@
      {
       "slot": 2,
       "time": "08:00",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 3,
@@ -1103,44 +1103,44 @@
      {
       "slot": 5,
       "time": "09:30",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
-     },
-     {
-      "slot": 6,
-      "time": "10:00",
       "task": "t1",
       "task_name": "Control room checks"
      },
      {
-      "slot": 7,
-      "time": "10:30",
+      "slot": 6,
+      "time": "10:00",
       "task": "rest",
       "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 8,
       "time": "11:00",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 9,
       "time": "11:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
-     },
-     {
-      "slot": 10,
-      "time": "12:00",
       "task": "t7",
       "task_name": "Vegetation clearing"
      },
      {
-      "slot": 11,
-      "time": "12:30",
+      "slot": 10,
+      "time": "12:00",
       "task": "rest",
       "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 12,
@@ -1181,7 +1181,7 @@
    {
     "id": "t2",
     "name": "Cable pulling",
-    "done": 2,
+    "done": 1,
     "needed": 3,
     "priority": 3
    },
@@ -1202,7 +1202,7 @@
    {
     "id": "t5",
     "name": "Inverter inspection",
-    "done": 10,
+    "done": 11,
     "needed": 15,
     "priority": 3
    },

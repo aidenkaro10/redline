@@ -1,6 +1,6 @@
 PlanIT Control 6 PM briefing for 2026-10-18
 
-Tomorrow (2026-10-18): highest hazard index is Port Everglades at 0.7/10. Crew site Deerhaven Generating Station: plan optimizer:balanced. Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 96% of priority-weighted work done.
+Tomorrow (2026-10-18): highest hazard index is Port Everglades at 0.7/10. Crew site Deerhaven Generating Station: plan optimizer:fairness. Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 96% of priority-weighted work done.
 
 Port Everglades (eia-617): index 0.7/10 low  [index: C2, hazards: C1, weather: C1, incidents: C2]
    - heat (low): Max WBGT 26 °C around 3 PM
@@ -25,19 +25,19 @@ Deerhaven Generating Station (eia-663): index 0.2/10 low  [index: C2, hazards: C
 Suggested schedule for eia-663 (checked by rule checker: True):
    07:00 07:30 08:00 08:30 09:00 09:30 10:00 10:30 11:00 11:30 12:00 12:30 13:00 13:30 14:00 14:30
    Priya
-   light HEAVY light   .   HEAVY light light   .    mod    .    mod  light   .    mod   mod  light
+   HEAVY light light   .   light  mod   mod    .    mod   mod  light   .     .    mod  light light
    Ana
-   light HEAVY light   .   light  mod   mod    .    mod  light  mod    .   HEAVY  mod   mod    .  
+     .   HEAVY  mod  light   .    mod  light light   .    mod  light  mod    .   HEAVY light  mod 
    Luis
-   HEAVY light HEAVY   .   HEAVY light light   .   light HEAVY   .   HEAVY   .     .     .     .  
+   HEAVY HEAVY HEAVY   .   HEAVY light   .   light light HEAVY   .   HEAVY   .     .     .     .  
    Jada
-   HEAVY   .   HEAVY   .   HEAVY HEAVY   .   HEAVY light HEAVY   .   HEAVY   .   HEAVY   .     .  
+   HEAVY   .   HEAVY HEAVY   .   HEAVY HEAVY HEAVY   .     .   HEAVY   .   HEAVY   .     .     .  
    Kofi (new hire)
-   HEAVY HEAVY HEAVY   .   HEAVY HEAVY light   .   HEAVY   .   HEAVY   .     .   HEAVY   .   HEAVY
+   HEAVY HEAVY light   .   HEAVY light   .   HEAVY light HEAVY   .   HEAVY   .   HEAVY   .   HEAVY
 
 * Heavy outdoor work is scheduled between 07:00 and 15:00.
-* Kofi (new hire) is new to the heat: lighter tasks and extra breaks.
+* Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 07:30, 09:00, 10:30, 11:30, 12:30, 13:30, 14:30, kept under the heat limit with breaks.
 * Won't finish safely tomorrow: Cable pulling, Inverter inspection.
 * Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 96% of priority-weighted work done.
 * Kofi (new hire) is not acclimatized: no very heavy work in high heat.
-* Alternatives: optimizer:throughput (96% work, peak 37.98 °C); optimizer:fairness (96% work, peak 37.99 °C)
+* Alternatives: optimizer:throughput (95% work, peak 37.98 °C); optimizer:balanced (96% work, peak 37.99 °C)

@@ -1,7 +1,7 @@
 {
  "generated_at": 1792274400,
  "for_date": "2026-10-18",
- "summary": "Tomorrow (2026-10-18): highest hazard index is Big Bend at 0.3/10. Crew site Deerhaven Generating Station: plan fused. Peak 90th pct core temp 38.00 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
+ "summary": "Tomorrow (2026-10-18): highest hazard index is Big Bend at 0.3/10. Crew site Deerhaven Generating Station: plan optimizer:throughput. Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
  "sites": [
   {
    "site_id": "eia-645",
@@ -104,7 +104,7 @@
     {
      "kind": "lightning",
      "level": "extreme",
-     "text": "Now: Lightning within 10 mi (0.8 mi): STOP WORK, all-clear in 22 min"
+     "text": "Now: Lightning within 10 mi (0.8 mi): STOP WORK, all-clear in 18 min"
     }
    ],
    "windows": [],
@@ -189,11 +189,11 @@
  ],
  "schedule_suggestions": [
   "Heavy outdoor work is scheduled between 07:00 and 10:30.",
-  "Kofi (new hire) is new to the heat: lighter tasks and extra breaks.",
+  "Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 08:00, 09:00, kept under the heat limit with breaks.",
   "Won't finish safely tomorrow: Cable pulling, Inverter inspection, Trenching for conduit, Vegetation clearing.",
-  "Peak 90th pct core temp 38.00 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
+  "Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
   "Kofi (new hire) is not acclimatized: no very heavy work in high heat.",
-  "Alternatives: optimizer:throughput (66% work, peak 37.97 \u00b0C); optimizer:margin (56% work, peak 37.85 \u00b0C)"
+  "Alternatives: optimizer:margin (56% work, peak 37.85 \u00b0C); optimizer:fairness (62% work, peak 37.99 \u00b0C)"
  ],
  "schedule": {
   "date": "2026-10-18",
@@ -251,13 +251,13 @@
      },
      {
       "start": 1792337400,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792339200,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792341000,
@@ -271,18 +271,18 @@
      },
      {
       "start": 1792344600,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      },
      {
       "start": 1792346400,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      },
      {
       "start": 1792348200,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      }
     ]
    },
@@ -292,13 +292,13 @@
     "slots": [
      {
       "start": 1792321200,
-      "task": "break",
-      "label": "Shade break"
+      "task": "heavy",
+      "label": "Vegetation clearing"
      },
      {
       "start": 1792323000,
-      "task": "heavy",
-      "label": "Scaffold setup"
+      "task": "moderate",
+      "label": "Transformer maintenance"
      },
      {
       "start": 1792324800,
@@ -307,13 +307,13 @@
      },
      {
       "start": 1792326600,
-      "task": "light",
-      "label": "Inverter inspection"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792328400,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792330200,
@@ -322,13 +322,13 @@
      },
      {
       "start": 1792332000,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "task": "light",
+      "label": "Inverter inspection"
      },
      {
       "start": 1792333800,
-      "task": "moderate",
-      "label": "Transformer maintenance"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792335600,
@@ -378,8 +378,8 @@
     "slots": [
      {
       "start": 1792321200,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792323000,
@@ -418,8 +418,8 @@
      },
      {
       "start": 1792335600,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792337400,
@@ -474,8 +474,8 @@
      },
      {
       "start": 1792324800,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792326600,
@@ -484,8 +484,8 @@
      },
      {
       "start": 1792328400,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792330200,
@@ -494,18 +494,18 @@
      },
      {
       "start": 1792332000,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792333800,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792335600,
-      "task": "break",
-      "label": "Shade break"
+      "task": "light",
+      "label": "Control room checks (indoors)"
      },
      {
       "start": 1792337400,
@@ -571,12 +571,12 @@
      {
       "start": 1792328400,
       "task": "heavy",
-      "label": "Vegetation clearing"
+      "label": "Scaffold setup"
      },
      {
       "start": 1792330200,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792332000,
@@ -585,13 +585,13 @@
      },
      {
       "start": 1792333800,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792335600,
-      "task": "light",
-      "label": "Control room checks (indoors)"
+      "task": "break",
+      "label": "Shade break"
      },
      {
       "start": 1792337400,
@@ -632,15 +632,15 @@
    }
   ],
   "notes": [
-   "Recommended: fused. Peak 90th pct core temp 38.00 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
+   "Recommended: optimizer:throughput. Peak 90th pct core temp 37.99 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
    "Heavy outdoor work is scheduled between 07:00 and 10:30.",
-   "Kofi (new hire) is new to the heat: lighter tasks and extra breaks.",
+   "Kofi (new hire) isn't used to the heat yet: heavy work at 07:00, 08:00, 09:00, kept under the heat limit with breaks.",
    "Won't finish safely tomorrow: Cable pulling, Inverter inspection, Trenching for conduit, Vegetation clearing."
   ],
   "checked_by_rules": true
  },
  "plan": {
-  "source": "agent:fused",
+  "source": "agent:optimizer:throughput",
   "verified": true,
   "violations": [],
   "workers": [
@@ -705,14 +705,14 @@
      {
       "slot": 9,
       "time": "11:30",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 10,
       "time": "12:00",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 11,
@@ -729,20 +729,20 @@
      {
       "slot": 13,
       "time": "13:30",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 14,
       "time": "14:00",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 15,
       "time": "14:30",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      }
     ],
     "peak_p90_c": 37.97
@@ -754,14 +754,14 @@
      {
       "slot": 0,
       "time": "07:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t7",
+      "task_name": "Vegetation clearing"
      },
      {
       "slot": 1,
       "time": "07:30",
-      "task": "t3",
-      "task_name": "Scaffold setup"
+      "task": "t4",
+      "task_name": "Transformer maintenance"
      },
      {
       "slot": 2,
@@ -772,14 +772,14 @@
      {
       "slot": 3,
       "time": "08:30",
-      "task": "t5",
-      "task_name": "Inverter inspection"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 4,
       "time": "09:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 5,
@@ -790,14 +790,14 @@
      {
       "slot": 6,
       "time": "10:00",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "t5",
+      "task_name": "Inverter inspection"
      },
      {
       "slot": 7,
       "time": "10:30",
-      "task": "t4",
-      "task_name": "Transformer maintenance"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 8,
@@ -857,8 +857,8 @@
      {
       "slot": 0,
       "time": "07:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 1,
@@ -905,8 +905,8 @@
      {
       "slot": 8,
       "time": "11:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 9,
@@ -951,7 +951,7 @@
       "task_name": "Rest (shade)"
      }
     ],
-    "peak_p90_c": 37.37
+    "peak_p90_c": 37.55
    },
    {
     "id": "w4",
@@ -972,8 +972,8 @@
      {
       "slot": 2,
       "time": "08:00",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 3,
@@ -984,8 +984,8 @@
      {
       "slot": 4,
       "time": "09:00",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 5,
@@ -996,20 +996,20 @@
      {
       "slot": 6,
       "time": "10:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 7,
       "time": "10:30",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 8,
       "time": "11:00",
-      "task": "rest",
-      "task_name": "Rest (shade)"
+      "task": "t1",
+      "task_name": "Control room checks"
      },
      {
       "slot": 9,
@@ -1087,14 +1087,14 @@
      {
       "slot": 4,
       "time": "09:00",
-      "task": "t7",
-      "task_name": "Vegetation clearing"
+      "task": "t3",
+      "task_name": "Scaffold setup"
      },
      {
       "slot": 5,
       "time": "09:30",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 6,
@@ -1105,14 +1105,14 @@
      {
       "slot": 7,
       "time": "10:30",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 8,
       "time": "11:00",
-      "task": "t1",
-      "task_name": "Control room checks"
+      "task": "rest",
+      "task_name": "Rest (shade)"
      },
      {
       "slot": 9,
@@ -1157,7 +1157,7 @@
       "task_name": "Rest (shade)"
      }
     ],
-    "peak_p90_c": 37.84
+    "peak_p90_c": 37.83
    }
   ],
   "tasks": [

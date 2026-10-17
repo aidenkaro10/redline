@@ -20,7 +20,7 @@ app.include_router(planner_router)
 | POST | `/api/planner/chat` | `{message, session_id?}` | `{session_id, reply, tool_calls[], plan, llm, cost_usd}` |
 | GET | `/api/planner/scenario` | | The Scenario the planner is working on |
 
-- `set_scenario(scenario)`: call when the crew, tasks or forecast change. For a **mid-shift replan**, set each worker's `start_core_c` to their current core temp estimate and cut `weather` to the remaining slots.
+- `set_scenario(scenario, offsets=None)`: call when the crew, tasks or forecast change. `offsets` = `{worker_id: PersonalOffset or its to_dict()}` from `backend/models/personal_offset.py`; default reads `data/personal_offsets.json` (same shape) if A saves them there. For a **mid-shift replan**, set each worker's `start_core_c` to their current core temp estimate and cut `weather` to the remaining slots.
 - The agent takes ~5 s without the LLM, ~30-60 s with it. Run `/api/planner/plan` off the main loop (FastAPI runs sync endpoints in a thread pool).
 - Live crew status in chat: `PlannerSession(scenario, crew_status_provider=fn)` where `fn(worker_id) -> dict` (e.g. `{"core_c": 37.6, "status": "yellow"}`). Without it the tool says "stub".
 - Lightning stop-work counts as a break in `WorkerStatus.break_at`: the schedule marks those slots `stop_work`.
@@ -53,17 +53,23 @@ app.include_router(planner_router)
     "windows": [{"kind": "lightning", "start_hour": 14.0, "end_hour": 15.0, "text": "Lightning 2 PM-3 PM (stop outdoor work)"}],
     "past_incidents": [{"date": "2024-07-18", "text": "...", "source": "..."}],
     "index_reasons": [{"hazard": "heat", "text": "..."}],
-    "data_sources": {"index": "C2" | "stub", "hazards": "C1" | "stub", "incidents": "stub"}
+    "index_notes": ["Trained on placeholder sites; ..."],
+    "data_sources": {"index": "C2" | "stub", "hazards": "C1" | "C1 (fake demo data)" | "stub",
+                     "weather": "C1" | "C1 (fake demo data)" | "stub", "incidents": "C2" | "stub"}
   }],
   "schedule_suggestions": ["Outdoor work stops 14:00-15:00 for the storm window ...", "..."],
   "schedule": { "...Schedule above..." },
   "plan": { "...plan view below..." },
   "crew_site_id": "eia-663",
+  "crew_data_sources": {"...": "same as data_sources, for the crew site"},
+  "personalized_workers": ["w1"],
   "stubs": ["0-10 hazard index (session C2 not merged): rough WBGT/storm formula", "..."],
   "cost_usd": 0.0
 }
 ```
-Show `stubs` in small print while it isn't empty (it says which data is placeholder). Sites are sorted by index, highest first.
+Show `stubs` in small print while it isn't empty (it says which data is placeholder). Sites are sorted by index, highest first. `top_hazards`: tomorrow's items first (NWS alerts running into tomorrow, max WBGT, HeatRisk), then current conditions with text starting `Now: `.
+
+Ready-made demo briefings (3 real sites, real C1 + C2 data, no LLM): `backend/planner/demo/briefing_live_2026-10-18.{json,txt}`, and the same crew on C1's fake hot demo day (labeled): `briefing_demo_fake_2026-10-18.{json,txt}`.
 
 **Plan view** (in `/api/planner/plan`, `/api/planner/check`, chat, briefing)
 ```json
@@ -78,11 +84,10 @@ Privacy: `peak_p90_c` is a planning forecast, not a live reading, but it's still
 
 ## For C1 (site hazards) and C2 (hazard index)
 
-The briefing calls, inside try/except, so nothing breaks before you merge:
-- C2: `ml.hazard_index.predict.predict_index(site_id, date, offline=True)`. Uses `index`, `band`, `top_reasons[].text`.
-- C1: `backend.hazards.picture.latest_picture()` (or `hazard_picture()`). Uses `sites[].site` (site list), `sites[].events[]` (`hazard`, `level`, `title`) for top hazards.
-- Still a stub on both sides: **past incidents near a site** (OSHA + Storm Events). If either of you exposes `incidents_near(site_id, radius_mi) -> [{date, text, source}]`, tell me and I'll wire it.
-- Still a stub: tomorrow's per-slot weather for the crew site comes from the planner's scenario. Next step: build it from C1's `site_weather([site])` hourly WBGT and NWS windows.
+Adapters live in `backend/planner/sources.py`. Each returns None on any failure (not merged, feed down, nothing cached) and the briefing falls back to labeled stubs. Tested for real on a throwaway combination of the three branches (C1 29119a1, C2 02a10fa).
+- C1: `get_site` (site names), `latest_picture()` or `hazard_picture(write_log=False)` (events, `tomorrow` block), `site_weather([site])` hourly (temperature, humidity, 10 m wind, shortwave, Liljegren `wbgt`) → interpolated to the shift's 30-min slots for the crew's heat plan. NWS alerts (by title) and lightning stop-work events become hazard windows; events with no start/end (current readings) don't.
+- C2: `predict_index(site_id, date)` (index, band, top_reasons, notes) and `past_incidents(site_id, limit=3)`.
+- Not used yet: C2's `predict_all_sites` (the briefing scores only the sites it shows), `hazard_index` inside C1's picture.
 
 ## Python API (no HTTP)
 
@@ -107,11 +112,11 @@ r = plan_with_agent(demo_scenario())       # r.plan, r.check (ok, violations, pe
 - **Loop 2 output:** write a `Playbook` (`playbook.py`) to `backend/learning/playbook.json` (or set `PLANNER_PLAYBOOK`). `Playbook.add()` runs the code safety filter; only `avoid_intensity` hints reach the optimizer. The benchmark's `agent_day14` uses it automatically.
 - **Loop 3 knobs:** everything in `archon.AgentSettings` (objectives, candidate counts, fusion, ranking weights, critic instructions). Nothing there touches safety.
 
-## For the ML session: personal twins
+## For the ML session: personal offsets and twins
 
-The heat model is behind `HeatModel` in `backend/planner/heat_model.py` (two methods: `simulate(scenario, plans)` and `slot_costs(scenario)`). Twins plug in either way:
-1. Easy: set each worker's `core_offset_c` (runs hotter/cooler than the model) and `core_sd_c` (smaller once the twin is confident).
-2. Full: a new class with the same two methods, passed as `heat_model=` to `optimize`, `check_plans` and `plan_with_agent`.
+Done: `backend/planner/personal.py` turns a `PersonalOffset` (`offset_c` = model minus thermometer, `confidence`) into the planner's worker fields: `core_offset_c = -offset_c` (note the sign: the planner's + means "runs hotter"), `core_sd_c = 0.15 × sqrt(1 - confidence)`, min 0.05. Guardrail in config: a worker counts as at most `PLAN_MAX_COOLER_OFFSET_C` (0.3 °C) cooler than the model; hotter is never capped. The chat agent's `get_crew_status` reports it in words. The offset was learned against the forecaster and shifts the planning model (same per-person bias idea, different model).
+
+Other twins plug in through `HeatModel` in `backend/planner/heat_model.py` (`simulate(scenario, plans)`, `slot_costs(scenario)`), passed as `heat_model=` to `optimize`, `check_plans` and `plan_with_agent`.
 
 ## Safety constants
 
