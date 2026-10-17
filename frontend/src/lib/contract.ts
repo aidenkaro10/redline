@@ -90,7 +90,7 @@ export interface Hazard {
 export interface SiteStatus {
   site_id: string;
   hazards: Hazard[];              // one per HazardKind, always 6
-  index_tomorrow: number;         // 0-10 hazard index for tomorrow (session C2)
+  index_tomorrow: number | null;  // 0-10 hazard index for tomorrow (session C2); null = not computed yet
   index_drivers: string[];        // top reasons, e.g. ["Heat index 108 °F", "Storms 60%"]
   /** Session C2's full predict_index() result for tomorrow, when available (index_tomorrow = hazard_index.index). */
   hazard_index?: HazardIndex | null;

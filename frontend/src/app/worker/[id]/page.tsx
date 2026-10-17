@@ -21,6 +21,7 @@ import type { Hazard, Status } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
+import { secondsUntil } from "@/lib/normalize";
 import { shortSiteName, useSites } from "@/lib/crew";
 
 const LOOK: Record<Status, { bg: string; fg: string; title: string; tip: string }> = {
@@ -144,7 +145,7 @@ export default function WorkerPhone() {
           {hazard ? (
             <>
               <span className="flex items-center gap-1.5"><HazardIcon kind={hazard.kind} className="h-5 w-5 shrink-0" />{HAZARD_LABEL[hazard.kind]}</span>
-              {hazard.lightning?.all_clear_at && <span className="block text-sm font-semibold tabular opacity-90">clear in {fmtCountdown(hazard.lightning.all_clear_at - now)}</span>}
+              {hazard.lightning?.all_clear_at && <span className="block text-sm font-semibold tabular opacity-90">clear in {fmtCountdown(secondsUntil(hazard.lightning.all_clear_at, now))}</span>}
             </>
           ) : "None"}
         </Tile>

@@ -20,6 +20,7 @@ import type {
   SiteStatus, ViewFilter, Vitals, WorkerStatus, OffsetUpdate,
 } from "./contract";
 import { canSee } from "./contract";
+import { normalizeSite } from "./normalize";
 import { toOffsetUpdate } from "./offset";
 import { foldEmergencyStatus } from "./emergency.ts";
 
@@ -81,7 +82,7 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
           ready: true,
           clock: { sim: ev.sim_time, wall: now, speed: ev.demo.speed },
           workers: Object.fromEntries(ev.workers.map((w) => [w.worker_id, w])),
-          sites: Object.fromEntries(ev.sites.map((x) => [x.site_id, x])),
+          sites: Object.fromEntries(ev.sites.map((x) => [x.site_id, normalizeSite(x)])),
           alerts: ev.alerts, mandown: ev.mandown, emergency: ev.emergency, demo: ev.demo,
           reports: ev.reports, log: ev.log, history: ev.history, band: ev.band, offsets: ev.offsets ?? {},
         });
@@ -93,7 +94,7 @@ function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
         s.workers = { ...s.workers, [ev.worker.worker_id]: ev.worker };
         break;
       case "site_status":
-        s.sites = { ...s.sites, [ev.site.site_id]: ev.site };
+        s.sites = { ...s.sites, [ev.site.site_id]: normalizeSite(ev.site) };
         break;
       case "vitals": {
         const id = ev.vitals.worker_id;

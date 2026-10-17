@@ -141,11 +141,15 @@ export function alertTone(kind: AlertKind) {
 
 export const INDEX_RAMP = ["#fde3c8", "#f8b98a", "#ec835a", "#d0573a", "#9a2f1c"];
 
-export function indexColor(index: number) {
+export function indexColor(index: number | null) {
+  if (index === null || !Number.isFinite(index)) return "#b8b6ae";   // not computed yet: neutral grey
   return INDEX_RAMP[Math.min(4, Math.floor(index / 2))];
 }
 
-export function IndexChip({ index }: { index: number }) {
+export function IndexChip({ index }: { index: number | null }) {
+  if (index === null || !Number.isFinite(index)) {
+    return <span className="inline-flex min-w-[2.6rem] justify-center rounded-md bg-surface-2 px-1.5 py-0.5 text-xs font-bold text-muted" title="Index not computed yet">--</span>;
+  }
   const dark = index >= 6;
   return (
     <span className="inline-flex min-w-[2.6rem] justify-center rounded-md px-1.5 py-0.5 text-xs font-bold tabular" style={{ background: indexColor(index), color: dark ? "#fff" : "#3b1a0c" }}>

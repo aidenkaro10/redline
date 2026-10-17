@@ -133,7 +133,7 @@ test("there are 50+ sites, each with all six hazards and a 0-10 index", () => {
   assert.ok(snap.sites.length >= 50);
   for (const s of snap.sites) {
     assert.equal(s.hazards.length, 6);
-    assert.ok(s.index_tomorrow >= 0 && s.index_tomorrow <= 10);
+    assert.ok(s.index_tomorrow !== null && s.index_tomorrow >= 0 && s.index_tomorrow <= 10);
   }
 });
 

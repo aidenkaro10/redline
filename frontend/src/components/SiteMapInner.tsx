@@ -126,7 +126,7 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
       }).addTo(g);
       const stop = st.hazards.some((h) => h.stop_work);
       dot.bindTooltip(
-        `<b>${s.name}</b><br/>Tomorrow's index: <b>${st.index_tomorrow.toFixed(1)}</b>/10${st.hazard_index ? ` (${st.hazard_index.band})` : ""}` +
+        `<b>${s.name}</b><br/>Tomorrow's index: <b>${st.index_tomorrow === null ? "--" : st.index_tomorrow.toFixed(1)}</b>/10${st.hazard_index ? ` (${st.hazard_index.band})` : ""}` +
         (st.hazard_index?.top_reasons[0] ? `<br/><span style="opacity:.8">${escapeHtml(st.hazard_index.top_reasons[0].text)}</span>` : "") +
         (st.workers_on_site ? `<br/>${st.workers_on_site} crew on site` : "") +
         (flagged ? `<br/><b style="color:${st.worker_flag === "sos" ? "#7e3ac8" : "#d03b3b"}">${st.worker_flag === "mandown" ? "MAN DOWN" : st.worker_flag === "sos" ? "SOS" : "Worker heat alert"}</b>` : "") +
