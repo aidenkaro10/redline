@@ -86,3 +86,8 @@ def test_gate_keeps_only_real_improvements():
     assert not gate({**BEST, "qloss": 0.07, "fc_rmse": 0.30}, BEST)[0]         # RMSE got worse
     assert not gate({**BEST, "qloss": 0.07, "red_caught_pct": 62.5}, BEST)[0]  # missed a red episode
     assert gate({**BEST, "qloss": 0.07, "now_rmse": 0.243}, BEST)[0]           # within noise tolerance
+
+
+def test_gate_min_gain_blocks_gains_smaller_than_noise():
+    assert not gate({**BEST, "qloss": 0.0795}, BEST, min_gain=0.001)[0]
+    assert gate({**BEST, "qloss": 0.0785}, BEST, min_gain=0.001)[0]

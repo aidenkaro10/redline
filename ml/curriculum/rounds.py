@@ -69,11 +69,15 @@ def summary(report) -> dict:
     }
 
 
-def gate(new: dict, best: dict) -> tuple[bool, str]:
-    """Keep the new model only if it's better on quantile loss and not worse on RMSE or red catches."""
+def gate(new: dict, best: dict, min_gain: float = 0.0) -> tuple[bool, str]:
+    """
+    Keep the new model only if it's better on quantile loss and not worse on RMSE or red catches.
+    min_gain: quantile loss must drop by MORE than this (set it to the seed-to-seed noise,
+    so a lucky retrain doesn't count as progress).
+    """
     reasons = []
-    if not new["qloss"] < best["qloss"]:
-        reasons.append(f"quantile loss {new['qloss']:.4f} not below {best['qloss']:.4f}")
+    if not new["qloss"] < best["qloss"] - min_gain:
+        reasons.append(f"quantile loss {new['qloss']:.4f} not below {best['qloss']:.4f} - {min_gain:.4f}")
     if new["now_rmse"] > best["now_rmse"] + RMSE_TOLERANCE_C:
         reasons.append(f"NOW RMSE worse ({new['now_rmse']:.3f} vs {best['now_rmse']:.3f})")
     if new["fc_rmse"] > best["fc_rmse"] + RMSE_TOLERANCE_C:
@@ -210,7 +214,7 @@ def run(args):
         part = {"round": r, "seed": 10_000 + r, "shifts_each": max(1, n_add // len(kept)),
                 "scenarios": [dataclasses.asdict(k.scenario) for k in kept]}
         pred, path, val, n_cur, secs = train_and_score(r, accepted_mix + [part], "")
-        keep, reason = gate(val, best_val)
+        keep, reason = gate(val, best_val, args.min_gain)
         print(f"  round {r} val: {fmt(val)}\n  best so far: {fmt(best_val)}\n  -> {'KEEP' if keep else 'ROLL BACK'}: {reason}")
         write({"event": "round", "round": r, "decision": "keep" if keep else "rollback", "reason": reason,
                "val": val, "best_before": best_val, "proposer": stats, "kept_scenarios": len(kept),
@@ -244,6 +248,7 @@ def main():
     ap.add_argument("--max-keep", type=int, default=40, help="max scenarios kept per round")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--min-gain", type=float, default=0.0, help="quantile loss must improve by more than this")
     ap.add_argument("--noise-check", action="store_true", help="also train round 0 with a 2nd seed")
     run(ap.parse_args())
 
