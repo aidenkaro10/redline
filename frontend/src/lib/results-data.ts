@@ -9,7 +9,7 @@ import type { ModelResults } from "./contract-extra.ts";
 export const RESULTS: ModelResults = {
   updated: "2026-10-17",
   split: "10 unseen test people (20 sessions). Locked away: never used for training, model choice or calibration. Scored once.",
-  models: ["Kalman (ECTemp), the published method", "Kalman + trend, our best baseline", "Our model (final_cv, 5-model ensemble)"],
+  models: ["Kalman (ECTemp), the published now-only method", "Kalman + trend, our best baseline", "Our model (final_cv, 5-model ensemble)"],
   best: 2,
   rows: [
     { group: "Estimate now", name: "RMSE", unit: "°C", better: "lower", values: [0.398, 0.398, 0.347], text: ["0.398 (0.33–0.44)", "0.398", "0.347 (0.21–0.40)"] },
@@ -33,7 +33,7 @@ export const RESULTS: ModelResults = {
   ],
   notes: [
     "Split by person, never by time. The 10 test people were locked away until the end and scored once. Nothing was tuned on them afterwards.",
-    "Vs the published Kalman method: forecasts 18–26% more accurate 10 to 30 min ahead, 13% better right now, and the ranges are honest (Kalman's 90% range only covers about half the time).",
+    "Vs the published now-only Kalman method: forecasts 18–26% more accurate 10 to 30 min ahead, 13% better right now, and the ranges are honest (Kalman's 90% range only covers about half the time).",
     "Vs our own Kalman + trend baseline: only 3–7% more accurate. On red alerts it caught 9 of 10 vs 10 of 10, with more false alarms. 10 episodes is a small sample, but that's the result.",
     "Earlier validation numbers (0.23 °C at +20 min) were optimistic, because those people were used to pick the model. 0.370 °C is the number to quote.",
     "Ranges run slightly wide (95% vs 90% wanted), which errs on the safe side.",

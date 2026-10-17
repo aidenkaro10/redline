@@ -563,6 +563,8 @@ test("19 judges: results numbers come from one data file and match docs/results.
   assert.equal(row("+20 min coverage of p90 (want 90%)").values[RESULTS.best], 95);
   assert.equal(row("Yellow warnings caught").values[RESULTS.best], 88);
   assert.equal(row("Yellow warning lead time").values[RESULTS.best], 16.9);
+  assert.equal(row("Yellow warning lead time").values[1], 13.0);                   // card 2 compares to the trend baseline
+  assert.deepEqual(row("Yellow false alarms").values.slice(1), [0.23, 0.2]);
   // No red-alert win: on test the trend baseline caught 10/10, ours 9/10. The table says so.
   assert.equal(row("Red danger caught").values[1], 100);
   assert.equal(row("Red danger caught").values[RESULTS.best], 90);
@@ -576,13 +578,13 @@ test("19 judges: results numbers come from one data file and match docs/results.
   const results = readFileSync(join(DOCS, "results.md"), "utf8");
   const final = results.slice(results.indexOf("## FINAL: final_cv"));
   assert.ok(final.length > 100, "docs/results.md has the FINAL section");
-  for (const n of ["0.481", "0.370", "0.347", "0.398", "0.95", "88%, **16.9 min**", "90% (9/10)", "100% (10/10)", "0.308 -> 0.270"]) {
+  for (const n of ["0.481", "0.370", "0.347", "0.398", "0.95", "88%, **16.9 min**, **0.20**", "88%, 13.0 min, 0.23", "90% (9/10)", "100% (10/10)", "0.308 -> 0.270"]) {
     assert.ok(final.includes(n), `FINAL section has ${n}`);
   }
   assert.match(readFileSync(join(DOCS, "sessions", "planner.md"), "utf8"), /92% of runs have safety violations/);
   // And the page shows them (bundled copy, since no backend answers /api/results here).
   const t = text(render(<ResultsPage />, crewBase(), { path: "/demo/results" }));
-  for (const n of ["0.37", "0.481", "88", "16.9", "92", "10 unseen test people"]) assert.ok(t.includes(n), `results page shows ${n}`);
+  for (const n of ["0.37", "0.481", "16.9", "Simple trend: 13", "88% caught", "0.20 vs 0.23/hr", "92", "10 unseen test people", "now-only"]) assert.ok(t.includes(n), `results page shows ${n}`);
   assert.doesNotMatch(t, /Heat danger caught/);                                      // no red-alert headline
   assert.ok(!t.includes("0.456"), "the old validation Kalman number is gone (0.23 only appears in the note saying it was optimistic)");
 });
