@@ -204,3 +204,9 @@ PLAN_STOP_WORK_HAZARDS = ("lightning", "severe_thunderstorm", "tornado", "flash_
 PLAN_MAX_COOLER_OFFSET_C = 0.3   # a worker can count as at most this much COOLER than the model (hotter: no cap here)
 PLAN_PERSON_SD_C = 0.15          # how unsure we are about a person with no spot checks yet (°C)
 PLAN_MIN_PERSON_SD_C = 0.05      # never more certain than this, however many checks
+
+# ---------------------------------------------------------------------------
+# LIVE SYSTEM (session A). Band link timing, from docs/firmware-contract.md.
+# ---------------------------------------------------------------------------
+BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real seconds);
+                             # the band blinks cyan "no connection" after 60 s without a command
