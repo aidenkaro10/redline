@@ -10,8 +10,8 @@
     "build": "next build",
     "start": "next start",
     "test": "node --test \"src/**/*.test.ts\"",
-    "typecheck": "tsc --noEmit",
-    "check": "tsc --noEmit && npm test && npm run build"
+    "typecheck": "next typegen && tsc --noEmit",
+    "check": "next typegen && tsc --noEmit && npm test && npm run build"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

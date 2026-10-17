@@ -5,6 +5,8 @@
  * flood, wildfire, soil, wildlife. Every row shows its source and time.
  */
 
+import { useState } from "react";
+
 import type { Hazard, HazardIndex, IndexHazard, Site, SiteStatus } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { siteMeta } from "@/lib/crew";
@@ -14,6 +16,10 @@ import { HAZARD_TEXT_CLASS, HazardIcon, IndexChip, LevelPill, fmtClock, fmtCount
 export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }) {
   const now = useSimNow(250);
   const lightning = status.hazards.find((h) => h.kind === "lightning");
+  const [showAll, setShowAll] = useState(false);
+  // Basic view: only hazards that are actually on. "Show all" lists the clear ones too.
+  const active = status.hazards.filter((h) => h.level !== "none");
+  const shown = showAll ? status.hazards : active;
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-3">
@@ -32,8 +38,9 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
 
       {lightning?.stop_work && <LightningBanner h={lightning} now={now} />}
 
-      <ul className="divide-y divide-line rounded-lg border border-line">
-        {status.hazards.map((h) => (
+      {shown.length === 0 && <p className="text-sm text-ok-ink">No active hazards right now.</p>}
+      <ul className={`divide-y divide-line rounded-lg border border-line ${shown.length ? "" : "hidden"}`}>
+        {shown.map((h) => (
           <li key={h.kind} className={`flex gap-3 px-3 py-2.5 ${h.stale ? "opacity-55" : ""}`}>
             <span className={`mt-0.5 ${HAZARD_TEXT_CLASS[h.kind]}`}><HazardIcon kind={h.kind} className="h-5 w-5" /></span>
             <div className="min-w-0 flex-1">
@@ -53,6 +60,11 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
           </li>
         ))}
       </ul>
+      {active.length < status.hazards.length && (
+        <button onClick={() => setShowAll(!showAll)} className="self-start text-xs font-semibold text-accent">
+          {showAll ? "Only active hazards" : `Show all ${status.hazards.length} (${status.hazards.length - active.length} clear)`}
+        </button>
+      )}
     </div>
   );
 }
@@ -90,7 +102,7 @@ const INDEX_HAZARDS: { key: IndexHazard; label: string }[] = [
 /** Session C2's 0-10 index for tomorrow: per-hazard bars vs a usual day, and the top reasons. */
 function IndexBreakdown({ hi }: { hi: HazardIndex }) {
   return (
-    <details className="rounded-lg border border-line px-3 py-2 text-xs" open>
+    <details className="rounded-lg border border-line px-3 py-2 text-xs">
       <summary className="cursor-pointer font-semibold">
         Tomorrow: <span className="capitalize">{hi.band}</span> ({hi.index.toFixed(1)}/10) · a usual day here scores {hi.climatology_index.toFixed(1)}
         {hi.data_mode === "mock" && <span className="ml-1.5 rounded bg-warn-bg px-1 py-px text-[10px] font-bold text-warn-ink">MOCK</span>}

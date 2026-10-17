@@ -1,173 +1,249 @@
 "use client";
 
 /**
- * Crew lead dashboard.
+ * Crew lead app (phone first). Two tabs at the bottom:
+ *   Crew  - one row per worker, worst first. Tap a row for details.
+ *   Sites - the risk-ranked map of job sites and tomorrow's 0-10 index. Tap a site for its hazards.
  *
- * Privacy: this page connects as view=crew, so the server never sends it raw
- * heart rate or core temp. It shows status, minutes until predicted danger,
- * hazards and the schedule.
+ * Privacy: this page connects as view=crew, so it never receives raw heart
+ * rate or core temp. Status, minutes to danger and hazards only.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 
-import { AlertFeed } from "@/components/AlertFeed";
-import { DemoControls } from "@/components/DemoControls";
+import { AppHeader } from "@/components/AppHeader";
 import { HazardPanel } from "@/components/HazardPanel";
 import { useIsDark } from "@/components/Nav";
-import { SchedulePanel } from "@/components/SchedulePanel";
 import { SiteMap } from "@/components/SiteMap";
-import { WorkerCard } from "@/components/WorkerCard";
-import { Card, HazardIcon, IndexChip, StatusDot, INDEX_RAMP } from "@/components/ui";
-import type { Schedule, Site, Status } from "@/lib/contract";
-import { siteMeta, useCrew } from "@/lib/crew";
+import { AlertIcon, HazardIcon, IndexChip, StatusBadge, alertTone, fmtCountdown } from "@/components/ui";
+import type { Site, SiteStatus, Status, WorkerStatus } from "@/lib/contract";
+import { ALERT_LABEL, HAZARD_LABEL } from "@/lib/contract";
+import { shortSiteName, siteMeta, useCrew } from "@/lib/crew";
 import { useFetch, useLive, useSimNow } from "@/lib/live";
 
 const STATUS_ORDER: Record<Status, number> = { red: 0, yellow: 1, green: 2 };
 
-export default function CrewDashboard() {
+export default function CrewApp() {
+  return <Suspense><CrewAppInner /></Suspense>;
+}
+
+function CrewAppInner() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const tab = params.get("tab") === "sites" ? "sites" : "crew";
+  const setTab = (t: "crew" | "sites") => router.replace(t === "crew" ? "/" : "/?tab=sites", { scroll: false });
+
+  return (
+    <div className="mx-auto flex min-h-screen max-w-xl flex-col pb-20">
+      <AppHeader title={tab === "crew" ? "Your crew" : "Job sites"} />
+      <main className="flex-1 px-4 py-3">{tab === "crew" ? <CrewTab /> : <SitesTab />}</main>
+      <nav className="fixed inset-x-0 bottom-0 z-[600] border-t border-line bg-surface/95 backdrop-blur">
+        <div className="mx-auto grid max-w-xl grid-cols-2">
+          <TabButton active={tab === "crew"} onClick={() => setTab("crew")} label="Crew" />
+          <TabButton active={tab === "sites"} onClick={() => setTab("sites")} label="Sites" />
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+function TabButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+  return (
+    <button onClick={onClick} className={`py-3.5 text-sm font-bold ${active ? "text-accent" : "text-muted"}`} aria-current={active ? "page" : undefined}>
+      {label}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Crew tab
+// ---------------------------------------------------------------------------
+
+function CrewTab() {
   const live = useLive();
+  const crew = useCrew();
   const now = useSimNow(1000);
+  const [open, setOpen] = useState<string | null>(null);
+
+  const workers = useMemo(
+    () => [...crew.workers].sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)),
+    [crew.workers],
+  );
+  const attention = workers.filter((w) => w.status !== "green").length;
+
+  if (!live.ready) return <p className="py-10 text-center text-sm text-muted">Connecting…</p>;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <SiteBanners siteIds={crew.siteIds} sites={live.sites} now={now} />
+
+      <p className="text-sm text-ink-2">
+        {attention ? <b className="text-ink">{attention} need{attention === 1 ? "s" : ""} attention</b> : <b className="text-ink">Everyone OK</b>}
+        {" · "}{workers.length} on shift
+      </p>
+
+      <ul className="flex flex-col gap-2">
+        {workers.map((w) => (
+          <WorkerRow key={w.worker_id} w={w} now={now} open={open === w.worker_id}
+            onToggle={() => setOpen(open === w.worker_id ? null : w.worker_id)}
+            down={live.mandown?.worker_id === w.worker_id && (live.mandown.stage === "checking" || live.mandown.stage === "confirmed") ? (live.mandown.reason === "sos" ? "sos" : "mandown") : null} />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Only shows when a crew site has a real alert (lightning stop, flood or fire warning). */
+function SiteBanners({ siteIds, sites, now }: { siteIds: string[]; sites: Record<string, SiteStatus>; now: number }) {
+  const { data: list } = useFetch<Site[]>("/sites");
+  const names = Object.fromEntries((list ?? []).map((s) => [s.id, s.name]));
+  const banners = siteIds.flatMap((id) => (sites[id]?.hazards ?? [])
+    .filter((h) => h.stop_work || h.band_pattern !== null)    // real alerts only (the band buzzes for them)
+    .map((h) => ({ id, h })));
+  if (!banners.length) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      {banners.map(({ id, h }) => (
+        <div key={id + h.kind} className={`flex items-center gap-3 rounded-xl p-3 ${h.stop_work ? "bg-lightning text-white" : "bg-warn-bg text-warn-ink"}`}>
+          <HazardIcon kind={h.kind} className="h-6 w-6 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="font-bold leading-tight">{h.stop_work ? "Stop work" : HAZARD_LABEL[h.kind]} · {shortSiteName(names[id]) || id}</p>
+            <p className="truncate text-sm opacity-90">{h.headline}</p>
+          </div>
+          {h.lightning?.all_clear_at && (
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase opacity-80">All clear</p>
+              <p className="text-lg font-black tabular">{fmtCountdown(h.lightning.all_clear_at - now)}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const EDGE: Record<Status, string> = { green: "border-l-ok", yellow: "border-l-warn", red: "border-l-danger" };
+
+function WorkerRow({ w, now, open, onToggle, down }: { w: WorkerStatus; now: number; open: boolean; onToggle: () => void; down: "mandown" | "sos" | null }) {
+  const breakIn = w.break_at ? w.break_at - now : null;
+  const danger = w.minutes_to_danger === null ? null : w.minutes_to_danger === 0 ? "Danger now" : `Danger in ${w.minutes_to_danger} min`;
+  return (
+    <li className={`overflow-hidden rounded-xl border border-line border-l-[6px] bg-surface ${down === "sos" ? "border-l-sos" : down ? "border-l-danger" : EDGE[w.status]}`}>
+      <button onClick={onToggle} className="flex w-full items-center gap-3 px-3 py-3 text-left" aria-expanded={open}>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{w.name}</p>
+          <p className={`text-sm ${w.status === "red" ? "font-semibold text-danger-ink" : w.status === "yellow" ? "font-semibold text-warn-ink" : "text-muted"}`}>
+            {down === "sos" ? "SOS" : down ? "Man down" : danger ?? (w.on_break ? (w.hazard === "LIGHTNING" ? "Stopped for lightning" : "On break") : "OK")}
+          </p>
+        </div>
+        {w.hazard && <span className={alertTone(w.hazard)}><AlertIcon kind={w.hazard} className="h-5 w-5" /></span>}
+        {down
+          ? <span className={`${down === "sos" ? "pulse-sos" : "pulse-red"} rounded-full px-2 py-0.5 text-xs font-bold text-white`}>{down === "sos" ? "SOS" : "DOWN"}</span>
+          : <StatusBadge status={w.status} />}
+      </button>
+      {open && (
+        <div className="border-t border-line px-3 py-3 text-sm">
+          <p className="text-ink-2">{w.status_reason}</p>
+          <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+            <dt className="text-muted">Alert</dt>
+            <dd className={w.hazard ? alertTone(w.hazard) : ""}>{w.hazard ? ALERT_LABEL[w.hazard] : "None"}</dd>
+            {w.alert_acknowledged !== null && (<><dt className="text-muted">Acknowledged</dt><dd>{w.alert_acknowledged ? "Yes" : "Not yet"}</dd></>)}
+            <dt className="text-muted">{w.on_break ? "Back to work" : "Next break"}</dt>
+            <dd className="tabular">{breakIn === null ? "--" : `in ${Math.max(0, Math.round(breakIn / 60))} min`}</dd>
+            <dt className="text-muted">Role</dt><dd>{w.role}</dd>
+            <dt className="text-muted">Band</dt><dd>{w.band_connected ? "Connected" : "Not connected"}</dd>
+          </dl>
+          <Link href={`/worker/${w.worker_id}`} className="mt-3 inline-block text-sm font-semibold text-accent">Open their phone view →</Link>
+        </div>
+      )}
+    </li>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sites tab: risk-ranked map + tomorrow's 0-10 index (covers the 6 PM briefing)
+// ---------------------------------------------------------------------------
+
+function SitesTab() {
+  const live = useLive();
+  const crew = useCrew();
   const dark = useIsDark();
   const { data: sites } = useFetch<Site[]>("/sites");
-  const { data: schedule, error: scheduleError } = useFetch<Schedule>("/schedule", 15000);
-  const crew = useCrew();
-  const [picked, setSelected] = useState<string | null>(null);
-  const selected = picked ?? crew.siteIds[0] ?? "";
+  const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  const workers = useMemo(
-    () => Object.values(live.workers).sort((a, b) => STATUS_ORDER[a.status] - STATUS_ORDER[b.status] || a.name.localeCompare(b.name)),
-    [live.workers],
-  );
-  const counts = { green: 0, yellow: 0, red: 0 };
-  for (const w of workers) counts[w.status]++;
-
-  // Risk ranking: sites with a worker flag first, then by tomorrow's index.
+  // Your crew's sites first, then the rest by tomorrow's index (worker alerts always on top).
   const ranked = useMemo(() => {
     if (!sites) return [];
-    const flagRank = { mandown: 0, sos: 0, heat: 1, none: 2 };
-    return [...sites].filter((s) => live.sites[s.id]).sort((a, b) => {
+    const flag = { mandown: 0, sos: 0, heat: 1, none: 2 };
+    return sites.filter((s) => live.sites[s.id]).sort((a, b) => {
       const A = live.sites[a.id], B = live.sites[b.id];
-      return flagRank[A.worker_flag] - flagRank[B.worker_flag] || B.index_tomorrow - A.index_tomorrow;
+      return flag[A.worker_flag] - flag[B.worker_flag] || B.index_tomorrow - A.index_tomorrow;
     });
   }, [sites, live.sites]);
 
-  // When lightning or a man-down hits a crew site, zoom the map there so the judge sees it.
-  const crewAlarm = crew.siteIds.find((id) => (live.sites[id]?.worker_flag === "mandown" || live.sites[id]?.worker_flag === "sos") || live.sites[id]?.hazards.some((h) => h.stop_work)) ?? null;
-  useEffect(() => {
-    if (crewAlarm) { setSelected(crewAlarm); setFocus(crewAlarm); }
-  }, [crewAlarm]);
+  // A stop-work or incident at a crew site: jump the map there.
+  const alarm = crew.siteIds.find((id) => live.sites[id]?.worker_flag === "mandown" || live.sites[id]?.worker_flag === "sos" || live.sites[id]?.hazards.some((h) => h.stop_work)) ?? null;
+  useEffect(() => { if (alarm) { setSelected(alarm); setFocus(alarm); } }, [alarm]);
 
-  const stopWorkSites = Object.values(live.sites).filter((s) => s.hazards.some((h) => h.stop_work)).length;
-  const selSite = sites?.find((s) => s.id === selected);
-  const selStatus = live.sites[selected];
   const pick = (id: string) => { setSelected(id); setFocus(id); };
+  const sel = sites?.find((s) => s.id === selected);
+  const selStatus = selected ? live.sites[selected] : undefined;
 
   return (
-    <main className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4">
-      <DemoControls />
-
-      {/* Crew summary */}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Your crew</h1>
-          <p className="text-sm text-ink-2">{workers.length} workers on {crew.siteIds.length} site{crew.siteIds.length === 1 ? "" : "s"} · statuses only, no raw biometrics</p>
-        </div>
-        <div className="flex flex-wrap gap-2 text-sm">
-          <Pill><StatusDot status="red" /> <b className="tabular">{counts.red}</b> danger</Pill>
-          <Pill><StatusDot status="yellow" /> <b className="tabular">{counts.yellow}</b> warning</Pill>
-          <Pill><StatusDot status="green" /> <b className="tabular">{counts.green}</b> OK</Pill>
-          <Pill><span className="text-lightning"><HazardIcon kind="lightning" className="h-4 w-4" /></span> <b className="tabular">{stopWorkSites}</b> stop-work sites</Pill>
-        </div>
+    <div className="flex flex-col gap-3">
+      <div className="h-[42vh] min-h-[260px] overflow-hidden rounded-xl border border-line">
+        {sites && <SiteMap sites={sites} statuses={live.sites} reports={live.reports} selected={selected} onSelect={pick} dark={dark} focus={focus} />}
       </div>
 
-      {/* Worker cards */}
-      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-        {!live.ready && Array.from({ length: 6 }, (_, i) => <div key={i} className="h-44 animate-pulse rounded-xl bg-surface-2" />)}
-        {workers.map((w) => (
-          <WorkerCard key={w.worker_id} w={w} now={now} down={live.mandown?.worker_id === w.worker_id && (live.mandown.stage === "checking" || live.mandown.stage === "confirmed") ? (live.mandown.reason === "sos" ? "sos" : "mandown") : null} />
-        ))}
-      </section>
-
-      {/* Map + hazards */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        <Card
-          className="lg:col-span-2"
-          title={`Job sites, risk ranked (${ranked.length})`}
-          right={<IndexLegend />}
-          bodyClass="flex flex-col md:flex-row"
-        >
-          <div className="order-2 max-h-[460px] overflow-y-auto border-t border-line md:order-1 md:max-h-[640px] md:w-72 md:border-r md:border-t-0">
-            <ol>
-              {(showAll ? ranked : ranked.slice(0, 15)).map((s, i) => {
-                const st = live.sites[s.id];
-                const stop = st.hazards.some((h) => h.stop_work);
-                return (
-                  <li key={s.id}>
-                    <button onClick={() => pick(s.id)}
-                      className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-2 ${selected === s.id ? "bg-surface-2" : ""}`}>
-                      <span className="w-5 shrink-0 text-xs text-muted tabular">{i + 1}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium">{s.name}</span>
-                        <span className="flex gap-2 text-[11px]">
-                          {st.worker_flag === "mandown" && <b className="text-danger-ink">MAN DOWN</b>}
-                          {st.worker_flag === "sos" && <b className="text-sos">SOS</b>}
-                          {st.worker_flag === "heat" && <b className="text-danger-ink">Worker heat alert</b>}
-                          {stop && <b className="text-lightning">Stop work</b>}
-                          {st.worker_flag === "none" && !stop && <span className="text-muted">{siteMeta(s, false)}</span>}
-                        </span>
-                      </span>
-                      <IndexChip index={st.index_tomorrow} />
-                    </button>
-                  </li>
-                );
-              })}
-            </ol>
-            {ranked.length > 15 && (
-              <button onClick={() => setShowAll(!showAll)} className="w-full px-3 py-2 text-left text-xs font-semibold text-accent hover:underline">
-                {showAll ? "Show top 15" : `Show all ${ranked.length} sites`}
-              </button>
-            )}
+      {sel && selStatus && (
+        <div className="rounded-xl border border-line bg-surface p-3">
+          <div className="mb-2 flex justify-end">
+            <button onClick={() => setSelected(null)} className="text-xs font-semibold text-muted">Close</button>
           </div>
-          <div className="order-1 h-[360px] flex-1 overflow-hidden rounded-br-xl md:order-2 md:h-auto md:min-h-[460px]">
-            {sites && <SiteMap sites={sites} statuses={live.sites} reports={live.reports} selected={selected} onSelect={pick} dark={dark} focus={focus} />}
-          </div>
-        </Card>
+          <HazardPanel site={sel} status={selStatus} />
+        </div>
+      )}
 
-        <Card title="Site hazards" right={<button className="text-accent hover:underline" onClick={() => crew.siteIds[0] && pick(crew.siteIds[0])}>Crew site</button>}>
-          {selSite && selStatus ? <HazardPanel site={selSite} status={selStatus} /> : <p className="text-sm text-muted">Pick a site on the map.</p>}
-        </Card>
-      </section>
-
-      <p className="-mt-2 text-[11px] text-muted">
-        Data: U.S. EIA Form EIA-860M (sites) · NOAA / NWS · GOES-19 GLM · Open-Meteo (CC BY 4.0) · NASA FIRMS · iNaturalist (CC BY-NC) · FEMA · USACE. Lightning rings: 10 mi stop work, 30 mi watch.
-      </p>
-
-      {/* Schedule + alerts */}
-      <section className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2" title="Today's schedule" right="From the planner, 30-min slots">
-          {schedule ? <SchedulePanel schedule={schedule} now={now} />
-            : <p className="text-sm text-muted">{scheduleError ? "No schedule from the planner yet." : "Loading…"}</p>}
-        </Card>
-        <Card title="Alerts and log">
-          <AlertFeed />
-        </Card>
-      </section>
-    </main>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-2.5 py-1">{children}</span>;
-}
-
-function IndexLegend() {
-  return (
-    <span className="flex items-center gap-1.5">
-      Tomorrow&apos;s index 0
-      <span className="flex">{INDEX_RAMP.map((c) => <span key={c} className="h-2.5 w-4" style={{ background: c }} />)}</span>
-      10
-    </span>
+      <div>
+        <p className="mb-1 text-xs font-bold uppercase tracking-wider text-muted">Riskiest tomorrow</p>
+        <ol className="overflow-hidden rounded-xl border border-line bg-surface">
+          {(showAll ? ranked : ranked.slice(0, 10)).map((s, i) => {
+            const st = live.sites[s.id];
+            const stop = st.hazards.some((h) => h.stop_work);
+            const mine = crew.siteIds.includes(s.id);
+            return (
+              <li key={s.id} className="border-b border-line last:border-0">
+                <button onClick={() => pick(s.id)} className={`flex w-full items-center gap-2 px-3 py-2.5 text-left ${selected === s.id ? "bg-surface-2" : ""}`}>
+                  <span className="w-5 shrink-0 text-xs text-muted tabular">{i + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{s.name}{mine && <span className="ml-1.5 text-xs font-semibold text-accent">your crew</span>}</span>
+                    <span className="block truncate text-xs">
+                      {st.worker_flag === "mandown" ? <b className="text-danger-ink">Man down</b>
+                        : st.worker_flag === "sos" ? <b className="text-sos">SOS</b>
+                          : st.worker_flag === "heat" ? <b className="text-danger-ink">Worker heat alert</b>
+                            : stop ? <b className="text-lightning">Stop work</b>
+                              : <span className="text-muted">{st.hazard_index?.top_reasons[0]?.text ?? siteMeta(s, false)}</span>}
+                    </span>
+                  </span>
+                  <IndexChip index={st.index_tomorrow} />
+                </button>
+              </li>
+            );
+          })}
+        </ol>
+        {ranked.length > 10 && (
+          <button onClick={() => setShowAll(!showAll)} className="mt-1 px-1 py-2 text-sm font-semibold text-accent">
+            {showAll ? "Show top 10" : `Show all ${ranked.length} sites`}
+          </button>
+        )}
+        <p className="mt-2 text-[11px] text-muted">
+          0-10 = how dangerous tomorrow looks, using only what&apos;s known by 6 PM. Data: EIA-860M, NOAA/NWS, GOES-19, Open-Meteo, NASA FIRMS, iNaturalist.
+        </p>
+      </div>
+    </div>
   );
 }

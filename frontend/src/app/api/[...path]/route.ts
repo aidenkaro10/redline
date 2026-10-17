@@ -9,7 +9,7 @@
 
 import type { ViewFilter } from "@/lib/contract.ts";
 import { getEngine } from "@/mock/server.ts";
-import { plannerChat, RESULTS } from "@/mock/extras.ts";
+import { RESULTS } from "@/mock/extras.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -36,10 +36,6 @@ export async function POST(req: Request, ctx: Ctx) {
   const url = new URL(req.url);
   let body: Record<string, unknown> = {};
   try { body = await req.json(); } catch { /* empty body is fine */ }
-  if (path[0] === "planner" && path[1] === "chat") {
-    await new Promise((r) => setTimeout(r, 700));   // feels like thinking
-    return Response.json(plannerChat(String(body.message ?? ""), body.session_id as string | undefined));
-  }
   const res = getEngine().handle("POST", path, url.searchParams, body);
   return Response.json(res.json, { status: res.status });
 }

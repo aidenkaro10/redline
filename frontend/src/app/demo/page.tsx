@@ -15,6 +15,7 @@ import { Suspense } from "react";
 import { AlertFeed } from "@/components/AlertFeed";
 import { CoreChart, CoreLegend, Sparkline } from "@/components/Charts";
 import { DemoControls } from "@/components/DemoControls";
+import { Nav } from "@/components/Nav";
 import { LearningCard } from "@/components/LearningCard";
 import { Card, StatusBadge, fmtClockSec } from "@/components/ui";
 import type { BandCommand } from "@/lib/contract";
@@ -41,6 +42,8 @@ function DemoView() {
   const at20 = lastE?.forecast[19];
 
   return (
+    <>
+    <Nav />
     <main className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4">
       <DemoControls target={id} />
 
@@ -112,6 +115,7 @@ function DemoView() {
         Crew leads never see this page&apos;s numbers. <Link className="text-accent hover:underline" href="/">Back to the crew dashboard</Link>
       </p>
     </main>
+    </>
   );
 }
 

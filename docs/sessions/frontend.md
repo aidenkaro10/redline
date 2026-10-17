@@ -69,3 +69,10 @@ Still open:
 - `npm run dev:real` (separate build folder, runs next to the mock) and `npm run check` (types + tests + build).
 - Production build (`next build` + `next start`) checked in mock mode: all pages, stream, spot check, scripted demo.
 - README: troubleshooting + which files are looks vs logic for cutting features.
+
+## Round 7 (2026-10-17): cut down to phone-first (Aiden's call)
+
+- Two phone apps: worker app (`/worker/<id>`, simple main screen + Details) and crew lead app (`/`, Crew and Sites tabs). Laptop page for judges stays at `/demo` (+ `/demo/results`), to be trimmed last.
+- Removed: planner chat page, 6 PM briefing page (Sites tab's 0-10 index covers the brief), report page (moved into worker Details), schedule grid, crew-side alert log, laptop dashboard layout. Mock planner chat removed.
+- Crew banners only for real alerts (stop work, flood/fire warnings), not everyday heat. Site panel shows active hazards first, "Show all" for the rest.
+- No data or safety logic changed; still works with A's backend.

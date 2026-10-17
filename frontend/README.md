@@ -11,21 +11,19 @@ Next.js + Tailwind + Recharts + Leaflet. Runs on its own with a built-in **mock 
 
 ## Screens
 
+Phone first. Two apps, plus one laptop page for judges.
+
 | URL | What | Who |
 | --- | --- | --- |
-| `/` | Crew lead dashboard: worker cards, risk-ranked map of 60 Florida sites, hazard panel, schedule, alerts | Crew lead (status only, no raw biometrics) |
-| `/demo` | Live heart rate, skin temp, core temp with the forecast band and the "why" line | Judges, with the wearer's consent |
-| `/worker/<id>` | Phone view: giant status color, current hazard, break countdown | The worker |
-| `/briefing` | 6 PM briefing for tomorrow | Crew lead |
-| `/planner` | Chat with the planning agent next to today's schedule | Crew lead |
-| `/results` | Our model vs the Kalman baseline (docs/results.md: ensemble, red alerts caught), spot-check personalization, planner safety (AI alone vs with rule checker), the 5 result figures | Judges |
-| `/report` | Crew photo report form | Workers |
+| `/worker` | Worker app. Big status color, what to do, current hazard, next break, SOS (hold 3 s). **Details** opens the core temp chart, thermometer spot check and "report a hazard". | Workers (phone) |
+| `/` | Crew lead app. **Crew** tab: one row per worker, worst first, tap for details; banners for real site alerts. **Sites** tab: risk-ranked map of 60 Florida sites + tomorrow's 0-10 index, tap a site for its hazards. | Crew lead (phone) |
+| `/demo` | Laptop page for judges: live chart with the forecast band, band light, demo buttons. Not polished yet (last on the list). `/demo/results` has our model vs the Kalman baseline. | Judges |
 
-The man-down screen pops up on every page. Demo controls sit at the top of `/` and `/demo`.
+The man-down / SOS screen pops up on every page.
 
 ## Spot check ("Learning your body")
 
-On `/demo` (right column) or the phone view, type an ear or mouth thermometer reading and press **Add**. The card shows how much hotter or cooler this person runs than average, the confidence bar and how it changed. The core temp chart shifts right away. On mock data, "Mock: fill in a sample reading" fills in a believable number.
+In the worker app (tap **Details**) or on `/demo`, type an ear or mouth thermometer reading and press **Add**. The card shows how much hotter or cooler this person runs than average, the confidence bar and how it changed. The core temp chart shifts right away. On mock data, "Mock: fill in a sample reading" fills in a believable number.
 
 ## Play the scripted demo
 
@@ -79,7 +77,7 @@ The data contract is in `docs/interfaces/frontend-contract.md` (types: `src/lib/
 Logic and looks are split, so you can delete pages or restyle freely.
 
 **Pure looks (change or delete freely):**
-- `src/app/*/page.tsx`: one folder per screen. Delete a folder to drop a screen, then remove its link in `LINKS` in `src/components/Nav.tsx`.
+- `src/app/page.tsx` (crew lead app), `src/app/worker/[id]/page.tsx` (worker app), `src/app/demo/*` (judges).
 - `src/components/*`: the pieces (cards, map, charts, man-down screen, demo controls). Each one only reads data, nothing else depends on it.
 - `src/app/globals.css`: all colors live here as tokens (`--ok`, `--danger`, `--surface`...), light and dark. Change them in one place.
 
@@ -90,6 +88,6 @@ Logic and looks are split, so you can delete pages or restyle freely.
 - `src/lib/crew.ts`: worker and site lookups (no hardcoded ids).
 - `src/mock/*`: the mock backend and the scripted demo. Only used when `NEXT_PUBLIC_BACKEND_URL` is empty.
 
-**Safe screens to cut** (nothing else depends on them): `/planner`, `/briefing`, `/report`, `/results`. The crew dashboard, demo view, worker phone view and the man-down/SOS screen carry the demo.
+Already cut (Oct 17): planner chat, 6 PM briefing page (the Sites tab's 0-10 index covers it), report page (now inside the worker app's Details), schedule grid, alert log on the crew app.
 
 After cutting, run `npm run check`. It catches anything that still points at a deleted file.

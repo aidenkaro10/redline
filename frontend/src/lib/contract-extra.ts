@@ -1,9 +1,8 @@
 /**
- * More of the frontend contract: model results and planner chat.
+ * More of the frontend contract: model results (shown on the judges' results page).
  * (Kept apart from contract.ts so parallel edits don't collide. Same rules apply.)
  *
  *   GET  /api/results          ModelResults  (ML session: harness output, always next to the Kalman baseline)
- *   POST /api/planner/chat     {message, session_id?} -> ChatReply   (session B, already built)
  */
 
 export interface MetricRow {
@@ -37,13 +36,4 @@ export interface ModelResults {
   };
   /** Result figures (PNG files in docs/figures, copied to /figures by `npm run dev`). */
   figures?: { file: string; title: string; caption: string }[];
-}
-
-export interface ChatReply {
-  session_id: string;
-  reply: string;
-  tool_calls: { tool: string; input: Record<string, unknown> }[];
-  plan: unknown | null;           // the verified plan view, if any
-  llm: boolean;                   // false = no API key, optimizer-only answer
-  cost_usd?: number;
 }

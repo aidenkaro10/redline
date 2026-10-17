@@ -11,7 +11,7 @@
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import { useIsDark } from "@/components/Nav";
+import { Nav, useIsDark } from "@/components/Nav";
 import { Card } from "@/components/ui";
 import type { MetricRow, ModelResults } from "@/lib/contract-extra";
 import { useFetch } from "@/lib/live";
@@ -20,10 +20,12 @@ import { RESULTS as BUNDLED } from "@/mock/extras";
 export default function ResultsPage() {
   const { data, error } = useFetch<ModelResults>("/results");
   const r = data ?? (error ? BUNDLED : null);
-  if (!r) return <main className="p-6 text-muted">Loading results…</main>;
+  if (!r) return <><Nav /><main className="p-6 text-muted">Loading results…</main></>;
 
   const groups = [...new Set(r.rows.map((x) => x.group))];
   return (
+    <>
+    <Nav />
     <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-6">
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-accent">Results</p>
@@ -98,6 +100,7 @@ export default function ResultsPage() {
       )}
 
     </main>
+    </>
   );
 }
 

@@ -1,11 +1,10 @@
 /**
- * Mock endpoints for model results and planner chat.
+ * Mock data for the results page (judges).
  *
  * - /api/results: the REAL numbers from docs/results.md (v1 on Mendeley validation people).
- * - /api/planner/chat: canned answers, shaped like session B's real endpoint.
  */
 
-import type { ChatReply, ModelResults } from "../lib/contract-extra.ts";
+import type { ModelResults } from "../lib/contract-extra.ts";
 
 export const RESULTS: ModelResults = {
   updated: "2026-10-17",
@@ -63,27 +62,3 @@ export const RESULTS: ModelResults = {
     { file: "03_coverage_by_horizon.png", title: "Are the ranges honest?", caption: "Share of truths under the 90th percentile. Ensemble 96% from 12 min (too cautious); Kalman and v1 overconfident." },
   ],
 };
-
-const sessions = new Map<string, number>();
-
-/** Canned planner answers. The real one (session B) runs Claude with tools; numbers come from its optimizer. */
-export function plannerChat(message: string, sessionId?: string): ChatReply {
-  const sid = sessionId || Math.random().toString(16).slice(2, 10);
-  sessions.set(sid, (sessions.get(sid) ?? 0) + 1);
-  const m = message.toLowerCase();
-  let reply: string;
-  let tool_calls: ChatReply["tool_calls"] = [{ tool: "get_crew_status", input: {} }];
-  if (m.includes("storm") || m.includes("lightning")) {
-    tool_calls = [{ tool: "get_forecast", input: { hazard: "lightning" } }, { tool: "run_optimizer", input: { avoid: "storm_window" } }, { tool: "simulate_schedule", input: {} }];
-    reply = "Storms are likely from 3 to 7 PM. I moved the heavy line work to the morning and left 3 to 5 PM for light inspection near the trucks, so a lightning stop costs the least. Everyone stays under the heat limit in the simulation.";
-  } else if (m.includes("jake") || m.includes("who")) {
-    tool_calls = [{ tool: "get_crew_status", input: {} }, { tool: "get_forecast", input: { worker: "Jake" } }];
-    reply = "Jake runs hottest: his 90th percentile core temp peaks around 38.2 °C on today's plan. I'd give him the light tasks after 1 PM and an extra shade break at 2:30.";
-  } else if (m.includes("hour") || m.includes("finish") || m.includes("longer") || m.includes("what if")) {
-    tool_calls = [{ tool: "simulate_schedule", input: { change: message } }];
-    reply = "I simulated it. Two people would cross the heat limit after 2 PM, so the rule checker blocks that version. The closest safe option is starting 30 minutes earlier instead.";
-  } else {
-    reply = "Today's plan passes the safety rule checker. Heavy work is before 11 AM, breaks every 90 minutes from noon to 4 PM, and nobody's 90th percentile goes over the limit. Ask me a what-if, like \"what if we finish the line work after lunch?\"";
-  }
-  return { session_id: sid, reply, tool_calls, plan: null, llm: false, cost_usd: 0 };
-}

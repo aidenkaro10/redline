@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * Top bar on every page: logo, page links, live/replay status, clock, theme toggle.
+ * Top bar for the demo (laptop) pages: logo, links, live/replay status, clock, theme toggle.
+ * The phone apps use AppHeader instead.
  */
 
 import Link from "next/link";
@@ -13,13 +14,10 @@ import { USING_MOCK, useLive, useSimNow } from "@/lib/live";
 import { fmtClockSec } from "./ui";
 
 const LINKS = [
-  { href: "/", label: "Crew lead" },
   { href: "/demo", label: "Demo view" },
-  { href: "/worker", label: "Worker phone" },
-  { href: "/briefing", label: "6 PM briefing" },
-  { href: "/planner", label: "Planner" },
-  { href: "/results", label: "Results" },
-  { href: "/report", label: "Report hazard" },
+  { href: "/demo/results", label: "Results" },
+  { href: "/", label: "Crew lead app" },
+  { href: "/worker", label: "Worker app" },
 ];
 
 export function Nav() {
@@ -36,7 +34,7 @@ export function Nav() {
         </Link>
         <nav className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
           {LINKS.map((l) => {
-            const active = l.href === "/" ? path === "/" : path.startsWith(l.href.split("/").slice(0, 2).join("/"));
+            const active = l.href === "/worker" ? path.startsWith("/worker") : path === l.href;
             return (
               <Link key={l.href} href={l.href === "/worker" ? `/worker/${firstWorkerId ?? ""}` : l.href}
                 className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm ${active ? "bg-surface-2 font-semibold text-ink" : "text-ink-2 hover:bg-surface-2"}`}>

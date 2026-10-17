@@ -1,21 +1,24 @@
 "use client";
 
 /**
- * Worker phone view: giant status color, the current hazard, break countdown.
+ * Worker phone app. The basics on one screen: big status color, what to do,
+ * the current hazard, the next break, and SOS. "Details" opens the rest:
+ * core temp chart, thermometer spot check, report a hazard.
  * Made for a phone; on a laptop it shows inside a phone-sized frame.
  *
  * This page connects as view=worker for this worker only, so it gets this
  * person's own numbers and nobody else's.
  */
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { CoreChart } from "@/components/Charts";
 import { LearningCard } from "@/components/LearningCard";
+import { ReportForm } from "@/components/ReportForm";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
+import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
 import { shortSiteName, useSites } from "@/lib/crew";
@@ -32,7 +35,7 @@ export default function WorkerPhone() {
   const { id } = useParams<{ id: string }>();
   const live = useLive();
   const now = useSimNow(500);
-  const [showNumbers, setShowNumbers] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
   const w = live.workers[id];
   const { byId } = useSites();
   const site = w ? byId[w.site_id] : null;
@@ -113,10 +116,9 @@ export default function WorkerPhone() {
         </div>
       )}
 
-      {/* Giant status */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-6 text-center">
-        <p className="text-sm font-bold uppercase tracking-[0.25em] opacity-90">{stopWork ? `Lightning · heat ${w.status === "green" ? "OK" : "warning"}` : w.status === "green" ? "Status: OK" : w.status === "yellow" ? "Status: Warning" : "Status: Danger"}</p>
-        <h1 className="text-5xl font-black leading-[1.05] tracking-tight sm:text-6xl">{look.title}</h1>
+      {/* The basics: status, what to do, and the two things that matter next */}
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
+        <h1 className="text-5xl font-black leading-[1.05] tracking-tight">{look.title}</h1>
         <p className="text-lg font-medium">
           {w.minutes_to_danger === null ? "No danger predicted in the next 30 min."
             : w.minutes_to_danger === 0 ? "You're in the danger zone."
@@ -126,58 +128,71 @@ export default function WorkerPhone() {
         {redUnacked && (
           <button onClick={press} className="mt-2 rounded-2xl bg-white px-8 py-4 text-xl font-black text-red-800 shadow-xl active:scale-95">Got it</button>
         )}
-        {w.status === "red" && w.alert_acknowledged && <p className="text-sm font-semibold opacity-90">✓ Alert acknowledged</p>}
       </div>
 
-      {/* Current hazard */}
-      <div className="rounded-2xl bg-black/25 p-4">
-        <p className="text-xs font-bold uppercase tracking-widest opacity-80">Current hazard</p>
-        {hazard ? (
-          <div className="mt-1 flex items-center gap-3">
-            <HazardIcon kind={hazard.kind} className="h-9 w-9 shrink-0" />
-            <div className="flex-1">
-              <p className="text-lg font-bold leading-tight">{hazard.stop_work ? "STOP WORK. " : ""}{hazard.headline}</p>
-              <p className="text-sm opacity-90">{hazard.detail}</p>
-            </div>
-            {hazard.lightning?.all_clear_at && (
-              <div className="text-right">
-                <p className="text-[10px] font-bold uppercase opacity-80">All clear in</p>
-                <p className="text-2xl font-black tabular">{fmtCountdown(hazard.lightning.all_clear_at - now)}</p>
-              </div>
-            )}
-          </div>
-        ) : <p className="mt-1 text-lg font-semibold">None right now</p>}
+      <div className="grid grid-cols-2 gap-2">
+        <Tile label={hazard?.stop_work ? "Stop work" : "Hazard"}>
+          {hazard ? (
+            <>
+              <span className="flex items-center gap-1.5"><HazardIcon kind={hazard.kind} className="h-5 w-5 shrink-0" />{HAZARD_LABEL[hazard.kind]}</span>
+              {hazard.lightning?.all_clear_at && <span className="block text-sm font-semibold tabular opacity-90">clear in {fmtCountdown(hazard.lightning.all_clear_at - now)}</span>}
+            </>
+          ) : "None"}
+        </Tile>
+        <Tile label={w.on_break ? "On break" : "Next break"}>
+          <span className="tabular">
+            {breakIn === null ? "--" : w.on_break ? `${Math.max(1, Math.ceil(breakIn / 60))} min left` : `in ${Math.max(0, Math.round(breakIn / 60))} min`}
+          </span>
+        </Tile>
       </div>
 
-      {/* Break countdown */}
-      <div className="mt-3 rounded-2xl bg-black/25 p-4 text-center">
-        <p className="text-xs font-bold uppercase tracking-widest opacity-80">{w.on_break ? "On break" : "Next break"}</p>
-        <p className="text-3xl font-black tabular">
-          {breakIn === null ? "--" : w.on_break ? `Back to work in ${Math.max(1, Math.ceil(breakIn / 60))} min` : `in ${Math.max(0, Math.round(breakIn / 60))} min`}
-        </p>
-      </div>
-
-      {/* Personalization from thermometer spot checks (own data only: this page is view=worker) */}
-      <div className="mt-3">
-        <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
-      </div>
-
-      <button onClick={() => setShowNumbers(!showNumbers)} className="mt-3 text-sm font-semibold underline opacity-90">
-        {showNumbers ? "Hide my numbers" : "Show my numbers"}
-      </button>
-      {showNumbers && (
-        <div className="mt-2 rounded-2xl bg-surface p-2 text-ink">
-          <CoreChart estimates={est} now={now} height={200} />
-          <p className="px-2 pb-1 text-xs text-ink-2">{est[est.length - 1]?.why}</p>
-        </div>
-      )}
-
-      <div className="mt-4 flex items-center justify-between gap-2 text-sm font-semibold">
-        <Link href={`/report?worker=${id}`} className="rounded-xl bg-black/25 px-3 py-2">Report a hazard</Link>
+      <div className="mt-3 flex items-center gap-2">
+        <button onClick={() => setShowDetails(!showDetails)} className="flex-1 rounded-xl bg-black/25 px-3 py-3 text-sm font-bold" aria-expanded={showDetails}>
+          {showDetails ? "Hide details" : "Details"}
+        </button>
         <SosButton onFire={() => apiPost(`/workers/${id}/sos`)} />
       </div>
-      <Link href="/" className="mt-3 self-center text-xs opacity-80 underline">Crew dashboard</Link>
+
+      {/* More, for anyone who wants it */}
+      {showDetails && (
+        <div className="mt-3 flex flex-col gap-3">
+          {hazard && (
+            <Section title={HAZARD_LABEL[hazard.kind]}>
+              <p className="font-semibold">{hazard.headline}</p>
+              {hazard.detail && <p className="text-sm opacity-90">{hazard.detail}</p>}
+            </Section>
+          )}
+          <Section title="My core temperature">
+            <div className="rounded-xl bg-surface p-1 text-ink">
+              <CoreChart estimates={est} now={now} height={190} />
+            </div>
+            {est[est.length - 1]?.why && <p className="mt-2 text-sm opacity-90">{est[est.length - 1]?.why}</p>}
+          </Section>
+          <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
+          <Section title="Report a hazard">
+            <ReportForm workerId={id} siteId={w.site_id} />
+          </Section>
+        </div>
+      )}
     </Frame>
+  );
+}
+
+function Tile({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl bg-black/25 p-3">
+      <p className="text-[11px] font-bold uppercase tracking-widest opacity-80">{label}</p>
+      <div className="mt-0.5 text-lg font-bold leading-tight">{children}</div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-2xl bg-black/25 p-4">
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest opacity-80">{title}</p>
+      {children}
+    </div>
   );
 }
 
