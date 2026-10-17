@@ -1,0 +1,16 @@
+[
+ {
+  "type": "report",
+  "report": {
+   "id": "rp-8",
+   "site_id": "eia-663",
+   "worker_id": "demo-1",
+   "kind": "snake",
+   "note": "Rattlesnake by gate 3",
+   "lat": 29.7592,
+   "lon": -82.3878,
+   "photo": "data:image/jpeg;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+   "at": 1792001200.0
+  }
+ }
+]

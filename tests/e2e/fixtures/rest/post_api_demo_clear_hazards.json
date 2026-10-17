@@ -1,0 +1,7 @@
+{
+ "request": "POST /api/demo/clear-hazards",
+ "status": 200,
+ "body": {
+  "ok": true
+ }
+}

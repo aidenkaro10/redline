@@ -1,0 +1,7 @@
+{
+ "request": "POST /api/demo/test-alert",
+ "status": 200,
+ "body": {
+  "ok": true
+ }
+}

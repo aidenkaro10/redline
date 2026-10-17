@@ -1,0 +1,114 @@
+[
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-5",
+   "kind": "HEAT_YELLOW",
+   "worker_id": "demo-1",
+   "site_id": "eia-663",
+   "started_at": 1792000540.5,
+   "message": "Heat warning: Jake",
+   "source": "forecaster",
+   "acknowledged_at": null,
+   "cleared_at": null
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-6",
+   "kind": "LIGHTNING",
+   "worker_id": null,
+   "site_id": "eia-663",
+   "started_at": 1792263554.421824,
+   "message": "Lightning at Deerhaven Generating Station",
+   "source": "demo button",
+   "acknowledged_at": null,
+   "cleared_at": null
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-9",
+   "kind": "MANDOWN",
+   "worker_id": "demo-2",
+   "site_id": "eia-663",
+   "started_at": 1792002445.5,
+   "message": "Man-down check: Maria",
+   "source": "tilt switch",
+   "acknowledged_at": null,
+   "cleared_at": null
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-5",
+   "kind": "HEAT_YELLOW",
+   "worker_id": "demo-1",
+   "site_id": "eia-663",
+   "started_at": 1792000540.5,
+   "message": "Heat warning: Jake",
+   "source": "forecaster",
+   "acknowledged_at": null,
+   "cleared_at": 1792002520.5
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-10",
+   "kind": "HEAT_RED",
+   "worker_id": "demo-1",
+   "site_id": "eia-663",
+   "started_at": 1792002520.5,
+   "message": "Heat danger: Jake",
+   "source": "forecaster",
+   "acknowledged_at": null,
+   "cleared_at": null
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-10",
+   "kind": "HEAT_RED",
+   "worker_id": "demo-1",
+   "site_id": "eia-663",
+   "started_at": 1792002520.5,
+   "message": "Heat danger: Jake",
+   "source": "forecaster",
+   "acknowledged_at": 1792002540.5,
+   "cleared_at": null
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-11",
+   "kind": "SOS",
+   "worker_id": "demo-3",
+   "site_id": "eia-663",
+   "started_at": 1792002620.0,
+   "message": "SOS from Dev",
+   "source": "SOS (phone)",
+   "acknowledged_at": null,
+   "cleared_at": null
+  }
+ },
+ {
+  "type": "alert",
+  "alert": {
+   "id": "al-6",
+   "kind": "LIGHTNING",
+   "worker_id": null,
+   "site_id": "eia-663",
+   "started_at": 1792263554.421824,
+   "message": "Lightning at Deerhaven Generating Station",
+   "source": "demo button",
+   "acknowledged_at": 1792002620.0,
+   "cleared_at": null
+  }
+ }
+]

@@ -1,0 +1,1255 @@
+[
+ {
+  "type": "snapshot",
+  "view": "worker",
+  "sim_time": 1792002625.0,
+  "workers": [
+   {
+    "worker_id": "demo-1",
+    "name": "Jake",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "red",
+    "minutes_to_danger": 0,
+    "status_reason": "In heat danger now",
+    "hazard": "HEAT_RED",
+    "alert_acknowledged": true,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-2",
+    "name": "Maria",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "Normal",
+    "hazard": null,
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-3",
+    "name": "Dev",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "SOS pressed",
+    "hazard": "SOS",
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-4",
+    "name": "Tasha",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "SOS pressed",
+    "hazard": "SOS",
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   }
+  ],
+  "sites": [
+   {
+    "site_id": "eia-136",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.57,
+      "heat_index_f": 90.0,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 1,
+       "label": "Minor",
+       "color": "yellow"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 42.3,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "high",
+      "headline": "Flood Warning",
+      "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (6.8 mi); Heavy rain: 90 mm in 24 h; River forecast to reach moderate flood (2.1 ft) by 2026-10-18T14:59:17Z: St. Johns River at Racy Point (in MHHW) (6.8 mi)",
+      "source": "NWS",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": "FLOOD_FIRE",
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "high",
+      "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+      "detail": null,
+      "source": "Open-Meteo",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-564",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.61,
+      "heat_index_f": 90.0,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 113.0,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "high",
+      "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+      "detail": null,
+      "source": "Open-Meteo",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "wildlife",
+      "level": "moderate",
+      "headline": "1 alligator sighting within 5 mi (nearest 0.5 mi, 2026-10-16)",
+      "detail": null,
+      "source": "iNaturalist",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-609",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.61,
+      "heat_index_f": 90.0,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 130.2,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-612",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 29.09,
+      "heat_index_f": 91.5,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 214.3,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   }
+  ],
+  "alerts": [
+   {
+    "id": "al-1",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1791995500.5,
+    "message": "Heat warning: Dev",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1791998380.5
+   },
+   {
+    "id": "al-2",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-641",
+    "started_at": 1792263548.843881,
+    "message": "Flood at Gulf Clean Energy Center",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.645539
+   },
+   {
+    "id": "al-3",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-65292",
+    "started_at": 1792263548.846804,
+    "message": "Flood at Rice Creek",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.645914
+   },
+   {
+    "id": "al-4",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-136",
+    "started_at": 1792263548.846947,
+    "message": "Flood at Seminole (FL)",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.6460679
+   },
+   {
+    "id": "al-5",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-1",
+    "site_id": "eia-663",
+    "started_at": 1792000540.5,
+    "message": "Heat warning: Jake",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002520.5
+   },
+   {
+    "id": "al-6",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-663",
+    "started_at": 1792263554.421824,
+    "message": "Lightning at Deerhaven Generating Station",
+    "source": "demo button",
+    "acknowledged_at": 1792002620.0,
+    "cleared_at": 1792263564.6462421
+   },
+   {
+    "id": "al-7",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-57241",
+    "started_at": 1792263554.9718778,
+    "message": "Lightning at Deerhaven Renewable",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.64659
+   },
+   {
+    "id": "al-9",
+    "kind": "MANDOWN",
+    "worker_id": "demo-2",
+    "site_id": "eia-663",
+    "started_at": 1792002445.5,
+    "message": "Man-down check: Maria",
+    "source": "tilt switch",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-10",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-1",
+    "site_id": "eia-663",
+    "started_at": 1792002520.5,
+    "message": "Heat danger: Jake",
+    "source": "forecaster",
+    "acknowledged_at": 1792002540.5,
+    "cleared_at": null
+   },
+   {
+    "id": "al-11",
+    "kind": "SOS",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "SOS from Dev",
+    "source": "SOS (phone)",
+    "acknowledged_at": null,
+    "cleared_at": null
+   },
+   {
+    "id": "al-12",
+    "kind": "SOS",
+    "worker_id": "demo-4",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "SOS from Tasha",
+    "source": "SOS (demo)",
+    "acknowledged_at": null,
+    "cleared_at": null
+   },
+   {
+    "id": "al-13",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-2",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat danger: Maria",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-14",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat danger: Dev",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-15",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-4",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat warning: Tasha",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   }
+  ],
+  "mandown": {
+   "id": "sos-demo-3-1792002620",
+   "worker_id": "demo-3",
+   "worker_name": "Dev",
+   "site_id": "eia-663",
+   "site_name": "Deerhaven Generating Station",
+   "lat": 29.7592,
+   "lon": -82.3878,
+   "fell_at": 1792002620.0,
+   "check_started_at": 1792002620.0,
+   "confirm_at": 1792002620.0,
+   "confirmed_at": 1792002620.0,
+   "stage": "confirmed",
+   "reason": "sos",
+   "last_vitals": {
+    "core_temp": 37.407,
+    "hr": 67.15,
+    "at": 1792002580.5
+   }
+  },
+  "emergency": {
+   "id": "inc-demo-4-1792002620",
+   "mandown_id": "sos-demo-3-1792002620",
+   "worker_id": "demo-4",
+   "stage": "cancelled",
+   "started_at": 1792002620.0,
+   "cancel_deadline": 1792002650.0,
+   "demo": true,
+   "target_label": "Demo: would call 911",
+   "steps": [
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "SOS pressed by Tasha. Notifying crew."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550101"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550102"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancel_window",
+     "text": "Emergency call in 30 s unless cancelled."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancelled",
+     "text": "Cancelled as a false alarm by crew_lead."
+    }
+   ],
+   "transcript": [],
+   "outcome": "Cancelled as a false alarm by crew_lead."
+  },
+  "demo": {
+   "source": "replay",
+   "speed": 30.0,
+   "demo_threshold": false,
+   "thresholds": {
+    "warning": 38.0,
+    "danger": 38.5
+   },
+   "scenario": {
+    "running": true,
+    "step": "sim shift 9647 + crew [9568, 8130, 4464], starting at minute 116",
+    "started_at": 1792000000.0
+   },
+   "mock": false
+  },
+  "reports": [
+   {
+    "id": "rp-8",
+    "site_id": "eia-663",
+    "worker_id": "demo-1",
+    "kind": "snake",
+    "note": "Rattlesnake by gate 3",
+    "lat": 29.7592,
+    "lon": -82.3878,
+    "photo": "data:image/jpeg;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "at": 1792001200.0
+   }
+  ],
+  "log": [
+   {
+    "at": 1792263564.645539,
+    "text": "Flood off at eia-641",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.645914,
+    "text": "Flood off at eia-65292",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.6460679,
+    "text": "Flood off at eia-136",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.6462421,
+    "text": "Lightning off at eia-663",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.64659,
+    "text": "Lightning off at eia-57241",
+    "source": "demo button"
+   }
+  ],
+  "history": {
+   "demo-1": {
+    "vitals": [
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002610.5,
+      "hr": 155.77,
+      "skin_temp": 34.74,
+      "activity": 8.47,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002615.5,
+      "hr": 155.77,
+      "skin_temp": 34.74,
+      "activity": 8.47,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002620.5,
+      "hr": 155.77,
+      "skin_temp": 34.74,
+      "activity": 0.0,
+      "tilt": 1
+     }
+    ],
+    "estimates": [
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002520.5,
+      "core": {
+       "mean": 38.043,
+       "p10": 37.853,
+       "p90": 38.233
+      },
+      "kalman": 38.24,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.792,
+        "p50": 38.039,
+        "p90": 38.27
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.819,
+        "p50": 38.062,
+        "p90": 38.296
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.846,
+        "p50": 38.087,
+        "p90": 38.325
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.871,
+        "p50": 38.112,
+        "p90": 38.354
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.895,
+        "p50": 38.138,
+        "p90": 38.383
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.918,
+        "p50": 38.163,
+        "p90": 38.411
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.939,
+        "p50": 38.186,
+        "p90": 38.438
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.958,
+        "p50": 38.209,
+        "p90": 38.463
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.975,
+        "p50": 38.229,
+        "p90": 38.487
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.99,
+        "p50": 38.247,
+        "p90": 38.51
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 38.002,
+        "p50": 38.264,
+        "p90": 38.531
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 38.014,
+        "p50": 38.279,
+        "p90": 38.55
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 38.024,
+        "p50": 38.293,
+        "p90": 38.568
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 38.033,
+        "p50": 38.305,
+        "p90": 38.585
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 38.042,
+        "p50": 38.317,
+        "p90": 38.601
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 38.05,
+        "p50": 38.328,
+        "p90": 38.616
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 38.058,
+        "p50": 38.339,
+        "p90": 38.631
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 38.065,
+        "p50": 38.35,
+        "p90": 38.645
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 38.073,
+        "p50": 38.36,
+        "p90": 38.659
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 38.08,
+        "p50": 38.37,
+        "p90": 38.674
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 38.088,
+        "p50": 38.381,
+        "p90": 38.688
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 38.095,
+        "p50": 38.391,
+        "p90": 38.702
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 38.103,
+        "p50": 38.401,
+        "p90": 38.715
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 38.11,
+        "p50": 38.411,
+        "p90": 38.729
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 38.117,
+        "p50": 38.422,
+        "p90": 38.742
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 38.125,
+        "p50": 38.432,
+        "p90": 38.756
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 38.132,
+        "p50": 38.442,
+        "p90": 38.77
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 38.14,
+        "p50": 38.453,
+        "p90": 38.784
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 38.147,
+        "p50": 38.464,
+        "p90": 38.798
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 38.155,
+        "p50": 38.475,
+        "p90": 38.813
+       }
+      ],
+      "why": "Heart rate 154 bpm, up 9 over 10 min, WBGT 31 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     },
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002580.5,
+      "core": {
+       "mean": 38.068,
+       "p10": 37.874,
+       "p90": 38.262
+      },
+      "kalman": 38.266,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.814,
+        "p50": 38.065,
+        "p90": 38.3
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.84,
+        "p50": 38.086,
+        "p90": 38.324
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.865,
+        "p50": 38.109,
+        "p90": 38.352
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.889,
+        "p50": 38.134,
+        "p90": 38.38
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.912,
+        "p50": 38.158,
+        "p90": 38.407
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.934,
+        "p50": 38.182,
+        "p90": 38.434
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.955,
+        "p50": 38.205,
+        "p90": 38.46
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.973,
+        "p50": 38.226,
+        "p90": 38.484
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.989,
+        "p50": 38.245,
+        "p90": 38.507
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 38.003,
+        "p50": 38.263,
+        "p90": 38.528
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 38.015,
+        "p50": 38.278,
+        "p90": 38.548
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 38.025,
+        "p50": 38.293,
+        "p90": 38.567
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 38.035,
+        "p50": 38.306,
+        "p90": 38.584
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 38.043,
+        "p50": 38.317,
+        "p90": 38.6
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 38.051,
+        "p50": 38.329,
+        "p90": 38.616
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 38.059,
+        "p50": 38.339,
+        "p90": 38.63
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 38.066,
+        "p50": 38.35,
+        "p90": 38.644
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 38.073,
+        "p50": 38.36,
+        "p90": 38.658
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 38.08,
+        "p50": 38.37,
+        "p90": 38.672
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 38.087,
+        "p50": 38.379,
+        "p90": 38.685
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 38.094,
+        "p50": 38.389,
+        "p90": 38.699
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 38.101,
+        "p50": 38.399,
+        "p90": 38.712
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 38.108,
+        "p50": 38.409,
+        "p90": 38.724
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 38.115,
+        "p50": 38.419,
+        "p90": 38.737
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 38.122,
+        "p50": 38.428,
+        "p90": 38.75
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 38.129,
+        "p50": 38.438,
+        "p90": 38.764
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 38.136,
+        "p50": 38.448,
+        "p90": 38.777
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 38.144,
+        "p50": 38.459,
+        "p90": 38.791
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 38.151,
+        "p50": 38.469,
+        "p90": 38.805
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 38.158,
+        "p50": 38.48,
+        "p90": 38.82
+       }
+      ],
+      "why": "Heart rate 153 bpm, up 14 over 10 min, WBGT 31 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     }
+    ]
+   }
+  },
+  "band": [
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:HEAT_YELLOW",
+    "at": 1791995500.5
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:OFF",
+    "at": 1791998380.5
+   },
+   {
+    "worker_id": "demo-1",
+    "command": "BUZZ:HEAT_YELLOW",
+    "at": 1792000540.5
+   },
+   {
+    "worker_id": "demo-1",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-4",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:MANDOWN",
+    "at": 1792002445.5
+   },
+   {
+    "worker_id": "demo-1",
+    "command": "BUZZ:HEAT_RED",
+    "at": 1792002520.5
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:HEAT_RED",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:HEAT_RED",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:OFF",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:OFF",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-4",
+    "command": "BUZZ:OFF",
+    "at": 1792002620.0
+   }
+  ],
+  "offsets": {
+   "demo-1": {
+    "type": "offset_update",
+    "worker_id": "demo-1",
+    "timestamp": 1792002625.0,
+    "accepted": true,
+    "offset_c": 0.0653,
+    "confidence": 0.333,
+    "n_checks": 1
+   }
+  }
+ }
+]

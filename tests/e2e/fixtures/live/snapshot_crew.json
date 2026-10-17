@@ -1,0 +1,730 @@
+[
+ {
+  "type": "snapshot",
+  "view": "crew",
+  "sim_time": 1792002625.0,
+  "workers": [
+   {
+    "worker_id": "demo-1",
+    "name": "Jake",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "red",
+    "minutes_to_danger": 0,
+    "status_reason": "In heat danger now",
+    "hazard": "HEAT_RED",
+    "alert_acknowledged": true,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-2",
+    "name": "Maria",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "Normal",
+    "hazard": null,
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-3",
+    "name": "Dev",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "SOS pressed",
+    "hazard": "SOS",
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-4",
+    "name": "Tasha",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "SOS pressed",
+    "hazard": "SOS",
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   }
+  ],
+  "sites": [
+   {
+    "site_id": "eia-136",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.57,
+      "heat_index_f": 90.0,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 1,
+       "label": "Minor",
+       "color": "yellow"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 42.3,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "high",
+      "headline": "Flood Warning",
+      "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (6.8 mi); Heavy rain: 90 mm in 24 h; River forecast to reach moderate flood (2.1 ft) by 2026-10-18T14:59:17Z: St. Johns River at Racy Point (in MHHW) (6.8 mi)",
+      "source": "NWS",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": "FLOOD_FIRE",
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "high",
+      "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+      "detail": null,
+      "source": "Open-Meteo",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-564",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.61,
+      "heat_index_f": 90.0,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 113.0,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "high",
+      "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+      "detail": null,
+      "source": "Open-Meteo",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "wildlife",
+      "level": "moderate",
+      "headline": "1 alligator sighting within 5 mi (nearest 0.5 mi, 2026-10-16)",
+      "detail": null,
+      "source": "iNaturalist",
+      "updated_at": 1792263557.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-609",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.61,
+      "heat_index_f": 90.0,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 130.2,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-612",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 29.09,
+      "heat_index_f": 91.5,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 214.3,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": null,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   }
+  ],
+  "alerts": [
+   {
+    "id": "al-1",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1791995500.5,
+    "message": "Heat warning: Dev",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1791998380.5
+   },
+   {
+    "id": "al-2",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-641",
+    "started_at": 1792263548.843881,
+    "message": "Flood at Gulf Clean Energy Center",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.645539
+   },
+   {
+    "id": "al-3",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-65292",
+    "started_at": 1792263548.846804,
+    "message": "Flood at Rice Creek",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.645914
+   },
+   {
+    "id": "al-4",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-136",
+    "started_at": 1792263548.846947,
+    "message": "Flood at Seminole (FL)",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.6460679
+   },
+   {
+    "id": "al-5",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-1",
+    "site_id": "eia-663",
+    "started_at": 1792000540.5,
+    "message": "Heat warning: Jake",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002520.5
+   },
+   {
+    "id": "al-6",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-663",
+    "started_at": 1792263554.421824,
+    "message": "Lightning at Deerhaven Generating Station",
+    "source": "demo button",
+    "acknowledged_at": 1792002620.0,
+    "cleared_at": 1792263564.6462421
+   },
+   {
+    "id": "al-7",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-57241",
+    "started_at": 1792263554.9718778,
+    "message": "Lightning at Deerhaven Renewable",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792263564.64659
+   },
+   {
+    "id": "al-9",
+    "kind": "MANDOWN",
+    "worker_id": "demo-2",
+    "site_id": "eia-663",
+    "started_at": 1792002445.5,
+    "message": "Man-down check: Maria",
+    "source": "tilt switch",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-10",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-1",
+    "site_id": "eia-663",
+    "started_at": 1792002520.5,
+    "message": "Heat danger: Jake",
+    "source": "forecaster",
+    "acknowledged_at": 1792002540.5,
+    "cleared_at": null
+   },
+   {
+    "id": "al-11",
+    "kind": "SOS",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "SOS from Dev",
+    "source": "SOS (phone)",
+    "acknowledged_at": null,
+    "cleared_at": null
+   },
+   {
+    "id": "al-12",
+    "kind": "SOS",
+    "worker_id": "demo-4",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "SOS from Tasha",
+    "source": "SOS (demo)",
+    "acknowledged_at": null,
+    "cleared_at": null
+   },
+   {
+    "id": "al-13",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-2",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat danger: Maria",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-14",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat danger: Dev",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-15",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-4",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat warning: Tasha",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   }
+  ],
+  "mandown": {
+   "id": "sos-demo-3-1792002620",
+   "worker_id": "demo-3",
+   "worker_name": "Dev",
+   "site_id": "eia-663",
+   "site_name": "Deerhaven Generating Station",
+   "lat": 29.7592,
+   "lon": -82.3878,
+   "fell_at": 1792002620.0,
+   "check_started_at": 1792002620.0,
+   "confirm_at": 1792002620.0,
+   "confirmed_at": 1792002620.0,
+   "stage": "confirmed",
+   "reason": "sos",
+   "last_vitals": {
+    "core_temp": 37.407,
+    "hr": 67.15,
+    "at": 1792002580.5
+   }
+  },
+  "emergency": {
+   "id": "inc-demo-4-1792002620",
+   "mandown_id": "sos-demo-3-1792002620",
+   "worker_id": "demo-4",
+   "stage": "cancelled",
+   "started_at": 1792002620.0,
+   "cancel_deadline": 1792002650.0,
+   "demo": true,
+   "target_label": "Demo: would call 911",
+   "steps": [
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "SOS pressed by Tasha. Notifying crew."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550101"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550102"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancel_window",
+     "text": "Emergency call in 30 s unless cancelled."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancelled",
+     "text": "Cancelled as a false alarm by crew_lead."
+    }
+   ],
+   "transcript": [],
+   "outcome": "Cancelled as a false alarm by crew_lead."
+  },
+  "demo": {
+   "source": "replay",
+   "speed": 30.0,
+   "demo_threshold": false,
+   "thresholds": {
+    "warning": 38.0,
+    "danger": 38.5
+   },
+   "scenario": {
+    "running": true,
+    "step": "sim shift 9647 + crew [9568, 8130, 4464], starting at minute 116",
+    "started_at": 1792000000.0
+   },
+   "mock": false
+  },
+  "reports": [
+   {
+    "id": "rp-8",
+    "site_id": "eia-663",
+    "worker_id": "demo-1",
+    "kind": "snake",
+    "note": "Rattlesnake by gate 3",
+    "lat": 29.7592,
+    "lon": -82.3878,
+    "photo": "data:image/jpeg;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "at": 1792001200.0
+   }
+  ],
+  "log": [
+   {
+    "at": 1792263564.645539,
+    "text": "Flood off at eia-641",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.645914,
+    "text": "Flood off at eia-65292",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.6460679,
+    "text": "Flood off at eia-136",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.6462421,
+    "text": "Lightning off at eia-663",
+    "source": "demo button"
+   },
+   {
+    "at": 1792263564.64659,
+    "text": "Lightning off at eia-57241",
+    "source": "demo button"
+   }
+  ],
+  "history": {},
+  "band": [],
+  "offsets": {}
+ }
+]
