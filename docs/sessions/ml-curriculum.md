@@ -84,12 +84,29 @@ Sim check (same held-out sets):
 
 ### Run "full" (hidden 64, 9,000 base shifts, normal recipe, `--min-gain 0.0007`)
 
-Pending: queued until the main session's training job finishes.
+Waited for the main session's `ml.meta` job, then ran in 18 min (28 s per pretrain epoch with the CPU free).
+
+| Model | NOW RMSE °C | Forecast RMSE °C | +20 RMSE °C | Quantile loss | p90 cov +20 | Red caught | Red false/hr | Hard shifts | Decision |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Kalman flat (baseline) | 0.414 | 0.455 | 0.457 | 0.1156 | 0.90 | 75% | 0.41 | | |
+| v1 | 0.236 | 0.283 | 0.283 | 0.0724 | 0.88 | 75% | 0.27 | | |
+| ens5 (5 models) | 0.239 | 0.232 | 0.230 | 0.0632 | 0.96 | 88% | 0.55 | | |
+| Round 0 (base only) | 0.234 | 0.257 | 0.255 | 0.0674 | 0.92 | 88% | 0.31 | 0 | start |
+| Round 1 | 0.215 | 0.250 | 0.251 | 0.0659 | 0.95 | 75% | 0.38 | 880 | roll back (red catch 88% to 75%, one episode) |
+| Round 2 | 0.234 | 0.246 | 0.246 | **0.0640** | 0.95 | **100%** | 0.65 | 880 | **keep** |
+
+Proposer: 96 scenarios per round. Learnable 62 / 71, never solved 13 / 7, always solved 21 / 18.
+
+- Round 2's quantile-loss gain (0.0034) is about 5x the seed noise measured on the small model. That's the first gain that looks real. One curriculum-trained single model nearly matches the 5-model ens5 (0.0640 vs 0.0632).
+- Red false alarms doubled (0.31 to 0.65 per hour, like ens5's 0.55): wider ranges, more cautious.
+- Round 1 was better on everything except one red episode (7 of 8 to 6 of 8). The red gate is coarse with only 8 episodes.
+- Still one seed, one run. Before trusting it: retrain the round 2 mix with 2 more seeds (`--gate-seeds 3`), or build the ensemble from `ml/curriculum/mixes/full.json` and compare with ens5.
+- Best checkpoint: `ml/checkpoints/cur_full_best.pt` (= round 2) in the main checkout.
 
 ## Honest bottom line
 
 1. The loop works: the proposer finds hard scenarios, the filter drops easy and hopeless ones, and the gate makes clear keep/rollback calls (small: 3 keeps; small_reh: 3 rollbacks).
-2. The curriculum has **not** shown a real gain on real val people. Every gain is within seed noise.
+2. Small models: no real gain (within seed noise). Full model: round 2 is the first gain clearly above seed noise (quantile loss 0.0674 to 0.0640, red catch 100%), but it's a single run and needs a multi-seed recheck.
 3. The real problem it found: fine-tuning on lab data makes the model run 0.1-0.3 °C hot on field shifts (ens5 too). That's a decision for Aiden / the main ML session, not a curriculum fix:
    - (a) Keep as is: hot = safe direction, conformal calibration can't fix a bias that only shows in the field.
    - (b) Add sim rehearsal to fine-tuning: much better field shifts, slightly worse on lab val people.
