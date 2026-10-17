@@ -1,6 +1,6 @@
 # PlanIT Control
 
-Heat strain forecasting wearable for SwampHacks XII. **Read PROJECT.md for the full spec.**
+Heat strain forecasting wearable for SwampHacks XII. **Read PROJECT.md for the full spec.** Build order and status: PLAN.md.
 
 ## Who owns what
 - Teammates own hardware and firmware (`firmware/`). Don't write firmware unless asked.
