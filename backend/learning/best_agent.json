@@ -1,11 +1,11 @@
 {
- "id": "a7",
+ "id": "a5",
  "genome": {
   "settings": {
    "objectives": [
-    "margin",
-    "balanced",
     "throughput",
+    "balanced",
+    "margin",
     "fairness"
    ],
    "use_playbook": true,
@@ -14,22 +14,22 @@
    "fuse": true,
    "w_peak": 2.5,
    "w_fair": 0.002,
-   "w_complaint": 0.03,
+   "w_complaint": 0.1,
    "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
-   "time_limit_s": 3.0
+   "time_limit_s": 4.0
   },
-  "strategy_note": "Front-load heavy and very heavy tasks into the earliest hours and move moderate or light tasks to midday and afternoon. Interleave each person's heavy work with light tasks rather than stacking consecutive heavy slots, and spread heavy tasks across more crew members."
+  "strategy_note": "Give unacclimatized new hires light or moderate tasks. If they must do heavy tasks, put them in the earliest slots and give their later slots to acclimatized crew. Prefer plans the critic has no new-hire complaints about."
  },
  "val": {
-  "score": 0.4506,
+  "score": 0.4515,
   "strain_margin_c": 0.1727,
-  "throughput": 0.6975,
-  "fairness": -44.43,
-  "latency": -22.73,
+  "throughput": 0.6985,
+  "fairness": -44.35,
+  "latency": -54.74,
   "cost": -0.0,
   "workers_alerted": 0.333,
   "solve_rate": 0.25,
   "safety_violations": 0
  },
- "why": "Every day the ranking picked the max-throughput plan (fused copy of optimizer:throughput, predicted p90 peak about 37.9). With w_peak=0.5, a 0.4\u00b0C peak excess costs only about 0.2 rank points, so the lower-peak balanced and margin plans always lost. Forecast p90 underestimated actual core temperatur"
+ "why": "The only alert came from scenario cur-a91522a2. Sam (new hire, unacclimatized) was on Cable pulling at 09:00 and then on heavy and very heavy work from 11:00 onward. The critic flagged both new hires, but ranking still picked the balanced/fused plan: throughput 0.722, peak_p90 37.948. The margin pla"
 }
