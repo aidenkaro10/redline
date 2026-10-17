@@ -47,7 +47,7 @@ def main() -> None:
         env = default_contacts()
         contacts = env if all(env.values()) else DEMO_CONTACTS
         kwargs = {"allowlist": set(contacts.values())}
-        if args.phone == "fake" and "emergency" in inc.calls:
+        if args.phone == "fake":
             kwargs["questions"] = ["Is he breathing?", "Where exactly is he?", "What's his temperature?"]
         phone = make_phone(args.phone, **kwargs)
 
