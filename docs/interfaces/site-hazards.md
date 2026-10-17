@@ -52,12 +52,14 @@ Returns:
   "event_counts": {"info": n, "advisory": n, "warning": n, "danger": n},
   "feeds": {name: {"fetched_at", "stale", "error"}},   # nws_alerts, nws_heatrisk, open_meteo, goes19_glm,
                                                          # nwps_gauges, tides, firms, nifc, inaturalist
-  "sites": [ SiteEntry, ... ]   # ranked, worst first
+  "index_status": {"date", "state", "done", "total", "computed_at", "model_version", "error"},
+  "riskiest_tomorrow": [ {rank, site_id, name, index, band, climatology_index, top_hazard, top_reason}, ... ],  # top 10
+  "sites": [ SiteEntry, ... ]   # ranked by right-now danger, worst first
   "credits": [ ... ]            # show these somewhere on the dashboard
 }
 ```
 
-**SiteEntry**: `rank`, `score`, `site` (site dict), `top_severity`, `band_pattern` (LIGHTNING > FLOOD_FIRE > HEAT_YELLOW, or null), `events` (worst first), `stale`, `weather` (current hour: temp_c, rh_pct, wind_ms_10m, solar_wm2, wbgt_c, globe_c, wbgt_flag, heat_index_f, soil_moisture_m3m3, rain_24h_mm, wbgt_max_next_12h / _today / _tomorrow), `heat_risk` (today/tomorrow: value 0-4, label, color), `lightning` (rule state, below), `flood` (river gauge + tide readings), `static` (FEMA zone, levee, one-line summary), `tomorrow` (wbgt_max, heat_risk, river_forecast, alerts_into_tomorrow), `hazard_index` (null until C2 plugs in).
+**SiteEntry**: `rank`, `score`, `site` (site dict), `top_severity`, `band_pattern` (LIGHTNING > FLOOD_FIRE > HEAT_YELLOW, or null), `events` (worst first), `stale`, `weather` (current hour: temp_c, rh_pct, wind_ms_10m, solar_wm2, wbgt_c, globe_c, wbgt_flag, heat_index_f, soil_moisture_m3m3, rain_24h_mm, wbgt_max_next_12h / _today / _tomorrow), `heat_risk` (today/tomorrow: value 0-4, label, color), `lightning` (rule state, below), `flood` (river gauge + tide readings), `static` (FEMA zone, levee, one-line summary), `tomorrow` (wbgt_max, heat_risk, river_forecast, alerts_into_tomorrow), `hazard_index` (tomorrow's 0-10 index from C2's model, or null: see "Tomorrow's hazard index" below), `tomorrow_rank` (1 = riskiest tomorrow, null without an index).
 
 **HazardEvent** (every hazard from every feed has this shape):
 
@@ -85,6 +87,19 @@ Which hazards buzz (`band_pattern`): lightning stop-work → LIGHTNING; flood or
 ### Lightning state (`entry["lightning"]`)
 
 `state` (clear | nearby | unconfirmed | stop_work), `stop_started_at`, `last_strike_at`, `all_clear_at`, `minutes_to_all_clear`, `all_clear_unconfirmed` (true if the lightning feed was down when the countdown ran out: we keep the stop), `nearest_mi_30min`, `flashes_10mi_30min`, `flashes_30mi_30min`, `strikes` (newest 50 within 30 mi: lat, lon, at, miles).
+
+## Tomorrow's hazard index (session C2's model)
+
+`backend/hazards/index.py` calls C2's `ml.hazard_index.predict.predict_index(site_id, tomorrow)` for every site and puts the result in `entry["hazard_index"]`, exactly C2's JSON (see [hazard-index.md](hazard-index.md)): `index` 0-10, `band`, `climatology_index`, `p_advisory/p_warning/p_damage`, `hazards{heat, storm, flood, fire, tropical}`, `top_reasons[{hazard, feature, value, points, text}]`, `cutoff`, `data_mode`, `model_version`, `notes`.
+
+- **Two rankings:** `entry["rank"]` is right-now danger (live hazards). `entry["tomorrow_rank"]` and `pic["riskiest_tomorrow"]` are by the model's index. Use the second for the map colors and the 6 PM briefing.
+- **It's a model call, not a feed.** Scoring 79 sites downloads weather, warnings and outlooks, so it runs once in a background thread and is saved to `data/hazards/cache/hazard_index_<date>-<am|pm>.json`. It is computed once for the morning and once again after 6 PM Florida time (the model's cutoff), then reused. `hazard_picture()` never waits for it.
+- **`pic["index_status"]["state"]`:** `computing` (nothing ready yet, `hazard_index` is null for now), `partial` (some sites done), `ready`, `unavailable` (model or data missing, or every site failed), `fake`. `error` has the first failure message. A site that fails keeps `hazard_index: null`; it is not retried until the next cache key, so a missing model never hammers the web APIs.
+- **The first live picture after a restart shows no index** until the background run finishes (minutes for 79 sites). If the saved file for today exists, it is read instantly.
+- **Settings:** `HAZARD_INDEX=auto` (default: pass 1 uses only data already downloaded, so most sites fill in fast with no network; pass 2 downloads what is missing, one site at a time) | `offline` (pass 1 only, never uses the internet) | `off` (no index, `state: "unavailable"`).
+- **Fake mode** (`HAZARD_MODE=fake`): believable demo values for every site, deterministic (same numbers every run), same shape, `data_mode: "mock"` and `fake: true` so the frontend shows its MOCK badge. The demo sites carry real-looking reasons: Tampa Bay (heat), Crystal River (storm), the St. Johns site (flood), Pensacola (fire), Orlando (soil/flood).
+- **Contract:** `contract.site_status()` now includes `hazard_index` (C2's JSON), `index_tomorrow = hazard_index.index`, `index_drivers = [top_reasons[].text]` and `tomorrow_rank`; all null/empty without an index.
+- Needs scikit-learn and the committed model `ml/hazard_index/model/hazard_index.joblib`. Without either, everything else in the picture works as before.
 
 ## For session A (live system)
 
@@ -128,7 +143,7 @@ wbgt_from_weather(time_utc, lat, lon, tair_c, rh_pct, pres_hpa, wind_ms_10m, sol
 ```
 
   For Open-Meteo archive data, compute `cza` at the middle of the previous hour (`time - 30 min`) and bring the 10 m wind down with `wind_at_2m(speed, 10.0, cza > 0, solar)`, exactly like `backend/hazards/weather.py:add_wbgt`.
-- When the index exists, fill `entry["hazard_index"] = {"index": 0-10, "drivers": [...]}`; `contract.site_status` already maps it to `index_tomorrow` / `index_drivers`. Tell me the function to call and I'll wire it into `hazard_picture()`.
+- Your index is wired in (see "Tomorrow's hazard index"). Static site features and WBGT are above.
 
 ## For session E (frontend)
 

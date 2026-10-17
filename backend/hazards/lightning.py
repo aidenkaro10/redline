@@ -28,6 +28,7 @@ import json
 import logging
 import math
 import re
+import tempfile
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -92,7 +93,15 @@ def parse_glm(nc_bytes):
     Returns [{"t": epoch seconds, "lat", "lon", "q": quality flag, "e": energy J}].
     """
     import netCDF4          # only needed for live lightning
-    ds = netCDF4.Dataset("glm.nc", memory=nc_bytes)
+    # Read from a real temp file: opening from memory makes the HDF5 library
+    # print a wall of harmless "can't open file glm.nc" errors to stderr.
+    with tempfile.NamedTemporaryFile(suffix=".nc") as tmp:
+        tmp.write(nc_bytes)
+        tmp.flush()
+        return _read_glm(netCDF4.Dataset(tmp.name))
+
+
+def _read_glm(ds):
     try:
         lat = ds["flash_lat"][:]
         lon = ds["flash_lon"][:]
