@@ -46,8 +46,8 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 | `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line), `source`: `watch` (Pulsoid), `band` (band lines, incl. its pulse sensor's `HR:`), `replay`, `demo` |
 | `button` | Band button (raw input) | `kind`: `press` (`BTN:1`, "I'm OK") or `sos` (`BTN:SOS`, held 3 s) |
 | `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd` (personal offset applied), `core_temp_raw, offset_c` (before it), `forecast{minutes[1..30], p10[], p50[], p90[]}` (offset applied) or null, `model, heat_level, why` (latest why-line or null), `true_core_temp` (replay of sim only) |
-| `why` | A why-line is ready (0.1-0.3 s after its minute, background thread) | `minute, why, direction` rising/steady/falling, `contributions` {heart_rate, body_heat, skin_temp, activity, wbgt, workload, time} in °C. Also passed through on `/ws/live` as-is (not in E's contract yet) |
-| `offset_update` | `POST /spot-check` | `offset_c, confidence, n_checks, accepted, thermometer_c, model_c, miss_c, reason`. Also passed through on `/ws/live` as-is (not in E's contract yet) |
+| `why` | A why-line is ready (0.1-0.3 s after its minute, background thread) | `minute, why, direction` rising/steady/falling, `contributions` {heart_rate, body_heat, skin_temp, activity, wbgt, workload, time} in °C. Raw `/ws` only; on `/ws/live` it fills in `Estimate.why` |
+| `offset_update` | `POST /spot-check` | `offset_c, confidence, n_checks, accepted, thermometer_c, model_c, miss_c, reason`. Passed through on `/ws/live` as-is, **only to `view=demo` and `view=worker` for that worker** (body data, never crew) |
 | `heat_alert` | Heat level changes | `level` clear/yellow/red, `previous, value, threshold, rule` kalman/forecast, `demo` |
 | `heat_ack` | Button pressed during red | `after_s` |
 | `red_unacknowledged` | Red with no button for `HEAT_RED_ACK_TIMEOUT_S` | `red_since` |
@@ -174,7 +174,7 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 
 **D (emergency).** See §3.
 
-**E (frontend).** `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000` in `frontend/.env.local`. Answers to the contract's open questions: (1) yes, one `/ws/live` with `view` filtering; (2) yes, replay time everywhere + `clock` twice a second; (3) yes, photo data URLs in JSON, capped at ~1.5 MB; (4) A computes `minutes_to_danger` (first forecast minute whose 90th pct ≥ the danger line; 0 when red) and `status_reason`. `Estimate.why` is session H's model why-line once `ml/explain` is merged (it lags its minute by one: the next estimate carries it), else a simple heart-rate line. New events you may want to show: `offset_update` (spot-check result) and `why` (raw shape in §1). `on_break`/`break_at` are false/null until B's schedule is wired. `transcript` in `EmergencyCall` stays empty (D's status events don't carry it).
+**E (frontend).** `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000` in `frontend/.env.local`. Answers to the contract's open questions: (1) yes, one `/ws/live` with `view` filtering; (2) yes, replay time everywhere + `clock` twice a second; (3) yes, photo data URLs in JSON, capped at ~1.5 MB; (4) A computes `minutes_to_danger` (first forecast minute whose 90th pct ≥ the danger line; 0 when red) and `status_reason`. `Estimate.why` is session H's model why-line once `ml/explain` is merged (it lags its minute by one: the next estimate carries it), else a simple heart-rate line. New event: `offset_update` (spot-check result, flat shape in §1; demo and own-worker views only). `on_break`/`break_at` are false/null until B's schedule is wired. `transcript` in `EmergencyCall` stays empty (D's status events don't carry it).
 
 ---
 

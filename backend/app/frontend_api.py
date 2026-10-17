@@ -446,8 +446,9 @@ class FrontendAdapter:
     # ------------------------------------------------------------------
     @staticmethod
     def can_see(f: dict, msg: dict) -> bool:
-        if msg["type"] in ("vitals", "estimate"):
-            wid = msg[msg["type"]]["worker_id"]
+        if msg["type"] in ("vitals", "estimate", "offset_update"):
+            # Body data (raw vitals, core temp, a worker's personal offset): demo view, or the worker's own.
+            wid = msg["worker_id"] if msg["type"] == "offset_update" else msg[msg["type"]]["worker_id"]
             return f["view"] == "demo" or (f["view"] == "worker" and f.get("worker_id") == wid)
         if msg["type"] == "band_command":
             return f["view"] != "crew"

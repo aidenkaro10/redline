@@ -131,3 +131,27 @@ def test_sos_incident_flow(client):
 
 def test_report_photo_too_big(client):
     assert client.post("/api/reports", json={"kind": "snake", "photo": "x" * 2_000_001}).status_code == 413
+
+
+def test_offset_update_is_body_data_not_for_crew(client):
+    hub = main.app.state.hub
+    hot_worker(hub, minutes=5)
+    raw = hub.pipelines["w1"].estimates[-1]["core_temp_raw"]
+    sub = lambda f: [msg for msg in [{"type": "offset_update", "worker_id": "w1", "offset_c": 0.1}]
+                     if main.app.state.frontend.can_see(f, msg)]
+    assert sub({"view": "crew"}) == []
+    assert sub({"view": "worker", "worker_id": "w2"}) == []
+    assert len(sub({"view": "worker", "worker_id": "w1"})) == 1 and len(sub({"view": "demo"})) == 1
+    # End to end: a crew socket sees the spot check's other effects, never the offset itself.
+    with client.websocket_connect("/ws/live?view=crew") as crew, client.websocket_connect("/ws/live?view=demo") as demo:
+        crew.receive_json(), demo.receive_json()
+        client.post("/api/spot-check", json={"worker_id": "w1", "thermometer_c": raw - 0.3})
+        hub.set_site_hazard(None, "lightning", True)             # a marker event both views get
+        crew_types, demo_types = [], []
+        for ws, out in ((crew, crew_types), (demo, demo_types)):
+            while True:
+                m = ws.receive_json()
+                out.append(m["type"])
+                if m["type"] == "alert" and m["alert"]["kind"] == "LIGHTNING":
+                    break
+        assert "offset_update" not in crew_types and "offset_update" in demo_types
