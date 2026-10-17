@@ -271,11 +271,11 @@ class LiveApp:
                 and (worker_id is None or e.get("worker_id") == worker_id)
                 and not (live_only and e.get("preroll"))]
 
-    def drain(self, ws) -> list[dict]:
-        """Every message waiting on a /ws/live WebSocket (sends a marker, reads up to it)."""
+    def drain(self, ws, raw: bool = False) -> list[dict]:
+        """Every message waiting on a /ws/live WebSocket (or the raw /ws): sends a marker, reads up to it."""
         self._marker += 1
         marker = {"type": "e2e_marker", "n": self._marker}
-        self.on_loop(self.frontend.broadcast, marker)
+        self.on_loop(self.hub.broadcast if raw else self.frontend.broadcast, marker)
         out = []
         while True:
             msg = ws.receive_json()

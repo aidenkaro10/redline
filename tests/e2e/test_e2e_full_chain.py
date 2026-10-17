@@ -166,3 +166,18 @@ def test_synthetic_demo_replay_kalman_only(live_app):
     assert jake[0]["rule"] == "kalman"
     # Kalman rule: yellow at 38.0, red at 38.5 (backend/config.py).
     assert jake[0]["value"] >= 38.0 and jake[1]["value"] >= 38.5
+
+
+@pytest.mark.xfail(strict=True, reason="BUG (session A, minor): hub.dispatch calls listeners before broadcasting, and "
+                   "session D's listener emits its emergency_status events synchronously, so raw /ws clients (bare "
+                   "chart page, Python consumers) get 'notify/calling...' BEFORE the mandown_confirmed that caused it")
+def test_raw_stream_sends_mandown_confirmed_before_its_escalation(live_app):
+    app = live_app()
+    app.start_replay(shifts.synthetic(n_crew=1))
+    app.step(FALL_AT_S)
+    with app.client.websocket_connect("/ws") as ws:
+        assert ws.receive_json()["type"] == "snapshot"
+        app.step(2 * 60)
+        types = [m["type"] for m in app.drain(ws, raw=True) if m.get("worker_id") == "demo-2"]
+    assert "mandown_confirmed" in types and "emergency_status" in types
+    assert types.index("mandown_confirmed") < types.index("emergency_status")
