@@ -27,7 +27,7 @@ from pathlib import Path
 
 import numpy as np
 
-from backend.planner.baselines import BASELINES, DETERMINISTIC
+from backend.planner.baselines import BASELINES, DETERMINISTIC, WEIGHTED
 from backend.planner.generate import load_test_set
 from backend.planner.heat_model import HeatModel, default_heat_model
 from backend.planner.llm import llm_available
@@ -73,7 +73,8 @@ def score_plans(scenario: Scenario, plans: list[Plan | None], heat_model: HeatMo
 
 
 def run_benchmark(planners: list[str], scenarios: list[Scenario], runs: int = 5,
-                  heat_model: HeatModel | None = None, verbose: bool = True) -> dict:
+                  heat_model: HeatModel | None = None, verbose: bool = True, weights=None) -> dict:
+    """weights: PlannerWeights for the optimizer and agent planners (None = defaults)."""
     heat_model = heat_model or default_heat_model()
     results = {}
     for name in planners:
@@ -83,7 +84,7 @@ def run_benchmark(planners: list[str], scenarios: list[Scenario], runs: int = 5,
         for sc in scenarios:
             plans, infos = [], []
             for run in range(1 if deterministic else runs):
-                plan, info = fn(sc, run)
+                plan, info = fn(sc, run, weights=weights) if weights is not None and name in WEIGHTED else fn(sc, run)
                 if plan is None and str(info.get("notes", "")).startswith("skipped"):
                     skipped = info["notes"]
                     break
@@ -149,6 +150,55 @@ def table(results: dict) -> str:
                      f"| {s['latency_s_mean']:.1f} | {s['cost_usd_total']:.2f} | {modes} |")
     return "\n".join(lines)
 
+
+
+# ---------------------------------------------------------------------------
+# score(weights, scenarios): one call for session F's weight search
+# ---------------------------------------------------------------------------
+def score(weights=None, scenarios: list[Scenario] | None = None, act_on_forecasts: bool = False,
+          heat_model: HeatModel | None = None) -> dict:
+    """
+    Plan every scenario with the optimizer under these PlannerWeights (deterministic solver), check it,
+    then run the simulated true shift (proactive_eval: workers hotter than planned, a hotter day).
+    act_on_forecasts=True also runs the act-on-forecast loop (safer-only changes) during the shift.
+
+    Returns averages over scenarios:
+      tasks_completed_per_shift   tasks fully finished
+      throughput                  priority-weighted share of work done (0-1)
+      minutes_above_yellow        worker-minutes of TRUE core temp >= 38.0 °C per shift (simulation)
+      minutes_above_red           same at 38.5 °C
+      peak_p90_c                  highest planned 90th pct core temp
+      fairness_spread             std of planned heat dose across the crew (lower = fairer)
+      safety_violations           total, must be 0 (any > 0 = these weights are unusable)
+      invalid                     plans the rule checker rejected for validity
+    Search on generate.train_scenarios(n); report final numbers on load_test_set() only once.
+    """
+    from backend.planner.optimizer import optimize
+    from backend.planner.proactive_eval import run_arm
+    from backend.planner.weights import PlannerWeights
+
+    weights = (weights or PlannerWeights()).validate()
+    heat_model = heat_model or default_heat_model()
+    rows = []
+    for sc in scenarios or []:
+        plan = optimize(sc, "throughput", heat_model, deterministic=True, weights=weights).plan
+        s = score_plans(sc, [plan], heat_model)[0]
+        sim = run_arm(sc, plan, "auto" if act_on_forecasts else "plan_only", heat_model, weights)
+        rows.append({"tasks_completed": sim["tasks_completed"],
+                     "throughput": sim["throughput"], "minutes_above_yellow": sim["minutes_above_yellow"],
+                     "minutes_above_red": sim["minutes_above_red"], "peak_p90_c": s["peak_p90"],
+                     "fairness_spread": s["fairness"], "safety_violations": s["n_safety"],
+                     "invalid": s["n_invalid"], "changes": sim["changes"]})
+    if not rows:
+        return {"n_scenarios": 0}
+    mean = lambda k: float(np.mean([r[k] for r in rows if r[k] is not None])) if any(r[k] is not None for r in rows) else None
+    return {"n_scenarios": len(rows), "weights": weights.to_dict(), "act_on_forecasts": act_on_forecasts,
+            "tasks_completed_per_shift": mean("tasks_completed"), "throughput": mean("throughput"),
+            "minutes_above_yellow": mean("minutes_above_yellow"), "minutes_above_red": mean("minutes_above_red"),
+            "peak_p90_c": mean("peak_p90_c"), "fairness_spread": mean("fairness_spread"),
+            "safety_violations": int(sum(r["safety_violations"] for r in rows)),
+            "invalid": int(sum(r["invalid"] for r in rows)), "changes": int(sum(r["changes"] for r in rows)),
+            "per_scenario": rows}
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()

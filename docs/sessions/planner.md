@@ -45,6 +45,38 @@ Branch `claude/planner-e28a9e`. Owns `backend/planner/`. Interface for A and E: 
 
 Merging this branch with C1 and C2 conflicts only in the files everyone appends to: `backend/config.py`, `.env.example`, `requirements.txt`. Keep both sides of each (they're separate blocks). Nothing else conflicted.
 
+## Round 3: acting on forecasts, storm-aware plans, notifications
+
+Merged `main` first (clean). New files: `proactive.py`, `proactive_eval.py`, `storm_risk.py`, `storm_eval.py`, `notify.py`.
+
+**1. Acting on forecasts** (`proactive.py`). When a worker's 20-min 90th pct forecast reaches `PLAN_EARLY_LINE_C` (37.7 °C), the loop tries: swap with a cooler crewmate on lighter work, a covered or plain shade break, a lighter task, or deferring their heavy slot. Each candidate is checked in code against the whole day's rules and the heat model from everyone's current core temp. Before judging, the planning model is lined up with each worker's live forecast (capped ±0.5 °C), so it knows what the live system knows.
+- Auto-applies only if: safer for that worker (net degree-minutes over the lines go down), no crewmate pushed over the early line, no work lost, nothing later. Otherwise it's a proposal for the crew lead (approve/reject in the app, expires in 15 min).
+- Rate limit: 1 change per worker per 20 min, 6 per shift. It never touches alerts, man-down or emergency, and never sends band commands.
+- Session A must add one line: `attach(hub)` (see the interface doc), and drop the three body-number fields for the crew view.
+
+Results (`python -m backend.planner.proactive_eval`, 12 held-out test scenarios, SIMULATION: true crew runs hotter than the plan's model by a hidden amount, hotter day than forecast, forecaster stand-in = true temp 20 min ahead + 0.13 °C):
+
+| Arm | Worker-min ≥ 38.0 °C | vs plan only | Worker-min ≥ 38.5 °C | Scenarios with any | Work done | Changes (auto) |
+| --- | --- | --- | --- | --- | --- | --- |
+| plan_only | 1169 | 0% | 8 | 8/12 | 68.4% | 0 (0) |
+| auto (safer-only) | 911 | -22% | 0 | 8/12 | 68.4% | 59 (59) |
+| auto + approve every proposal | 774 | -34% | 0 | 7/12 | 55.8% | 237 (66) |
+
+- Safer-only changes cut time over the yellow line by 22% and removed all time over the red line, at **zero** cost in work.
+- Approving every proposal cuts more (-34%) but costs 12.6 points of work, and made 2 of 12 scenarios slightly worse (test-1001, test-1004): the crew lead should approve selectively, not everything.
+- Honest limits: simulated truth and an idealized forecaster. The 37.7 °C early line and the approval policy are now `PlannerWeights` knobs session F can search.
+
+**2. Storm chances** (`storm_risk.py`, optimizer `storm` weight). Open-Meteo hourly precipitation chance + thunderstorm weather codes, NWS thunderstorm/tornado watches from C1 raise a slot to 70%, fake mode for demos. Soft cost in CP-SAT, double for elevated / hard-to-stop tasks; the lightning rule stays hard. Plans say why: "60% storms 1 PM-3 PM: Transformer maintenance at 7:30 AM-12:30 PM."
+- On the 5 test scenarios with a ≥40% storm chance: outdoor work units planned in likely-storm slots **29 → 9 (−69%)**, work done unchanged (73.5%), 5/5 verified (`python -m backend.planner.storm_eval`).
+
+**3. Notifications** (`notify.py`). Every applied / proposed / decided change is a `planner_change` feed event (in memory, `data/planner/feed.jsonl`, WebSocket via `attach`). Template messages, no LLM. One-way SMS to `CREW_LEAD_NUMBER` only, through session D's 911 guard and allowlist, dry run by default (`PLANNER_SMS_MODE=twilio` to send), max 1 per 5 min and 6 per hour, every attempt logged to `data/planner/sms_log.jsonl`. No inbound SMS.
+
+Decisions made this round (small):
+- **No body numbers in feed messages or texts.** The brief's example ("forecast 38.2 °C") would show a worker's core temp to the crew lead, which the frontend contract forbids. The numbers are separate fields A can strip.
+- **Breaks are 30-min slots**, not 10 min (the schedule's resolution). Messages say 30 min.
+- **"Safer" is measured as time over the line, not the next minute.** Core temp keeps rising a few minutes after work stops, so a break never lowers the very next reading.
+- **Deterministic solver option** (`optimize(..., deterministic=True)`): one thread, fixed work budget. Tests and the evaluations use it. Live planning keeps 8 threads.
+
 ## Decisions made (small, told after)
 
 - **Plan limit = the yellow line.** Planned 90th pct must stay below `HEAT_WARNING_C` (38.0 °C), so a good plan never triggers a heat warning. `PLAN_*` constants appended to `config.py`.

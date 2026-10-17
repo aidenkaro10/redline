@@ -63,6 +63,8 @@ class Task:
     earliest: int = 0             # first slot it can be worked
     deadline: int | None = None   # last slot + 1 (None = end of shift)
     skill: str | None = None      # only workers with this skill can do it
+    elevated: bool = False        # done up high (scaffold, bucket truck): slow to get down when a storm comes
+    hard_to_stop: bool = False    # can't be paused mid-way (pours, energized work): bad to start before a storm
 
 
 @dataclass
@@ -72,6 +74,8 @@ class SlotWeather:
     solar: float                  # sun W/m²
     wind: float                   # m/s
     wbgt: float                   # WBGT in full sun °C
+    storm_prob: float = 0.0       # chance of thunderstorms in this slot, 0..1 (storm_risk.py). Soft cost only.
+    rain_prob: float = 0.0        # chance of rain, 0..1
 
 
 @dataclass
