@@ -14,9 +14,9 @@ Each simulated day:
                 Every lesson goes through the code safety filter (safety.py): anything about
                 limits, thresholds, breaks, alerts or "can handle more" is rejected.
   5. GATE       Replay ACE_GATE_DAYS held-out training days (days no lesson was written from)
-                with the old and the new playbook. Keep the update only if the mean outcome
-                score goes up AND every plan passes the rule checker with zero violations.
-                Otherwise roll back.
+                with the old and the new playbook, ONE update at a time. Keep an update only if
+                the mean outcome score goes up AND every plan passes the rule checker with zero
+                violations. Otherwise roll it back.
 Every version is saved (data/learning/ace/versions/vN.json) and can be restored.
 
 Run:  python -m backend.learning.ace                 (no key: code reflector/curator, $0)
@@ -369,34 +369,45 @@ def run_ace(days: list, gate_days: list, llm=None, agent_settings: AgentSettings
         facts = find_facts(day, r.plan, r.check.trace, actual, out)
         refl = reflect(llm, label, facts)
         ops, curator = curate(llm, book, refl, facts, label)
-        cand, op_log = apply_ops(book, ops, label)
-        # 5. gate
-        entry = {"day": d, "scenario": day.id, "tags": day.tags, "outcome": _short(out),
-                 "alerts": facts["alerts"], "lessons_used": r.plan.lessons_used, "reflection": refl,
-                 "curator": curator, "operations": op_log, "safety_violations": r.check.n_safety}
-        changed = [o for o in op_log if o["result"] in ("applied", "merged near-duplicate")]
-        if changed:
+        # 5. gate, ONE update at a time: each lesson change is kept only if it helps on its own
+        #    (on top of the ones kept before it). A weak lesson can't ride along with a good one.
+        op_log, gates = [], []
+        for op in ops:
+            cand, log1 = apply_ops(book, [op], label)
+            op_log += log1
+            changed = [o for o in log1 if o["result"] in ("applied", "merged near-duplicate")]
+            if not changed:
+                continue
             g = gate_scores(cand, gate_days, s)
             gain = g["score"] - current_gate["score"]
             keep = g["safety_violations"] == 0 and gain >= settings.ACE_MIN_GAIN
-            entry["gate"] = {"before": _short(current_gate), "after": _short(g), "gain": round(gain, 4),
-                             "kept": keep, "why": ("better on held-out days, zero violations" if keep else
-                                                   "rule-checker violation" if g["safety_violations"] else
-                                                   "not better on held-out days: rolled back")}
+            gates.append({"op": changed[0], "before": _short(current_gate), "after": _short(g), "gain": round(gain, 4),
+                          "kept": keep, "why": ("better on held-out days, zero violations" if keep else
+                                                "rule-checker violation" if g["safety_violations"] else
+                                                "not better on held-out days: rolled back")})
+            log1[-1]["gate"] = "kept" if keep else "rolled back"
             if keep:
                 cand.version = book.version + 1
                 cand.history = book.history + [{"version": cand.version, "day": d, "ops": changed,
                                                 "gate_gain": round(gain, 4)}]
                 book, current_gate = cand, g
                 versions.append(snapshot(book, {"day": d, "gate": _short(g), "change": changed}))
-        else:
-            entry["gate"] = None
+        entry = {"day": d, "scenario": day.id, "tags": day.tags, "outcome": _short(out),
+                 "alerts": facts["alerts"], "lessons_used": r.plan.lessons_used, "reflection": refl,
+                 "curator": curator, "operations": op_log, "safety_violations": r.check.n_safety, "gates": gates}
+        # day summary: kept if any update was kept
+        entry["gate"] = None if not gates else {
+            "before": gates[0]["before"], "after": _short(current_gate) if any(x["kept"] for x in gates) else gates[-1]["after"],
+            "gain": round(sum(x["gain"] for x in gates if x["kept"]) if any(x["kept"] for x in gates)
+                          else max(x["gain"] for x in gates), 4),
+            "kept": any(x["kept"] for x in gates),
+            "why": f"{sum(x['kept'] for x in gates)} of {len(gates)} updates kept (each gated on its own)"}
         entry["playbook_version"] = book.version
         entry["n_lessons"] = len(book.lessons)
         timeline.append(entry)
         if verbose:
             gtxt = "" if not entry["gate"] else (f" gate {entry['gate']['gain']:+.3f} -> "
-                                                 f"{'KEPT' if entry['gate']['kept'] else 'rolled back'}")
+                                                 f"{sum(x['kept'] for x in gates)}/{len(gates)} kept")
             print(f"  {label:6s} {day.id} score {out['score']:.3f} alerts {out['workers_alerted']} "
                   f"used {r.plan.lessons_used} ops {[o['op'] + ':' + o['result'] for o in op_log]}{gtxt} "
                   f"-> v{book.version} ({len(book.lessons)} lessons)")

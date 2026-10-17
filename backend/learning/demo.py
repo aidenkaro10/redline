@@ -52,6 +52,8 @@ def playbook_growth(ace_run: dict) -> dict:
                                                 "score_before": e["gate"]["before"]["score"],
                                                 "score_after": e["gate"]["after"]["score"],
                                                 "safety_violations": e["gate"]["after"]["safety_violations"]},
+            "updates": [{"op": g["op"]["op"], "text": g["op"].get("text", ""), "kept": g["kept"], "gain": g["gain"]}
+                        for g in e.get("gates", [])],
             "playbook_version": e["playbook_version"], "n_lessons": e["n_lessons"],
             "safety_violations": e["safety_violations"],
         })

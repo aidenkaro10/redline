@@ -35,6 +35,7 @@ All in `backend/learning/demo/`. Serve them as static files, or A can add `GET /
     "proposed": [{"op": "add" | "edit" | "merge", "text": "...", "result": "applied" | "rejected" | "skipped" | "merged near-duplicate", "why": "learning filter: ..."}],
     "gate": {"kept": true, "gain": 0.031, "why": "better on held-out days, zero violations",
              "score_before": 0.42, "score_after": 0.45, "safety_violations": 0} | null,
+    "updates": [{"op": "add", "text": "...", "kept": true, "gain": 0.026}],
     "playbook_version": 2, "n_lessons": 2, "safety_violations": 0
   }],
   "versions": [{"version": 0, "day": 0, "gate_score": 0.42, "gate_safety_violations": 0,
@@ -45,7 +46,7 @@ All in `backend/learning/demo/`. Serve them as static files, or A can add `GET /
   "llm": {"model": "claude-opus-5-5", "calls": 12, "cost_usd": 0.31, "cap_usd": 1.5}
 }
 ```
-Suggested view: a line of `n_lessons` (or `playbook_version`) by `day`, a dot per day colored by `gate.kept` (green kept, grey rolled back, none = nothing to learn), and a red mark on any proposed lesson with `result: "rejected"` (the safety filter at work). `gate.score_before → score_after` is the evidence.
+Suggested view: a line of `n_lessons` (or `playbook_version`) by `day`, a dot per day colored by `gate.kept` (green kept, grey rolled back, none = nothing to learn), and a red mark on any proposed lesson with `result: "rejected"` (the safety filter at work). `gate.score_before → score_after` is the evidence. Each lesson update is gated on its own: `updates[]` says which were kept.
 
 ### `family_tree.json`: agent versions from Loop 3
 
