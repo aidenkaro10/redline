@@ -141,8 +141,10 @@ class ForecasterPredictor:
     def load(cls, path: str | Path, calibrated: bool = True) -> "ForecasterPredictor":
         ckpt = torch.load(path, map_location="cpu", weights_only=False)
         models = []
-        for state in ckpt["models"]:
-            m = HeatForecaster(**ckpt["model_args"])
+        # Mixed ensembles store one set of settings per model ("model_args_list").
+        args_list = ckpt.get("model_args_list") or [ckpt["model_args"]] * len(ckpt["models"])
+        for state, args in zip(ckpt["models"], args_list):
+            m = HeatForecaster(**args)
             m.load_state_dict(state)
             models.append(m)
         cal = ckpt.get("calibration") if calibrated else None
