@@ -81,9 +81,12 @@ ENS5_PATH = find_data("ml/checkpoints/ens5.pt")
 LOCAL_HOSTS = ("127.0.0.1", "::1", "localhost", "0.0.0.0", "testserver")
 
 
-@pytest.fixture(autouse=True)
-def no_network(monkeypatch):
-    """Any attempt to reach another machine raises right away (so it fails loudly, not slowly)."""
+@pytest.fixture(scope="module", autouse=True)
+def no_network():
+    """
+    Any attempt to reach another machine raises right away (so it fails loudly, not slowly).
+    Module-wide, so it also covers the shared recordings some test files make once per module.
+    """
     real_connect = socket.socket.connect
     real_getaddrinfo = socket.getaddrinfo
 
@@ -98,34 +101,50 @@ def no_network(monkeypatch):
             raise socket.gaierror(f"e2e tests are offline: blocked DNS lookup of {host}")
         return real_getaddrinfo(host, *args, **kwargs)
 
-    monkeypatch.setattr(socket.socket, "connect", guarded_connect)
-    monkeypatch.setattr(socket, "getaddrinfo", guarded_getaddrinfo)
+    mp = pytest.MonkeyPatch()
+    mp.setattr(socket.socket, "connect", guarded_connect)
+    mp.setattr(socket, "getaddrinfo", guarded_getaddrinfo)
+    yield
+    mp.undo()
 
 
-@pytest.fixture(autouse=True)
-def hazard_files_in_tmp(tmp_path):
+@pytest.fixture(scope="module", autouse=True)
+def hazard_files_in_tmp(tmp_path_factory):
     """Session C1's caches and hazard report log go to a temp folder, never data/hazards."""
     try:
         from backend.hazards import report_log, store
+    except ImportError:
+        yield
+        return
+    folder = tmp_path_factory.mktemp("hazards")
+    old_mode = store.get_mode()
+    store.set_data_dir(folder)
+    report_log.reset_log(folder / "hazard_log.jsonl")
+    yield
+    store.set_mode(old_mode)
+    store.set_data_dir(Path(os.getenv("HAZARD_DATA_DIR", "data/hazards")))
+    report_log.reset_log()
+
+
+@pytest.fixture(autouse=True)
+def fresh_hazard_state():
+    """Each test starts with no injected test hazards, empty caches and no cached hazard picture."""
+    try:
+        from backend.hazards import picture
         from backend.hazards.cache import clear_all_caches
         from backend.hazards.inject import clear_injected
     except ImportError:
         yield
         return
-    old_mode = store.get_mode()
-    (tmp_path / "hazards").mkdir(exist_ok=True)
-    store.set_data_dir(tmp_path / "hazards")
-    report_log.reset_log(tmp_path / "hazards" / "hazard_log.jsonl")
-    clear_all_caches()
-    clear_injected()
+
+    def reset():
+        clear_injected()
+        clear_all_caches()
+        with picture._latest_lock:
+            picture._latest = None      # C1's cached picture: never leak one test's into the next
+    reset()
     yield
-    from backend.hazards import picture
-    with picture._latest_lock:
-        picture._latest = None          # C1's cached picture: never leak one test's into the next
-    clear_injected()
-    clear_all_caches()
-    store.set_mode(old_mode)
-    report_log.reset_log()
+    reset()
 
 
 # ---------------------------------------------------------------------------
