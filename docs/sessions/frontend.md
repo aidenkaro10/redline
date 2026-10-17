@@ -63,7 +63,7 @@ Still open:
 ## Round 6 (2026-10-17): technical hardening before the UI pass
 
 - Tested against session A's latest branch (18497d9, ens5 forecaster): every page works or shows a clear "not posted yet" state. Spot check works end to end with A's flat `offset_update` (new adapter `src/lib/offset.ts` + tests).
-- Found and reported to A: `offset_update` reaches `view=crew` on `/ws/live`. Frontend now drops anything a view may not see (canSee) and strips raw history from crew snapshots, so the crew page never holds it.
+- Found and reported to A: `offset_update` reached `view=crew` on `/ws/live`. Fixed by A at 8ca5784 (with a test). Frontend now drops anything a view may not see (canSee) and strips raw history from crew snapshots, so the crew page never holds it.
 - Mock engine is replaced automatically after code edits (no more stale engine); old streams are closed and pages reconnect.
 - Live connection: 8 s silence watchdog reconnects; a malformed message is skipped instead of breaking the page.
 - `npm run dev:real` (separate build folder, runs next to the mock) and `npm run check` (types + tests + build).
