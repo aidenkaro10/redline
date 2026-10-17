@@ -111,9 +111,11 @@ export function ManDownOverlay() {
               Worker reached, close alert
             </button>
           )}
-          <button onClick={() => setMinimized(md.id)} className="rounded-lg border border-white/40 bg-black/30 px-4 py-2 text-sm font-semibold text-white hover:bg-black/40">
-            Minimize
-          </button>
+          {!failed && (
+            <button onClick={() => setMinimized(md.id)} className="rounded-lg border border-white/40 bg-black/30 px-4 py-2 text-sm font-semibold text-white hover:bg-black/40">
+              Minimize
+            </button>
+          )}
         </div>
       </div>
     </div>

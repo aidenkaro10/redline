@@ -31,3 +31,9 @@ Next:
 - Mock cancel window is now 10 s (= session D's `EMERGENCY_DEMO_CANCEL_WINDOW_S`).
 
 Next: fold session D's `emergency_status` events into the UI's `EmergencyCall` (see "Known gap" in the contract doc).
+
+## Round 3 (2026-10-17): session D's `emergency_status`
+
+- The UI now accepts D's flat `emergency_status` events straight from session A and folds them into the `EmergencyCall` view (`frontend/src/lib/emergency.ts`). New stage `failed`: huge "Emergency call FAILED. Call 911 yourself now." box on the man-down screen (can't be minimized), and "Automatic call failed. Call 911 now." on the SOS phone screen.
+- "Cancel, false alarm" now calls `POST /api/emergency/cancel {worker_id}` (D's suggested route). The mock supports both cancel routes.
+- Mock: `MOCK_EMERGENCY_EVENTS=status` in `frontend/.env.local` (or `POST /api/demo/emergency {"format": "status"}`) sends D-style events. `{"fail_next": true}` makes the next call fail. 7 new tests.
