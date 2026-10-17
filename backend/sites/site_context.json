@@ -1,0 +1,634 @@
+{
+ "eia-10202": {
+  "zones": {
+   "county": "FLC089",
+   "cwa": "JAX",
+   "fire": "FLZ124",
+   "forecast": "FLZ124"
+  }
+ },
+ "eia-10434": {
+  "zones": {
+   "county": "FLC105",
+   "cwa": "TBW",
+   "fire": "FLZ052",
+   "forecast": "FLZ052"
+  }
+ },
+ "eia-136": {
+  "zones": {
+   "county": "FLC107",
+   "cwa": "JAX",
+   "fire": "FLZ137",
+   "forecast": "FLZ137"
+  }
+ },
+ "eia-54627": {
+  "zones": {
+   "county": "FLC099",
+   "cwa": "MFL",
+   "fire": "FLZ267",
+   "forecast": "FLZ067"
+  }
+ },
+ "eia-55286": {
+  "zones": {
+   "county": "FLC009",
+   "cwa": "MLB",
+   "fire": "FLZ647",
+   "forecast": "FLZ647"
+  }
+ },
+ "eia-55318": {
+  "zones": {
+   "county": "FLC009",
+   "cwa": "MLB",
+   "fire": "FLZ347",
+   "forecast": "FLZ347"
+  }
+ },
+ "eia-55412": {
+  "zones": {
+   "county": "FLC105",
+   "cwa": "TBW",
+   "fire": "FLZ052",
+   "forecast": "FLZ052"
+  }
+ },
+ "eia-55415": {
+  "zones": {
+   "county": "FLC049",
+   "cwa": "TBW",
+   "fire": "FLZ056",
+   "forecast": "FLZ056"
+  }
+ },
+ "eia-55821": {
+  "zones": {
+   "county": "FLC095",
+   "cwa": "MLB",
+   "fire": "FLZ045",
+   "forecast": "FLZ045"
+  }
+ },
+ "eia-564": {
+  "zones": {
+   "county": "FLC095",
+   "cwa": "MLB",
+   "fire": "FLZ045",
+   "forecast": "FLZ045"
+  }
+ },
+ "eia-56407": {
+  "zones": {
+   "county": "FLC099",
+   "cwa": "MFL",
+   "fire": "FLZ267",
+   "forecast": "FLZ067"
+  }
+ },
+ "eia-57241": {
+  "zones": {
+   "county": "FLC001",
+   "cwa": "JAX",
+   "fire": "FLZ136",
+   "forecast": "FLZ136"
+  }
+ },
+ "eia-59993": {
+  "zones": {
+   "county": "FLC015",
+   "cwa": "TBW",
+   "fire": "FLZ262",
+   "forecast": "FLZ262"
+  }
+ },
+ "eia-60014": {
+  "zones": {
+   "county": "FLC081",
+   "cwa": "TBW",
+   "fire": "FLZ255",
+   "forecast": "FLZ255"
+  }
+ },
+ "eia-60061": {
+  "zones": {
+   "county": "FLC027",
+   "cwa": "TBW",
+   "fire": "FLZ061",
+   "forecast": "FLZ061"
+  }
+ },
+ "eia-60345": {
+  "zones": {
+   "county": "FLC093",
+   "cwa": "MLB",
+   "fire": "FLZ058",
+   "forecast": "FLZ058"
+  }
+ },
+ "eia-6042": {
+  "zones": {
+   "county": "FLC081",
+   "cwa": "TBW",
+   "fire": "FLZ255",
+   "forecast": "FLZ255"
+  }
+ },
+ "eia-6043": {
+  "zones": {
+   "county": "FLC085",
+   "cwa": "MLB",
+   "fire": "FLZ264",
+   "forecast": "FLZ264"
+  }
+ },
+ "eia-6045": {
+  "zones": {
+   "county": "FLC111",
+   "cwa": "MLB",
+   "fire": "FLZ159",
+   "forecast": "FLZ159"
+  }
+ },
+ "eia-6046": {
+  "zones": {
+   "county": "FLC127",
+   "cwa": "MLB",
+   "fire": "FLZ041",
+   "forecast": "FLZ041"
+  }
+ },
+ "eia-609": {
+  "zones": {
+   "county": "FLC009",
+   "cwa": "MLB",
+   "fire": "FLZ347",
+   "forecast": "FLZ347"
+  }
+ },
+ "eia-612": {
+  "zones": {
+   "county": "FLC071",
+   "cwa": "TBW",
+   "fire": "FLZ265",
+   "forecast": "FLZ265"
+  }
+ },
+ "eia-61667": {
+  "zones": {
+   "county": "FLC057",
+   "cwa": "TBW",
+   "fire": "FLZ251",
+   "forecast": "FLZ251"
+  }
+ },
+ "eia-617": {
+  "zones": {
+   "county": "FLC011",
+   "cwa": "MFL",
+   "fire": "FLZ172",
+   "forecast": "FLZ172"
+  }
+ },
+ "eia-61763": {
+  "zones": {
+   "county": "FLC023",
+   "cwa": "JAX",
+   "fire": "FLZ322",
+   "forecast": "FLZ322"
+  }
+ },
+ "eia-61807": {
+  "zones": {
+   "county": "FLC047",
+   "cwa": "JAX",
+   "fire": "FLZ220",
+   "forecast": "FLZ220"
+  }
+ },
+ "eia-619": {
+  "zones": {
+   "county": "FLC099",
+   "cwa": "MFL",
+   "fire": "FLZ168",
+   "forecast": "FLZ168"
+  }
+ },
+ "eia-61982": {
+  "zones": {
+   "county": "FLC023",
+   "cwa": "JAX",
+   "fire": "FLZ522",
+   "forecast": "FLZ522"
+  }
+ },
+ "eia-620": {
+  "zones": {
+   "county": "FLC127",
+   "cwa": "MLB",
+   "fire": "FLZ041",
+   "forecast": "FLZ041"
+  }
+ },
+ "eia-621": {
+  "zones": {
+   "county": "FLC086",
+   "cwa": "MFL",
+   "fire": "FLZ173",
+   "forecast": "FLZ173"
+  }
+ },
+ "eia-62490": {
+  "zones": {
+   "county": "FLC121",
+   "cwa": "JAX",
+   "fire": "FLZ021",
+   "forecast": "FLZ021"
+  }
+ },
+ "eia-62543": {
+  "zones": {
+   "county": "FLC041",
+   "cwa": "JAX",
+   "fire": "FLZ035",
+   "forecast": "FLZ035"
+  }
+ },
+ "eia-627": {
+  "zones": {
+   "county": "FLC103",
+   "cwa": "TBW",
+   "fire": "FLZ050",
+   "forecast": "FLZ050"
+  }
+ },
+ "eia-628": {
+  "zones": {
+   "county": "FLC017",
+   "cwa": "TBW",
+   "fire": "FLZ142",
+   "forecast": "FLZ142"
+  }
+ },
+ "eia-634": {
+  "zones": {
+   "county": "FLC103",
+   "cwa": "TBW",
+   "fire": "FLZ050",
+   "forecast": "FLZ050"
+  }
+ },
+ "eia-63517": {
+  "zones": {
+   "county": "FLC023",
+   "cwa": "JAX",
+   "fire": "FLZ522",
+   "forecast": "FLZ522"
+  }
+ },
+ "eia-63518": {
+  "zones": {
+   "county": "FLC047",
+   "cwa": "JAX",
+   "fire": "FLZ220",
+   "forecast": "FLZ220"
+  }
+ },
+ "eia-63982": {
+  "zones": {
+   "county": "FLC049",
+   "cwa": "TBW",
+   "fire": "FLZ056",
+   "forecast": "FLZ056"
+  }
+ },
+ "eia-641": {
+  "zones": {
+   "county": "FLC033",
+   "cwa": "MOB",
+   "fire": "FLZ202",
+   "forecast": "FLZ202"
+  }
+ },
+ "eia-64145": {
+  "zones": {
+   "county": "FLC017",
+   "cwa": "TBW",
+   "fire": "FLZ142",
+   "forecast": "FLZ142"
+  }
+ },
+ "eia-64146": {
+  "zones": {
+   "county": "FLC005",
+   "cwa": "TAE",
+   "fire": "FLZ112",
+   "forecast": "FLZ112"
+  }
+ },
+ "eia-643": {
+  "zones": {
+   "county": "FLC005",
+   "cwa": "TAE",
+   "fire": "FLZ112",
+   "forecast": "FLZ112"
+  }
+ },
+ "eia-645": {
+  "zones": {
+   "county": "FLC057",
+   "cwa": "TBW",
+   "fire": "FLZ151",
+   "forecast": "FLZ151"
+  }
+ },
+ "eia-64533": {
+  "zones": {
+   "county": "FLC049",
+   "cwa": "TBW",
+   "fire": "FLZ056",
+   "forecast": "FLZ056"
+  }
+ },
+ "eia-65170": {
+  "zones": {
+   "county": "FLC121",
+   "cwa": "JAX",
+   "fire": "FLZ021",
+   "forecast": "FLZ021"
+  }
+ },
+ "eia-65171": {
+  "zones": {
+   "county": "FLC005",
+   "cwa": "TAE",
+   "fire": "FLZ012",
+   "forecast": "FLZ012"
+  }
+ },
+ "eia-65172": {
+  "zones": {
+   "county": "FLC001",
+   "cwa": "JAX",
+   "fire": "FLZ236",
+   "forecast": "FLZ236"
+  }
+ },
+ "eia-65173": {
+  "zones": {
+   "county": "FLC075",
+   "cwa": "TBW",
+   "fire": "FLZ239",
+   "forecast": "FLZ239"
+  }
+ },
+ "eia-65292": {
+  "zones": {
+   "county": "FLC107",
+   "cwa": "JAX",
+   "fire": "FLZ237",
+   "forecast": "FLZ237"
+  }
+ },
+ "eia-65422": {
+  "zones": {
+   "county": "FLC013",
+   "cwa": "TAE",
+   "fire": "FLZ013",
+   "forecast": "FLZ013"
+  }
+ },
+ "eia-65429": {
+  "zones": {
+   "county": "FLC013",
+   "cwa": "TAE",
+   "fire": "FLZ013",
+   "forecast": "FLZ013"
+  }
+ },
+ "eia-65433": {
+  "zones": {
+   "county": "FLC113",
+   "cwa": "MOB",
+   "fire": "FLZ203",
+   "forecast": "FLZ203"
+  }
+ },
+ "eia-65501": {
+  "zones": {
+   "county": "FLC005",
+   "cwa": "TAE",
+   "fire": "FLZ012",
+   "forecast": "FLZ012"
+  }
+ },
+ "eia-6584": {
+  "zones": {
+   "county": "FLC087",
+   "cwa": "KEY",
+   "fire": "FLZ078",
+   "forecast": "FLZ078"
+  }
+ },
+ "eia-65866": {
+  "zones": {
+   "county": "FLC091",
+   "cwa": "MOB",
+   "fire": "FLZ205",
+   "forecast": "FLZ205"
+  }
+ },
+ "eia-65886": {
+  "zones": {
+   "county": "FLC013",
+   "cwa": "TAE",
+   "fire": "FLZ013",
+   "forecast": "FLZ013"
+  }
+ },
+ "eia-65888": {
+  "zones": {
+   "county": null,
+   "cwa": "MOB",
+   "fire": null,
+   "forecast": "GMZ635"
+  }
+ },
+ "eia-65927": {
+  "zones": {
+   "county": "FLC013",
+   "cwa": "TAE",
+   "fire": "FLZ013",
+   "forecast": "FLZ013"
+  }
+ },
+ "eia-65978": {
+  "zones": {
+   "county": "FLC011",
+   "cwa": "MFL",
+   "fire": "FLZ072",
+   "forecast": "FLZ072"
+  }
+ },
+ "eia-66128": {
+  "zones": {
+   "county": "FLC105",
+   "cwa": "TBW",
+   "fire": "FLZ052",
+   "forecast": "FLZ052"
+  }
+ },
+ "eia-663": {
+  "zones": {
+   "county": "FLC001",
+   "cwa": "JAX",
+   "fire": "FLZ136",
+   "forecast": "FLZ136"
+  }
+ },
+ "eia-66553": {
+  "zones": {
+   "county": "FLC079",
+   "cwa": "TAE",
+   "fire": "FLZ019",
+   "forecast": "FLZ019"
+  }
+ },
+ "eia-66639": {
+  "zones": {
+   "county": "FLC121",
+   "cwa": "JAX",
+   "fire": "FLZ021",
+   "forecast": "FLZ021"
+  }
+ },
+ "eia-667": {
+  "zones": {
+   "county": "FLC031",
+   "cwa": "JAX",
+   "fire": "FLZ125",
+   "forecast": "FLZ125"
+  }
+ },
+ "eia-67049": {
+  "zones": {
+   "county": "FLC041",
+   "cwa": "JAX",
+   "fire": "FLZ035",
+   "forecast": "FLZ035"
+  }
+ },
+ "eia-676": {
+  "zones": {
+   "county": "FLC105",
+   "cwa": "TBW",
+   "fire": "FLZ052",
+   "forecast": "FLZ052"
+  }
+ },
+ "eia-67692": {
+  "zones": {
+   "county": "FLC079",
+   "cwa": "TAE",
+   "fire": "FLZ019",
+   "forecast": "FLZ019"
+  }
+ },
+ "eia-68472": {
+  "zones": {
+   "county": "FLC081",
+   "cwa": "TBW",
+   "fire": "FLZ255",
+   "forecast": "FLZ255"
+  }
+ },
+ "eia-68595": {
+  "zones": {
+   "county": "FLC075",
+   "cwa": "TBW",
+   "fire": "FLZ239",
+   "forecast": "FLZ239"
+  }
+ },
+ "eia-688": {
+  "zones": {
+   "county": "FLC073",
+   "cwa": "TAE",
+   "fire": "FLZ017",
+   "forecast": "FLZ017"
+  }
+ },
+ "eia-690": {
+  "zones": {
+   "county": "FLC063",
+   "cwa": "TAE",
+   "fire": "FLZ011",
+   "forecast": "FLZ011"
+  }
+ },
+ "eia-7238": {
+  "zones": {
+   "county": "FLC097",
+   "cwa": "MLB",
+   "fire": "FLZ053",
+   "forecast": "FLZ053"
+  }
+ },
+ "eia-7242": {
+  "zones": {
+   "county": "FLC105",
+   "cwa": "TBW",
+   "fire": "FLZ052",
+   "forecast": "FLZ052"
+  }
+ },
+ "eia-7302": {
+  "zones": {
+   "county": "FLC105",
+   "cwa": "TBW",
+   "fire": "FLZ052",
+   "forecast": "FLZ052"
+  }
+ },
+ "eia-7380": {
+  "zones": {
+   "county": "FLC049",
+   "cwa": "TBW",
+   "fire": "FLZ056",
+   "forecast": "FLZ056"
+  }
+ },
+ "eia-7846": {
+  "zones": {
+   "county": "FLC031",
+   "cwa": "JAX",
+   "fire": "FLZ425",
+   "forecast": "FLZ425"
+  }
+ },
+ "eia-7873": {
+  "zones": {
+   "county": "FLC057",
+   "cwa": "TBW",
+   "fire": "FLZ151",
+   "forecast": "FLZ151"
+  }
+ },
+ "eia-8048": {
+  "zones": {
+   "county": "FLC101",
+   "cwa": "TBW",
+   "fire": "FLZ149",
+   "forecast": "FLZ149"
+  }
+ },
+ "eia-8049": {
+  "zones": {
+   "county": "FLC097",
+   "cwa": "MLB",
+   "fire": "FLZ053",
+   "forecast": "FLZ053"
+  }
+ }
+}
