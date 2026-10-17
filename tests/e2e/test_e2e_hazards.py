@@ -64,7 +64,7 @@ def unix(minutes: float) -> float:
     return at(minutes).timestamp()
 
 
-def test_lightning_stop_work_buzzes_only_that_sites_bands(site_app):
+def test_A22_lightning_stop_work_buzzes_only_that_sites_bands(site_app):
     app = site_app
     rebuild(app, 0)
     assert app.hub.pipelines["w-a"].router.current == "OFF"
@@ -90,7 +90,7 @@ def test_lightning_stop_work_buzzes_only_that_sites_bands(site_app):
     assert hazard_events[-1]["on"] and hazard_events[-1]["source"] == "C1 hazard feeds"
 
 
-def test_all_clear_countdown_resets_on_a_new_strike(site_app):
+def test_A22_all_clear_countdown_resets_on_a_new_strike(site_app):
     app = site_app
     contract.test_alert("LIGHTNING", CREW_SITE, now=at(0))
     rebuild(app, 0.5)
@@ -116,7 +116,7 @@ def test_all_clear_countdown_resets_on_a_new_strike(site_app):
     assert crew_lightning(app)["stop_work"] is False
 
 
-def test_one_flash_or_a_far_storm_does_not_stop_work(site_app):
+def test_A22_one_flash_or_a_far_storm_does_not_stop_work(site_app):
     """The safety rule's edges: 1 flash waits for a 2nd, flashes past 10 miles only show 'nearby'."""
     app = site_app
     site = get_site(CREW_SITE)
@@ -133,7 +133,7 @@ def test_one_flash_or_a_far_storm_does_not_stop_work(site_app):
     assert "BUZZ:LIGHTNING" not in app.band.lines_for("w-a")
 
 
-def test_flood_warning_buzzes_flood_fire(site_app):
+def test_A23_flood_warning_buzzes_flood_fire(site_app):
     app = site_app
     contract.test_alert("FLOOD_FIRE", CREW_SITE, now=at(0))
     rebuild(app, 1)

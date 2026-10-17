@@ -100,7 +100,7 @@ def streams(tmp_path_factory):
         mp.undo()
 
 
-def test_scenario_really_produced_body_data(streams):
+def test_A29_scenario_really_produced_body_data(streams):
     """Guard: the demo view got all the sensitive stuff, so the crew checks below mean something."""
     demo = streams["ws"]["demo"]
     types = {m["type"] for m in demo}
@@ -110,7 +110,7 @@ def test_scenario_really_produced_body_data(streams):
 
 
 @pytest.mark.parametrize("stream", ["crew", "crew_late_snapshot", "worker_no_id"])
-def test_crew_view_never_gets_body_data(streams, stream):
+def test_A29_crew_view_never_gets_body_data(streams, stream):
     msgs = streams["ws"][stream]
     assert not {m["type"] for m in msgs} & {"vitals", "estimate", "offset_update", "why"}
     if stream.startswith("crew"):
@@ -122,7 +122,7 @@ def test_crew_view_never_gets_body_data(streams, stream):
     assert snap.get("offsets", {}) == {}
 
 
-def test_crew_still_gets_status_alerts_and_incidents(streams):
+def test_A29_crew_still_gets_status_alerts_and_incidents(streams):
     """Privacy must not blind the crew lead: status, alerts, man-down and SOS all arrive."""
     crew = streams["ws"]["crew"]
     types = {m["type"] for m in crew}
@@ -135,7 +135,7 @@ def test_crew_still_gets_status_alerts_and_incidents(streams):
             assert "°" not in reason and "bpm" not in reason          # plain words, no body numbers
 
 
-def test_worker_view_gets_only_their_own_body_data(streams):
+def test_A29_worker_view_gets_only_their_own_body_data(streams):
     msgs = streams["ws"]["worker1"]
     body = [m for m in msgs if m["type"] in ("vitals", "estimate", "offset_update")]
     assert body, "the worker's own phone should get their vitals, estimate and offset"
@@ -146,14 +146,14 @@ def test_worker_view_gets_only_their_own_body_data(streams):
     assert snap["offsets"]["demo-1"]["n_checks"] == 1
 
 
-def test_demo_view_gets_everyones_body_data(streams):
+def test_A29_demo_view_gets_everyones_body_data(streams):
     snap = streams["ws"]["demo_late_snapshot"][0]
     assert set(snap["history"]) == {"demo-1", "demo-2", "demo-3", "demo-4"}
     assert set(snap["offsets"]) == {"demo-1", "demo-2", "demo-3", "demo-4"}
     assert snap["band"], "the demo view shows band commands"
 
 
-def test_rest_state_and_history_follow_the_same_rules(streams):
+def test_A29_rest_state_and_history_follow_the_same_rules(streams):
     rest, hist = streams["rest"], streams["history"]
     assert body_paths(rest["crew"]) == []
     assert rest["crew"]["history"] == {} and rest["crew"].get("offsets", {}) == {}
@@ -165,14 +165,14 @@ def test_rest_state_and_history_follow_the_same_rules(streams):
 
 @pytest.mark.xfail(strict=True, reason="BUG (session A): /api/workers/{id}/history ignores worker_id, so "
                    "view=worker can read ANOTHER worker's raw vitals. Expected 403.")
-def test_worker_view_cannot_read_another_workers_history(streams):
+def test_A29_worker_view_cannot_read_another_workers_history(streams):
     assert streams["other_history"].status_code == 403
 
 
 @pytest.mark.xfail(strict=True, reason="BUG (session D, shown by A): DryRunPhone/FakePhone status messages say "
                    "'Dry run: would call +1352...' with the FULL number; A copies the message into "
                    "EmergencyCall.steps[].text for every view, crew included. Only number_masked should go out.")
-def test_no_full_phone_number_reaches_any_dashboard(streams):
+def test_A29_no_full_phone_number_reaches_any_dashboard(streams):
     """Phone numbers on screen are masked (+1 ••• ••• 0101). The full number never goes out."""
     for name, msgs in streams["ws"].items():
         text = str(msgs)

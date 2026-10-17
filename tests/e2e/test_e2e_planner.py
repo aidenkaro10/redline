@@ -70,7 +70,7 @@ def plan_via_http(app, sc: Scenario) -> dict:
     return r.json()
 
 
-def test_planner_returns_only_rule_checked_plans(planner_app):
+def test_A26_A27_planner_returns_only_rule_checked_plans(planner_app):
     app = planner_app
     sc = small_scenario()
     out = plan_via_http(app, sc)                     # use_llm asked, but PLANNER_LLM=off: no LLM call
@@ -92,7 +92,7 @@ def test_planner_returns_only_rule_checked_plans(planner_app):
     assert all(c["verified"] for c in out["alternatives"] if "verified" in c)
 
 
-def test_schedule_endpoint_serves_the_checked_plan(planner_app):
+def test_A26_schedule_endpoint_serves_the_checked_plan(planner_app):
     app = planner_app
     sc = small_scenario()
     plan_via_http(app, sc)
@@ -112,7 +112,7 @@ def test_schedule_endpoint_serves_the_checked_plan(planner_app):
             json.dumps({"request": "GET /api/schedule", "status": 200, "body": schedule}, indent=1) + "\n")
 
 
-def test_a_black_flag_day_still_gets_a_verified_plan(planner_app):
+def test_A26_a_black_flag_day_still_gets_a_verified_plan(planner_app):
     """WBGT 32.5 °C, only very heavy work, new hires: the answer must still pass the checker."""
     app = planner_app
     sc = small_scenario(BLACK_FLAG)
@@ -121,7 +121,7 @@ def test_a_black_flag_day_still_gets_a_verified_plan(planner_app):
     assert check_plan(sc, planner_api._state["result"].plan).ok
 
 
-def test_planner_never_claims_an_unverified_plan_is_checked(planner_app):
+def test_A26_planner_never_claims_an_unverified_plan_is_checked(planner_app):
     """
     A day so hot that nothing passes (not even rest): the planner must SAY so, not pretend.
     It falls back to "everyone rests" with checked_by_rules false and a "No verified plan" note.
@@ -136,7 +136,7 @@ def test_planner_never_claims_an_unverified_plan_is_checked(planner_app):
     assert {s["task"] for row in schedule["rows"] for s in row["slots"]} <= {"break", "stop_work", "off"}
 
 
-def test_the_check_endpoint_rejects_an_unsafe_plan(planner_app):
+def test_A26_the_check_endpoint_rejects_an_unsafe_plan(planner_app):
     """What an LLM might propose: very heavy work all day, straight through the lightning."""
     app = planner_app
     sc = small_scenario(BLACK_FLAG)

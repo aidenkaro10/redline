@@ -27,7 +27,7 @@ def config_values() -> dict:
     return {k: v for k, v in vars(config).items() if k.isupper() and not secret.search(k)}
 
 
-def test_no_code_assigns_to_config_at_runtime():
+def test_A35_no_code_assigns_to_config_at_runtime():
     """Static check: nothing outside tests writes config.X = ... or setattr(config, ...)."""
     pattern = re.compile(r"\bconfig\.[A-Z_]+\s*=(?!=)|setattr\(\s*(backend\.)?config\b")
     offenders = []
@@ -42,7 +42,7 @@ def test_no_code_assigns_to_config_at_runtime():
     assert offenders == []
 
 
-def test_safety_numbers_match_the_spec():
+def test_A35_safety_numbers_match_the_spec():
     """PROJECT.md's alert table, lightning rule, man-down timing, Kalman parameters and 911 guard."""
     assert (config.HEAT_WARNING_C, config.HEAT_DANGER_C) == (38.0, 38.5)
     assert (config.HEAT_WARNING_HORIZON_MIN, config.HEAT_DANGER_HORIZON_MIN, config.HEAT_ALERT_QUANTILE) == (20, 10, 0.9)
@@ -60,7 +60,7 @@ def test_safety_numbers_match_the_spec():
     assert set(config.BUZZ_PATTERNS) == {"HEAT_YELLOW", "HEAT_RED", "LIGHTNING", "FLOOD_FIRE", "MANDOWN", "OFF"}
 
 
-def test_busy_session_never_changes_a_threshold(live_app):
+def test_A11_A35_A36_busy_session_never_changes_a_threshold(live_app):
     before = config_values()
     app = live_app()
     app.start_replay(shifts.synthetic(n_crew=2))

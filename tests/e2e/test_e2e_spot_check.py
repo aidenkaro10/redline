@@ -45,7 +45,7 @@ def runs(live_app):
     return {"live_app": live_app, "app": app, "update": update, "est": est, "base": base}
 
 
-def test_spot_check_learns_an_offset(runs):
+def test_A10_spot_check_learns_an_offset(runs):
     u = runs["update"]
     assert u["type"] == "offset_update" and u["worker_id"] == "demo-1"
     assert u["accepted"] is True and u["n_checks"] == 1
@@ -55,7 +55,7 @@ def test_spot_check_learns_an_offset(runs):
     assert u["confidence"] == pytest.approx(1 / 3, abs=0.002)
 
 
-def test_offset_is_applied_to_the_next_estimate(runs):
+def test_A10_offset_is_applied_to_the_next_estimate(runs):
     est, base, off = runs["est"], runs["base"], runs["update"]["offset_c"]
     assert est["offset_c"] == pytest.approx(off, abs=1e-4)
     assert est["core_temp_raw"] == pytest.approx(base["core_temp_raw"], abs=1e-6)     # same data, same model
@@ -64,7 +64,7 @@ def test_offset_is_applied_to_the_next_estimate(runs):
 
 
 @pytest.mark.skipif(ENS5_PATH is None, reason="needs ml/checkpoints/ens5.pt for a forecast")
-def test_offset_is_applied_to_every_forecast_percentile(runs):
+def test_A10_offset_is_applied_to_every_forecast_percentile(runs):
     est, base, off = runs["est"], runs["base"], runs["update"]["offset_c"]
     assert est["forecast"] and base["forecast"]
     for q in ("p10", "p50", "p90"):
@@ -72,7 +72,7 @@ def test_offset_is_applied_to_every_forecast_percentile(runs):
             assert a == pytest.approx(b - off, abs=0.002)
 
 
-def test_offset_reaches_the_dashboard_but_not_the_thresholds(runs):
+def test_A36_offset_reaches_the_dashboard_but_not_the_thresholds(runs):
     app = runs["app"]
     snap = app.client.get("/api/state?view=demo").json()
     assert snap["offsets"]["demo-1"]["offset_c"] == pytest.approx(runs["update"]["offset_c"], abs=1e-4)
@@ -82,7 +82,7 @@ def test_offset_reaches_the_dashboard_but_not_the_thresholds(runs):
     assert (config.HEAT_WARNING_C, config.HEAT_DANGER_C) == (38.0, 38.5)
 
 
-def test_offset_survives_a_server_restart(runs):
+def test_A11_A34_offset_survives_a_server_restart(runs):
     live_app, app = runs["live_app"], runs["app"]
     off = runs["update"]["offset_c"]
     live_app.stop(app)

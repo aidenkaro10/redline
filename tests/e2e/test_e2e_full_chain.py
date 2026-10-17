@@ -132,7 +132,7 @@ def check_chain(app, crew_msgs, demo_msgs):
 
 @pytest.mark.skipif(SIM_PATH is None or ENS5_PATH is None,
                     reason="needs data/sim/sim.npz and ml/checkpoints/ens5.pt (gitignored, main checkout)")
-def test_real_demo_replay_sim_and_ens5(live_app):
+def test_A09_A17_A20_real_demo_replay_sim_and_ens5(live_app):
     """The demo exactly as judges see it: sim shift 9647, ens5 forecaster, 3 crewmates."""
     app = live_app("--checkpoint", str(ENS5_PATH))
     assert app.hub.predictor is not None
@@ -153,7 +153,7 @@ def test_real_demo_replay_sim_and_ens5(live_app):
         assert app.of_type("heat_alert", calm) == []
 
 
-def test_synthetic_demo_replay_kalman_only(live_app):
+def test_A08_A17_A20_synthetic_demo_replay_kalman_only(live_app):
     """Same chain on the built-in fake shift with no data files and no forecaster."""
     app = live_app()
     assert app.hub.predictor is None

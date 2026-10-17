@@ -100,7 +100,7 @@ def udp_app(live_app, monkeypatch):
     band.close()
 
 
-def test_udp_lines_become_readings_with_laptop_timestamps(udp_app):
+def test_A03_udp_lines_become_readings_with_laptop_timestamps(udp_app):
     app, band = udp_app
     before = time.time()
     band.send("TEMP:34.62", "TILT:1,ACT:7", "HR:121")
@@ -116,7 +116,7 @@ def test_udp_lines_become_readings_with_laptop_timestamps(udp_app):
     assert app.hub.workers["band-7"]["source"] == "udp"
 
 
-def test_udp_ignores_debug_lines_and_garbage(udp_app):
+def test_A02_udp_ignores_debug_lines_and_garbage(udp_app):
     app, band = udp_app
     band.send("TEMP:33.00")
     wait_for(lambda: readings(app, "band-7"), what="first reading")
@@ -129,7 +129,7 @@ def test_udp_ignores_debug_lines_and_garbage(udp_app):
     assert [e.get("skin_temp") for e in data] == [33.33], f"garbage leaked through: {data}"
 
 
-def test_udp_commands_come_back_by_priority_and_button_cancels(udp_app):
+def test_A15_A17_udp_commands_come_back_by_priority_and_button_cancels(udp_app):
     app, band = udp_app
     join(app, band)
 
@@ -153,7 +153,7 @@ def test_udp_commands_come_back_by_priority_and_button_cancels(udp_app):
     assert band.commands() == ["BUZZ:LIGHTNING", "BUZZ:MANDOWN", "BUZZ:LIGHTNING", "BUZZ:OFF"]
 
 
-def test_keep_alive_resends_current_command_every_20_s(udp_app):
+def test_A16_keep_alive_resends_current_command_every_20_s(udp_app):
     app, band = udp_app
     join(app, band)
     app.client.post("/api/demo/hazard", json={"kind": "lightning", "on": True})
@@ -172,7 +172,7 @@ def test_keep_alive_resends_current_command_every_20_s(udp_app):
     assert app.band.sent == [("band-7", "BUZZ:LIGHTNING")]
 
 
-def test_btn_sos_escalates_at_once_and_never_buzzes_the_band(udp_app):
+def test_A06_btn_sos_escalates_at_once_and_never_buzzes_the_band(udp_app):
     app, band = udp_app
     join(app, band, "TEMP:34.0", "HR:130")
     band.send("BTN:SOS")
@@ -221,7 +221,7 @@ def serial_read(master, timeout=0.3) -> list[str]:
     return out
 
 
-def test_serial_link_end_to_end(serial_app):
+def test_A02_A03_A06_serial_link_end_to_end(serial_app):
     app, master = serial_app
 
     def write(*lines):
