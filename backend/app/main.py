@@ -20,10 +20,12 @@ import asyncio
 import contextlib
 import logging
 import math
+import os
 import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -233,6 +235,9 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
 
 app = FastAPI(title="PlanIT Control", lifespan=lifespan)
 app.include_router(frontend_router)
+# Let the Next.js dashboard (another port) call the REST API from the browser.
+app.add_middleware(CORSMiddleware, allow_methods=["*"], allow_headers=["*"],
+                   allow_origins=os.getenv("FRONTEND_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(","))
 # Every route is "async def" on purpose: FastAPI runs those on the event loop, so the hub
 # is only ever touched from one thread. (Plain "def" routes would run on a thread pool.)
 

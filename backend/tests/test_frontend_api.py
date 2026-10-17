@@ -98,3 +98,9 @@ def test_reports_sites_schedule(client):
     client.post("/api/sites/site-gnv/status", json={"hazards": [{"kind": "heat", "level": "high"}], "index_tomorrow": 7})
     s = client.get("/api/state").json()["sites"][0]
     assert s["index_tomorrow"] == 7 and s["hazards"][0]["level"] == "high"
+
+
+def test_cors_allows_dashboard(client):
+    r = client.options("/api/demo/threshold", headers={"Origin": "http://localhost:3000",
+                                                       "Access-Control-Request-Method": "POST"})
+    assert r.headers.get("access-control-allow-origin") == "http://localhost:3000"
