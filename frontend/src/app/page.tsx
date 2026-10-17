@@ -59,7 +59,7 @@ function CrewAppInner() {
       : `${attention ? `${attention} need${attention === 1 ? "s" : ""} attention` : "Everyone OK"} · ${workers.length} on shift`;
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl bg-page pb-28">
+    <div className="font-app mx-auto min-h-screen max-w-xl bg-page pb-28">
       <Wash tone={tone}>
         <AppHeader title={tab === "crew" ? "Crew" : "Sites"} subtitle={subtitle} />
       </Wash>
@@ -116,7 +116,7 @@ function CrewTab() {
       {fine.length > 0 && (
         <>
           <SectionHeader title={urgent.length ? "Everyone else" : "Workers"} />
-          <ul className="divide-y divide-line overflow-hidden rounded-[14px] bg-surface">
+          <ul className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface">
             {fine.map((w) => <OkRow key={w.worker_id} w={w} onOpen={() => setOpen(w.worker_id)} />)}
           </ul>
         </>
@@ -143,7 +143,7 @@ function SiteAlerts({ siteIds, sites, now }: { siteIds: string[]; sites: Record<
         {alerts.map(({ id, h }) => {
           const left = h.lightning?.all_clear_at ? secondsUntil(h.lightning.all_clear_at, now) : null;
           return (
-            <Card key={id + h.kind} icon={HAZARD_ICON[h.kind]()} color={HUE[h.kind]} meta="Now"
+            <Card key={id + h.kind} icon={HAZARD_ICON[h.kind]()} color={HUE[h.kind]} meta="Now" tintLabel
               label={`${h.stop_work ? "Stop work" : HAZARD_LABEL[h.kind]} · ${shortSiteName(names[id]) || id}`}
               viz={left !== null ? <Ring value={left / 1800} color={HUE[h.kind]} /> : undefined}>
               {left !== null ? <Value unit="until all clear">{fmtCountdown(left)}</Value> : <Value>{HAZARD_LABEL[h.kind]}</Value>}
@@ -205,13 +205,13 @@ function WorkerCard({ w, onOpen, down }: { w: WorkerStatus; onOpen: () => void; 
   const tone = mins === 0 || w.status === "red" ? "text-danger-ink" : DANGER_CLASS[w.status];
   return (
     <li data-status={w.status} data-down={down ?? undefined}>
-      <Card onClick={onOpen} color={hue}
+      <Card onClick={onOpen} color={hue} tintLabel
         icon={down ? <span className="dot-breathe block h-full w-full"><Icon.alert /></span> : w.status === "green" ? <Icon.check /> : <Icon.alert />}
         label={down === "sos" ? "SOS" : down ? "Man down" : STATUS_TEXT[w.status]}
         meta={w.hazard ? <span className={`h-4 w-4 ${alertTone(w.hazard)}`} title={ALERT_LABEL[w.hazard]}>{w.hazard === "LIGHTNING" ? <Icon.bolt /> : <Icon.thermo />}</span> : undefined}
         viz={<Ring color={hue} value={hasCountdown ? Math.min(1, mins! / 30) : 1}
           label={hasCountdown ? (mins === 0 ? "!" : mins) : <span className="block h-3.5 w-3.5" style={{ color: hue }}><Icon.check /></span>} />}>
-        <span className="block truncate text-[22px] font-bold leading-tight tracking-[-0.01em]">{w.name}</span>
+        <span className="block truncate text-[22px] font-semibold leading-tight tracking-[-0.025em]">{w.name}</span>
         {hasCountdown
           ? <span data-testid="danger" className={`mt-1 block text-[15px] font-semibold tabular ${tone}`}>Danger {dangerText(mins)}</span>
           : <span className="mt-1 block truncate text-[15px] text-muted">{reason}</span>}
@@ -235,7 +235,7 @@ function WorkerDetails({ w, now, down }: { w: WorkerStatus; now: number; down: "
             : <StatusBadge status={w.status} big />}
           <span className="text-[15px] text-muted">{w.role} · {site ? shortSiteName(site.name) : w.site_id}</span>
         </div>
-        <p className={`mt-3 text-[30px] font-bold leading-tight tracking-[-0.02em] tabular ${tone}`}>
+        <p className={`mt-3 text-[30px] font-semibold leading-tight tracking-[-0.03em] tabular ${tone}`}>
           {w.minutes_to_danger === null ? "No danger in 30 min" : w.minutes_to_danger === 0 ? "In danger now" : `Danger in ${w.minutes_to_danger} min`}
         </p>
         <p className="mt-1 text-[17px] text-ink-2">{w.status_reason}</p>
@@ -295,13 +295,13 @@ function SitesTab() {
       </div>
 
       {view === "map" ? (
-        <div className="mt-4 h-[62vh] min-h-[320px] overflow-hidden rounded-[14px]">
+        <div className="mt-4 h-[62vh] min-h-[320px] overflow-hidden rounded-[16px]">
           {sites && <SiteMap sites={sites} statuses={live.sites} reports={live.reports} selected={selected} onSelect={pick} dark={dark} focus={focus} />}
         </div>
       ) : (
         <div>
           <SectionHeader title="Riskiest tomorrow" />
-          <ol className="divide-y divide-line overflow-hidden rounded-[14px] bg-surface">
+          <ol className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface">
             {(showAll ? ranked : ranked.slice(0, 10)).map((s, i) => {
               const st = live.sites[s.id];
               const stop = st.hazards.some((h) => h.stop_work);
@@ -343,7 +343,7 @@ function SitesTab() {
       )}
 
       <Sheet open={!!(sel && selStatus)} onClose={() => setSelected(null)} title={sel ? shortSiteName(sel.name) : undefined}>
-        {sel && selStatus && <div className="rounded-[14px] bg-surface p-4"><HazardPanel site={sel} status={selStatus} /></div>}
+        {sel && selStatus && <div className="rounded-[16px] bg-surface p-4"><HazardPanel site={sel} status={selStatus} /></div>}
       </Sheet>
     </div>
   );

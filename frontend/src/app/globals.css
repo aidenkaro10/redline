@@ -10,13 +10,13 @@
  * and always ship with a text label, never color alone.
  */
 :root {
-  --page: #f2f2f7;          /* grouped background */
+  --page: #f4f4f1;          /* warm off-white ground */
   --surface: #ffffff;       /* cards */
-  --surface-2: #e9e9ee;     /* chips, secondary fills */
-  --ink: #1c1c1e;
-  --ink-2: #48484a;
-  --muted: #8e8e93;
-  --line: #e5e5ea;          /* hairline separators */
+  --surface-2: #ecece8;     /* chips, secondary fills */
+  --ink: #121212;
+  --ink-2: #57575c;
+  --muted: #8c8c90;
+  --line: #ebebe7;          /* hairline separators */
   --accent: #007aff;        /* taps and links */
   --accent-ink: #ffffff;
 
@@ -39,18 +39,18 @@
   --sos: #af52de;
 
   --series-1: #007aff;      /* core temp */
-  --grid: #e5e5ea;
+  --grid: #ebebe7;
   --axis: #8e8e93;
 }
 
 .dark {
-  --page: #000000;
-  --surface: #1c1c1e;
-  --surface-2: #2c2c2e;
-  --ink: #ffffff;
-  --ink-2: #c7c7cc;
-  --muted: #8e8e93;
-  --line: #38383a;
+  --page: #0b0b0c;
+  --surface: #18181a;
+  --surface-2: #242427;
+  --ink: #f5f5f4;
+  --ink-2: #c4c4c8;
+  --muted: #8c8c90;
+  --line: #2b2b2e;
   --accent: #0a84ff;
   --accent-ink: #ffffff;
 
@@ -118,6 +118,9 @@ body {
 }
 
 .tabular { font-variant-numeric: tabular-nums; }
+
+/* Phone apps: Mona Sans, no grey tap flash on phones. */
+.font-app { font-family: var(--font-mona), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
 /* Man-down screen pulse and the red "flashing" status. */
 @keyframes pulse-red {

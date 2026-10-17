@@ -33,24 +33,27 @@ export const HUE = {
   site: "#ff6b2c",
 } as const;
 
-/** The wash colors per mood. Calm mint/sky when OK, warmer as things get worse. */
-const WASH: Record<string, [string, string]> = {
-  ok: ["#a8e6c6", "#bcd5f8"],
-  warn: ["#ffd08a", "#ffb4a2"],
-  danger: ["#ff9c9c", "#f6a6cf"],
-  stop: ["#b6b2ff", "#dcbcff"],
-  neutral: ["#f7b3c4", "#c6b6f7"],     // Health's own pink to lavender
+/**
+ * The wash per mood: one soft hue, not a rainbow. A brighter glow in the top right
+ * fades into a pale tint, which fades into the page. Barely there when OK.
+ */
+const WASH: Record<string, [glow: string, tint: string]> = {
+  ok: ["#cdeadb", "#e8f2ec"],
+  warn: ["#fbd6a4", "#fbeddb"],
+  danger: ["#f6bfbd", "#fae5e4"],
+  stop: ["#d2d0f4", "#ebeaf9"],
+  neutral: ["#e2e2de", "#eeeeeb"],
 };
 
 export type WashTone = keyof typeof WASH;
 
-/** Big title area with the color wash behind it. The wash fades into the page color. */
+/** Big title area with the soft status tint behind it. */
 export function Wash({ tone, children }: { tone: WashTone; children: React.ReactNode }) {
-  const [a, b] = WASH[tone] ?? WASH.neutral;
+  const [glow, tint] = WASH[tone] ?? WASH.neutral;
   return (
     <div className="relative">
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[380px] opacity-100 transition-[background] duration-700 dark:opacity-50"
-        style={{ background: `linear-gradient(to bottom, transparent 25%, var(--page) 92%), linear-gradient(115deg, ${a} 0%, ${b} 100%)` }} />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[360px] transition-[background] duration-700 dark:opacity-25"
+        style={{ background: `radial-gradient(110% 75% at 90% 0%, ${glow} 0%, transparent 62%), linear-gradient(to bottom, ${tint} 0%, var(--page) 100%)` }} />
       <div className="relative">{children}</div>
     </div>
   );
@@ -68,8 +71,8 @@ export function Avatar({ name }: { name: string }) {
 
 export function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between px-1 pb-2 pt-5">
-      <h2 className="text-[22px] font-bold tracking-tight">{title}</h2>
+    <div className="flex items-baseline justify-between px-1 pb-2.5 pt-7">
+      <h2 className="text-[20px] font-semibold tracking-[-0.02em]">{title}</h2>
       {action && <span className="text-[17px] text-accent">{action}</span>}
     </div>
   );
@@ -89,16 +92,17 @@ type CardProps = {
   href?: string;
   children: React.ReactNode;        // the big value and its sub line
   className?: string;
+  tintLabel?: boolean;              // color the label too (status words only)
 };
 
 /** One Health-style card. Taps open more (a sheet or another page). */
-export function Card({ icon, label, color, meta, viz, onClick, href, children, className = "" }: CardProps) {
+export function Card({ icon, label, color, meta, viz, onClick, href, children, className = "", tintLabel = false }: CardProps) {
   const inner = (
     <>
       <span className="flex items-center justify-between gap-3">
-        <span className="flex min-w-0 items-center gap-1.5 text-[15px] font-semibold" style={{ color }}>
-          <span className="h-4 w-4 shrink-0">{icon}</span>
-          <span className="truncate">{label}</span>
+        <span className="flex min-w-0 items-center gap-2 text-[15px] font-medium">
+          <span className="h-4 w-4 shrink-0" style={{ color }}>{icon}</span>
+          <span className={`truncate ${tintLabel ? "font-semibold" : "text-ink-2"}`} style={tintLabel ? { color } : undefined}>{label}</span>
         </span>
         <span className="flex shrink-0 items-center gap-1 text-[15px] text-muted">
           {meta}
@@ -111,7 +115,7 @@ export function Card({ icon, label, color, meta, viz, onClick, href, children, c
       </span>
     </>
   );
-  const cls = `block w-full rounded-[14px] bg-surface px-4 py-3.5 text-left ${onClick || href ? "transition-transform active:scale-[0.985]" : ""} ${className}`;
+  const cls = `block w-full rounded-[16px] bg-surface px-4 py-4 text-left shadow-[0_1px_2px_rgba(20,20,10,0.04)] ${onClick || href ? "transition-transform active:scale-[0.985]" : ""} ${className}`;
   if (href) return <Link href={href} className={cls}>{inner}</Link>;
   if (onClick) return <button onClick={onClick} className={cls}>{inner}</button>;
   return <div className={cls}>{inner}</div>;
@@ -121,9 +125,9 @@ export function Card({ icon, label, color, meta, viz, onClick, href, children, c
 export function Value({ children, unit, pre, tone }: { children: React.ReactNode; unit?: string; pre?: string; tone?: string }) {
   return (
     <span className="block leading-none">
-      {pre && <span className="mr-1 text-[17px] font-semibold text-muted">{pre}</span>}
-      <span className="text-[30px] font-bold tracking-[-0.02em] tabular" style={tone ? { color: tone } : undefined}>{children}</span>
-      {unit && <span className="ml-1 text-[17px] font-semibold text-muted">{unit}</span>}
+      {pre && <span className="mr-1 text-[16px] font-medium text-muted">{pre}</span>}
+      <span className="text-[32px] font-semibold tracking-[-0.03em] tabular" style={tone ? { color: tone } : undefined}>{children}</span>
+      {unit && <span className="ml-1 text-[16px] font-medium text-muted">{unit}</span>}
     </span>
   );
 }
@@ -146,7 +150,7 @@ export function Ring({ value, color, label, size = 44 }: { value: number; color:
         <circle cx="20" cy="20" r={r} fill="none" stroke="currentColor" strokeOpacity=".1" strokeWidth="5" />
         <circle cx="20" cy="20" r={r} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round" strokeDasharray={`${v * c} ${c}`} />
       </svg>
-      {label !== undefined && <span className="relative text-[12px] font-bold tabular">{label}</span>}
+      {label !== undefined && <span className="relative text-[12px] font-semibold tabular">{label}</span>}
     </span>
   );
 }

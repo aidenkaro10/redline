@@ -25,7 +25,7 @@ export default function WorkerPicker() {
   }, [workers, router]);
 
   return (
-    <div className="mx-auto min-h-screen max-w-xl">
+    <div className="font-app mx-auto min-h-screen max-w-xl">
       <AppHeader title="Who are you?" />
       <main className="px-4 pb-6 pt-2">
         {!ready && <p className="py-10 text-center text-sm text-muted">Connecting…</p>}

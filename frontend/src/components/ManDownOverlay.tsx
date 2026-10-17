@@ -68,14 +68,14 @@ export function ManDownOverlay() {
   // The call steps and transcript are the crew lead's job, so they stay off workers' phones.
   if (phone) {
     return (
-      <div className="fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-black px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(20px,env(safe-area-inset-top))] text-white"
+      <div className="font-app fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-black px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(20px,env(safe-area-inset-top))] text-white"
         role="alertdialog" aria-label={sos ? "SOS alert" : "Man down alert"}>
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4">
           <p className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.14em]" style={{ color: sos ? "#bf5af2" : "#ff453a" }}>
             <span className="dot-breathe h-2.5 w-2.5 rounded-full" style={{ background: sos ? "#bf5af2" : "#ff453a" }} aria-hidden />
             {sos ? "SOS from" : "Man down: confirmed"}
           </p>
-          <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight">{md.worker_name}</h1>
+          <h1 className="text-[44px] font-semibold leading-[1.04] tracking-[-0.035em]">{md.worker_name}</h1>
           <p className="text-[19px] font-medium">{md.site_name}</p>
           <div className="divide-y divide-white/10 overflow-hidden rounded-2xl bg-white/10">
             <OverlayRow label={sos ? "SOS pressed" : "Down for"}><span className="tabular">{fmtCountdown(downFor)}{sos ? " ago" : ""}</span></OverlayRow>

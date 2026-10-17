@@ -26,7 +26,7 @@ export function Sheet({ open, onClose, title, children }: {
     <div className="fixed inset-0 z-[900] flex items-end justify-center" role="dialog" aria-modal="true">
       {/* Backdrop: tap anywhere outside the sheet to close */}
       <button aria-label="Close" onClick={onClose} className="sheet-fade absolute inset-0 cursor-default bg-black/35" />
-      <div className="sheet-up relative flex max-h-[90vh] w-full max-w-xl flex-col rounded-t-[22px] bg-page text-ink shadow-[0_-8px_40px_rgba(0,0,0,0.18)]">
+      <div className="sheet-up font-app relative flex max-h-[90vh] w-full max-w-xl flex-col rounded-t-[22px] bg-page text-ink shadow-[0_-8px_40px_rgba(0,0,0,0.18)]">
         {/* Grab handle + header */}
         <div className="shrink-0 px-4 pt-2">
           <div className="mx-auto h-1.5 w-10 rounded-full bg-muted/40" aria-hidden />

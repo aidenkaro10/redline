@@ -93,7 +93,7 @@ function WorkerPhone() {
       <Frame dark status="sos">
         <div className="flex flex-1 flex-col justify-center gap-4">
           <AlarmLabel color="#bf5af2">SOS sent</AlarmLabel>
-          <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight">Help is coming</h1>
+          <h1 className="text-[44px] font-semibold leading-[1.04] tracking-[-0.035em]">Help is coming</h1>
           <p className="text-[17px] text-white/75">Your crew lead and crewmates have your location. Stay where you are if you can.</p>
           {call?.stage === "failed" ? (
             <p className="rounded-2xl bg-[#ff3b30] px-4 py-3 text-2xl font-bold">Automatic call failed. Call 911 now.</p>
@@ -115,7 +115,7 @@ function WorkerPhone() {
       <Frame dark status="mandown">
         <div className="flex flex-1 flex-col justify-center gap-4">
           <AlarmLabel color="#ff453a">{checking ? "Man-down check" : "Help is coming"}</AlarmLabel>
-          <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight">Are you OK?</h1>
+          <h1 className="text-[44px] font-semibold leading-[1.04] tracking-[-0.035em]">Are you OK?</h1>
           {checking ? (
             <p className="text-[17px] text-white/75">
               Press the band button or tap below. Alerting your crew in <b className="tabular text-white">{fmtCountdown(md.confirm_at - now)}</b>
@@ -156,14 +156,14 @@ function WorkerPhone() {
             <span className="text-[15px] font-semibold text-ink/70">{site ? shortSiteName(site.name) : w.site_id}</span>
             <Avatar name={w.name} />
           </div>
-          <h1 className="mt-12 text-[34px] font-bold leading-[1.1] tracking-[-0.02em] text-balance">{look.title}</h1>
+          <h1 className="mt-12 text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-balance">{look.title}</h1>
           {!stopWork && <p className="mt-1.5 text-[17px] font-medium leading-snug" style={statusHue ? { color: statusHue } : undefined}>{danger}</p>}
           <p className="mt-1 text-[15px] leading-snug text-ink-2">{look.tip}</p>
           {redUnacked && (
             <button onClick={press} className="mt-4 rounded-full bg-[#ff3b30] px-7 py-3 text-[17px] font-semibold text-white active:scale-[.98]">Got it</button>
           )}
           {crewDown && (
-            <div className="mt-4 flex items-center gap-3 rounded-[14px] bg-[#ff3b30] px-4 py-3 text-white">
+            <div className="mt-4 flex items-center gap-3 rounded-[16px] bg-[#ff3b30] px-4 py-3 text-white">
               <span className="dot-breathe h-2.5 w-2.5 shrink-0 rounded-full bg-white" aria-hidden />
               <p className="text-[15px] font-semibold leading-snug">Crewmate down: {md.worker_name}. Go to {md.site_name} if you&apos;re close.</p>
             </div>
@@ -175,7 +175,7 @@ function WorkerPhone() {
         <SectionHeader title="Right now" />
         <div className="flex flex-col gap-2.5">
           <Card icon={<Icon.thermo />} label="Core Temp" color={HUE.core} meta={last ? fmtClock(last.timestamp) : undefined}
-            onClick={() => setSheet("core")} viz={<Spark past={past} future={future} color={HUE.core} lo={Math.min(36.8, ...past, ...future)} hi={Math.max(38.8, ...past, ...future)} />}>
+            onClick={() => setSheet("core")} viz={<Spark past={past} future={future} color={HUE.core} lo={Math.min(...past, ...future) - 0.35} hi={Math.max(...past, ...future) + 0.35} />}>
             {last ? <Value unit="°C">{last.core.mean.toFixed(1)}</Value> : <Value>--</Value>}
             <Sub tone={statusHue}>
               {w.minutes_to_danger === null ? "Steady" : w.minutes_to_danger === 0 ? "In the danger zone" : `Danger in ${w.minutes_to_danger} min`}
@@ -205,7 +205,7 @@ function WorkerPhone() {
         </div>
 
         <SectionHeader title="Log" />
-        <div className="divide-y divide-line overflow-hidden rounded-[14px] bg-surface">
+        <div className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface">
           <ListRow icon={<Icon.thermo />} color={HUE.core} onClick={() => setSheet("spot")}>Add a thermometer reading</ListRow>
           <ListRow icon={<Icon.alert />} color={HUE.heat} onClick={() => setSheet("report")}>Report a hazard</ListRow>
         </div>
@@ -218,7 +218,7 @@ function WorkerPhone() {
       {/* Details, only when asked for */}
       <Sheet open={sheet === "core"} onClose={() => setSheet(null)} title="Core Temperature">
         <div className="flex flex-col gap-4 pb-2">
-          <div className="rounded-[14px] bg-surface px-2 pb-3 pt-3">
+          <div className="rounded-[16px] bg-surface px-2 pb-3 pt-3">
             <CoreChart estimates={est} now={now} height={210} />
             <div className="px-2"><WhyLine why={last?.why} /></div>
           </div>
@@ -227,7 +227,7 @@ function WorkerPhone() {
       </Sheet>
       <Sheet open={sheet === "hazard" && !!hazard} onClose={() => setSheet(null)} title={hazard ? HAZARD_LABEL[hazard.kind] : ""}>
         {hazard && (
-          <div className="rounded-[14px] bg-surface p-4">
+          <div className="rounded-[16px] bg-surface p-4">
             <p className="text-[17px] font-semibold">{hazard.headline}</p>
             {hazard.detail && <p className="mt-1 text-[15px] text-ink-2">{hazard.detail}</p>}
             <p className="mt-3 text-[13px] text-muted">{hazard.source} · {fmtClock(hazard.updated_at)}</p>
@@ -238,7 +238,7 @@ function WorkerPhone() {
         <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} />
       </Sheet>
       <Sheet open={sheet === "report"} onClose={() => setSheet(null)} title="Report a Hazard">
-        <div className="rounded-[14px] bg-surface p-4"><ReportForm workerId={id} siteId={w.site_id} /></div>
+        <div className="rounded-[16px] bg-surface p-4"><ReportForm workerId={id} siteId={w.site_id} /></div>
       </Sheet>
     </Frame>
   );
@@ -343,7 +343,7 @@ function SosButton({ onFire }: { onFire: () => void }) {
 /** Full screen on a phone; a phone-sized card on a laptop. `dark` = the black emergency screens. */
 function Frame({ dark = false, status, children }: { dark?: boolean; status?: string; children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-page sm:grid sm:place-items-center sm:py-6">
+    <main className="font-app min-h-screen bg-page sm:grid sm:place-items-center sm:py-6">
       <div data-status={status}
         className={`relative flex min-h-screen w-full flex-col overflow-hidden sm:min-h-[820px] sm:max-w-[400px] sm:rounded-[2.75rem] sm:border-[10px] sm:border-black sm:shadow-2xl ${
           dark ? "bg-black px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] text-white" : "bg-page text-ink"}`}>
