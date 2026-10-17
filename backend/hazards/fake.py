@@ -184,3 +184,24 @@ def water_levels(station_ids, context):
                                 "ft_stnd": round(st["flood_levels_ft_stnd"]["minor"] - 1.0, 2),
                                 "preliminary": True}
     return levels
+
+
+def fire_detections(sites, now):
+    """Fake FIRMS hotspot 3 miles north of the Pensacola site, high confidence."""
+    site = _site(sites, FIRE_SITE)
+    if not site:
+        return []
+    return [{"lat": round(site.lat + 3 / 69.0, 4), "lon": site.lon,
+             "time": iso(now - timedelta(hours=2)), "confidence": "h", "frp": 25.0,
+             "source": "VIIRS_NOAA20_NRT (fake)"}]
+
+
+def sightings(sites, now):
+    """Fake iNaturalist sightings: an alligator half a mile from Stanton."""
+    site = _site(sites, SOIL_SITE)
+    if not site:
+        return []
+    return [{"id": 1, "group": "alligator", "lat": round(site.lat + 0.5 / 69.0, 5), "lon": site.lon,
+             "observed_on": (now - timedelta(days=1)).date().isoformat(), "name": "American Alligator",
+             "observer": "demo", "license": "cc-by-nc", "url": "https://www.inaturalist.org",
+             "obscured": False}]

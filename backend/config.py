@@ -134,3 +134,4 @@ HEAVY_RAIN_24H_MM = 50               # this much rain in 24 h -> flooding adviso
 # Wildlife (iNaturalist sightings)
 WILDLIFE_RADIUS_MI = 5               # count sightings within this radius
 WILDLIFE_DAYS = 7                    # ...in the last this many days
+WILDLIFE_CLOSE_MI = 1                # alligator or venomous snake this close -> advisory
