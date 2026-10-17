@@ -66,6 +66,8 @@ class UDPBand(BandOutput):
 
     def __init__(self, sock: socket.socket | None = None):
         self.sock = sock or socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # The UDP listener sets this, so replies leave from port 5005 (phone hotspots pass those back).
+        self.transport = None
         self.addresses: dict[str, tuple[str, int]] = {}
 
     def remember(self, worker_id: str, address: tuple[str, int]) -> None:
@@ -74,7 +76,7 @@ class UDPBand(BandOutput):
     def send(self, worker_id: str, line: str) -> None:
         address = self.addresses.get(worker_id)
         if address is not None:
-            self.sock.sendto((line + "\n").encode(), address)
+            (self.transport or self.sock).sendto((line + "\n").encode(), address)
 
 
 class MultiBand(BandOutput):
