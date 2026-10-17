@@ -22,9 +22,10 @@ import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import timedelta
 
 from backend.hazards import store
-from backend.hazards.events import SEVERITY_LEVEL, iso, utc_now
+from backend.hazards.events import SEVERITY_LEVEL, iso, parse_time, utc_now
 from backend.hazards.inject import injected_events
 from backend.hazards.report_log import get_log
 from backend.sites.build_context import load_context
@@ -146,6 +147,9 @@ def hazard_picture(now=None, sites=None, write_log=True):
     for e in events:
         by_site.setdefault(e.site_id, []).append(e.to_dict())
 
+    # Start of tomorrow in Florida (Eastern daylight time, UTC-4)
+    tomorrow_start = (now - timedelta(hours=4)).replace(hour=0, minute=0, second=0, microsecond=0) \
+        + timedelta(days=1, hours=4)
     entries = []
     for s in sites:
         evs = sorted(by_site.get(s.site_id, []), key=lambda e: -e["level"])
@@ -171,7 +175,8 @@ def hazard_picture(now=None, sites=None, write_log=True):
                 "wbgt_max": (wx or {}).get("wbgt_max_tomorrow"),
                 "heat_risk": heat_risk.get("tomorrow"),
                 "river_forecast": (flood.get("river") or {}).get("forecast"),
-                "alerts_into_tomorrow": [e["title"] for e in evs if e["source"] == "NWS" and e["ends"]],
+                "alerts_into_tomorrow": [e["title"] for e in evs if e["source"] == "NWS"
+                                         and e["ends"] and parse_time(e["ends"]) > tomorrow_start],
             },
             # Filled in by the hazard index model (session C2) when it exists
             "hazard_index": None,

@@ -44,3 +44,18 @@ Owns `backend/sites/` and `backend/hazards/`. Interface for other sessions: [doc
 - **iNaturalist** taxon IDs (verified): alligator 26159, pit vipers (Crotalinae) 797576, coral snakes (Micrurus) 30493, red imported fire ant 67598. One paged Florida query for the last 7 days: 225 sightings today (116 alligators, 31 cottonmouths, 15 eastern diamondbacks). Many observations have no license ("all rights reserved"), so we only show counts, distance and a link back, never photos.
 - **FEMA NFHL layer 28** point query (was *not verified*): works, but the server resets connections under load; re-run `build_context fema` for any gaps (it skips sites already done). Zones across our 79 sites: 52 X, 8 AE, 7 A, 1 AO, 1 D, 1 open water, 9 filled on retry.
 - **Levees:** "Leveed Areas" is layer 16 of the NLD FeatureServer; the point+distance query returned nothing, so I pull all 85 Florida leveed areas once (80 KB simplified) and test each site locally. 3 sites sit inside a leveed area (Okeelanta, West County, Dania Beach), 4 more within 3 mi.
+
+## Hazard picture (round 1 done)
+
+- `python -m backend.hazards.picture` runs every feed in parallel: ~15 s cold (lightning backfill + tides), ~4 s warm. Live on Oct 17, 11:47 UTC: an NWS Flood Warning on the St. Johns River ranked DeBary and Sanford first; heavy rain (59-80 mm/24 h) around Polk; Wind Advisory in the panhandle.
+- `--fake` gives the full demo scenario with no internet (lightning stop at Crystal River for minutes 0-20 of each hour then a countdown, St. Johns flood, Tampa Bay heat, Pensacola fire, Orlando saturated soil + alligator).
+- Ranking: 10 x worst severity + other hazards + WBGT/10 + static flood risk, +5 for a lightning stop-work (mandatory, so it beats other "danger" sites). Site band pattern priority: LIGHTNING > FLOOD_FIRE > HEAT_YELLOW.
+- `backend/hazards/contract.py` outputs the frontend contract's `Site` / `SiteStatus` shapes (from the frontend branch's `docs/interfaces/frontend-contract.md`) and the demo test-alert / clear-hazards hooks.
+- WBGT speed: 0.7 s per 100,000 rows, so C2 can use it on the Open-Meteo archive directly.
+
+## Open items for next round
+
+- FIRMS: needs `FIRMS_MAP_KEY`; then test it live and check for ultra-real-time detections.
+- Soil thresholds (0.30 / 0.38 m³/m³) are a first guess; check after a real heavy-rain day.
+- C2's hazard index: plug its predict function into `hazard_picture()` (`entry["hazard_index"]`).
+- Crew photo reports belong to session A; they could become `wildlife` / `flood` events via `inject_test_event`-style records with `source="crew report"` if A wants them on the map and in the log.
