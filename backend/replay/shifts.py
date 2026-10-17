@@ -25,13 +25,14 @@ import numpy as np
 READ_EVERY_S = 5.0              # Apple Watch via Pulsoid sends about every 5 s
 SIM_PATH = Path("data/sim/sim.npz")
 
-# Demo shifts from data/sim/sim.npz, picked by running forecaster v1 on them:
-# - DEMO_SHIFT: core temp climbs past 38.5 at minute 183. The forecaster
-#   warns (yellow) at minute 124 and goes red at 152, half an hour early.
-# - CREW_SHIFTS: workers who stay cool (no alerts) over the replay window.
+# Demo shifts from data/sim/sim.npz, picked by running them through this pipeline
+# with forecaster v1 (replay starts at minute 116):
+# - DEMO_SHIFT: true core temp hits 38.5 at minute 183. The forecaster warns
+#   (yellow) at minute 125 and goes red at 153, half an hour early.
+# - CREW_SHIFTS: workers with no heat alerts over the first 150 replay minutes.
 # If sim.npz is regenerated these may change; then pass --shift.
 DEMO_SHIFT = 9647
-CREW_SHIFTS = (9568, 5790, 8130)
+CREW_SHIFTS = (9568, 8130, 4464)
 CREW_NAMES = ("Maria", "Dev", "Tasha")
 PREROLL_BEFORE_38_MIN = 45      # start the replay this long before true core temp hits 38.0
 
@@ -76,10 +77,13 @@ def _minutes_to_items(worker_id: str, minutes: dict[str, np.ndarray], first_minu
         base = (m - first_minute) * 60.0
         # Context lands just after the minute's first reading (which closes the previous
         # minute), so each minute is stored with its own weather and workload.
-        items.append(ScheduledItem(base + 1.0, "context", worker_id, {
-            "wbgt": _num(minutes["wbgt"][m]) if "wbgt" in minutes else None,
-            "workload": _num(minutes["workload"][m]) if "workload" in minutes else None,
-        }))
+        context = {}
+        for name in ("wbgt", "workload"):
+            if name in minutes:
+                # Now, plus the next 30 minutes as "known future" (forecast weather, planned work).
+                context[name] = _num(minutes[name][m])
+                context[f"future_{name}"] = [_num(v) for v in minutes[name][m + 1:m + 31]]
+        items.append(ScheduledItem(base + 1.0, "context", worker_id, context))
         for k in range(int(60 / READ_EVERY_S)):
             t = base + k * READ_EVERY_S + 0.5
             fallen = fall is not None and fall[0] <= t < fall[0] + fall[1]

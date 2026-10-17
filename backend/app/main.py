@@ -327,6 +327,14 @@ class SiteRequest(BaseModel):
 
 class WeatherRequest(BaseModel):
     wbgt: float
+    future_wbgt: list[float] | None = None     # next 30 minutes, one per minute (optional)
+
+
+class ContextRequest(BaseModel):
+    wbgt: float | None = None
+    workload: float | None = None               # W/m², planned task effort right now
+    future_wbgt: list[float] | None = None
+    future_workload: list[float] | None = None  # planned workload for the next 30 minutes
 
 
 class AssignRequest(BaseModel):
@@ -348,7 +356,15 @@ def add_site(body: SiteRequest):
 
 @app.post("/api/sites/{site_id}/weather")
 def site_weather(site_id: str, body: WeatherRequest):
-    hub_of().set_site_weather(site_id, body.wbgt)
+    hub_of().set_site_weather(site_id, body.wbgt, body.future_wbgt)
+    return {"ok": True}
+
+
+@app.post("/api/workers/{worker_id}/context")
+def worker_context(worker_id: str, body: ContextRequest):
+    """Session B: a worker's planned workload (now and next 30 min). Forecaster inputs."""
+    _worker(worker_id)
+    hub_of().set_context(worker_id, **body.model_dump(exclude_none=True))
     return {"ok": True}
 
 

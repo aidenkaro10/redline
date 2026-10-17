@@ -112,3 +112,22 @@ def test_forecaster_estimates():
     fc = est["forecast"]
     assert len(fc["p90"]) == 30
     assert all(lo <= mid <= hi for lo, mid, hi in zip(fc["p10"], fc["p50"], fc["p90"]))
+
+
+def test_tick_before_first_reading_does_not_start_shift():
+    p = WorkerPipeline("w1")
+    p.tick(10_000.0)
+    feed(p, 3, 100, start=9_000.0)          # pre-roll readings stamped in the past
+    assert len(p.signals["hr"]) == 2
+
+
+@pytest.mark.skipif(not CHECKPOINT.exists(), reason="forecaster checkpoint not in this checkout")
+def test_known_future_context_reaches_forecaster():
+    from backend.models.forecaster import ForecasterPredictor
+    predictor = ForecasterPredictor.load(CHECKPOINT)
+    a, b = WorkerPipeline("a", predictor=predictor), WorkerPipeline("b", predictor=predictor)
+    b.set_context(workload=100.0, future_workload=[100.0] * 30, future_wbgt=[25.0] * 30, wbgt=25.0)
+    ea = of(feed(a, 20, 140), "estimate")[-1]
+    eb = of(feed(b, 20, 140), "estimate")[-1]
+    assert ea["kalman"] == eb["kalman"]                          # same heart rate, same Kalman
+    assert ea["forecast"]["p90"][19] != eb["forecast"]["p90"][19]

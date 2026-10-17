@@ -129,21 +129,39 @@ class Hub:
         out += self.pipelines[event.worker_id].handle(event)
         self.dispatch(out)
 
-    def set_context(self, worker_id: str, wbgt: float | None = None, workload: float | None = None) -> None:
-        """Per-worker weather / planned workload (replay, planner)."""
+    def set_context(self, worker_id: str, **context) -> None:
+        """
+        Per-worker weather / planned workload (replay, planner). Keys: wbgt, workload,
+        future_wbgt, future_workload (lists for the next 30 minutes).
+        """
         if worker_id in self.pipelines:
-            self.pipelines[worker_id].set_context(wbgt=wbgt, workload=workload)
+            self.pipelines[worker_id].set_context(**context)
 
-    def set_site_weather(self, site_id: str, wbgt: float) -> None:
-        """Session C1: current WBGT at a site. Feeds every worker there (a forecaster input)."""
+    def set_site_weather(self, site_id: str, wbgt: float, future_wbgt: list | None = None) -> None:
+        """
+        Session C1: current WBGT at a site, plus optionally the forecast for the next
+        30 minutes (one value per minute). Feeds every worker there (forecaster inputs).
+        """
         for wid, w in self.workers.items():
             if w["site_id"] == site_id:
-                self.pipelines[wid].set_context(wbgt=wbgt)
+                self.pipelines[wid].set_context(wbgt=wbgt, future_wbgt=future_wbgt)
 
     def tick(self) -> None:
         """About once a second: close quiet minutes, check man-down and red-alert timers."""
         for wid, p in list(self.pipelines.items()):
+            if self._prerolling(wid):
+                continue        # its readings are still catching up to the clock
             self.dispatch(p.tick(self.clocks[wid].now()))
+
+    def _prerolling(self, worker_id: str) -> bool:
+        return self.replay is not None and self.replay.prerolling and worker_id in self.replay.workers
+
+    def preroll_done(self, worker_ids: list[str]) -> None:
+        """Replay finished its instant pre-roll: tell each band what it should be showing now."""
+        for wid in worker_ids:
+            p = self.pipelines.get(wid)
+            if p is not None and p.router.current != "OFF":
+                self.band.send(wid, f"BUZZ:{p.router.current}")
 
     # ------------------------------------------------------------------
     # Outputs
@@ -154,7 +172,8 @@ class Hub:
             if kind == "estimate":
                 self._add_truth(ev)
             elif kind == "band_command":
-                self.band.send(ev["worker_id"], ev["line"])
+                if not self._prerolling(ev["worker_id"]):      # history, not news: don't buzz anyone
+                    self.band.send(ev["worker_id"], ev["line"])
                 if self.replay is not None:
                     self.replay.on_band_command(ev["worker_id"], ev["pattern"], ev["timestamp"])
             elif kind == "mandown_confirmed":

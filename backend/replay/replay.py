@@ -36,6 +36,7 @@ class Replay:
         self.heap = [(it.offset_s, next(self._seq), it) for it in plan.items]
         heapq.heapify(self.heap)
         self.start: float | None = None
+        self.prerolling = False                    # True while the instant pre-roll is playing
         self.finished = False
         self.fallen_until: dict[str, float] = {}   # worker -> offset (s) when an injected fall ends
 
@@ -94,8 +95,12 @@ class Replay:
         if self.start is None:
             self.register()
         # Pre-roll: everything stamped before "now", in batches so the server stays responsive.
+        self.prerolling = True
         while self.emit_due(self.start, limit=PREROLL_BATCH):
             await asyncio.sleep(0)
+        self.prerolling = False
+        if hasattr(self.sink, "preroll_done"):
+            self.sink.preroll_done(list(self.workers))
         while self.heap:
             self.emit_due(self.clock.now())
             if not self.heap:

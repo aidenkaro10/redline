@@ -62,6 +62,9 @@ class WorkerPipeline:
         # Per-minute history (what the forecaster reads), one list per signal.
         self.signals = {name: [] for name in AVERAGED + CONTEXT}
         self.context = {name: None for name in CONTEXT}  # current weather / planned workload
+        # Known future (next 30 min): forecast WBGT and planned workload. The forecaster's
+        # decoder reads these; without them its 90th percentile runs noticeably higher.
+        self.future = {name: None for name in CONTEXT}
 
         self.kalman = ECTempKalman()
         self.heat = HeatAlerter(demo)
@@ -96,17 +99,27 @@ class WorkerPipeline:
 
     def tick(self, t: float) -> list[dict]:
         """Called about once a second with the source's clock. Closes quiet minutes and checks timers."""
+        if self.t0 is None:
+            return []                                    # the shift starts at the first reading, not a tick
         events = self._advance(t)                        # already reacted to inside
         events += self._react(self.heat.tick(t), t)
         events += self._mandown(self.mandown.tick(t))
         return self._stamp(events)
 
-    def set_context(self, wbgt: float | None = None, workload: float | None = None) -> None:
-        """Weather (WBGT, °C) and planned workload (W/m²) from the hazard feed / planner."""
+    def set_context(self, wbgt: float | None = None, workload: float | None = None,
+                    future_wbgt: list | None = None, future_workload: list | None = None) -> None:
+        """
+        Weather (WBGT, °C) and planned workload (W/m²) from the hazard feed / planner.
+        future_*: values for the next minutes (index 0 = next minute, up to 30).
+        """
         if wbgt is not None:
             self.context["wbgt"] = wbgt
         if workload is not None:
             self.context["workload"] = workload
+        if future_wbgt is not None:
+            self.future["wbgt"] = future_wbgt
+        if future_workload is not None:
+            self.future["workload"] = future_workload
 
     def set_demo(self, on: bool) -> list[dict]:
         """Switch demo thresholds and re-check right away (no waiting for the next minute)."""
@@ -170,11 +183,12 @@ class WorkerPipeline:
 
         if self.predictor is not None:
             try:
-                arrays = {name: np.array(values, dtype=float) for name, values in self.signals.items()}
+                arrays = self._model_arrays()
                 kal, now_delta, now_var, fc = self.predictor.predict_signals(arrays)
-                core = float(kal[-1] + now_delta[-1])
-                core_sd = float(math.sqrt(now_var[-1]))
-                curve = kal[-1] + fc[-1]                 # (30, 3): °C at +1..+30 min, 10/50/90th pct
+                i = self.n_minutes                       # this minute's row (rows after it = known future)
+                core = float(kal[i] + now_delta[i])
+                core_sd = float(math.sqrt(now_var[i]))
+                curve = kal[i] + fc[i]                   # (30, 3): °C at +1..+30 min, 10/50/90th pct
                 model = self.predictor.name
             except Exception as e:                       # never let a model bug stop the Kalman alerts
                 log.warning("forecaster failed for %s, using Kalman only: %s", self.worker_id, e)
@@ -203,6 +217,23 @@ class WorkerPipeline:
             "core_temp": _r(core), "core_temp_sd": _r(core_sd, 4),
             "forecast": forecast, "model": model,
         }
+
+    def _model_arrays(self) -> dict[str, np.ndarray]:
+        """
+        History so far, plus 30 rows of known future (only WBGT / workload filled in).
+        The model is causal, so the extra rows can't change anything at this minute;
+        they only feed the forecast decoder, exactly as in training.
+        """
+        horizon = max(config.FORECAST_HORIZONS_MIN)
+        arrays = {}
+        for name, values in self.signals.items():
+            future = np.full(horizon, np.nan)
+            known = self.future.get(name)
+            if known is not None:
+                known = np.array([np.nan if v is None else v for v in known[:horizon]], dtype=float)
+                future[:len(known)] = known
+            arrays[name] = np.concatenate([np.array(values, dtype=float), future])
+        return arrays
 
     # ------------------------------------------------------------------
     # Reactions: heat level / man-down -> band router

@@ -140,3 +140,34 @@ def test_sim_plan_preroll():
     assert plan.workers[0].meta["first_minute"] > 0
     assert min(i.offset_s for i in plan.items) < 0             # pre-roll items exist
     assert len(plan.workers) == 1 + len(shifts.CREW_SHIFTS)
+
+
+def test_preroll_survives_concurrent_ticks():
+    """The server's tick loop runs during pre-roll; history must stay one row per minute."""
+    import numpy as np
+    sig = {"hr": np.full(40, 150.0), "activity": np.full(40, 5.0)}
+    plan = shifts.ReplayPlan([shifts.ReplayWorker("demo-1", "Jake")],
+                             sorted(shifts._minutes_to_items("demo-1", sig, first_minute=35)))
+    band = Recorder()
+    hub = Hub(band=MultiBand([band]))
+
+    async def go():
+        async def ticker():
+            while True:
+                hub.tick()
+                await asyncio.sleep(0)
+        t = asyncio.create_task(ticker())
+        replay = Replay(plan, hub, speed=1)
+        hub.start_replay(replay)
+        while replay.prerolling or replay.start is None or not hub.pipelines["demo-1"].estimates:
+            await asyncio.sleep(0.01)
+        await asyncio.sleep(0.05)
+        t.cancel()
+        hub.stop_replay()
+
+    hub_minutes = []
+    hub.add_listener(lambda e: e["type"] == "estimate" and hub_minutes.append(e["minute"]))
+    asyncio.run(go())
+    assert hub_minutes[:34] == list(range(34))
+    # Band commands from pre-roll history are held back, then the current state is sent once.
+    assert band.lines.count(("demo-1", "BUZZ:HEAT_RED")) <= 1
