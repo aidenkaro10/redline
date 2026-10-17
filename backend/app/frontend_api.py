@@ -37,6 +37,7 @@ STATUS = {"clear": "green", "yellow": "yellow", "red": "red"}
 MANDOWN_REASON = {"fall": "fall", "heat_red_unacknowledged": "no_response_to_red"}
 BAND_SEEN_S = 30                  # band counts as connected if we heard from it this recently
 KEEP = 500
+MAX_PHOTO_CHARS = 2_000_000       # ~1.5 MB JPEG as a base64 data URL
 
 
 class FrontendAdapter:
@@ -564,6 +565,9 @@ async def get_reports(request: Request):
 async def add_report(request: Request, body: dict):
     """Crew photo report (snake, standing water, downed line ...)."""
     a = _a(request)
+    photo = body.get("photo")
+    if photo is not None and (not isinstance(photo, str) or len(photo) > MAX_PHOTO_CHARS):
+        raise HTTPException(413, "photo must be a JPEG data URL under about 1.5 MB")
     site_id = body.get("site_id") or a.hub.default_site_id
     site = a.hub.sites.get(site_id, {})
     r = {"id": f"rp-{next(a.ids)}", "site_id": site_id, "worker_id": body.get("worker_id"),

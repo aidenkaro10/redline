@@ -125,3 +125,7 @@ def test_sos_incident_flow(client):
     assert client.post("/api/workers/w1/sos").json()["action"] == "ignored_active_incident"
     client.post(f"/api/mandown/{st['mandown']['id']}/resolve")
     assert client.get("/api/state").json()["mandown"] is None
+
+
+def test_report_photo_too_big(client):
+    assert client.post("/api/reports", json={"kind": "snake", "photo": "x" * 2_000_001}).status_code == 413
