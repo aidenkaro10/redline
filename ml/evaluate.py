@@ -240,15 +240,29 @@ def print_reports(reports: list[Report]) -> None:
 
 
 if __name__ == "__main__":
+    import argparse
+
     from ml.baselines import BASELINES
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--model", action="append", default=[], help="checkpoint(s) to score next to the baselines")
+    ap.add_argument("--on", default="val", choices=["val", "test"], help="which people to score on")
+    args = ap.parse_args()
+    if args.on == "test":
+        print("WARNING: scoring on TEST people. Do this once, for final numbers only.")
 
     data = load_mendeley()
     split = load_split("mendeley")
-    train, val = sessions_in(data, split["train"]), sessions_in(data, split["val"])
+    train, people = sessions_in(data, split["train"]), split[args.on]
+    sessions = sessions_in(data, people)
     reports = []
     for name, make in BASELINES.items():
         model = make()
         model.fit(train)
-        reports.append(evaluate(name, model, val, trained_on=set(split["train"])))
-    print(f"Validation people: {len(split['val'])}, sessions: {len(val)}")
+        reports.append(evaluate(name, model, sessions, trained_on=set(split["train"])))
+    for path in args.model:
+        from backend.models.forecaster import ForecasterPredictor
+        model = ForecasterPredictor.load(path)
+        reports.append(evaluate(model.name, model, sessions, trained_on=model.trained_on))
+    print(f"Scored on {args.on.upper()} people: {len(people)}, sessions: {len(sessions)}")
     print_reports(reports)
