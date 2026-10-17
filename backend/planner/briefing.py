@@ -314,7 +314,14 @@ def schedule_suggestions(scenario: Scenario, plan: Plan) -> list[str]:
                    f"and {scenario.slot_time(max(first_heavy) + 1)}.")
     for w in scenario.crew:
         if w.acclim < config.PLAN_UNACCLIM_LEVEL:
-            out.append(f"{w.name} is new to the heat: lighter tasks and extra breaks.")
+            heavy_slots = [scenario.slot_time(k) for k, a in enumerate(plan.assignments[w.id]) if a in heavy]
+            out.append(f"{w.name} isn't used to the heat yet: "
+                       + (f"heavy work at {', '.join(heavy_slots)}, kept under the heat limit with breaks."
+                          if heavy_slots else "no heavy outdoor work planned."))
+    for w in scenario.crew:
+        if w.available != [] and all(a == REST for a in plan.assignments[w.id]):
+            out.append(f"{w.name} rests all day: no task {w.name.split(' ')[0]} can do fits under the heat limit "
+                       "tomorrow. Consider indoor or light work for them.")
     undone = [t.name for t in scenario.tasks if plan.units_done(scenario)[t.id] < t.units]
     if undone:
         out.append("Won't finish safely tomorrow: " + ", ".join(undone) + ".")

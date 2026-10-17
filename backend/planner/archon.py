@@ -113,7 +113,9 @@ def score(scenario: Scenario, plan: Plan, check: CheckResult, s: AgentSettings) 
     peak = float(p90.max())
     spread = float(np.std(doses))
     rank = tp - s.w_peak * max(0.0, peak - 37.5) - s.w_fair * spread
-    return {"throughput": round(tp, 4), "peak_p90": round(peak, 3), "min_margin_c": round(min(slot_margin), 3),
+    # peak rounded DOWN and margin rounded DOWN, so neither can display as safer-looking or over the limit by rounding
+    return {"throughput": round(tp, 4), "peak_p90": math.floor(peak * 1000) / 1000,
+            "min_margin_c": math.floor(min(slot_margin) * 1000) / 1000,
             "slot_margin_c": [round(m, 3) for m in slot_margin], "heat_spread": round(spread, 1),
             "rank": round(rank, 4)}
 

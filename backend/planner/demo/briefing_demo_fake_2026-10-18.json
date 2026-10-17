@@ -1,0 +1,1227 @@
+{
+ "generated_at": 1792274400,
+ "for_date": "2026-10-18",
+ "summary": "Tomorrow (2026-10-18): highest hazard index is Big Bend at 0.3/10. Crew site Deerhaven Generating Station: plan fused. Peak 90th pct core temp 38.00 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
+ "sites": [
+  {
+   "site_id": "eia-645",
+   "name": "Big Bend",
+   "index": 0.31,
+   "band": "low",
+   "top_hazards": [
+    {
+     "kind": "heat",
+     "level": "extreme",
+     "text": "Max WBGT 33 \u00b0C around 2 PM"
+    },
+    {
+     "kind": "heat",
+     "level": "high",
+     "text": "NWS HeatRisk: Major"
+    },
+    {
+     "kind": "heat",
+     "level": "extreme",
+     "text": "Now: WBGT 32.9 \u00b0C (black flag)"
+    }
+   ],
+   "windows": [
+    {
+     "kind": "heat",
+     "start_hour": 9.0,
+     "end_hour": 15.0,
+     "text": "WBGT at or above 30 \u00b0C from 9 AM to 3 PM"
+    }
+   ],
+   "past_incidents": [
+    {
+     "date": "2024-10-01",
+     "text": "Heat injury reported to OSHA nearby",
+     "source": "OSHA Severe Injury Reports"
+    },
+    {
+     "date": "2024-09-23",
+     "text": "Heat injury reported to OSHA nearby",
+     "source": "OSHA Severe Injury Reports"
+    },
+    {
+     "date": "2024-09-10",
+     "text": "Heat injury reported to OSHA nearby",
+     "source": "OSHA Severe Injury Reports"
+    }
+   ],
+   "index_reasons": [
+    {
+     "hazard": "tropical",
+     "feature": "season",
+     "value": null,
+     "points": 0.16,
+     "text": "Time of year"
+    },
+    {
+     "hazard": "tropical",
+     "feature": "rh_min_today",
+     "value": 85.0,
+     "points": 0.12,
+     "text": "Humidity dropped to 85% today"
+    },
+    {
+     "hazard": "tropical",
+     "feature": "td_mean_today",
+     "value": 22.752286555809302,
+     "points": 0.12,
+     "text": "Humid air today (dew point 73\u00b0F)"
+    }
+   ],
+   "index_notes": [
+    "Trained on placeholder sites; retrain once backend/sites/plants.geojson lands.",
+    "Site not in training data; climatology borrowed from ph-tampa.",
+    "Called before 6 PM: hours until 6 PM come from the weather forecast."
+   ],
+   "data_sources": {
+    "index": "C2",
+    "hazards": "C1 (fake demo data)",
+    "weather": "C1 (fake demo data)",
+    "incidents": "C2"
+   }
+  },
+  {
+   "site_id": "eia-628",
+   "name": "Crystal River",
+   "index": 0.21,
+   "band": "low",
+   "top_hazards": [
+    {
+     "kind": "heat",
+     "level": "low",
+     "text": "Max WBGT 29 \u00b0C around 2 PM"
+    },
+    {
+     "kind": "heat",
+     "level": "low",
+     "text": "NWS HeatRisk: Minor"
+    },
+    {
+     "kind": "lightning",
+     "level": "extreme",
+     "text": "Now: Lightning within 10 mi (0.8 mi): STOP WORK, all-clear in 22 min"
+    }
+   ],
+   "windows": [],
+   "past_incidents": [
+    {
+     "date": "2024-06-16",
+     "text": "Tornado",
+     "source": "NOAA Storm Events"
+    },
+    {
+     "date": "2023-10-12",
+     "text": "Tornado",
+     "source": "NOAA Storm Events"
+    },
+    {
+     "date": "2022-09-28",
+     "text": "Tropical Storm",
+     "source": "NOAA Storm Events"
+    }
+   ],
+   "index_reasons": [],
+   "index_notes": [
+    "Trained on placeholder sites; retrain once backend/sites/plants.geojson lands.",
+    "Site not in training data; climatology borrowed from ph-crystal-river.",
+    "Called before 6 PM: hours until 6 PM come from the weather forecast."
+   ],
+   "data_sources": {
+    "index": "C2",
+    "hazards": "C1 (fake demo data)",
+    "weather": "C1 (fake demo data)",
+    "incidents": "C2"
+   }
+  },
+  {
+   "site_id": "eia-663",
+   "name": "Deerhaven Generating Station",
+   "index": 0.19,
+   "band": "low",
+   "top_hazards": [
+    {
+     "kind": "heat",
+     "level": "low",
+     "text": "Max WBGT 29 \u00b0C around 2 PM"
+    },
+    {
+     "kind": "heat",
+     "level": "low",
+     "text": "NWS HeatRisk: Minor"
+    }
+   ],
+   "windows": [],
+   "past_incidents": [
+    {
+     "date": "2024-09-26",
+     "text": "Tropical Storm, 1 hurt",
+     "source": "NOAA Storm Events"
+    },
+    {
+     "date": "2024-06-24",
+     "text": "Thunderstorm Wind",
+     "source": "NOAA Storm Events"
+    },
+    {
+     "date": "2024-06-11",
+     "text": "Thunderstorm Wind",
+     "source": "NOAA Storm Events"
+    }
+   ],
+   "index_reasons": [],
+   "index_notes": [
+    "Trained on placeholder sites; retrain once backend/sites/plants.geojson lands.",
+    "Site not in training data; climatology borrowed from ph-gainesville.",
+    "Called before 6 PM: hours until 6 PM come from the weather forecast."
+   ],
+   "data_sources": {
+    "index": "C2",
+    "hazards": "C1 (fake demo data)",
+    "weather": "C1 (fake demo data)",
+    "incidents": "C2"
+   }
+  }
+ ],
+ "schedule_suggestions": [
+  "Heavy outdoor work is scheduled between 07:00 and 10:30.",
+  "Kofi (new hire) is new to the heat: lighter tasks and extra breaks.",
+  "Won't finish safely tomorrow: Cable pulling, Inverter inspection, Trenching for conduit, Vegetation clearing.",
+  "Peak 90th pct core temp 38.00 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
+  "Kofi (new hire) is not acclimatized: no very heavy work in high heat.",
+  "Alternatives: optimizer:throughput (66% work, peak 37.97 \u00b0C); optimizer:margin (56% work, peak 37.85 \u00b0C)"
+ ],
+ "schedule": {
+  "date": "2026-10-18",
+  "slot_minutes": 30,
+  "day_start": 1792321200,
+  "rows": [
+   {
+    "worker_id": "w1",
+    "name": "Priya",
+    "slots": [
+     {
+      "start": 1792321200,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792323000,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792324800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792326600,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792328400,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792330200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792332000,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792333800,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792335600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792337400,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792339200,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792341000,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792342800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792344600,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792346400,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792348200,
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ]
+   },
+   {
+    "worker_id": "w2",
+    "name": "Ana",
+    "slots": [
+     {
+      "start": 1792321200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792323000,
+      "task": "heavy",
+      "label": "Scaffold setup"
+     },
+     {
+      "start": 1792324800,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792326600,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792328400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792330200,
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "start": 1792332000,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792333800,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792335600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792337400,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792339200,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792341000,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792342800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792344600,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792346400,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "start": 1792348200,
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     }
+    ]
+   },
+   {
+    "worker_id": "w3",
+    "name": "Luis",
+    "slots": [
+     {
+      "start": 1792321200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792323000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792324800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792326600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792328400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792330200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792332000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792333800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792335600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792337400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792339200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792341000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792342800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792344600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792346400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792348200,
+      "task": "break",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker_id": "w4",
+    "name": "Jada",
+    "slots": [
+     {
+      "start": 1792321200,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792323000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792324800,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1792326600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792328400,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1792330200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792332000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792333800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792335600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792337400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792339200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792341000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792342800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792344600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792346400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792348200,
+      "task": "break",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker_id": "w5",
+    "name": "Kofi (new hire)",
+    "slots": [
+     {
+      "start": 1792321200,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792323000,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1792324800,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792326600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792328400,
+      "task": "heavy",
+      "label": "Vegetation clearing"
+     },
+     {
+      "start": 1792330200,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1792332000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792333800,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1792335600,
+      "task": "light",
+      "label": "Control room checks (indoors)"
+     },
+     {
+      "start": 1792337400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792339200,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792341000,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792342800,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792344600,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792346400,
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "start": 1792348200,
+      "task": "break",
+      "label": "Shade break"
+     }
+    ]
+   }
+  ],
+  "notes": [
+   "Recommended: fused. Peak 90th pct core temp 38.00 \u00b0C (limit 38.0), tightest margin 0.00 \u00b0C, 67% of priority-weighted work done.",
+   "Heavy outdoor work is scheduled between 07:00 and 10:30.",
+   "Kofi (new hire) is new to the heat: lighter tasks and extra breaks.",
+   "Won't finish safely tomorrow: Cable pulling, Inverter inspection, Trenching for conduit, Vegetation clearing."
+  ],
+  "checked_by_rules": true
+ },
+ "plan": {
+  "source": "agent:fused",
+  "verified": true,
+  "violations": [],
+  "workers": [
+   {
+    "id": "w1",
+    "name": "Priya",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     }
+    ],
+    "peak_p90_c": 37.97
+   },
+   {
+    "id": "w2",
+    "name": "Ana",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "t3",
+      "task_name": "Scaffold setup"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "t5",
+      "task_name": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "t4",
+      "task_name": "Transformer maintenance"
+     }
+    ],
+    "peak_p90_c": 37.83
+   },
+   {
+    "id": "w3",
+    "name": "Luis",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     }
+    ],
+    "peak_p90_c": 37.37
+   },
+   {
+    "id": "w4",
+    "name": "Jada",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "t1",
+      "task_name": "Control room checks"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "t1",
+      "task_name": "Control room checks"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     }
+    ],
+    "peak_p90_c": 37.99
+   },
+   {
+    "id": "w5",
+    "name": "Kofi (new hire)",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "t1",
+      "task_name": "Control room checks"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "t7",
+      "task_name": "Vegetation clearing"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "t1",
+      "task_name": "Control room checks"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "t1",
+      "task_name": "Control room checks"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "t1",
+      "task_name": "Control room checks"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "rest",
+      "task_name": "Rest (shade)"
+     }
+    ],
+    "peak_p90_c": 37.84
+   }
+  ],
+  "tasks": [
+   {
+    "id": "t1",
+    "name": "Control room checks",
+    "done": 6,
+    "needed": 6,
+    "priority": 2
+   },
+   {
+    "id": "t2",
+    "name": "Cable pulling",
+    "done": 0,
+    "needed": 3,
+    "priority": 3
+   },
+   {
+    "id": "t3",
+    "name": "Scaffold setup",
+    "done": 1,
+    "needed": 1,
+    "priority": 2
+   },
+   {
+    "id": "t4",
+    "name": "Transformer maintenance",
+    "done": 10,
+    "needed": 10,
+    "priority": 1
+   },
+   {
+    "id": "t5",
+    "name": "Inverter inspection",
+    "done": 9,
+    "needed": 15,
+    "priority": 3
+   },
+   {
+    "id": "t6",
+    "name": "Trenching for conduit",
+    "done": 0,
+    "needed": 6,
+    "priority": 2
+   },
+   {
+    "id": "t7",
+    "name": "Vegetation clearing",
+    "done": 8,
+    "needed": 17,
+    "priority": 2
+   }
+  ]
+ },
+ "crew_site_id": "eia-663",
+ "crew_data_sources": {
+  "index": "C2",
+  "hazards": "C1 (fake demo data)",
+  "weather": "C1 (fake demo data)",
+  "incidents": "C2"
+ },
+ "personalized_workers": [],
+ "stubs": [
+  "C1 is in HAZARD_MODE=fake: weather and hazards are its built-in demo day, not real feeds"
+ ],
+ "cost_usd": 0.0
+}
