@@ -94,20 +94,30 @@ def future_windows(future: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
 class ForecasterPredictor:
     """Wraps one or more trained networks (an ensemble) behind the harness interface."""
 
-    def __init__(self, models: list[HeatForecaster], trained_on: set[str] | None = None, name: str = "forecaster"):
+    def __init__(self, models: list[HeatForecaster], trained_on: set[str] | None = None, name: str = "forecaster",
+                 calibration: dict | None = None):
         self.models = [m.eval() for m in models]
         self.trained_on = trained_on or set()
         self.name = name
+        # Conformal calibration from ml/calibrate.py:
+        #   "offsets":   (30, 3) shift added to the 10th / 50th / 90th percentile, per minute ahead
+        #   "now_scale": multiplier for the NOW uncertainty
+        # None = raw, uncalibrated model.
+        self.calibration = calibration
 
     @classmethod
-    def load(cls, path: str | Path) -> "ForecasterPredictor":
+    def load(cls, path: str | Path, calibrated: bool = True) -> "ForecasterPredictor":
         ckpt = torch.load(path, map_location="cpu", weights_only=False)
         models = []
         for state in ckpt["models"]:
             m = HeatForecaster(**ckpt["model_args"])
             m.load_state_dict(state)
             models.append(m)
-        return cls(models, set(ckpt.get("trained_on", [])), ckpt.get("name", Path(path).stem))
+        cal = ckpt.get("calibration") if calibrated else None
+        name = ckpt.get("name", Path(path).stem) + ("+conformal" if cal else "")
+        # People used for calibration count as "seen": the harness won't score on them.
+        seen = set(ckpt.get("trained_on", [])) | set(ckpt.get("calibrated_on", []))
+        return cls(models, seen, name, cal)
 
     def fit(self, sessions):
         pass   # trained separately in ml/train.py
@@ -136,6 +146,11 @@ class ForecasterPredictor:
         spread = fc[..., 1].std(axis=0)
         low = fc[..., 0].mean(axis=0) - spread
         high = fc[..., 2].mean(axis=0) + spread
+        if self.calibration is not None:
+            off = np.asarray(self.calibration["offsets"])           # (30, 3)
+            low, median, high = low + off[:, 0], median + off[:, 1], high + off[:, 2]
+            low, high = np.minimum(low, median), np.maximum(high, median)   # keep the order
+            now_var = now_var * self.calibration["now_scale"] ** 2
         return kal, now_delta, now_var, np.stack([low, median, high], axis=-1)
 
     def predict(self, session):

@@ -245,7 +245,8 @@ if __name__ == "__main__":
     from ml.baselines import BASELINES
 
     ap = argparse.ArgumentParser()
-    ap.add_argument("--model", action="append", default=[], help="checkpoint(s) to score next to the baselines")
+    ap.add_argument("--model", action="append", default=[],
+                    help="checkpoint(s) to score next to the baselines; add :raw to skip calibration")
     ap.add_argument("--on", default="val", choices=["val", "test"], help="which people to score on")
     args = ap.parse_args()
     if args.on == "test":
@@ -262,7 +263,8 @@ if __name__ == "__main__":
         reports.append(evaluate(name, model, sessions, trained_on=set(split["train"])))
     for path in args.model:
         from backend.models.forecaster import ForecasterPredictor
-        model = ForecasterPredictor.load(path)
+        raw = path.endswith(":raw")          # "ml/checkpoints/v1.pt:raw" scores the uncalibrated model
+        model = ForecasterPredictor.load(path.removesuffix(":raw"), calibrated=not raw)
         reports.append(evaluate(model.name, model, sessions, trained_on=model.trained_on))
     print(f"Scored on {args.on.upper()} people: {len(people)}, sessions: {len(sessions)}")
     print_reports(reports)
