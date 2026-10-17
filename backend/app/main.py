@@ -253,14 +253,17 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     ble_on = False
     if s.ble:
         from backend.ingest import ble_hr
-        if ble_hr.available():
-            reader = ble_hr.BleHeartRate(hub, config.WORKER_ID, wanted=s.ble_device or None)
+        if not ble_hr.available():
+            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
+        elif not ble_hr.safe_to_scan():
+            log.info("Bluetooth heart rate not started inside the test suite")
+        else:
+            # In a helper process: if macOS refuses Bluetooth it kills that process, not this server.
+            reader = ble_hr.BleHelper(hub, config.WORKER_ID, wanted=s.ble_device or None)
             tasks.append(asyncio.create_task(reader.run()))
             ble_on = True
             log.info("Bluetooth heart rate started (%s). macOS asks for Bluetooth permission the first time.",
                      f"device {s.ble_device!r}" if s.ble_device else "first heart rate device found")
-        else:
-            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
     if config.PULSOID_TOKEN and not s.no_pulsoid:
         tasks.append(asyncio.create_task(pulsoid_client.run(hub, config.PULSOID_TOKEN, worker_id=config.WORKER_ID)))
         log.info("Pulsoid heart rate client started")
