@@ -194,7 +194,7 @@ test("03 contract: missing optional fields render as -- or are hidden (no NaN / 
     render(<DemoPage />, demo, { path: "/demo", search: "worker=demo-2" }),
   ];
   for (const html of pages) assert.doesNotMatch(text(html), /\bNaN\b|\bundefined\b|\bnull\b/);
-  assert.match(text(row(pages[0], "Jake")), /Danger -- /);                          // minutes_to_danger null
+  assert.doesNotMatch(row(pages[0], "Jake"), /data-testid="danger"/);              // minutes_to_danger null: no countdown
   assert.match(text(pages[1]), /--/);                                               // index null
   assert.doesNotMatch(text(pages[2]), /Next break/);                                // break_at null: tile hidden
   assert.doesNotMatch(pages[2], /data-testid="why"/);                               // why null: hidden
@@ -224,7 +224,7 @@ test("03 contract (session J's fixtures): missing optional fields render as -- o
     render(<DemoPage />, stateOf(DEMO, [clone(snap)]), { path: "/demo", search: `worker=${id}` }),
   ];
   for (const html of pages) assert.doesNotMatch(text(html), /\bNaN\b|\bundefined\b|\bnull\b/);
-  assert.match(text(row(pages[0], snap.workers[0].name)), /Danger -- /);            // minutes_to_danger null
+  assert.doesNotMatch(row(pages[0], snap.workers[0].name), /data-testid="danger"/); // minutes_to_danger null: no countdown
   assert.doesNotMatch(text(pages[2]), /Next break/);                                // break_at null: tile hidden
   assert.doesNotMatch(pages[2], /data-testid="why"/);                               // why null: hidden
 });
@@ -239,11 +239,11 @@ test("04 crew: status color and label come from the event", () => {
   // The replay never went red while recording, so red is the same real payload with status "red".
   const s = applyEvents(crewBase(), [yellow, workerEvent(maria, { status: "red", minutes_to_danger: 25 }), workerEvent(dev, { status: "green" })]);
   const html = render(<CrewApp />, s);
-  assert.match(row(html, jake.name), /border-l-warn/);
+  assert.match(row(html, jake.name), /data-status="yellow"/);
   assert.match(text(row(html, jake.name)), /Warning/);
-  assert.match(row(html, maria.name), /border-l-danger/);                           // red even with 25 min to go:
+  assert.match(row(html, maria.name), /data-status="red"/);                           // red even with 25 min to go:
   assert.match(text(row(html, maria.name)), /Danger/);                              // the UI doesn't recompute it
-  assert.match(row(html, dev.name), /border-l-ok/);
+  assert.match(row(html, dev.name), /data-status="green"/);
   assert.match(text(row(html, dev.name)), / OK /);
 });
 
@@ -270,7 +270,7 @@ test("05 crew: privacy, raw biometrics never show on crew screens even if a back
   assert.match(t, /in 18 min/);                                                     // and minutes to danger
 });
 
-test("06 crew: minutes to danger, 0 is now (red), null is --", () => {
+test("06 crew: minutes to danger, 0 is now (red), null shows no countdown", () => {
   const s = applyEvents(crewBase(), [
     workerEvent(realWorker("demo-1"), { status: "red", minutes_to_danger: 0 }),
     workerEvent(realWorker("demo-2"), { status: "yellow", minutes_to_danger: 12 }),
@@ -281,7 +281,7 @@ test("06 crew: minutes to danger, 0 is now (red), null is --", () => {
   assert.match(text(danger("Jake")), /Danger now/);
   assert.match(danger("Jake"), /text-danger-ink/);
   assert.match(text(danger("Maria")), /Danger in 12 min/);
-  assert.match(text(danger("Dev")), /Danger -- /);
+  assert.doesNotMatch(row(html, "Dev"), /data-testid="danger"/);
 });
 
 test("07 crew: lightning stop-work banner, 10-mile ring, 30-min countdown on the wall clock, reset by a new strike", () => {
@@ -466,13 +466,13 @@ test("13 worker: giant status color, hazard tile, next break from the planner's 
   const html = render(<WorkerPhonePage />, s, workerRoute());
   const t = text(html);
   assert.match(t, /You're OK/);
-  assert.match(html, /background:#0b7a0b/);                                         // green
+  assert.match(html, /data-status="green"/);                                        // green: calm screen
   assert.match(t, /Hazard/);
   assert.match(t, /Next break in 4[45] min/);
   const y = applyEvents(s, [workerEvent(maria, { status: "yellow", minutes_to_danger: 15 })]);
   const yh = render(<WorkerPhonePage />, y, workerRoute());
   assert.match(text(yh), /Slow down/);
-  assert.match(yh, /background:#fab219/);
+  assert.match(yh, /data-status="yellow"/);                                       // yellow: amber wash
 });
 
 test("14 worker: hold 3 s sends SOS; a short tap or letting go at 2.5 s sends nothing", () => {

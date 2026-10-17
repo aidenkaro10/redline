@@ -4,72 +4,77 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Color tokens. Use them as Tailwind classes: bg-surface, text-muted, border-line, text-ok ...
- * Status colors come from the dataviz reference palette and always ship with a text label.
+ * Color tokens, "Apple system" direction (see the UI board). Use them as Tailwind classes:
+ * bg-surface, text-muted, border-line, text-ok ...
+ * Light = iOS grouped background with white cards. Status colors are Apple's system colors
+ * and always ship with a text label, never color alone.
  */
 :root {
-  --page: #f4f5f2;
-  --surface: #fcfcfb;
-  --surface-2: #f0f0ec;
-  --ink: #0b0b0b;
-  --ink-2: #52514e;
-  --muted: #7a7873;
-  --line: #e1e0d9;
-  --accent: #0f766e;
+  --page: #f2f2f7;          /* grouped background */
+  --surface: #ffffff;       /* cards */
+  --surface-2: #e9e9ee;     /* chips, secondary fills */
+  --ink: #1c1c1e;
+  --ink-2: #48484a;
+  --muted: #8e8e93;
+  --line: #e5e5ea;          /* hairline separators */
+  --accent: #007aff;        /* taps and links */
   --accent-ink: #ffffff;
 
-  --ok: #0ca30c;
-  --ok-ink: #006300;
-  --ok-bg: #e3f5e1;
-  --warn: #fab219;
-  --warn-ink: #8a5a00;
-  --warn-bg: #fff3d6;
-  --danger: #d03b3b;
-  --danger-ink: #a12424;
-  --danger-bg: #fbe3e1;
+  --ok: #34c759;
+  --ok-ink: #248a3d;
+  --ok-bg: #e8f8ec;
+  --warn: #ff9f0a;
+  --warn-ink: #b25000;
+  --warn-bg: #fff3e0;
+  --danger: #ff3b30;
+  --danger-ink: #d70015;
+  --danger-bg: #ffebea;
 
-  --lightning: #6250d6;
-  --flood: #2a78d6;
-  --fire: #eb6834;
-  --soil: #9a6b2f;
-  --wildlife: #1baf7a;
-  --heat: #d03b3b;
-  --sos: #7e3ac8;
+  --lightning: #5856d6;
+  --flood: #32ade6;
+  --fire: #f2622e;
+  --soil: #a2845e;
+  --wildlife: #30b0a0;
+  --heat: #ff3b30;
+  --sos: #af52de;
 
-  --series-1: #2a78d6;      /* core temp */
-  --grid: #e1e0d9;
-  --axis: #898781;
+  --series-1: #007aff;      /* core temp */
+  --grid: #e5e5ea;
+  --axis: #8e8e93;
 }
 
 .dark {
-  --page: #0d0d0d;
-  --surface: #1a1a19;
-  --surface-2: #232321;
-  --ink: #f0efec;
-  --ink-2: #c3c2b7;
-  --muted: #898781;
-  --line: #2c2c2a;
-  --accent: #2dd4bf;
-  --accent-ink: #062b27;
+  --page: #000000;
+  --surface: #1c1c1e;
+  --surface-2: #2c2c2e;
+  --ink: #ffffff;
+  --ink-2: #c7c7cc;
+  --muted: #8e8e93;
+  --line: #38383a;
+  --accent: #0a84ff;
+  --accent-ink: #ffffff;
 
-  --ok-ink: #3fd13f;
-  --ok-bg: rgba(12, 163, 12, 0.16);
-  --warn-ink: #fab219;
-  --warn-bg: rgba(250, 178, 25, 0.14);
-  --danger-ink: #ff7b74;
-  --danger-bg: rgba(208, 59, 59, 0.2);
+  --ok: #30d158;
+  --ok-ink: #30d158;
+  --ok-bg: rgba(48, 209, 88, 0.16);
+  --warn: #ff9f0a;
+  --warn-ink: #ffb340;
+  --warn-bg: rgba(255, 159, 10, 0.16);
+  --danger: #ff453a;
+  --danger-ink: #ff6961;
+  --danger-bg: rgba(255, 69, 58, 0.2);
 
-  --lightning: #9085e9;
-  --flood: #3987e5;
-  --fire: #d95926;
-  --soil: #c49455;
-  --wildlife: #199e70;
-  --heat: #e66767;
-  --sos: #b98af0;
+  --lightning: #5e5ce6;
+  --flood: #64d2ff;
+  --fire: #ff7a45;
+  --soil: #c4a47c;
+  --wildlife: #40c8b8;
+  --heat: #ff453a;
+  --sos: #bf5af2;
 
-  --series-1: #3987e5;
-  --grid: #2c2c2a;
-  --axis: #898781;
+  --series-1: #0a84ff;
+  --grid: #38383a;
+  --axis: #8e8e93;
   color-scheme: dark;
 }
 
@@ -116,17 +121,27 @@ body {
 
 /* Man-down screen pulse and the red "flashing" status. */
 @keyframes pulse-red {
-  0%, 100% { background-color: #b91c1c; }
-  50% { background-color: #7f1d1d; }
+  0%, 100% { background-color: #ff3b30; }
+  50% { background-color: #b8261e; }
 }
 .pulse-red { animation: pulse-red 1.2s ease-in-out infinite; }
 
 /* SOS uses purple, the same color the band blinks when the button is held 3 s. */
 @keyframes pulse-sos {
-  0%, 100% { background-color: #6d28d9; }
-  50% { background-color: #3b0f7a; }
+  0%, 100% { background-color: #af52de; }
+  50% { background-color: #6e2a91; }
 }
 .pulse-sos { animation: pulse-sos 1.2s ease-in-out infinite; }
+
+/* Bottom sheet: slides up from the bottom, backdrop fades in. */
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+.sheet-up { animation: sheet-up .32s cubic-bezier(.2, .9, .3, 1) both; }
+.sheet-fade { animation: sheet-fade .25s ease both; }
+
+/* A status dot that breathes (man-down / SOS rows, the worker's emergency screen). */
+@keyframes dot-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.dot-breathe { animation: dot-breathe 1.2s ease-in-out infinite; }
 
 /* The band's single status light (docs/firmware-contract.md). */
 @keyframes led-on-off { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.08; } }
@@ -151,7 +166,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse-red, .pulse-sos, .ring-pulse::after { animation: none; }
+  .pulse-red, .pulse-sos, .ring-pulse::after, .sheet-up, .sheet-fade, .dot-breathe { animation: none; }
 }
 
 /* Leaflet: match our surfaces. In dark mode, darken the OpenStreetMap tiles (not the markers). */

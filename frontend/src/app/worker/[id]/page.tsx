@@ -1,10 +1,14 @@
 "use client";
 
 /**
- * Worker phone app. The basics on one screen: big status color, what to do,
- * the current hazard, the next break, and SOS. "Details" opens the rest:
- * core temp chart, thermometer spot check, report a hazard.
- * Made for a phone; on a laptop it shows inside a phone-sized frame.
+ * Worker phone app, laid out like Apple Health's Summary screen.
+ *
+ * Top: a soft color wash (mint when OK, amber, red, indigo for lightning) behind
+ * one big answer: "You're OK", "Slow down", "Stop. Cool down now."
+ * Below: three cards, each with one big number: core temp, hazard, next break.
+ * Tapping a card slides up the details (chart, hazard info), so extra info only
+ * shows when the worker asks for it. Thermometer check and hazard report are two
+ * rows under that. SOS is a hold-3-seconds pill at the bottom.
  *
  * This page connects as view=worker for this worker only, so it gets this
  * person's own numbers and nobody else's.
@@ -16,9 +20,11 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { CoreChart } from "@/components/Charts";
 import { LearningCard } from "@/components/LearningCard";
 import { ReportForm } from "@/components/ReportForm";
+import { Sheet } from "@/components/Sheet";
 import { WhyLine } from "@/components/WhyLine";
-import { HazardIcon, fmtCountdown } from "@/components/ui";
-import type { Hazard, Status } from "@/lib/contract";
+import { Avatar, Card, Chev, HUE, Icon, Ring, SectionHeader, Spark, Sub, Value, Wash, type WashTone } from "@/components/health";
+import { fmtClock, fmtCountdown } from "@/components/ui";
+import type { Hazard, HazardKind, HazardLevel, Status } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
@@ -26,13 +32,20 @@ import { createHold } from "@/lib/hold";
 import { secondsUntil } from "@/lib/normalize";
 import { shortSiteName, useSites } from "@/lib/crew";
 
-const LOOK: Record<Status, { bg: string; fg: string; title: string; tip: string }> = {
-  green: { bg: "#0b7a0b", fg: "#ffffff", title: "You're OK", tip: "Keep drinking water. Breaks as planned." },
-  yellow: { bg: "#fab219", fg: "#1f1400", title: "Slow down", tip: "Take a break in the shade and drink water." },
-  red: { bg: "#c62828", fg: "#ffffff", title: "Stop. Cool down now.", tip: "Get to shade, drink water, tell your crew lead." },
+const LOOK: Record<Status, { tone: WashTone; title: string; tip: string }> = {
+  green: { tone: "ok", title: "You're OK", tip: "Keep drinking water. Breaks as planned." },
+  yellow: { tone: "warn", title: "Slow down", tip: "Take a break in the shade and drink water." },
+  red: { tone: "danger", title: "Stop. Cool down now.", tip: "Get to shade, drink water, tell your crew lead." },
 };
+const STOP_LOOK = { tone: "stop" as WashTone, title: "Stop work. Shelter now.", tip: "Lightning within 10 miles. Wait for the all clear." };
 
-const STOP_LOOK = { bg: "#4b3fb0", fg: "#ffffff", title: "Stop work. Shelter now.", tip: "Lightning within 10 miles. Wait for the all clear." };
+const HAZARD_ICON: Record<HazardKind, () => React.ReactNode> = {
+  heat: Icon.thermo, lightning: Icon.bolt, flood: Icon.drop, fire: Icon.flame, soil: Icon.layers, wildlife: Icon.leaf,
+};
+const LEVEL_N: Record<HazardLevel, number> = { none: 0, low: 1, moderate: 2, high: 3, extreme: 4 };
+const LEVEL_WORD: Record<HazardLevel, string> = { none: "Clear", low: "Low", moderate: "Moderate", high: "High", extreme: "Extreme" };
+
+type SheetName = "core" | "hazard" | "spot" | "report" | null;
 
 export default function WorkerPhonePage() {
   return <Suspense><WorkerPhone /></Suspense>;
@@ -43,7 +56,7 @@ function WorkerPhone() {
   const search = useSearchParams();
   const live = useLive();
   const now = useSimNow(500);
-  const [showDetails, setShowDetails] = useState(search.get("details") === "1");   // ?details=1 opens it
+  const [sheet, setSheet] = useState<SheetName>(search.get("details") === "1" ? "core" : null);   // ?details=1 opens core temp
   const w = live.workers[id];
   const { byId } = useSites();
   const site = w ? byId[w.site_id] : null;
@@ -53,11 +66,12 @@ function WorkerPhone() {
   const call = md ? callForIncident(live.emergency, md) : null;   // the emergency call for this incident, if any
   const crewDown = md && md.worker_id !== id && md.stage === "confirmed";
   const est = live.history[id]?.estimates ?? [];
+  const last = est[est.length - 1];
 
   // Most urgent site hazard right now: stop-work first, then the highest level.
   const hazard: Hazard | undefined = siteStatus?.hazards
     .filter((h) => h.level !== "none" && (h.stop_work || h.band_pattern || h.level === "high" || h.level === "extreme"))
-    .sort((a, b) => Number(b.stop_work) - Number(a.stop_work))[0];
+    .sort((a, b) => Number(b.stop_work) - Number(a.stop_work) || LEVEL_N[b.level] - LEVEL_N[a.level])[0];
 
   const press = () => apiPost(`/workers/${id}/button`);
 
@@ -69,21 +83,22 @@ function WorkerPhone() {
   };
 
   if (!w) {
-    return <Frame bg="var(--surface)" fg="var(--ink)"><p className="m-auto text-sm opacity-70">{live.ready ? `No worker "${id}"` : "Connecting…"}</p></Frame>;
+    return <Frame><p className="m-auto text-sm text-muted">{live.ready ? `No worker "${id}"` : "Connecting…"}</p></Frame>;
   }
 
+  // Emergency screens copy the Apple Watch fall screen: black, one question, very few buttons.
   // This worker pressed SOS (band button held 3 s, or the phone's SOS button).
   if (meDown && md.reason === "sos") {
     return (
-      <Frame bg="#4c1d95" fg="#fff" pulse="sos">
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.25em]">SOS sent</p>
-          <h1 className="text-5xl font-black leading-tight">Help is coming</h1>
-          <p className="text-lg">Your crew lead and crewmates have your location.<br />Stay where you are if you can.</p>
+      <Frame dark status="sos">
+        <div className="flex flex-1 flex-col justify-center gap-4">
+          <AlarmLabel color="#bf5af2">SOS sent</AlarmLabel>
+          <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight">Help is coming</h1>
+          <p className="text-[17px] text-white/75">Your crew lead and crewmates have your location. Stay where you are if you can.</p>
           {call?.stage === "failed" ? (
-            <p className="rounded-xl bg-red-700 px-4 py-3 text-2xl font-black">Automatic call failed. Call 911 now.</p>
+            <p className="rounded-2xl bg-[#ff3b30] px-4 py-3 text-2xl font-bold">Automatic call failed. Call 911 now.</p>
           ) : call && (
-            <p className="rounded-xl bg-black/30 px-4 py-2 text-sm font-semibold">
+            <p className="self-start rounded-full bg-white/12 px-3.5 py-1.5 text-sm font-medium text-white/85">
               {call.stage === "cancelled" ? "Cancelled by your crew lead" : call.stage === "done" ? "Emergency report delivered" : "Contacting your crew lead…"}
             </p>
           )}
@@ -95,135 +110,184 @@ function WorkerPhone() {
 
   // Man-down check on this worker's own phone.
   if (meDown) {
+    const checking = md.stage === "checking";
     return (
-      <Frame bg="#7f1d1d" fg="#fff" pulse="red">
-        <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.25em]">{md.stage === "checking" ? "Man-down check" : "Help is coming"}</p>
-          <h1 className="text-5xl font-black leading-tight">Are you OK?</h1>
-          {md.stage === "checking" ? (
-            <>
-              <p className="text-lg">Press the band button or tap below.<br />Alerting your crew in <b className="tabular">{fmtCountdown(md.confirm_at - now)}</b></p>
-              <button onClick={press} className="h-40 w-40 rounded-full bg-white text-2xl font-black text-red-800 shadow-2xl active:scale-95">I&apos;M OK</button>
-            </>
+      <Frame dark status="mandown">
+        <div className="flex flex-1 flex-col justify-center gap-4">
+          <AlarmLabel color="#ff453a">{checking ? "Man-down check" : "Help is coming"}</AlarmLabel>
+          <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight">Are you OK?</h1>
+          {checking ? (
+            <p className="text-[17px] text-white/75">
+              Press the band button or tap below. Alerting your crew in <b className="tabular text-white">{fmtCountdown(md.confirm_at - now)}</b>
+            </p>
           ) : (
-            <p className="text-lg">Your crew lead and crewmates have your location.<br />An emergency report is being sent.</p>
+            <p className="text-[17px] text-white/75">Your crew lead and crewmates have your location. An emergency report is being sent.</p>
           )}
         </div>
-        {md.stage === "confirmed" && <OkButton onClick={imOk} calling={call?.stage === "calling" || call?.stage === "connected"} />}
+        {checking
+          ? <button onClick={press} className="mb-2 w-full rounded-full bg-white py-5 text-xl font-semibold text-black active:scale-[.98]">I&apos;m OK</button>
+          : <OkButton onClick={imOk} calling={call?.stage === "calling" || call?.stage === "connected"} />}
       </Frame>
     );
   }
 
   // Lightning stop-work outranks yellow (same priority as the band: HEAT_RED > LIGHTNING > HEAT_YELLOW).
-  const stopWork = w.status !== "red" && hazard?.stop_work;
+  const stopWork = w.status !== "red" && !!hazard?.stop_work;
   const look = stopWork ? STOP_LOOK : LOOK[w.status];
   const redUnacked = w.status === "red" && w.alert_acknowledged === false;
   const breakIn = w.break_at ? w.break_at - now : null;
-  const hasBreaks = w.on_break || w.break_at !== null;    // no planner schedule yet = no break tile
+  const hasBreaks = w.on_break || w.break_at !== null;    // no planner schedule yet = no break card
+  const danger = w.minutes_to_danger === null ? "No danger predicted in the next 30 min."
+    : w.minutes_to_danger === 0 ? "You're in the danger zone."
+      : `Danger predicted in about ${w.minutes_to_danger} min.`;
+  // Status text uses the darker ink shades so it stays readable on the wash and on white cards.
+  const statusHue = w.status === "red" ? "var(--danger-ink)" : w.status === "yellow" ? "var(--warn-ink)" : undefined;
+
+  // Core temp sparkline: the last ~20 minutes, then the forecast every 5 minutes, dashed.
+  const past = est.slice(-20).map((e) => e.core.mean);
+  const future = last ? last.forecast.filter((f) => f.minutes_ahead % 5 === 0).map((f) => f.p50) : [];
+  const lightningLeft = hazard?.lightning?.all_clear_at ? secondsUntil(hazard.lightning.all_clear_at, now) : null;
 
   return (
-    <Frame bg={look.bg} fg={look.fg} pulse={redUnacked ? "red" : undefined}>
-      <div className="flex items-center justify-between text-sm font-semibold opacity-90">
-        <span>{w.name}</span>
-        <span>{site ? shortSiteName(site.name) : w.site_id}</span>
-      </div>
-
-      {crewDown && (
-        <div className="mt-3 rounded-2xl bg-black/40 p-3 text-center font-bold">
-          Crewmate down: {md.worker_name}. Go to {md.site_name} if you&apos;re close.
-        </div>
-      )}
-
-      {/* The basics: status, what to do, and the two things that matter next */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-8 text-center">
-        <h1 className="text-5xl font-black leading-[1.05] tracking-tight">{look.title}</h1>
-        <p className="text-lg font-medium">
-          {w.minutes_to_danger === null ? "No danger predicted in the next 30 min."
-            : w.minutes_to_danger === 0 ? "You're in the danger zone."
-              : `Danger predicted in ~${w.minutes_to_danger} min.`}
-        </p>
-        <p className="text-base opacity-90">{look.tip}</p>
-        {redUnacked && (
-          <button onClick={press} className="mt-2 rounded-2xl bg-white px-8 py-4 text-xl font-black text-red-800 shadow-xl active:scale-95">Got it</button>
-        )}
-      </div>
-
-      <div className={`grid gap-2 ${hasBreaks ? "grid-cols-2" : "grid-cols-1"}`}>
-        <Tile label={hazard?.stop_work ? "Stop work" : "Hazard"}>
-          {hazard ? (
-            <>
-              <span className="flex items-center gap-1.5"><HazardIcon kind={hazard.kind} className="h-5 w-5 shrink-0" />{HAZARD_LABEL[hazard.kind]}</span>
-              {hazard.lightning?.all_clear_at && <span className="block text-sm font-semibold tabular opacity-90">clear in {fmtCountdown(secondsUntil(hazard.lightning.all_clear_at, now))}</span>}
-            </>
-          ) : "None"}
-        </Tile>
-        {hasBreaks && <Tile label={w.on_break ? "On break" : "Next break"}>
-          <span className="tabular">
-            {breakIn === null ? "--" : w.on_break ? `${Math.max(1, Math.ceil(breakIn / 60))} min left` : `in ${Math.max(0, Math.round(breakIn / 60))} min`}
-          </span>
-        </Tile>}
-      </div>
-
-      <div className="mt-3 flex items-center gap-2">
-        <button onClick={() => setShowDetails(!showDetails)} className="flex-1 rounded-xl bg-black/25 px-3 py-3 text-sm font-bold" aria-expanded={showDetails}>
-          {showDetails ? "Hide details" : "Details"}
-        </button>
-        <SosButton onFire={() => apiPost(`/workers/${id}/sos`)} />
-      </div>
-
-      {/* More, for anyone who wants it */}
-      {showDetails && (
-        <div className="mt-3 flex flex-col gap-3">
-          {hazard && (
-            <Section title={HAZARD_LABEL[hazard.kind]}>
-              <p className="font-semibold">{hazard.headline}</p>
-              {hazard.detail && <p className="text-sm opacity-90">{hazard.detail}</p>}
-            </Section>
+    <Frame status={stopWork ? "stop" : w.status}>
+      <Wash tone={look.tone}>
+        <div className="px-4 pt-[max(14px,env(safe-area-inset-top))]">
+          <div className="flex items-center justify-between">
+            <span className="text-[15px] font-semibold text-ink/70">{site ? shortSiteName(site.name) : w.site_id}</span>
+            <Avatar name={w.name} />
+          </div>
+          <h1 className="mt-12 text-[34px] font-bold leading-[1.1] tracking-[-0.02em] text-balance">{look.title}</h1>
+          {!stopWork && <p className="mt-1.5 text-[17px] font-medium leading-snug" style={statusHue ? { color: statusHue } : undefined}>{danger}</p>}
+          <p className="mt-1 text-[15px] leading-snug text-ink-2">{look.tip}</p>
+          {redUnacked && (
+            <button onClick={press} className="mt-4 rounded-full bg-[#ff3b30] px-7 py-3 text-[17px] font-semibold text-white active:scale-[.98]">Got it</button>
           )}
-          <Section title="My core temperature">
-            <div className="rounded-xl bg-surface p-1 text-ink">
-              <CoreChart estimates={est} now={now} height={190} />
+          {crewDown && (
+            <div className="mt-4 flex items-center gap-3 rounded-[14px] bg-[#ff3b30] px-4 py-3 text-white">
+              <span className="dot-breathe h-2.5 w-2.5 shrink-0 rounded-full bg-white" aria-hidden />
+              <p className="text-[15px] font-semibold leading-snug">Crewmate down: {md.worker_name}. Go to {md.site_name} if you&apos;re close.</p>
             </div>
-            <WhyLine why={est[est.length - 1]?.why} tone="glass" />
-          </Section>
-          <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
-          <Section title="Report a hazard">
-            <ReportForm workerId={id} siteId={w.site_id} />
-          </Section>
+          )}
         </div>
-      )}
+      </Wash>
+
+      <div className="relative px-4 pb-6">
+        <SectionHeader title="Right now" />
+        <div className="flex flex-col gap-2.5">
+          <Card icon={<Icon.thermo />} label="Core Temp" color={HUE.core} meta={last ? fmtClock(last.timestamp) : undefined}
+            onClick={() => setSheet("core")} viz={<Spark past={past} future={future} color={HUE.core} lo={Math.min(36.8, ...past, ...future)} hi={Math.max(38.8, ...past, ...future)} />}>
+            {last ? <Value unit="°C">{last.core.mean.toFixed(1)}</Value> : <Value>--</Value>}
+            <Sub tone={statusHue}>
+              {w.minutes_to_danger === null ? "Steady" : w.minutes_to_danger === 0 ? "In the danger zone" : `Danger in ${w.minutes_to_danger} min`}
+            </Sub>
+          </Card>
+
+          <Card icon={hazard ? HAZARD_ICON[hazard.kind]() : <Icon.shield />} label={hazard?.stop_work ? "Stop work" : "Hazard"}
+            color={hazard ? HUE[hazard.kind] : HUE.ok} meta={hazard ? "Now" : undefined}
+            onClick={hazard ? () => setSheet("hazard") : undefined}
+            viz={hazard ? (lightningLeft !== null ? <Ring value={lightningLeft / 1800} color={HUE.lightning} /> : <LevelBars level={hazard.level} color={HUE[hazard.kind]} />) : undefined}>
+            <Value>{hazard ? HAZARD_LABEL[hazard.kind] : "None"}</Value>
+            <Sub>
+              {lightningLeft !== null ? <>All clear in <span className="tabular">{fmtCountdown(lightningLeft)}</span></>
+                : hazard ? `${LEVEL_WORD[hazard.level]} · ${hazard.headline}` : `All clear at ${site ? shortSiteName(site.name) : "your site"}`}
+            </Sub>
+          </Card>
+
+          {hasBreaks && (
+            <Card icon={<Icon.cup />} label={w.on_break ? "On break" : "Next break"} color={HUE.break}
+              viz={breakIn !== null ? <Ring value={w.on_break ? Math.min(1, breakIn / 900) : 1 - Math.min(1, breakIn / 3600)} color={HUE.break} label={Math.max(0, Math.round(breakIn / 60))} /> : undefined}>
+              {breakIn === null ? <Value>--</Value>
+                : w.on_break ? <Value unit="min left">{Math.max(1, Math.ceil(breakIn / 60))}</Value>
+                  : <Value pre="in" unit="min">{Math.max(0, Math.round(breakIn / 60))}</Value>}
+              {w.break_at && <Sub>{w.on_break ? "Back to work at" : "At"} {fmtClock(w.break_at)}</Sub>}
+            </Card>
+          )}
+        </div>
+
+        <SectionHeader title="Log" />
+        <div className="divide-y divide-line overflow-hidden rounded-[14px] bg-surface">
+          <ListRow icon={<Icon.thermo />} color={HUE.core} onClick={() => setSheet("spot")}>Add a thermometer reading</ListRow>
+          <ListRow icon={<Icon.alert />} color={HUE.heat} onClick={() => setSheet("report")}>Report a hazard</ListRow>
+        </div>
+
+        <div className="mt-6">
+          <SosButton onFire={() => apiPost(`/workers/${id}/sos`)} />
+        </div>
+      </div>
+
+      {/* Details, only when asked for */}
+      <Sheet open={sheet === "core"} onClose={() => setSheet(null)} title="Core Temperature">
+        <div className="flex flex-col gap-4 pb-2">
+          <div className="rounded-[14px] bg-surface px-2 pb-3 pt-3">
+            <CoreChart estimates={est} now={now} height={210} />
+            <div className="px-2"><WhyLine why={last?.why} /></div>
+          </div>
+          <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} />
+        </div>
+      </Sheet>
+      <Sheet open={sheet === "hazard" && !!hazard} onClose={() => setSheet(null)} title={hazard ? HAZARD_LABEL[hazard.kind] : ""}>
+        {hazard && (
+          <div className="rounded-[14px] bg-surface p-4">
+            <p className="text-[17px] font-semibold">{hazard.headline}</p>
+            {hazard.detail && <p className="mt-1 text-[15px] text-ink-2">{hazard.detail}</p>}
+            <p className="mt-3 text-[13px] text-muted">{hazard.source} · {fmtClock(hazard.updated_at)}</p>
+          </div>
+        )}
+      </Sheet>
+      <Sheet open={sheet === "spot"} onClose={() => setSheet(null)} title="Thermometer Reading">
+        <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} />
+      </Sheet>
+      <Sheet open={sheet === "report"} onClose={() => setSheet(null)} title="Report a Hazard">
+        <div className="rounded-[14px] bg-surface p-4"><ReportForm workerId={id} siteId={w.site_id} /></div>
+      </Sheet>
     </Frame>
+  );
+}
+
+/** Four small bars, filled up to the hazard level (low, moderate, high, extreme). */
+function LevelBars({ level, color }: { level: HazardLevel; color: string }) {
+  const n = LEVEL_N[level];
+  return (
+    <span className="flex h-9 items-end gap-[3px]" aria-hidden>
+      {[1, 2, 3, 4].map((i) => (
+        <span key={i} className="w-[6px] rounded-[1.5px]"
+          style={{ height: `${25 * i}%`, background: i <= n ? color : "color-mix(in srgb, currentColor 12%, transparent)" }} />
+      ))}
+    </span>
+  );
+}
+
+/** A row with a small colored icon, like Health's lists. */
+function ListRow({ icon, color, onClick, children }: { icon: React.ReactNode; color: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className="flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left active:bg-surface-2">
+      <span className="h-[18px] w-[18px] shrink-0" style={{ color }}>{icon}</span>
+      <span className="flex-1 text-[17px]">{children}</span>
+      <Chev />
+    </button>
+  );
+}
+
+/** Small red or purple caps label with a breathing dot, top of the emergency screens. */
+function AlarmLabel({ color, children }: { color: string; children: React.ReactNode }) {
+  return (
+    <p className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.14em]" style={{ color }}>
+      <span className="dot-breathe h-2.5 w-2.5 rounded-full" style={{ background: color }} aria-hidden />
+      {children}
+    </p>
   );
 }
 
 /** "I'm OK" on the worker's own emergency screen, so they're never stuck there. */
 function OkButton({ onClick, calling }: { onClick: () => void; calling: boolean }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 pb-2">
-      <button onClick={onClick} className="w-full rounded-2xl bg-white/90 px-6 py-3 text-lg font-bold text-black active:scale-95">
+    <div className="flex flex-col gap-2 pb-2">
+      <button onClick={onClick} className="w-full rounded-full bg-white/15 py-4 text-lg font-semibold text-white active:scale-[.98]">
         I&apos;m OK, close this
       </button>
-      <p className="text-center text-xs opacity-80">
+      <p className="text-center text-[13px] text-white/60">
         {calling ? "The emergency call already went out. Tell your crew lead you're OK." : "Stops the alert for your crew lead too."}
       </p>
-    </div>
-  );
-}
-
-function Tile({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl bg-black/25 p-3">
-      <p className="text-[11px] font-bold uppercase tracking-widest opacity-80">{label}</p>
-      <div className="mt-0.5 text-lg font-bold leading-tight">{children}</div>
-    </div>
-  );
-}
-
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl bg-black/25 p-4">
-      <p className="mb-2 text-xs font-bold uppercase tracking-widest opacity-80">{title}</p>
-      {children}
     </div>
   );
 }
@@ -231,6 +295,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 /**
  * SOS on the phone, same as holding the band button: hold for 3 seconds.
  * A ring fills while you hold; letting go early cancels.
+ * Purple, the same color the band blinks for SOS.
  */
 function SosButton({ onFire }: { onFire: () => void }) {
   const [progress, setProgress] = useState(0);
@@ -251,6 +316,7 @@ function SosButton({ onFire }: { onFire: () => void }) {
     setProgress(0);
   };
   useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
+  const holding = progress > 0;
   return (
     <button
       onPointerDown={(e) => {
@@ -260,24 +326,27 @@ function SosButton({ onFire }: { onFire: () => void }) {
         step();
       }}
       onPointerUp={stop} onPointerCancel={stop} onContextMenu={(e) => e.preventDefault()}
-      className="relative flex min-h-11 select-none items-center gap-2 rounded-xl bg-[#6d28d9] px-3 py-2 text-white touch-none"
+      className={`flex min-h-[52px] w-full select-none items-center justify-center gap-2.5 rounded-full px-4 py-3 touch-none transition-colors ${
+        holding ? "bg-[#af52de] text-white" : "bg-surface text-sos"}`}
       aria-label="Hold 3 seconds to send SOS"
     >
-      <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90" aria-hidden>
-        <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="4" />
-        <circle cx="18" cy="18" r="15" fill="none" stroke="#fff" strokeWidth="4" strokeDasharray={`${progress * 94.2} 94.2`} />
+      <svg viewBox="0 0 36 36" className="h-6 w-6 -rotate-90" aria-hidden>
+        <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeOpacity=".25" strokeWidth="4" />
+        <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeDasharray={`${progress * 88} 88`} />
       </svg>
-      <span className="text-left leading-tight"><b className="block">SOS</b><span className="text-[11px] font-medium opacity-90">{progress > 0 ? "keep holding…" : hint ? "hold for 3 seconds" : "hold 3 s"}</span></span>
+      <b className="text-[17px] font-semibold">SOS</b>
+      <span className="text-[15px] opacity-75">{holding ? "keep holding…" : hint ? "hold for 3 seconds" : "hold 3 s"}</span>
     </button>
   );
 }
 
-/** Full screen on a phone; a phone-sized card on a laptop. */
-function Frame({ bg, fg, pulse, children }: { bg: string; fg: string; pulse?: "red" | "sos"; children: React.ReactNode }) {
+/** Full screen on a phone; a phone-sized card on a laptop. `dark` = the black emergency screens. */
+function Frame({ dark = false, status, children }: { dark?: boolean; status?: string; children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-page sm:grid sm:place-items-center sm:py-6">
-      <div className={`flex min-h-screen w-full flex-col p-5 transition-colors duration-500 sm:min-h-[780px] sm:max-w-[400px] sm:rounded-[2.5rem] sm:border-[10px] sm:border-black sm:shadow-2xl ${pulse ? `pulse-${pulse}` : ""}`}
-        style={{ background: pulse ? undefined : bg, color: fg }}>
+      <div data-status={status}
+        className={`relative flex min-h-screen w-full flex-col overflow-hidden sm:min-h-[820px] sm:max-w-[400px] sm:rounded-[2.75rem] sm:border-[10px] sm:border-black sm:shadow-2xl ${
+          dark ? "bg-black px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] text-white" : "bg-page text-ink"}`}>
         {children}
       </div>
     </main>

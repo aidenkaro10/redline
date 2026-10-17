@@ -35,7 +35,7 @@ export function LearningCard({ workerId, name, offset, tone = "surface" }: {
   const glass = tone === "dark-glass";
   const first = name.split(" ")[0];
   return (
-    <div className={glass ? "rounded-2xl bg-black/25 p-4" : "rounded-xl border border-line bg-surface p-4"}>
+    <div className={glass ? "rounded-2xl bg-black/25 p-4" : "rounded-2xl bg-surface p-4"}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <p className={`text-xs font-bold uppercase tracking-widest ${glass ? "opacity-80" : "text-accent"}`}>Learning your body</p>
@@ -132,10 +132,10 @@ export function SpotCheckForm({ workerId, glass }: { workerId: string; glass?: b
       <div className="mt-1 flex gap-2">
         <div className="relative flex-1">
           <input id={`spot-${workerId}`} inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="37.2"
-            className={`min-h-11 w-full rounded-lg border px-3 py-2 pr-9 text-base tabular ${glass ? "border-white/40 bg-white/15 text-inherit placeholder:text-white/50" : "border-line bg-surface"}`} />
+            className={`min-h-11 w-full rounded-xl border px-3 py-2 pr-9 text-base tabular ${glass ? "border-white/40 bg-white/15 text-inherit placeholder:text-white/50" : "border-line bg-page"}`} />
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm opacity-60">°C</span>
         </div>
-        <button disabled={busy || !value.trim()} className={`min-h-11 rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-50 ${glass ? "bg-white text-black" : "bg-accent text-accent-ink"}`}>
+        <button disabled={busy || !value.trim()} className={`min-h-11 rounded-full px-5 py-2 text-sm font-semibold disabled:opacity-50 ${glass ? "bg-white text-black" : "bg-accent text-accent-ink"}`}>
           {busy ? "…" : "Add"}
         </button>
       </div>

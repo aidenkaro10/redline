@@ -10,6 +10,8 @@
  *
  * Last vitals are shown to the crew lead here on purpose: in an emergency,
  * responders need them. Everywhere else the crew lead sees status only.
+ * Crewmates' phones get a short black screen instead (who, where, how long,
+ * last status, go if you're close), Apple Watch fall-screen style.
  */
 
 import { usePathname } from "next/navigation";
@@ -59,6 +61,35 @@ export function ManDownOverlay() {
         {call && <span className="rounded bg-white/20 px-2 py-0.5">{stageText(call, now)}</span>}
         <span className="underline">Open</span>
       </button>
+    );
+  }
+
+  // A crewmate's phone gets the short version: who, where, how long, last status, and "go if you're close".
+  // The call steps and transcript are the crew lead's job, so they stay off workers' phones.
+  if (phone) {
+    return (
+      <div className="fixed inset-0 z-[2000] flex flex-col overflow-y-auto bg-black px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(20px,env(safe-area-inset-top))] text-white"
+        role="alertdialog" aria-label={sos ? "SOS alert" : "Man down alert"}>
+        <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4">
+          <p className="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-[0.14em]" style={{ color: sos ? "#bf5af2" : "#ff453a" }}>
+            <span className="dot-breathe h-2.5 w-2.5 rounded-full" style={{ background: sos ? "#bf5af2" : "#ff453a" }} aria-hidden />
+            {sos ? "SOS from" : "Man down: confirmed"}
+          </p>
+          <h1 className="text-[44px] font-bold leading-[1.05] tracking-tight">{md.worker_name}</h1>
+          <p className="text-[19px] font-medium">{md.site_name}</p>
+          <div className="divide-y divide-white/10 overflow-hidden rounded-2xl bg-white/10">
+            <OverlayRow label={sos ? "SOS pressed" : "Down for"}><span className="tabular">{fmtCountdown(downFor)}{sos ? " ago" : ""}</span></OverlayRow>
+            <OverlayRow label="Est. core temp">{md.last_vitals.core_temp !== null ? `${md.last_vitals.core_temp.toFixed(1)} °C` : "--"}</OverlayRow>
+            <OverlayRow label="GPS"><span className="tabular">{md.lat.toFixed(5)}, {md.lon.toFixed(5)}</span></OverlayRow>
+          </div>
+          {failed ? <CallFailed md={md} /> : (
+            <p className="text-[16px] text-white/70">Go to {md.worker_name.split(" ")[0]} if you&apos;re close. Your crew lead is handling the emergency call.</p>
+          )}
+        </div>
+        {!failed && (
+          <button onClick={() => setMinimized(md.id)} className="mx-auto mt-4 w-full max-w-md rounded-full bg-white/15 py-4 text-lg font-semibold">OK</button>
+        )}
+      </div>
     );
   }
 
@@ -124,6 +155,15 @@ export function ManDownOverlay() {
   );
 }
 
+function OverlayRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex min-h-12 items-center justify-between gap-3 px-4 py-3">
+      <span className="text-[15px] text-white/65">{label}</span>
+      <span className="text-right text-[16px] font-semibold">{children}</span>
+    </div>
+  );
+}
+
 function Vital({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg bg-black/20 px-2 py-2">
@@ -179,7 +219,6 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold">Emergency call</h2>
-          <p className="text-sm text-ink-2">The decision to call is a fixed rule in code (confirmed man-down or SOS → call). The voice agent only reads the report.</p>
         </div>
         <div className="flex flex-col items-end gap-1">
           {call.demo && (
@@ -251,7 +290,8 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
       {call.stage === "done" && <p className="mt-3 text-sm text-ink-2">{call.outcome}</p>}
 
       <details className="mt-3 text-sm">
-        <summary className="cursor-pointer text-muted">Call log ({call.steps.length} steps)</summary>
+        <summary className="cursor-pointer text-muted">How this works · call log ({call.steps.length} steps)</summary>
+        <p className="mt-2 text-ink-2">The decision to call is a fixed rule in code (confirmed man-down or SOS → call). The voice agent only reads the report.</p>
         <ul className="mt-2 space-y-1">
           {call.steps.map((s, i) => <li key={i} className="text-ink-2"><span className="tabular text-muted">{fmtClockSec(s.at)}</span> {s.text}</li>)}
         </ul>

@@ -73,7 +73,7 @@ function Logo() {
 }
 
 /** Light / dark / system. Remembered in this browser only. */
-export function ThemeToggle() {
+export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [mode, setMode] = useState<"system" | "light" | "dark">("system");
   useEffect(() => {
     try { setMode((localStorage.getItem("theme") as "light" | "dark") || "system"); } catch { /* private mode */ }
@@ -87,7 +87,8 @@ export function ThemeToggle() {
     window.dispatchEvent(new Event("themechange"));
   };
   return (
-    <button onClick={next} className="min-h-11 min-w-11 rounded-md border border-line px-2 py-1 text-ink-2 hover:bg-surface-2" title="Switch light / dark / system">
+    <button onClick={next} title="Switch light / dark / system"
+      className={compact ? "min-h-11 min-w-11 rounded-full px-2 text-xs font-medium text-muted" : "min-h-11 min-w-11 rounded-md border border-line px-2 py-1 text-ink-2 hover:bg-surface-2"}>
       {mode === "system" ? "Auto" : mode === "dark" ? "Dark" : "Light"}
     </button>
   );

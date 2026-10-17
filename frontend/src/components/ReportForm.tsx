@@ -50,22 +50,22 @@ export function ReportForm({ workerId, siteId }: { workerId: string; siteId: str
       <div className="grid grid-cols-3 gap-1.5">
         {KINDS.map((k) => (
           <button type="button" key={k.v} onClick={() => setKind(k.v)}
-            className={`min-h-11 rounded-lg px-2 py-2 text-sm font-semibold ${kind === k.v ? "bg-white text-black" : "bg-white/15"}`}>
+            className={`min-h-11 rounded-xl px-2 py-2 text-sm font-semibold ${kind === k.v ? "bg-accent text-accent-ink" : "bg-surface-2 text-ink"}`} aria-pressed={kind === k.v}>
             {k.t}
           </button>
         ))}
       </div>
       <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} required placeholder="Where? e.g. by the north fence"
-        className="min-h-11 rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-base placeholder:text-white/60" />
+        className="min-h-11 rounded-xl border border-line bg-page px-3 py-2 text-base placeholder:text-muted" />
       <label className="flex items-center gap-2 text-sm">
-        <span className="rounded-lg bg-white/15 px-3 py-2 font-semibold">{photo ? "Photo added ✓" : "Add photo"}</span>
+        <span className="rounded-xl bg-surface-2 px-3 py-2 font-semibold text-accent">{photo ? "Photo added ✓" : "Add photo"}</span>
         <input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; setPhoto(f ? await shrink(f) : null); }} />
       </label>
-      <button disabled={state === "sending"} className="rounded-lg bg-white px-4 py-2.5 font-bold text-black disabled:opacity-60">
+      <button disabled={state === "sending"} className="min-h-11 rounded-full bg-accent px-4 py-2.5 font-semibold text-accent-ink disabled:opacity-60">
         {state === "sending" ? "Sending…" : "Send report"}
       </button>
-      {state === "sent" && <p className="text-sm font-semibold">✓ Sent. Your crew lead can see it on the map.</p>}
-      {state === "error" && <p className="text-sm font-semibold">Couldn&apos;t send. Try again.</p>}
+      {state === "sent" && <p className="text-sm font-semibold text-ok-ink">✓ Sent. Your crew lead can see it on the map.</p>}
+      {state === "error" && <p className="text-sm font-semibold text-danger-ink">Couldn&apos;t send. Try again.</p>}
     </form>
   );
 }

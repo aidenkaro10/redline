@@ -18,11 +18,11 @@ import { buildCoreChart, type CoreRow } from "@/lib/chart";
 import type { Estimate, Vitals } from "@/lib/contract";
 import { useIsDark } from "./Nav";
 
-/** Chart colors per theme (dataviz reference palette). Text stays in ink colors. */
+/** Chart colors per theme (Apple system colors, same as globals.css). Text stays in ink colors. */
 function palette(dark: boolean) {
   return dark
-    ? { series: "#3987e5", band: "#3987e5", kalman: "#898781", grid: "#2c2c2a", axis: "#898781", ink: "#f0efec", warn: "#fab219", danger: "#e66767", surface: "#1a1a19" }
-    : { series: "#2a78d6", band: "#2a78d6", kalman: "#898781", grid: "#e1e0d9", axis: "#898781", ink: "#0b0b0b", warn: "#b07800", danger: "#d03b3b", surface: "#fcfcfb" };
+    ? { series: "#0a84ff", band: "#0a84ff", kalman: "#8e8e93", grid: "#38383a", axis: "#8e8e93", ink: "#ffffff", warn: "#ff9f0a", danger: "#ff453a", surface: "#1c1c1e" }
+    : { series: "#007aff", band: "#007aff", kalman: "#8e8e93", grid: "#e5e5ea", axis: "#8e8e93", ink: "#1c1c1e", warn: "#c77700", danger: "#ff3b30", surface: "#ffffff" };
 }
 
 type Row = CoreRow;

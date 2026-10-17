@@ -148,11 +148,11 @@ export function indexColor(index: number | null) {
 
 export function IndexChip({ index }: { index: number | null }) {
   if (index === null || !Number.isFinite(index)) {
-    return <span className="inline-flex min-w-[2.6rem] justify-center rounded-md bg-surface-2 px-1.5 py-0.5 text-xs font-bold text-muted" title="Index not computed yet">--</span>;
+    return <span className="inline-flex min-w-[2.75rem] justify-center rounded-lg bg-surface-2 px-2 py-1 text-[13px] font-semibold text-muted" title="Index not computed yet">--</span>;
   }
   const dark = index >= 6;
   return (
-    <span className="inline-flex min-w-[2.6rem] justify-center rounded-md px-1.5 py-0.5 text-xs font-bold tabular" style={{ background: indexColor(index), color: dark ? "#fff" : "#3b1a0c" }}>
+    <span className="inline-flex min-w-[2.75rem] justify-center rounded-lg px-2 py-1 text-[13px] font-semibold tabular" style={{ background: indexColor(index), color: dark ? "#fff" : "#3b1a0c" }}>
       {index.toFixed(1)}
     </span>
   );
