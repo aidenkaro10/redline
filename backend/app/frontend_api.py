@@ -28,6 +28,7 @@ import time
 from collections import deque
 
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from pydantic import BaseModel, Field
 
 from backend import config
 from backend.app.planner_bridge import schedule_status
@@ -39,6 +40,7 @@ MANDOWN_REASON = {"fall": "fall", "heat_red_unacknowledged": "no_response_to_red
 BAND_SEEN_S = 30                  # band counts as connected if we heard from it this recently
 KEEP = 500
 PLANNER_BODY_FIELDS = ("forecast_p90_c", "peak_before_c", "peak_after_c")   # planner_change: not for crew
+ALERT_WORDS = {"HEAT_YELLOW": "Heat warning", "HEAT_RED": "Heat danger"}
 MAX_PHOTO_CHARS = 2_000_000
 HR_MISSING_S = 120                 # no heart rate this long -> the card says "Heart rate missing"       # ~1.5 MB JPEG as a base64 data URL
 
@@ -73,7 +75,11 @@ class FrontendAdapter:
             out.append({"type": "vitals", "vitals": v})
         elif kind == "estimate":
             e = self.estimate(ev)
-            self.estimates.setdefault(wid, deque(maxlen=KEEP)).append(e)
+            hist = self.estimates.setdefault(wid, deque(maxlen=KEEP))
+            if hist and hist[-1]["timestamp"] == e["timestamp"]:
+                hist[-1] = e                      # same minute re-sent (after a spot check): replace, don't add
+            else:
+                hist.append(e)
             out.append({"type": "estimate", "estimate": e})
         elif kind == "heat_alert":
             out += self._heat_alert(ev)
@@ -500,6 +506,31 @@ class FrontendAdapter:
             "offsets": {wid: self.offset_state(wid) for wid in history},
         }
 
+    def restore_alerts(self, events: list[dict]) -> None:
+        """
+        Rebuild the alert history from SQLite after a restart. History only: every restored alert is
+        closed (the live state restarts from scratch, so anything still true raises a fresh alert).
+        """
+        now = time.time()
+        for ev in events:
+            kind = ev.get("type")
+            wid, t = ev.get("worker_id"), ev.get("timestamp", now)
+            if kind == "heat_alert" and ev.get("level") in ("yellow", "red"):
+                k = "HEAT_YELLOW" if ev["level"] == "yellow" else "HEAT_RED"
+                a = self._new_alert(k, wid, ev.get("site_id"), t, f"{ALERT_WORDS[k]}: {wid}",
+                                    "forecaster" if ev.get("rule") == "forecast" else "Kalman estimate")
+            elif kind == "hazard" and ev.get("on"):
+                a = self._new_alert(ev["pattern"], None, ev.get("site_id"), t,
+                                    f"{ev['kind'].replace('_', ' ').capitalize()} at {ev.get('site_id')}", ev.get("source", ""))
+            elif kind == "mandown_check":
+                a = self._new_alert("MANDOWN", wid, ev.get("site_id"), t, f"Man-down check: {wid}", "tilt switch")
+            elif kind == "sos":
+                a = self._new_alert("SOS", wid, ev.get("site_id"), t, f"SOS from {ev.get('worker_name') or wid}",
+                                    f"SOS ({ev.get('source', 'band')})")
+            else:
+                continue
+            a["cleared_at"] = now
+
     def offset_state(self, wid: str) -> dict:
         """A worker's personal offset in the same flat shape as the offset_update event."""
         p = self.hub.pipelines[wid]
@@ -576,6 +607,9 @@ async def history(request: Request, worker_id: str, view: str = "crew", minutes:
         raise HTTPException(404, "unknown worker")
     if f["view"] == "crew":
         raise HTTPException(403, "crew view cannot read raw biometrics")
+    # A worker's phone may only read its own data: ?view=worker&worker_id=<the same worker>.
+    if f["view"] == "worker" and request.query_params.get("worker_id") != worker_id:
+        raise HTTPException(403, "a worker view can only read its own history")
     since = (a.hub.pipelines[worker_id].last_t or a.hub.now(worker_id)) - minutes * 60   # last N minutes of data
     return _clean({"vitals": [v for v in a.vitals.get(worker_id, []) if v["timestamp"] >= since],
                    "estimates": [e for e in a.estimates.get(worker_id, []) if e["timestamp"] >= since]})
@@ -708,9 +742,10 @@ async def test_alert(request: Request, body: dict):
     if kind is None:
         raise HTTPException(400, "kind must be LIGHTNING or FLOOD_FIRE")
     bridge = getattr(request.app.state, "sites", None)
-    if bridge is not None:
-        bridge.test_alert(pattern, body.get("site_id"))     # C1's rules + countdown pick it up on refresh
     _a(request).hub.set_site_hazard(body.get("site_id"), kind, True, source="demo button")   # band reacts now
+    if bridge is not None:
+        bridge.test_alert(pattern, body.get("site_id"))     # C1's real rules + 30-min countdown
+        await bridge.rebuild_now()                          # ...and the site card shows it right away
     return {"ok": True}
 
 
@@ -719,27 +754,30 @@ async def clear_hazards(request: Request):
     hub = _a(request).hub
     bridge = getattr(request.app.state, "sites", None)
     if bridge is not None:
-        bridge.clear_test_hazards()
+        bridge.clear_test_hazards()      # bands clear now (below); the site card on C1's next rebuild
     for site, kinds in list(hub.hazards.items()):
         for kind in list(kinds):
             hub.set_site_hazard(site, kind, False, source="demo button")
     return {"ok": True}
 
 
+class DemoReplay(BaseModel):
+    on: bool | None = None
+    speed: float | None = Field(default=None, gt=0, le=600)
+
+
 @router.post("/api/demo/replay")
-async def demo_replay(request: Request, body: dict):
-    """{on?: bool, speed?: number}. Turning replay on starts the demo shift."""
+async def demo_replay(request: Request, body: DemoReplay):
+    """{on?: bool, speed?: number}. Turning replay on starts the demo shift. Bad values -> 422."""
     from backend.app.main import SETTINGS, make_replay
     a = _a(request)
-    speed = body.get("speed")
-    if speed is not None and not (0 < float(speed) <= 600):
-        raise HTTPException(400, "speed must be between 0 and 600")
-    if body.get("on") is True and a.hub.replay is None:
-        a.hub.start_replay(make_replay(a.hub, SETTINGS, speed=float(speed) if speed else None))
-    elif body.get("on") is False:
+    speed = body.speed
+    if body.on is True and a.hub.replay is None:
+        a.hub.start_replay(make_replay(a.hub, SETTINGS, speed=speed))
+    elif body.on is False:
         a.hub.stop_replay()
     elif speed is not None and a.hub.replay is not None:
-        a.hub.set_speed(float(speed))
+        a.hub.set_speed(speed)
     return a.demo_state()
 
 

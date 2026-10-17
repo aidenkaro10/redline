@@ -163,8 +163,6 @@ def test_A29_rest_state_and_history_follow_the_same_rules(streams):
     assert streams["own_history"].status_code == 200 and streams["own_history"].json()["vitals"]
 
 
-@pytest.mark.xfail(strict=True, reason="BUG (session A): /api/workers/{id}/history ignores worker_id, so "
-                   "view=worker can read ANOTHER worker's raw vitals. Expected 403.")
 def test_A29_worker_view_cannot_read_another_workers_history(streams):
     assert streams["other_history"].status_code == 403
 

@@ -35,6 +35,10 @@ Branch `claude/live-system-f3b5f1`. Interface: [docs/interfaces/live-system.md](
 - `backend/ingest/ble_hr.py` (bleak 3.0.2): HeartCast / chest strap / Garmin over the standard Heart Rate profile, no internet. Auto-reconnect, `hr_link` status events (searching / connected / stale / lost), fused with Pulsoid via `step_fused`, started automatically by `--source live`. Fake device for tests in `backend/ingest/fake_ble.py` (real example packets).
 - Not tested against a real phone or strap from this session (a scan would pop a macOS Bluetooth prompt for this process, not Aiden's Terminal).
 
+## e2e fixes (Oct 17, night)
+
+Fixed session J's bugs owned by A, each xfail marker removed so the test must pass: #1 (A's part: briefing pre-build starts after the first plan), #4, #5, #6, #7, #8, #9, #10, #11, #12, #14. Also: B's act-on-forecast wired (`attach(hub)`), planner_change body numbers stripped for crew, Bluetooth moved into a helper process (an e2e live test crashed the whole run when CoreBluetooth was touched from a process without Bluetooth permission). Left for others: #1 lock (B), #2 phone numbers (D), #3 (E), #13 (B), contract drift items.
+
 ## Findings for the ML session
 
 1. **The forecaster needs its "known future" inputs.** Without the next 30 minutes of planned workload and WBGT, the 20-min 90th percentile runs about 0.35 °C higher, and yellow fires on nearly every simulated shift (even workers whose true core temp never passes 37.8). The pipeline now passes 30 rows of known future to `predict_signals` (rows after the current minute, only WBGT/workload filled). Live, that needs the planner (workload) and C1 (forecast WBGT). Worth scoring the "no future inputs" case in the harness, since that's the live default until B is wired.

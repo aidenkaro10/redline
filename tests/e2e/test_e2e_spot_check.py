@@ -107,9 +107,6 @@ def test_A11_A34_offset_survives_a_server_restart(runs):
     assert snap["offsets"]["demo-1"]["n_checks"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="gap (session A): the frontend contract asks for a fresh estimate right "
-                   "after an accepted spot check 'so the chart moves while the judge watches'; A only re-checks "
-                   "the heat alert, so the chart waits for the next minute (60 s live).")
 def test_fresh_estimate_is_pushed_right_after_a_spot_check(live_app):
     app = live_app(clock=StepClock(start=START))
     app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None))

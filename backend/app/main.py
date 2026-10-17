@@ -27,7 +27,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand, UDPBand
@@ -131,6 +131,8 @@ async def lifespan(app: FastAPI):
                  else "off until session H's ml/explain is merged")
     app.state.hub = hub
     app.state.frontend = FrontendAdapter(hub)           # the Next.js dashboard's contract (/ws/live)
+    if db:
+        app.state.frontend.restore_alerts(db.recent_alert_events())   # alert history survives a restart
     hub.add_listener(app.state.frontend.on_event)
     tasks = [asyncio.create_task(_tick_forever(hub, app.state.frontend))]
 
@@ -459,7 +461,7 @@ class SiteRequest(BaseModel, extra="allow"):
 
 class SpotCheck(BaseModel):
     worker_id: str
-    thermometer_c: float                # ear or oral thermometer reading, °C
+    thermometer_c: float = Field(ge=34, le=42)   # ear or oral thermometer reading, °C (outside: 422)
     timestamp: float | None = None      # when it was taken (default: now on that worker's clock)
 
 

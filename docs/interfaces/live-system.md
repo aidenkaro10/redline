@@ -49,6 +49,7 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 | `button` | Band button (raw input) | `kind`: `press` (`BTN:1`, "I'm OK") or `sos` (`BTN:SOS`, held 3 s) |
 | `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_ble, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd` (personal offset applied), `core_temp_raw, offset_c` (before it), `forecast{minutes[1..30], p10[], p50[], p90[]}` (offset applied) or null, `model, heat_level, why` (latest why-line or null), `true_core_temp` (replay of sim only) |
 | `why` | A why-line is ready (0.1-0.3 s after its minute, background thread) | `minute, why, direction` rising/steady/falling, `contributions` {heart_rate, body_heat, skin_temp, activity, wbgt, workload, time} in °C. Raw `/ws` only; on `/ws/live` it fills in `Estimate.why` |
+| `planner_change` | Session B's act-on-forecast changed or proposed a plan change (`attach(hub)` at startup when the planner is on) | B's shape (docs/interfaces/planner.md), upsert by `id`. On `/ws/live` the crew view gets it **without** `forecast_p90_c`, `peak_before_c`, `peak_after_c` |
 | `schedule` | The planner's current plan changed (crew changed, or `POST /api/planner/plan`) | `schedule`: frontend `Schedule` shape. Also sent on `/ws/live` as `{type: "schedule", schedule}` to every view (no body numbers) |
 | `offset_update` | `POST /spot-check` | `offset_c, confidence, n_checks, accepted, thermometer_c, model_c, miss_c, reason`. Passed through on `/ws/live` as-is, **only to `view=demo` and `view=worker` for that worker** (body data, never crew) |
 | `heat_alert` | Heat level changes | `level` clear/yellow/red, `previous, value, threshold, rule` kalman/forecast, `demo` |
@@ -56,7 +57,7 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 | `red_unacknowledged` | Red with no button for `HEAT_RED_ACK_TIMEOUT_S` | `red_since` |
 | `band_command` | The band's pattern changes (only on change) | `pattern, line` e.g. `"BUZZ:HEAT_RED"` |
 | `mandown_check` | Tipped + still `MANDOWN_STILL_S`, or red unacknowledged, or demo | `reason` fall / heat_red_unacknowledged / demo_fall, `started_at` |
-| `mandown_cancelled` | Button or movement during the check | `by` button/movement, `reason, check_started` |
+| `mandown_cancelled` | Button or movement during a fall check; **button only** for a `heat_red_unacknowledged` check (an overheating worker may still be walking) | `by` button/movement, `reason, check_started` |
 | `mandown_confirmed` | Not cancelled within `MANDOWN_ESCALATE_S` | see §3 |
 | `mandown_worker_responded` | Button pressed after confirmation (does not cancel) | `by` |
 | `mandown_resolved` | Crew lead closed it | `by` |
@@ -81,6 +82,14 @@ Heart rate can also come from the watch through Pulsoid (online, tagged `watch`)
 
 `POST /spot-check` (alias `/api/spot-check`) `{worker_id, thermometer_c, timestamp?}`. The miss is the model's NOW estimate **before** any offset (the estimate nearest `timestamp`, default now on that worker's clock) minus the thermometer reading, fed to `PersonalOffset.add_check` (it rejects readings more than 1.5 °C off). `offset_c` is subtracted from the NOW estimate and every forecast percentile from then on, and the heat alert is re-checked right away. Capped at ±0.6 °C by the ML session's code; thresholds never change. Offsets are saved per worker in SQLite (`offsets`, every check in `spot_checks`) and reloaded when the worker reappears. Returns the `offset_update` event.
 
+### Small rules worth knowing
+
+- `WorkerStatus.status_reason` says "Heart rate missing" when a worker's other readings keep coming but no heart rate arrived for 2 minutes (the Kalman then only predicts; red, man-down and SOS still take priority).
+- `/api/demo/test-alert` turns the bands on at once AND rebuilds C1's picture so the site card shows the stop-work right away. `/api/demo/clear-hazards` clears the bands at once; the site card follows on C1's next rebuild.
+- Events are broadcast before in-process listeners run, so an `emergency_status` always arrives after the `mandown_confirmed` that caused it.
+- After a restart, the dashboard's alert history comes back from SQLite (all marked cleared) and so does the planner's last schedule (`kv` table).
+- Bluetooth heart rate runs in a helper process: if macOS refuses Bluetooth only the helper dies (an `hr_link` "lost" event says so and it restarts); the server keeps running. Never started inside the test suite.
+
 ### Heat alert rules (all numbers in `backend/config.py`)
 
 - Kalman only (no checkpoint): yellow when estimate ≥ `HEAT_WARNING_C` (38.0), red when ≥ `HEAT_DANGER_C` (38.5).
@@ -102,7 +111,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | --- | --- | --- | --- |
 | GET | `/api/state` | `view, worker_id` | contract Snapshot |
 | GET | `/api/workers` | | `WorkerStatus[]` |
-| GET | `/api/workers/{id}/history` | `view, minutes=60` | `{vitals[], estimates[]}`; **403** for `view=crew` |
+| GET | `/api/workers/{id}/history` | `view, worker_id, minutes=60` | `{vitals[], estimates[]}`; **403** for `view=crew`, and for `view=worker` unless `worker_id` is that same worker |
 | GET | `/api/sites` | | `Site[]` (C1's 79 plants when merged, else one demo site `site-gnv`) |
 | GET | `/api/schedule` | | latest plan from B with `rows` (Schedule shape), else 404 |
 | GET / POST | `/api/briefing` | Briefing (B posts it) | 404 until B posts one |
@@ -113,7 +122,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | POST | `/api/mandown/{id}/resolve` | | closes a man-down or SOS incident (incident id or worker id) |
 | POST | `/api/emergency/{id}/cancel` | | crew lead "cancel, false alarm" (D's manager) |
 | POST | `/api/demo/threshold` | `{on}` | DemoState |
-| POST | `/api/demo/replay` | `{on?, speed?}` | DemoState |
+| POST | `/api/demo/replay` | `{on?, speed?}` (speed > 0 and ≤ 600, else 422) | DemoState |
 | POST | `/api/demo/scenario` | `{action: start\|stop}` | DemoState (start = restart the demo shift) |
 | POST | `/api/demo/test-alert` | `{kind: LIGHTNING\|FLOOD_FIRE, site_id?}` | |
 | POST | `/api/demo/clear-hazards` | | |
@@ -135,7 +144,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | POST | `/api/sites` | `{site_id, name, lat, lon, ...extra}` | add a site |
 | POST | `/api/sites/{id}/status` | contract SiteStatus | C1's full hazard picture for the dashboard |
 | POST | `/api/sites/{id}/weather` | `{wbgt, future_wbgt?[30]}` | forecaster input for every worker at the site |
-| POST | `/spot-check` (or `/api/spot-check`) | `{worker_id, thermometer_c, timestamp?}` | personal offset twin, returns `offset_update` |
+| POST | `/spot-check` (or `/api/spot-check`) | `{worker_id, thermometer_c (34-42, else 422), timestamp?}` | personal offset twin, returns `offset_update`; an accepted check also re-sends that minute's estimate with the new offset (`estimate` with `refresh: true`) so the chart moves at once |
 | POST | `/api/workers` | `{worker_id, name?, site_id?}` | create / move a worker (resets their pipeline) |
 | POST | `/api/workers/{id}/context` | `{wbgt?, workload?, future_wbgt?[30], future_workload?[30]}` | planned workload (B) |
 | POST | `/api/plans` | any JSON | stored + broadcast as `plan`; a Schedule-shaped one feeds `/api/schedule` |
@@ -187,7 +196,7 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 
 Follows `docs/firmware-contract.md`. Band → laptop: `TEMP:34.62` (every 5 s), `TILT:1,ACT:7` (every 1 s; ACT = tilt switch changes in the last second), `ACC:0.98,0.02,0.11` (later), `BTN:1` (short press) and `BTN:SOS` (held 3 s), both parsed into `ButtonPress` with `kind` `press` / `sos`. Lines starting with `#` are firmware debug prints and are ignored. Accepted extras: `HR:<bpm>` (the band's pulse sensor, tagged `band`, fused with the watch), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`, sent on change plus the 20 s keep-alive.
 
-Every line is timestamped on the laptop when it arrives. UDP listener on `UDP_PORT` (5005) replies BUZZ lines to the band's address from the same port.
+Every line is timestamped on the laptop when it arrives. Impossible values are dropped field by field (NaN, infinity, skin temp outside 20-45 °C, HR outside 25-240, ACT outside 0-200, TILT not 0/1, any ACC axis beyond ±16 g). UDP listener on `UDP_PORT` (5005) replies BUZZ lines to the band's address from the same port.
 
 ## 6. Storage (SQLite, `data/planit.db`)
 
