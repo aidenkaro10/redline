@@ -17,6 +17,8 @@ Set HAZARD_DATA_DIR in .env to put them somewhere else.
 import hashlib
 import json
 import os
+import ssl
+import subprocess
 import time
 import urllib.error
 import urllib.parse
@@ -54,19 +56,27 @@ def _cache_path(url: str, suffix: str) -> Path:
     return folder / f"{key}{suffix}"
 
 
-def _download(url: str, timeout: float = 120) -> bytes:
+def _download(url: str, timeout: float = 120, delay: float = POLITE_DELAY_S) -> bytes:
     """One real network call, with the polite delay and slow retries."""
     global _last_call
     for attempt in range(RETRIES):
-        wait = POLITE_DELAY_S - (time.time() - _last_call)
+        wait = delay - (time.time() - _last_call)
         if wait > 0:
             time.sleep(wait)
         _last_call = time.time()
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return resp.read()
-        except (urllib.error.URLError, TimeoutError) as e:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    return resp.read()
+            except urllib.error.URLError as e:
+                # Some Macs' Python can't check HTTPS certificates (the python.org
+                # install skips the Mac's certificate store). curl uses the Mac's
+                # store, so fall back to it. Certificates are still checked.
+                if not isinstance(e.reason, ssl.SSLError):
+                    raise
+                return _curl(url, timeout)
+        except (urllib.error.URLError, TimeoutError, subprocess.CalledProcessError) as e:
             # 4xx means our request is wrong; retrying won't help
             if isinstance(e, urllib.error.HTTPError) and 400 <= e.code < 500 and e.code != 429:
                 raise
@@ -76,15 +86,26 @@ def _download(url: str, timeout: float = 120) -> bytes:
     raise RuntimeError("unreachable")
 
 
-def get_json(base: str, params: dict | None = None, offline: bool = False) -> dict:
-    """GET a JSON url, cached on disk. offline=True never touches the network."""
+def _curl(url: str, timeout: float) -> bytes:
+    """Download with the curl command (fails on HTTP errors, follows redirects)."""
+    out = subprocess.run(
+        ["curl", "-sSfL", "-m", str(int(timeout)), "-A", USER_AGENT, url],
+        capture_output=True, check=True,
+    )
+    return out.stdout
+
+
+def get_json(base: str, params: dict | None = None, offline: bool = False,
+             delay: float = POLITE_DELAY_S) -> dict:
+    """GET a JSON url, cached on disk. offline=True never touches the network.
+    delay: minimum seconds since the last real call (bigger for heavy requests)."""
     url = base + ("?" + urllib.parse.urlencode(params) if params else "")
     path = _cache_path(url, ".json")
     if path.exists():
         return json.loads(path.read_text())
     if offline:
         raise FileNotFoundError(f"not cached (offline mode): {url}")
-    data = json.loads(_download(url))
+    data = json.loads(_download(url, delay=delay))
     path.write_text(json.dumps(data))
     return data
 
