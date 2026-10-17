@@ -555,24 +555,36 @@ test("18 worker: forecast chart has the median, the 10-90 band and the danger li
 
 test("19 judges: results numbers come from one data file and match docs/results.md", () => {
   const row = (name: string) => RESULTS.rows.find((r) => r.name === name)!;
-  assert.equal(row("+20 min RMSE").values[0], 0.456);                              // Kalman
-  assert.equal(row("+20 min RMSE").values[RESULTS.best], 0.23);                    // ours (ens5)
-  assert.equal(row("Red danger caught").values[0], 75);
-  assert.equal(row("Red danger caught").values[RESULTS.best], 88);
+  // Final numbers: the 10 locked test people (docs/results.md, "FINAL: final_cv").
+  assert.match(RESULTS.split, /10 unseen test people/);
+  assert.equal(row("+20 min RMSE").values[0], 0.481);                              // published Kalman
+  assert.equal(row("+20 min RMSE").values[RESULTS.best], 0.37);                    // ours (final_cv)
+  assert.equal(row("RMSE").values[RESULTS.best], 0.347);                           // now
+  assert.equal(row("+20 min coverage of p90 (want 90%)").values[RESULTS.best], 95);
+  assert.equal(row("Yellow warnings caught").values[RESULTS.best], 88);
+  assert.equal(row("Yellow warning lead time").values[RESULTS.best], 16.9);
+  // No red-alert win: on test the trend baseline caught 10/10, ours 9/10. The table says so.
+  assert.equal(row("Red danger caught").values[1], 100);
+  assert.equal(row("Red danger caught").values[RESULTS.best], 90);
   const ai = RESULTS.planner!.rows.find((r) => r.name.startsWith("AI alone"))!;
   const ours = RESULTS.planner!.rows.find((r) => r.name.startsWith("Our agent"))!;
   assert.equal(ai.runs_with_violations_pct, 92);
   assert.equal(ours.runs_with_violations_pct, 0);
+  assert.equal(RESULTS.personalization!.rows[0].plus20_rmse_c, 0.308);
+  assert.equal(RESULTS.personalization!.rows[1].plus20_rmse_c, 0.27);
   // The same numbers in the source documents on main.
   const results = readFileSync(join(DOCS, "results.md"), "utf8");
-  assert.match(results, /0\.456/);
-  assert.match(results, /0\.230/);
-  assert.match(results, /\*\*88%\*\*/);
-  assert.match(results, /75%/);
+  const final = results.slice(results.indexOf("## FINAL: final_cv"));
+  assert.ok(final.length > 100, "docs/results.md has the FINAL section");
+  for (const n of ["0.481", "0.370", "0.347", "0.398", "0.95", "88%, **16.9 min**", "90% (9/10)", "100% (10/10)", "0.308 -> 0.270"]) {
+    assert.ok(final.includes(n), `FINAL section has ${n}`);
+  }
   assert.match(readFileSync(join(DOCS, "sessions", "planner.md"), "utf8"), /92% of runs have safety violations/);
   // And the page shows them (bundled copy, since no backend answers /api/results here).
   const t = text(render(<ResultsPage />, crewBase(), { path: "/demo/results" }));
-  for (const n of ["0.23", "0.456", "88", "92"]) assert.ok(t.includes(n), `results page shows ${n}`);
+  for (const n of ["0.37", "0.481", "88", "16.9", "92", "10 unseen test people"]) assert.ok(t.includes(n), `results page shows ${n}`);
+  assert.doesNotMatch(t, /Heat danger caught/);                                      // no red-alert headline
+  assert.ok(!t.includes("0.456"), "the old validation Kalman number is gone (0.23 only appears in the note saying it was optimistic)");
 });
 
 test("20 judges: demo controls send the right request and show the current state", () => {

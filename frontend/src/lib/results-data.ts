@@ -1,41 +1,43 @@
 /**
  * THE results data file for the judges' page (/demo/results). Every number on that page comes
- * from here, copied from docs/results.md on main. When the final model's test-people numbers
- * land, update only this file (the acceptance test 19 checks it against docs/results.md).
+ * from here, copied from docs/results.md on main ("FINAL: final_cv", the locked test people).
+ * The acceptance test 19 checks it against docs/results.md.
  */
 
 import type { ModelResults } from "./contract-extra.ts";
 
 export const RESULTS: ModelResults = {
   updated: "2026-10-17",
-  split: "Mendeley validation people (10 people, 19 sessions). Never trained on. Final test people still untouched.",
-  models: ["Kalman (ECTemp), best baseline", "Forecaster v1", "5-model ensemble (ens5)"],
+  split: "10 unseen test people (20 sessions). Locked away: never used for training, model choice or calibration. Scored once.",
+  models: ["Kalman (ECTemp), the published method", "Kalman + trend, our best baseline", "Our model (final_cv, 5-model ensemble)"],
   best: 2,
   rows: [
-    { group: "Estimate now", name: "RMSE", unit: "°C", better: "lower", values: [0.414, 0.236, 0.239], text: ["0.414 (0.33–0.48)", "0.236 (0.18–0.28)", "0.239"] },
-    { group: "Estimate now", name: "Bias", unit: "°C", better: "closer", target: 0, values: [-0.077, -0.033, 0.007] },
-    { group: "Estimate now", name: "95% limits of agreement", unit: "°C", better: "lower", values: [1.6, 0.92, 0.94], text: ["−0.88 to +0.72", "−0.49 to +0.43", "−0.46 to +0.48"] },
-    { group: "Forecast", name: "+10 min RMSE", unit: "°C", better: "lower", values: [0.445, 0.254, 0.229] },
-    { group: "Forecast", name: "+20 min RMSE", unit: "°C", better: "lower", values: [0.456, 0.282, 0.23] },
-    { group: "Forecast", name: "+30 min RMSE", unit: "°C", better: "lower", values: [0.457, 0.311, 0.238] },
-    { group: "Forecast", name: "+20 min quantile loss", unit: "", better: "lower", values: [0.1155, 0.0723, 0.0634] },
-    { group: "Calibration", name: "+20 min coverage of p90 (want 90%)", unit: "%", better: "closer", target: 90, values: [90, 88, 96] },
-    { group: "Alerts", name: "Yellow warning lead time", unit: "min", better: "higher", values: [19.6, 25.0, null] },
-    { group: "Alerts", name: "Yellow false alarms", unit: "/hr", better: "lower", values: [0.17, 0.2, null] },
-    { group: "Alerts", name: "Red danger caught", unit: "%", better: "higher", values: [75, 75, 88], text: ["75–88%", "75% (6/8)", "88% (7/8)"] },
-    { group: "Alerts", name: "Red false alarms", unit: "/hr", better: "lower", values: [0.41, 0.27, 0.55] },
+    { group: "Estimate now", name: "RMSE", unit: "°C", better: "lower", values: [0.398, 0.398, 0.347], text: ["0.398 (0.33–0.44)", "0.398", "0.347 (0.21–0.40)"] },
+    { group: "Forecast", name: "+10 min RMSE", unit: "°C", better: "lower", values: [0.442, 0.384, 0.363] },
+    { group: "Forecast", name: "+20 min RMSE", unit: "°C", better: "lower", values: [0.481, 0.38, 0.37] },
+    { group: "Forecast", name: "+30 min RMSE", unit: "°C", better: "lower", values: [0.5, 0.4, 0.371] },
+    { group: "Forecast", name: "+20 min quantile loss", unit: "", better: "lower", values: [0.1582, 0.0988, 0.0882] },
+    { group: "Calibration", name: "+20 min coverage of p90 (want 90%)", unit: "%", better: "closer", target: 90, values: [52, 98, 95] },
+    { group: "Alerts", name: "Yellow warnings caught", unit: "%", better: "higher", values: [12, 88, 88] },
+    { group: "Alerts", name: "Yellow warning lead time", unit: "min", better: "higher", values: [29, 13.0, 16.9] },
+    { group: "Alerts", name: "Yellow false alarms", unit: "/hr", better: "lower", values: [0.03, 0.23, 0.2] },
+    { group: "Alerts", name: "Red danger caught", unit: "%", better: "higher", values: [70, 100, 90], text: ["70%", "100% (10/10)", "90% (9/10)"] },
+    { group: "Alerts", name: "Red lead time", unit: "min", better: "higher", values: [18, 36, 32] },
+    { group: "Alerts", name: "Red false alarms", unit: "/hr", better: "lower", values: [0.26, 0.3, 0.46] },
   ],
   rmse_by_horizon: [
-    { minutes_ahead: 0, values: [0.414, 0.236, 0.239] },
-    { minutes_ahead: 10, values: [0.445, 0.254, 0.229] },
-    { minutes_ahead: 20, values: [0.456, 0.282, 0.23] },
-    { minutes_ahead: 30, values: [0.457, 0.311, 0.238] },
+    { minutes_ahead: 0, values: [0.398, 0.398, 0.347] },
+    { minutes_ahead: 10, values: [0.442, 0.384, 0.363] },
+    { minutes_ahead: 20, values: [0.481, 0.38, 0.37] },
+    { minutes_ahead: 30, values: [0.5, 0.4, 0.371] },
   ],
   notes: [
-    "Split by person, never by time. Validation people were used for early stopping, so these numbers are slightly optimistic.",
-    "Kalman red catch is 75–88% depending on the baseline variant; the headline uses the lower end next to our 88%.",
-    "The ensemble's ranges are too wide (96% coverage, want 90%), which costs red false alarms. Final calibration on 20 people will tighten them.",
-    "Heart-rate twins did not help on real people (logged as a negative result). The personal offset from thermometer spot checks did.",
+    "Split by person, never by time. The 10 test people were locked away until the end and scored once. Nothing was tuned on them afterwards.",
+    "Vs the published Kalman method: forecasts 18–26% more accurate 10 to 30 min ahead, 13% better right now, and the ranges are honest (Kalman's 90% range only covers about half the time).",
+    "Vs our own Kalman + trend baseline: only 3–7% more accurate. On red alerts it caught 9 of 10 vs 10 of 10, with more false alarms. 10 episodes is a small sample, but that's the result.",
+    "Earlier validation numbers (0.23 °C at +20 min) were optimistic, because those people were used to pick the model. 0.370 °C is the number to quote.",
+    "Ranges run slightly wide (95% vs 90% wanted), which errs on the safe side.",
+    "The personal offset from thermometer spot checks comes on top of this (its own test, below).",
   ],
   planner: {
     source: "Session B, held-out test set: 12 scenarios × 5 runs, Claude Opus 5.5. Heat from our planning model (PHS ensemble), not real people.",
@@ -55,10 +57,10 @@ export const RESULTS: ModelResults = {
     ],
   },
   figures: [
-    { file: "04_rmse_by_horizon.png", title: "Error by how far ahead", caption: "Ensemble 0.23–0.24 °C and flat; v1 0.25–0.31; Kalman 0.44–0.46." },
-    { file: "01_predicted_vs_measured.png", title: "Forecast vs measured, 20 min ahead", caption: "Three heat sessions that cross 38.5 °C: median forecast with the 10–90 band under the measured core temp." },
-    { file: "05_alert_timeline.png", title: "Red alert vs real crossing", caption: "Median-lead example (26 min). On this one the Kalman fires about as early; the table has the overall comparison." },
-    { file: "02_bland_altman.png", title: "Agreement (Bland-Altman)", caption: "Typical error 0.41 (Kalman) vs 0.24 °C (ours). 95% limits −0.88/+0.72 vs −0.46/+0.48." },
-    { file: "03_coverage_by_horizon.png", title: "Are the ranges honest?", caption: "Share of truths under the 90th percentile. Ensemble 96% from 12 min (too cautious); Kalman and v1 overconfident." },
+    { file: "04_rmse_by_horizon.png", title: "Error by how far ahead", caption: "From the earlier validation run (before the final test). The table above has the final numbers." },
+    { file: "01_predicted_vs_measured.png", title: "Forecast vs measured, 20 min ahead", caption: "Validation run: three heat sessions that cross 38.5 °C, median forecast with the 10–90 band under the measured core temp." },
+    { file: "05_alert_timeline.png", title: "Red alert vs real crossing", caption: "Validation run: one example of when the red alert fires vs when the worker really crossed." },
+    { file: "02_bland_altman.png", title: "Agreement (Bland-Altman)", caption: "From the earlier validation run (before the final test)." },
+    { file: "03_coverage_by_horizon.png", title: "Are the ranges honest?", caption: "Validation run: share of truths under the 90th percentile, by minutes ahead." },
   ],
 };
