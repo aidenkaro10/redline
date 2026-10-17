@@ -26,7 +26,6 @@ from datetime import timedelta
 
 from backend.hazards import store
 from backend.hazards.events import SEVERITY_LEVEL, iso, parse_time, utc_now
-from backend.hazards.index_bridge import index_for, start_background as start_index_background
 from backend.hazards.inject import injected_events
 from backend.hazards.report_log import get_log
 from backend.sites.build_context import load_context
@@ -179,8 +178,8 @@ def hazard_picture(now=None, sites=None, write_log=True):
                 "alerts_into_tomorrow": [e["title"] for e in evs if e["source"] == "NWS"
                                          and e["ends"] and parse_time(e["ends"]) > tomorrow_start],
             },
-            # Session C2's index for tomorrow (None until index_bridge has scored this site)
-            "hazard_index": index_for(s.site_id),
+            # Filled in by the hazard index model (session C2) when it exists
+            "hazard_index": None,
         })
     entries.sort(key=lambda x: (-x["score"], x["site"]["name"]))
     for i, entry in enumerate(entries, 1):
@@ -237,8 +236,6 @@ def start_background_refresh(interval_s=60):
             time.sleep(interval_s)
     t = threading.Thread(target=loop, name="hazard-refresh", daemon=True)
     t.start()
-    # Tomorrow's 0-10 index (session C2), scored in its own slower thread. Offline only in fake mode.
-    start_index_background(online=None if store.get_mode() != "fake" else False)
     return t
 
 

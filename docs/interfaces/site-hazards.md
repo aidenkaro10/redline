@@ -145,7 +145,3 @@ wbgt_from_weather(time_utc, lat, lon, tair_c, rh_pct, pres_hpa, wind_ms_10m, sol
 from backend.hazards.report_log import get_log
 get_log().read(site_id="eia-663", since="2026-10-17T00:00:00Z")
 ```
-
-## Hazard index wiring (added by session E, 2026-10-17)
-
-`backend/hazards/index_bridge.py` fills `entry["hazard_index"]` with session C2's `predict_index()` result for tomorrow. A background thread (started by `start_background_refresh`) scores every site: cached data first, then downloads what's missing one site at a time, every hour. `contract.site_status()` now also passes the full result as `hazard_index` and fills `index_drivers` from `top_reasons[].text`. `index_tomorrow` stays `null` until a site is scored. Setting: `HAZARD_INDEX=auto|offline|off` (offline only in fake hazard mode). Tests: `backend/tests/test_index_bridge.py`.
