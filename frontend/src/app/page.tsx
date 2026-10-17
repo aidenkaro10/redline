@@ -20,7 +20,9 @@ import { SiteMap } from "@/components/SiteMap";
 import { AlertIcon, HazardIcon, IndexChip, StatusBadge, alertTone, fmtCountdown } from "@/components/ui";
 import type { Site, SiteStatus, Status, WorkerStatus } from "@/lib/contract";
 import { ALERT_LABEL, HAZARD_LABEL } from "@/lib/contract";
-import { shortSiteName, siteMeta, useCrew } from "@/lib/crew";
+import { shortSiteName, siteMeta, useCrew, useSites } from "@/lib/crew";
+import { dangerText } from "@/lib/format";
+import { rankSites } from "@/lib/ranking";
 import { useFetch, useLive, useSimNow } from "@/lib/live";
 import { secondsUntil } from "@/lib/normalize";
 
@@ -98,8 +100,8 @@ function CrewTab() {
 
 /** Only shows when a crew site has a real alert (lightning stop, flood or fire warning). */
 function SiteBanners({ siteIds, sites, now }: { siteIds: string[]; sites: Record<string, SiteStatus>; now: number }) {
-  const { data: list } = useFetch<Site[]>("/sites");
-  const names = Object.fromEntries((list ?? []).map((s) => [s.id, s.name]));
+  const { byId } = useSites();
+  const names = Object.fromEntries(Object.values(byId).map((s) => [s.id, s.name]));
   const banners = siteIds.flatMap((id) => (sites[id]?.hazards ?? [])
     .filter((h) => h.stop_work || h.band_pattern !== null)    // real alerts only (the band buzzes for them)
     .map((h) => ({ id, h })));
@@ -129,15 +131,20 @@ const EDGE: Record<Status, string> = { green: "border-l-ok", yellow: "border-l-w
 
 function WorkerRow({ w, now, open, onToggle, down }: { w: WorkerStatus; now: number; open: boolean; onToggle: () => void; down: "mandown" | "sos" | null }) {
   const breakIn = w.break_at ? w.break_at - now : null;
-  const danger = w.minutes_to_danger === null ? null : w.minutes_to_danger === 0 ? "Danger now" : `Danger in ${w.minutes_to_danger} min`;
+  const danger = dangerText(w.minutes_to_danger);
+  const dangerTone = w.minutes_to_danger === 0 || w.status === "red" ? "text-danger-ink" : w.status === "yellow" ? "text-warn-ink" : "text-ink-2";
   return (
     <li className={`overflow-hidden rounded-xl border border-line border-l-[6px] bg-surface ${down === "sos" ? "border-l-sos" : down ? "border-l-danger" : EDGE[w.status]}`}>
       <button onClick={onToggle} className="flex w-full items-center gap-3 px-3 py-3 text-left" aria-expanded={open}>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold">{w.name}</p>
           <p className={`text-sm ${w.status === "red" ? "font-semibold text-danger-ink" : w.status === "yellow" ? "font-semibold text-warn-ink" : "text-muted"}`}>
-            {down === "sos" ? "SOS" : down ? "Man down" : danger ?? (w.on_break ? (w.hazard === "LIGHTNING" ? "Stopped for lightning" : "On break") : "OK")}
+            {down === "sos" ? "SOS" : down ? "Man down" : w.on_break ? (w.hazard === "LIGHTNING" ? "Stopped for lightning" : "On break") : w.status_reason}
           </p>
+        </div>
+        <div className="shrink-0 text-right" data-testid="danger">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Danger</p>
+          <p className={`text-sm font-bold tabular ${dangerTone}`}>{danger}</p>
         </div>
         {w.hazard && <span className={alertTone(w.hazard)}><AlertIcon kind={w.hazard} className="h-5 w-5" /></span>}
         {down
@@ -151,8 +158,8 @@ function WorkerRow({ w, now, open, onToggle, down }: { w: WorkerStatus; now: num
             <dt className="text-muted">Alert</dt>
             <dd className={w.hazard ? alertTone(w.hazard) : ""}>{w.hazard ? ALERT_LABEL[w.hazard] : "None"}</dd>
             {w.alert_acknowledged !== null && (<><dt className="text-muted">Acknowledged</dt><dd>{w.alert_acknowledged ? "Yes" : "Not yet"}</dd></>)}
-            <dt className="text-muted">{w.on_break ? "Back to work" : "Next break"}</dt>
-            <dd className="tabular">{breakIn === null ? "--" : `in ${Math.max(0, Math.round(breakIn / 60))} min`}</dd>
+            {breakIn !== null && (<><dt className="text-muted">{w.on_break ? "Back to work" : "Next break"}</dt>
+            <dd className="tabular">in {Math.max(0, Math.round(breakIn / 60))} min</dd></>)}
             <dt className="text-muted">Role</dt><dd>{w.role}</dd>
             <dt className="text-muted">Band</dt><dd>{w.band_connected ? "Connected" : "Not connected"}</dd>
           </dl>
@@ -171,20 +178,13 @@ function SitesTab() {
   const live = useLive();
   const crew = useCrew();
   const dark = useIsDark();
-  const { data: sites } = useFetch<Site[]>("/sites");
+  const { sites } = useSites();
   const [selected, setSelected] = useState<string | null>(null);
   const [focus, setFocus] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
 
-  // Your crew's sites first, then the rest by tomorrow's index (worker alerts always on top).
-  const ranked = useMemo(() => {
-    if (!sites) return [];
-    const flag = { mandown: 0, sos: 0, heat: 1, none: 2 };
-    return sites.filter((s) => live.sites[s.id]).sort((a, b) => {
-      const A = live.sites[a.id], B = live.sites[b.id];
-      return flag[A.worker_flag] - flag[B.worker_flag] || (B.index_tomorrow ?? -1) - (A.index_tomorrow ?? -1);
-    });
-  }, [sites, live.sites]);
+  // Ranked by tomorrow's index, highest first; no index yet = last. Worker alerts show as flags.
+  const ranked = useMemo(() => (sites ? rankSites(sites, live.sites) : []), [sites, live.sites]);
 
   // A stop-work or incident at a crew site: jump the map there.
   const alarm = crew.siteIds.find((id) => live.sites[id]?.worker_flag === "mandown" || live.sites[id]?.worker_flag === "sos" || live.sites[id]?.hazards.some((h) => h.stop_work)) ?? null;
@@ -237,7 +237,7 @@ function SitesTab() {
           })}
         </ol>
         {ranked.length > 10 && (
-          <button onClick={() => setShowAll(!showAll)} className="mt-1 px-1 py-2 text-sm font-semibold text-accent">
+          <button onClick={() => setShowAll(!showAll)} className="mt-1 min-h-11 px-1 py-2 text-sm font-semibold text-accent">
             {showAll ? "Show top 10" : `Show all ${ranked.length} sites`}
           </button>
         )}

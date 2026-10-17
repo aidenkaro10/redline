@@ -14,11 +14,10 @@ import L from "leaflet";
 import { useEffect, useRef } from "react";
 
 import type { PhotoReport, Site, SiteStatus } from "@/lib/contract";
+import { lightningRings } from "@/lib/map-layers";
 import { indexColor } from "./ui";
 
 const FLORIDA: L.LatLngBoundsExpression = [[24.5, -87.6], [31.0, -80.0]];
-const TEN_MILES_M = 16093;     // lightning stop-work radius
-const THIRTY_MILES_M = 48280;  // lightning watch radius (session C1)
 
 // OpenStreetMap's free tiles (attribution required, no key). Dark mode darkens
 // them with a CSS filter (see globals.css), so there's only one tile source.
@@ -87,11 +86,13 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
       const st = statuses[s.id];
       if (!st) continue;
       const lightning = st.hazards.find((h) => h.kind === "lightning");
-      if (lightning && lightning.level !== "none") {
-        L.circle([s.lat, s.lon], { radius: THIRTY_MILES_M, color: "#9085e9", weight: 1, dashArray: "2 6", fill: false, interactive: false }).addTo(g);
+      const rings = lightningRings(lightning);
+      for (const r of rings) {
+        L.circle([s.lat, s.lon], r.kind === "stop"
+          ? { radius: r.radius_m, color: "#9085e9", weight: 2, dashArray: "6 6", fillColor: "#6250d6", fillOpacity: 0.08, interactive: false }
+          : { radius: r.radius_m, color: "#9085e9", weight: 1, dashArray: "2 6", fill: false, interactive: false }).addTo(g);
       }
       if (lightning?.stop_work) {
-        L.circle([s.lat, s.lon], { radius: TEN_MILES_M, color: "#9085e9", weight: 2, dashArray: "6 6", fillColor: "#6250d6", fillOpacity: 0.08, interactive: false }).addTo(g);
         for (const k of lightning.lightning?.strikes ?? []) {
           L.marker([k.lat, k.lon], {
             interactive: false,

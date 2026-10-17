@@ -50,13 +50,13 @@ export function ReportForm({ workerId, siteId }: { workerId: string; siteId: str
       <div className="grid grid-cols-3 gap-1.5">
         {KINDS.map((k) => (
           <button type="button" key={k.v} onClick={() => setKind(k.v)}
-            className={`rounded-lg px-2 py-2 text-sm font-semibold ${kind === k.v ? "bg-white text-black" : "bg-white/15"}`}>
+            className={`min-h-11 rounded-lg px-2 py-2 text-sm font-semibold ${kind === k.v ? "bg-white text-black" : "bg-white/15"}`}>
             {k.t}
           </button>
         ))}
       </div>
       <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} required placeholder="Where? e.g. by the north fence"
-        className="rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-base placeholder:text-white/60" />
+        className="min-h-11 rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-base placeholder:text-white/60" />
       <label className="flex items-center gap-2 text-sm">
         <span className="rounded-lg bg-white/15 px-3 py-2 font-semibold">{photo ? "Photo added ✓" : "Add photo"}</span>
         <input type="file" accept="image/*" capture="environment" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; setPhoto(f ? await shrink(f) : null); }} />

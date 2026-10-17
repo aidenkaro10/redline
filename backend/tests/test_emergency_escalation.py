@@ -204,3 +204,20 @@ def test_sos_with_911_in_contacts_is_refused():
     m.tick()
     assert all(c.number != "911" for c in phone.calls)
     assert inc.outcome == "failed"
+
+
+def test_status_text_never_has_a_full_phone_number(capsys):
+    """Status messages reach every dashboard, so they only show the masked number."""
+    for phone_cls in (DryRunPhone, FakePhone):
+        m, clock, events, phone = make(phone_cls=phone_cls)
+        if phone_cls is DryRunPhone:
+            phone.printer = print
+        m.handle(EVENT)
+        clock.t += 31
+        m.tick()
+        text = " ".join(e.message + (e.number_masked or "") for e in events)
+        printed = capsys.readouterr().out
+        for number in CONTACTS.values():
+            assert number not in text and number[1:] not in text
+            assert number not in printed
+        assert "0001" in text           # the last 4 digits are still there

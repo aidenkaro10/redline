@@ -14,6 +14,7 @@ import {
   Area, CartesianGrid, ComposedChart, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
+import { buildCoreChart, type CoreRow } from "@/lib/chart";
 import type { Estimate, Vitals } from "@/lib/contract";
 import { useIsDark } from "./Nav";
 
@@ -24,39 +25,20 @@ function palette(dark: boolean) {
     : { series: "#2a78d6", band: "#2a78d6", kalman: "#898781", grid: "#e1e0d9", axis: "#898781", ink: "#0b0b0b", warn: "#b07800", danger: "#d03b3b", surface: "#fcfcfb" };
 }
 
-interface Row {
-  t: number;                  // minutes from now (negative = past)
-  mean?: number;
-  range?: [number, number];
-  kalman?: number;
-  p50?: number;
-  band?: [number, number];
-}
+type Row = CoreRow;
 
 export function CoreChart({ estimates, now, height = 340 }: { estimates: Estimate[]; now: number; height?: number }) {
   const dark = useIsDark();
   const c = palette(dark);
-  const last = estimates[estimates.length - 1];
-  if (!last) return <div style={{ height }} className="grid place-items-center text-sm text-muted">Waiting for the first estimate…</div>;
-
-  const toT = (ts: number) => (ts - now) / 60;
-  const rows: Row[] = estimates
-    .filter((e) => toT(e.timestamp) >= -40)
-    .map((e) => ({ t: toT(e.timestamp), mean: e.core.mean, range: [e.core.p10, e.core.p90], kalman: e.kalman }));
-  // The forecast starts at the latest estimate, so the two lines join.
-  const t0 = toT(last.timestamp);
-  rows[rows.length - 1] = { ...rows[rows.length - 1], p50: last.core.mean, band: [last.core.mean, last.core.mean] };
-  for (const f of last.forecast) rows.push({ t: t0 + f.minutes_ahead, p50: f.p50, band: [f.p10, f.p90] });
-
-  const { warning, danger, demo } = last.thresholds;
-  const values = rows.flatMap((r) => [r.range?.[1], r.band?.[1], r.kalman, r.range?.[0], r.band?.[0]]).filter((x): x is number => x !== undefined);
-  const lo = Math.floor(Math.min(36.8, ...values) * 2) / 2;
-  const hi = Math.ceil(Math.max(danger + 0.3, ...values) * 2) / 2;
+  const data = buildCoreChart(estimates, now);
+  if (!data) return <div style={{ height }} className="grid place-items-center text-sm text-muted">Waiting for the first estimate…</div>;
+  const { rows } = data;
+  const [lo, hi] = data.domain;
 
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={rows} margin={{ top: 18, right: 92, bottom: 4, left: 0 }}>
+        <ComposedChart data={rows} margin={{ top: 18, right: 124, bottom: 4, left: 0 }}>
           <CartesianGrid stroke={c.grid} vertical={false} />
           <XAxis
             dataKey="t" type="number" domain={[-40, 30]} ticks={[-40, -30, -20, -10, 0, 10, 20, 30]}
@@ -70,10 +52,10 @@ export function CoreChart({ estimates, now, height = 340 }: { estimates: Estimat
           <Area dataKey="band" stroke="none" fill={c.band} fillOpacity={0.22} isAnimationActive={false} connectNulls={false} />
           <Area dataKey="range" stroke="none" fill={c.band} fillOpacity={0.12} isAnimationActive={false} />
 
-          <ReferenceLine y={warning} stroke={c.warn} strokeDasharray="5 4" strokeWidth={1.5}
-            label={{ value: `${demo ? "DEMO " : ""}warning ${warning.toFixed(1)}`, position: "right", fill: c.warn, fontSize: 11, fontWeight: 600 }} />
-          <ReferenceLine y={danger} stroke={c.danger} strokeWidth={2}
-            label={{ value: `${demo ? "DEMO " : ""}danger ${danger.toFixed(1)}`, position: "right", fill: c.danger, fontSize: 11, fontWeight: 700 }} />
+          <ReferenceLine y={data.warning.y} stroke={c.warn} strokeDasharray="5 4" strokeWidth={1.5}
+            label={{ value: data.warning.label, position: "right", fill: c.warn, fontSize: 11, fontWeight: 600 }} />
+          <ReferenceLine y={data.danger.y} stroke={c.danger} strokeWidth={2}
+            label={{ value: data.danger.label, position: "right", fill: c.danger, fontSize: 11, fontWeight: 700 }} />
           <ReferenceLine x={0} stroke={c.ink} strokeOpacity={0.5} strokeWidth={1} label={{ value: "now", position: "top", fill: c.ink, fontSize: 11 }} />
 
           <Line dataKey="kalman" stroke={c.kalman} strokeWidth={1.5} strokeDasharray="4 3" dot={false} isAnimationActive={false} />

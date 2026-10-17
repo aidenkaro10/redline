@@ -55,6 +55,10 @@ It only reads `estimate` events (`forecast.p90[19]` = the 20-min 90th pct, `core
 ```
 `task`: `heavy` (also very heavy), `moderate`, `light`, `break`, `stop_work`, `off`.
 
+`/api/schedule` and `/api/briefing` (top level and inside `schedule`) also carry `"llm": true | false`. `false` = made without Claude (no key, or `use_llm=False` like the bridge's quick startup plan): optimizer + rule checker only, and `notes` says so. Agent results (`POST /api/planner/plan`) have the same `llm` flag.
+
+**Thread safety:** the heat model takes one lock around every PHS call (pythermalcomfort's numba code aborts the process if two threads run it at once), so calling the planner from several threads (startup plan + briefing pre-build, overlapping requests) is safe; they just take turns.
+
 **Briefing** (frontend fields first, then extras)
 ```json
 {

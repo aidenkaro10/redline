@@ -87,7 +87,7 @@ export function ThemeToggle() {
     window.dispatchEvent(new Event("themechange"));
   };
   return (
-    <button onClick={next} className="rounded-md border border-line px-2 py-1 text-ink-2 hover:bg-surface-2" title="Switch light / dark / system">
+    <button onClick={next} className="min-h-11 min-w-11 rounded-md border border-line px-2 py-1 text-ink-2 hover:bg-surface-2" title="Switch light / dark / system">
       {mode === "system" ? "Auto" : mode === "dark" ? "Dark" : "Light"}
     </button>
   );

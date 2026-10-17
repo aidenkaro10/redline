@@ -167,9 +167,6 @@ def test_A29_worker_view_cannot_read_another_workers_history(streams):
     assert streams["other_history"].status_code == 403
 
 
-@pytest.mark.xfail(strict=True, reason="BUG (session D, shown by A): DryRunPhone/FakePhone status messages say "
-                   "'Dry run: would call +1352...' with the FULL number; A copies the message into "
-                   "EmergencyCall.steps[].text for every view, crew included. Only number_masked should go out.")
 def test_A29_no_full_phone_number_reaches_any_dashboard(streams):
     """Phone numbers on screen are masked (+1 ••• ••• 0101). The full number never goes out."""
     for name, msgs in streams["ws"].items():

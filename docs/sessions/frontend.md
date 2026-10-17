@@ -93,3 +93,48 @@ Backend gaps (not frontend code, for the main session / A):
 2. Session C2's index isn't wired into C1's picture (`backend/hazards/picture.py` sets `hazard_index: None`): every site's 0-10 index is "--", so "Riskiest tomorrow" isn't ranked.
 3. `/api/state` snapshot has no `offsets`, so the "Learning your body" card resets to "Not personalized yet" on page reload even though A saved the offset (SQLite). Add `offsets: {worker_id: offset_update}` for demo/worker views.
 4. Old man-down incidents stay open until a crew lead closes them (replay falls stack up); only one shows at a time. Fine for now.
+
+## Round 9 (2026-10-17): backend edits reverted
+
+Commit 84b3310 edited backend files owned by sessions A and C1. Reverted in 1fb24f0 at the main session's request (A merged its own offsets fix, C1 is wiring the index). This session stays inside `frontend/` and its own notes.
+
+## Round 10 (2026-10-17): merged main (b680a29), aligned with A's offsets and break times
+
+Tested against the merged backend (replay, own port):
+- Break times (A's planner bridge): worker app shows "Next break in 45 min", crew rows show "On break". The break tile still hides when a worker has no schedule.
+- Saved offsets: A's snapshot sends `offsets` in the flat offset_update shape; `src/lib/offset.ts` converts it. Learning card survives a page reload (checked: "+0.04 °C hotter than average", 1 check). Crew snapshot has none.
+- No frontend code changes were needed for these; the adapters from round 8 already covered A's shapes.
+
+Remaining gaps for the owners:
+1. **C1 (index):** until C1 lands the C2 wiring, A's `site_status` sends `index_tomorrow: 0` (not null) and no `hazard_index`, so every site shows "0.0" and the "Riskiest tomorrow" list isn't really ranked. Ask: send `null` until the index exists (the UI then shows "--"), and pass C2's full result as `hazard_index` (the hazard panel shows the per-hazard breakdown and reasons from it).
+2. **A (snapshot offsets):** the snapshot's offset has no history or last reading, so after a reload the learning card's little chart restarts at the current value. Optional: include the per-check history.
+
+## Round 11 (2026-10-17): acceptance tests 1-24 (docs/testing/frontend-acceptance.md)
+
+Tests live in `frontend/src/test/acceptance.test.tsx` (items 1-20, 22) and `frontend/src/test/connection.test.tsx` (item 21), named after the doc's items. They run on payloads recorded from the real replay backend (`src/test/fixtures/real/replay-recording.json`). No new libraries: Node's test runner plus TypeScript to compile JSX. Run with `cd frontend && npm test` (also part of `npm run check`).
+
+Results: 1-22 pass. One `todo`, one skip:
+- **11 (real payload), todo:** see backend gap 1 below. The emergency screen itself is tested with a synthetic session D sequence and passes, including the big "call 911" box on failure.
+- **01 (session J's fixtures), skipped** until J's `tests/e2e/fixtures/live/*.json` are merged; it runs on its own once they are (or with `E2E_FIXTURES=<path>`). Passes against J's worktree.
+- 08 (real payload): was a todo, now passes. The merged backend sends `index_tomorrow: null`, the UI shows "--".
+
+Item 23 (in-app browser, 375x812, light and dark): no sideways scroll, nothing cut off on `/`, `/?tab=sites`, `/worker`, `/worker/demo-2`, `/worker/demo-2?details=1`. Tap targets under 44 px fixed (theme toggle, "Show all", learning card input + Add, hazard report chips + note field). `/demo` and `/demo/results` are the judges' laptop pages: no sideways scroll at 375 px, but their small buttons were left as is.
+
+Item 24 (manual, real backend, replay at 10x): Jake yellow at ~1 min ("danger in 28 min"), red at ~4 min, band button press (crew row shows "Acknowledged: Yes" in its details), Maria's fall, man-down check with countdown, confirmed, session D's dry-run call through to "Emergency report delivered", spot check on Jake's phone (38.1 °C vs model 38.53 °C, learned -0.14 °C). All worked.
+
+Fixed in the frontend this round:
+- Results page shows the bundled numbers right away (one data file, `src/lib/results-data.ts`), not "Loading results…".
+- "Cancel, false alarm" sends once, even on a double tap.
+- Offline label says "Reconnecting…".
+- Notify step: when the crew lead or safety officer call doesn't go through, the step shows "!" in amber plus "Phone alert didn't go through to: …" instead of a green check. Found in item 24: with no numbers in `.env` both calls are skipped but the screen showed "✓ Notify crew lead + safety officer".
+- The finished "Done, call logged" step is green, not red.
+
+Backend gaps (for the main session to route, frontend code not changed for these):
+1. **D (live event stream):** the dry-run call sends `emergency_call/calling` then `emergency_call/completed` then `done`, never `connected`. The snapshot's folded call does have a "connected" step ("Dry run: no call placed"), so the live screen and a reloaded screen disagree. Test "11 crew (real payload)" is a todo for this.
+2. **A/D (snapshot emergency):** the snapshot's `emergency.steps` only carry text, so a skipped or failed notify call ("No crew_lead number set in .env. Call skipped.") can't be told apart from a good one after a page reload. Ask: add `unreached: ["Crew lead", ...]` to the snapshot's emergency (the UI already reads that field), or a `status` per step.
+3. **D (call script):** the dry-run report says "no movement for 0 seconds ... started at 3:44 pm, 0 seconds ago" while Maria had been down ~2 min. Looks like the duration uses the wrong clock (replay time vs wall time).
+
+Confusing but not wrong (for Aiden's UI pass):
+- A crewmate's phone (Jake) gets Maria's full man-down screen, including the emergency call panel. Fine if that's the plan, but the cancel button maybe belongs only to the crew lead.
+- "Down for" runs on the replay clock (10x) while "Calling in 0:23" runs on the real clock, so during replay one ticks much faster than the other. Correct, but looks odd in a demo.
+- Jake's crew row says "Forecast to reach danger in ~28 min" next to "DANGER in 28 min": same fact twice.

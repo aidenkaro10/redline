@@ -13,12 +13,19 @@ import { apiGet, useLive } from "./live";
 
 // The site list rarely changes, so every page shares one copy.
 let sitesCache: Promise<Site[]> | null = null;
+let sitesLoaded: Site[] | null = null;      // the same list once it has arrived (used for the first render)
+
+/** Tests (and anything that already has the list) can hand it over directly. */
+export function primeSites(list: Site[]) {
+  sitesLoaded = list;
+  sitesCache = Promise.resolve(list);
+}
 
 export function useSites() {
-  const [sites, setSites] = useState<Site[] | null>(null);
+  const [sites, setSites] = useState<Site[] | null>(() => sitesLoaded);
   useEffect(() => {
     let alive = true;
-    sitesCache ??= apiGet<Site[]>("/sites").catch((e) => { sitesCache = null; throw e; });
+    sitesCache ??= apiGet<Site[]>("/sites").then((s) => { sitesLoaded = s; return s; }).catch((e) => { sitesCache = null; throw e; });
     sitesCache.then((s) => alive && setSites(s)).catch(() => alive && setSites([]));
     return () => { alive = false; };
   }, []);
