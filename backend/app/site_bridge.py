@@ -81,12 +81,24 @@ class SiteBridge:
             await asyncio.sleep(REFRESH_S)
 
 
-def make_bridge(hub) -> "SiteBridge | None":
+def make_bridge(hub, mode: str = "fake") -> "SiteBridge | None":
+    """
+    mode: "fake" = C1's built-in demo data for every feed (no internet, good for replay demos),
+          "live" = real NWS / GOES-19 / NWPS / FIRMS feeds, "off" = don't use C1 at all.
+    """
+    if mode == "off":
+        log.info("Site hazard layer switched off (--hazards off): demo-button hazards only")
+        return None
     try:
         bridge = SiteBridge(hub)
     except ImportError:
         log.info("Site hazard layer (session C1) not merged yet: one demo site, demo-button hazards")
         return None
+    try:
+        from backend.hazards import store
+        store.set_mode(mode)
+    except Exception as e:
+        log.warning("Could not set hazard mode %s (%s)", mode, e)
     n = bridge.load_sites()
-    log.info("Site hazard layer wired: %d sites, crew site %s", n, hub.default_site_id)
+    log.info("Site hazard layer wired (%s data): %d sites, crew site %s", mode, n, hub.default_site_id)
     return bridge

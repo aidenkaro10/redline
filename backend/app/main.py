@@ -63,6 +63,9 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
     ap.add_argument("--record", action="store_true", help="save live inputs to data/recordings/*.jsonl")
     ap.add_argument("--db", default=config.DB_PATH, help="SQLite file ('' = no database)")
+    ap.add_argument("--hazards", choices=["fake", "live", "off"], default=None,
+                    help="session C1's hazard feeds: fake demo data, live feeds, or off "
+                         "(default: fake with --source replay, live otherwise)")
     ap.add_argument("--emergency-phone", choices=["dry_run", "fake", "live"], default="dry_run",
                     help="session D's phone backend for confirmed man-down calls (never dials 911)")
     ap.add_argument("--host", default="127.0.0.1")
@@ -126,7 +129,8 @@ async def lifespan(app: FastAPI):
 
     tasks += wire_emergency(hub, s)
     from backend.app.site_bridge import make_bridge
-    app.state.sites = make_bridge(hub)                  # session C1's 79 sites + live hazards, if merged
+    hazard_mode = s.hazards or ("fake" if s.source == "replay" else "live")
+    app.state.sites = make_bridge(hub, hazard_mode)     # session C1's 79 sites + hazards, if merged
     if app.state.sites is not None:
         tasks.append(asyncio.create_task(app.state.sites.run()))
 
