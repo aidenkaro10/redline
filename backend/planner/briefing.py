@@ -176,18 +176,39 @@ def resolve_sites(site_ids: list[str] | None, picture: dict | None, crew_site: d
     return [crew_site] + [x for x in SITES if x["name"] != crew_site["name"]][:max_sites - 1]
 
 
-def top_hazards_from_events(entry: dict) -> list[dict]:
-    """C1's events (worst first) + tomorrow's HeatRisk, in the frontend's top_hazards shape."""
+def top_hazards_from_events(entry: dict, for_date: str) -> list[dict]:
+    """
+    Up to 3 hazards in the frontend's top_hazards shape. Tomorrow first (NWS alerts running into
+    tomorrow, max WBGT, HeatRisk), then what's happening right now, marked "Now:".
+    """
     levels = {1: "low", 2: "moderate", 3: "high", 4: "extreme"}
     kinds = ("heat", "lightning", "flood", "fire", "soil", "wildlife")
-    out = [{"kind": e["hazard"] if e.get("hazard") in kinds else "lightning",
-            "level": levels.get(e.get("level", 2), "moderate"), "text": e.get("title", "")}
-           for e in entry.get("events", [])[:3]]
-    hr = (entry.get("tomorrow") or {}).get("heat_risk") or {}
-    if hr.get("label") and len(out) < 3:
-        out.append({"kind": "heat", "level": levels.get(int(hr.get("value", 0)), "low") if hr.get("value") else "low",
-                    "text": f"NWS HeatRisk tomorrow: {hr['label']}"})
-    return out
+    day = dt.date.fromisoformat(for_date)
+    day_start = dt.datetime(day.year, day.month, day.day, tzinfo=TZ)
+    tomorrow, now = [], []
+    for e in entry.get("events", []):
+        kind = e["hazard"] if e.get("hazard") in kinds else "lightning"
+        item = {"kind": kind, "level": levels.get(e.get("level", 2), "moderate"), "text": e.get("title", "")}
+        try:
+            ends = dt.datetime.fromisoformat(e["ends"].replace("Z", "+00:00")) if e.get("ends") else None
+        except ValueError:
+            ends = None
+        if ends is not None and ends > day_start:
+            tomorrow.append(item)
+        else:
+            now.append({**item, "text": "Now: " + item["text"]})
+    t = entry.get("tomorrow") or {}
+    wb = t.get("wbgt_max") or {}
+    if wb.get("wbgt_c") is not None:
+        at = dt.datetime.fromisoformat(wb["at"].replace("Z", "+00:00")).astimezone(TZ) if wb.get("at") else None
+        level = {"black": "extreme", "red": "high", "yellow": "moderate", "green": "low"}.get(wb.get("flag"), "low")
+        tomorrow.append({"kind": "heat", "level": level, "text": f"Max WBGT {wb['wbgt_c']:.0f} °C"
+                         + (f" around {fmt_hour(at.hour + at.minute / 60)}" if at else "")})
+    hr = t.get("heat_risk") or {}
+    if hr.get("label"):
+        tomorrow.append({"kind": "heat", "level": levels.get(int(hr.get("value") or 0), "low"),
+                         "text": f"NWS HeatRisk: {hr['label']}"})
+    return (tomorrow + now)[:3]
 
 
 def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = None,
@@ -247,7 +268,7 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
             stubs.add("past incidents (C2 records not available): examples, not real records")
         else:
             sources["incidents"] = "C2"
-        top = (top_hazards_from_events(entry) if entry else []) or top_hazards_from(index, sc)
+        top = (top_hazards_from_events(entry, for_date) if entry else []) or top_hazards_from(index, sc)
         out_sites.append({"site_id": site["id"], "name": site["name"], "index": index["index"],
                           "band": index.get("band"), "top_hazards": top, "windows": windows_from(sc),
                           "past_incidents": incidents, "index_reasons": index.get("top_reasons", []),

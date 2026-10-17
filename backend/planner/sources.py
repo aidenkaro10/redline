@@ -30,7 +30,7 @@ TITLE_KINDS = [("tornado", "tornado"), ("severe thunderstorm", "severe_thunderst
                ("flash flood", "flash_flood"), ("flood warning", "flood"), ("hurricane", "hurricane"),
                ("tropical storm", "tropical_storm"), ("extreme heat", "heat_advisory"),
                ("excessive heat", "heat_advisory"), ("heat advisory", "heat_advisory"),
-               ("red flag", "red_flag_fire")]
+               ("red flag warning", "red_flag_fire")]
 
 
 # ---------------------------------------------------------------------------
@@ -111,10 +111,12 @@ def hazard_windows_from_events(events: list[dict], date: str, shift_start: str, 
     end = start + dt.timedelta(minutes=n_slots * slot_min)
     out = []
     for e in events or []:
+        if not e.get("starts") and not e.get("ends"):
+            continue                     # a current reading (e.g. WBGT now), not a time window
         kind = None
         if e.get("hazard") == "lightning" and (e.get("details") or {}).get("state") in ("stop_work", "all_clear_pending"):
             kind = "lightning"
-        else:
+        elif str(e.get("source", "")).startswith("NWS"):
             title = (e.get("title") or "").lower()
             kind = next((k for word, k in TITLE_KINDS if word in title), None)
         if kind is None:

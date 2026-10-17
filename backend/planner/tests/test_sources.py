@@ -68,6 +68,7 @@ def test_hazard_windows_from_c1_events():
         {"hazard": "lightning", "title": "Lightning within 10 mi", "source": "GOES-19 GLM", "starts": t(8),
          "ends": t(9), "details": {"state": "stop_work"}},
         {"hazard": "wildlife", "title": "Alligator sighting", "source": "iNaturalist", "starts": t(9), "ends": None},
+        {"hazard": "heat", "title": "WBGT 31.1 °C (red flag)", "source": "Open-Meteo", "starts": None, "ends": None},
         {"hazard": "weather", "title": "Tornado Warning", "source": "NWS", "starts": t(20), "ends": t(21)},  # after shift
     ]
     w = {h.kind: (h.start_slot, h.end_slot) for h in hazard_windows_from_events(events, DATE, "07:00", 16)}
@@ -94,6 +95,7 @@ def test_briefing_uses_c1_c2_when_available(monkeypatch):
     assert b["stubs"] == []
     big_bend = b["sites"][0]
     assert big_bend["top_hazards"][0]["text"] == "Severe Thunderstorm Warning"
+    assert any(h["text"] == "NWS HeatRisk: Major" for h in big_bend["top_hazards"])
     assert any("Severe thunderstorm" in w["text"] for w in big_bend["windows"])
     assert b["schedule"]["checked_by_rules"] and b["personalized_workers"] == ["w1"]
     assert any("spot checks" in x for x in b["schedule_suggestions"])
