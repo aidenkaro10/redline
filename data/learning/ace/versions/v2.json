@@ -1,0 +1,73 @@
+{
+ "version": 2,
+ "lessons": [
+  {
+   "id": "L1",
+   "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "unacclimatized",
+    "intensities": [
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 9,
+    "to_hour": 24,
+    "penalty": 20
+   },
+   "source": "day 2",
+   "uses": 0,
+   "helped": 0
+  },
+  {
+   "id": "L2",
+   "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "Marcus",
+    "intensities": [
+     "moderate",
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 10,
+    "penalty": 15
+   },
+   "source": "day 2",
+   "uses": 0,
+   "helped": 0
+  }
+ ],
+ "day": 2,
+ "gate": {
+  "score": 0.315,
+  "throughput": 0.7835,
+  "actual_peak_c": 38.062,
+  "strain_margin_c": -0.062,
+  "workers_alerted": 0.75,
+  "solve_rate": 0.25,
+  "safety_violations": 0,
+  "heat_spread": 52.9875
+ },
+ "change": [
+  {
+   "op": "add",
+   "id": "L2",
+   "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "Marcus",
+    "intensities": [
+     "moderate",
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 10,
+    "penalty": 15
+   },
+   "result": "applied",
+   "by": "code",
+   "gate": "kept"
+  }
+ ]
+}

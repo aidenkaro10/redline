@@ -1,0 +1,663 @@
+{
+ "label": "Simulated days (not real shifts)",
+ "days": [
+  {
+   "day": 1,
+   "scenario": "cur-4a81884a",
+   "tags": [
+    "heat_dome"
+   ],
+   "outcome_score": 0.6324,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "safety_violations": 0
+  },
+  {
+   "day": 2,
+   "scenario": "cur-4606f0c3",
+   "tags": [
+    "heat_dome",
+    "storm_2pm",
+    "warning"
+   ],
+   "outcome_score": 0.6834,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Marcus and Kofi heated up faster than the forecast predicted when they moved through moderate, heavy and very heavy work on pipe insulation and shop equipment repair. For Marcus this started around 10:00. For Kofi it started earlier, around 9:00. Kofi's rise was also larger, about 0.08 \u00b0C extra per half hour against 0.06 \u00b0C for Marcus, and it lasted longer, 3 half-hour slots against 2. The planner treated these tasks as if both men would warm up at the predicted rate. It also gave Kofi, a new hire who is not yet used to the heat, the same escalating sequence as an experienced worker. That comb",
+   "reflection_by": "llm",
+   "proposed": [
+    {
+     "op": "add",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "add",
+     "text": "Put very heavy shop equipment repair early in the shift: before 9:00 for new hires and before 10:00 for experienced workers.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "add",
+     "text": "Don't go straight from pipe insulation into shop equipment repair. Put a lighter task between them so the strain doesn't keep building slot after slot.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "add",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "merge",
+     "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after.",
+     "result": "merged near-duplicate",
+     "why": ""
+    }
+   ],
+   "gate": {
+    "kept": true,
+    "gain": 0.0418,
+    "why": "2 of 5 updates kept (each gated on its own)",
+    "score_before": 0.2732,
+    "score_after": 0.315,
+    "safety_violations": 0
+   },
+   "updates": [
+    {
+     "op": "add",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "by": "llm",
+     "kept": true,
+     "gain": 0.0259
+    },
+    {
+     "op": "add",
+     "text": "Put very heavy shop equipment repair early in the shift: before 9:00 for new hires and before 10:00 for experienced workers.",
+     "by": "llm",
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": "add",
+     "text": "Don't go straight from pipe insulation into shop equipment repair. Put a lighter task between them so the strain doesn't keep building slot after slot.",
+     "by": "llm",
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": "add",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+     "by": "code",
+     "kept": true,
+     "gain": 0.0159
+    },
+    {
+     "op": "merge",
+     "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after.",
+     "by": "code",
+     "kept": false,
+     "gain": -0.0496
+    }
+   ],
+   "playbook_version": 2,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 3,
+   "scenario": "cur-53cd914e",
+   "tags": [
+    "heat_dome",
+    "new_hire"
+   ],
+   "outcome_score": 0.4944,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 2,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 4,
+   "scenario": "cur-aa363cb1",
+   "tags": [
+    "heat_dome"
+   ],
+   "outcome_score": 0.3974,
+   "workers_alerted": 0,
+   "lessons_used": [
+    "L1",
+    "L2"
+   ],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 2,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 5,
+   "scenario": "cur-492f162f",
+   "tags": [
+    "heat_dome",
+    "storm_2pm",
+    "warning"
+   ],
+   "outcome_score": 0.2912,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 2,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 6,
+   "scenario": "cur-37a9aa9d",
+   "tags": [
+    "storm_2pm",
+    "warning"
+   ],
+   "outcome_score": 0.2004,
+   "workers_alerted": 0,
+   "lessons_used": [
+    "L1",
+    "L2"
+   ],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 2,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 7,
+   "scenario": "cur-5dcbd679",
+   "tags": [
+    "storm_2pm",
+    "warning"
+   ],
+   "outcome_score": 0.5348,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Marcus ran hotter than forecast from 9:00 on shop equipment repair. His body temperature climbed about 0.075 \u00b0C more per half hour than predicted, over two slots. The job escalated from moderate to heavy to very heavy work in a short stretch. The plan treated it as a steadier load than it turned out to be, so the forecast underestimated how fast he would heat up. No alerts fired, so the gap stayed small. Still, the schedule was built on a too-optimistic picture of that task, and output came in at only about 71% of target.",
+   "reflection_by": "llm",
+   "proposed": [
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate, heavy and very heavy work from 9:00. Give Marcus that work before 9:00 or switch him to lighter tasks.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "add",
+     "text": "Shop equipment repair can ramp up to very heavy work fast. Plan it at the heaviest level it may reach, and do the hardest parts early in the morning.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 9:00. Give Marcus that work before 9:00.",
+     "result": "applied",
+     "why": ""
+    }
+   ],
+   "gate": {
+    "kept": false,
+    "gain": 0.0,
+    "why": "0 of 3 updates kept (each gated on its own)",
+    "score_before": 0.315,
+    "score_after": 0.294,
+    "safety_violations": 0
+   },
+   "updates": [
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate, heavy and very heavy work from 9:00. Give Marcus that work before 9:00 or switch him to lighter tasks.",
+     "by": "llm",
+     "kept": false,
+     "gain": -0.021
+    },
+    {
+     "op": "add",
+     "text": "Shop equipment repair can ramp up to very heavy work fast. Plan it at the heaviest level it may reach, and do the hardest parts early in the morning.",
+     "by": "llm",
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 9:00. Give Marcus that work before 9:00.",
+     "by": "code",
+     "kept": false,
+     "gain": -0.021
+    }
+   ],
+   "playbook_version": 2,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 8,
+   "scenario": "cur-6608d8de",
+   "tags": [
+    "dead_watch"
+   ],
+   "outcome_score": 0.4874,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "From noon on, Marcus was put on heavier and heavier jobs: shop equipment repair first, then transformer maintenance, which ran up to very heavy work. This happened in the hottest part of the day. His body heated up faster than the plan expected, about 0.05 \u00b0C more for every 30-minute block, across 4 blocks in a row. He is acclimatized, so the problem was not his fitness for heat. The plan underestimated how much strain stacking heavy and very heavy tasks back-to-back in the midday heat would put on one person. Throughput was also low (about 70%), so the heavy midday load did not even buy extra",
+   "reflection_by": "llm",
+   "proposed": [
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "add",
+     "text": "After 12:00, don't stack heavy and very heavy jobs back-to-back on one worker. Put a light or moderate task between them, or share them across the crew.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+     "result": "applied",
+     "why": ""
+    }
+   ],
+   "gate": {
+    "kept": true,
+    "gain": 0.0029,
+    "why": "1 of 3 updates kept (each gated on its own)",
+    "score_before": 0.315,
+    "score_after": 0.3179,
+    "safety_violations": 0
+   },
+   "updates": [
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+     "by": "llm",
+     "kept": true,
+     "gain": 0.0029
+    },
+    {
+     "op": "add",
+     "text": "After 12:00, don't stack heavy and very heavy jobs back-to-back on one worker. Put a light or moderate task between them, or share them across the crew.",
+     "by": "llm",
+     "kept": false,
+     "gain": -0.0447
+    },
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+     "by": "code",
+     "kept": false,
+     "gain": -0.0578
+    }
+   ],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 9,
+   "scenario": "cur-9dda323a",
+   "tags": [
+    "callout"
+   ],
+   "outcome_score": 0.5732,
+   "workers_alerted": 0,
+   "lessons_used": [
+    "L1",
+    "L2"
+   ],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 10,
+   "scenario": "cur-1a789c47",
+   "tags": [
+    "heat_dome"
+   ],
+   "outcome_score": 0.3864,
+   "workers_alerted": 0,
+   "lessons_used": [
+    "L1",
+    "L2"
+   ],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 11,
+   "scenario": "cur-5e316842",
+   "tags": [
+    "heat_dome"
+   ],
+   "outcome_score": 0.2359,
+   "workers_alerted": 1,
+   "lessons_used": [],
+   "root_cause": "Both Marcus and Kofi were assigned shop equipment repair starting at 10:00, and the job ramped up from moderate to heavy to very heavy work in the warm late morning. Their body temperatures climbed faster than the forecast expected. Marcus ran only slightly ahead of forecast, about 0.05 \u00b0C extra per half hour. Kofi, a new hire not yet used to the heat, ran about 0.13 \u00b0C extra per half hour, more than twice Marcus's rate. By 11:00 Kofi reached 38.01 \u00b0C, just over his upper forecast of 37.89 \u00b0C, which triggered a 10-minute alert. The plan treated the new hire as if his body would handle the esca",
+   "reflection_by": "llm",
+   "proposed": [
+    {
+     "op": "edit",
+     "text": "Keep a new hire like Kofi off the heavy and very heavy stretch of shop repair after 9:00. Give those parts to experienced crew and keep him on moderate tasks.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "add",
+     "text": "Plan the very heavy phase of shop equipment repair before 10:00 instead of letting it peak in late morning.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "edit",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "result": "applied",
+     "why": ""
+    }
+   ],
+   "gate": {
+    "kept": false,
+    "gain": 0.0,
+    "why": "0 of 4 updates kept (each gated on its own)",
+    "score_before": 0.3179,
+    "score_after": 0.268,
+    "safety_violations": 0
+   },
+   "updates": [
+    {
+     "op": "edit",
+     "text": "Keep a new hire like Kofi off the heavy and very heavy stretch of shop repair after 9:00. Give those parts to experienced crew and keep him on moderate tasks.",
+     "by": "llm",
+     "kept": false,
+     "gain": -0.0286
+    },
+    {
+     "op": "add",
+     "text": "Plan the very heavy phase of shop equipment repair before 10:00 instead of letting it peak in late morning.",
+     "by": "llm",
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": "edit",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+     "by": "code",
+     "kept": false,
+     "gain": -0.0135
+    },
+    {
+     "op": "edit",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "by": "code",
+     "kept": false,
+     "gain": -0.0499
+    }
+   ],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 12,
+   "scenario": "cur-43fabccf",
+   "tags": [
+    "callout"
+   ],
+   "outcome_score": 0.387,
+   "workers_alerted": 1,
+   "lessons_used": [
+    "L1",
+    "L2"
+   ],
+   "root_cause": "Kofi is a new hire whose body is not yet used to the heat. From 11:00 he was moved from moderate work up to heavy and then very heavy shop equipment repair. Each half hour his body temperature rose about 0.25 \u00b0C more than the plan expected, because the forecast treated him like a worker who is already used to the heat. By 14:00 he reached 38.0 \u00b0C, above the high-end forecast of 37.7 \u00b0C, and spent 40 minutes in alert. The real problem was stacking harder and harder tasks on an unacclimatized worker during the hottest part of the day, all in the same job.",
+   "reflection_by": "llm",
+   "proposed": [
+    {
+     "op": "edit",
+     "text": "Don't step a new hire like Kofi up from moderate to heavy to very heavy work in late morning and early afternoon. Keep him on light or moderate tasks then.",
+     "result": "applied",
+     "why": ""
+    },
+    {
+     "op": "merge",
+     "text": "Give the very heavy parts of shop equipment repair to an acclimatized worker. Pair Kofi on the lighter parts so he still learns the job.",
+     "result": "merged near-duplicate",
+     "why": ""
+    },
+    {
+     "op": "edit",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "result": "applied",
+     "why": ""
+    }
+   ],
+   "gate": {
+    "kept": false,
+    "gain": -0.0286,
+    "why": "0 of 3 updates kept (each gated on its own)",
+    "score_before": 0.3179,
+    "score_after": 0.268,
+    "safety_violations": 0
+   },
+   "updates": [
+    {
+     "op": "edit",
+     "text": "Don't step a new hire like Kofi up from moderate to heavy to very heavy work in late morning and early afternoon. Keep him on light or moderate tasks then.",
+     "by": "llm",
+     "kept": false,
+     "gain": -0.0286
+    },
+    {
+     "op": "merge",
+     "text": "Give the very heavy parts of shop equipment repair to an acclimatized worker. Pair Kofi on the lighter parts so he still learns the job.",
+     "by": "llm",
+     "kept": false,
+     "gain": -0.0293
+    },
+    {
+     "op": "edit",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "by": "code",
+     "kept": false,
+     "gain": -0.0499
+    }
+   ],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 13,
+   "scenario": "cur-397fcd84",
+   "tags": [
+    "callout"
+   ],
+   "outcome_score": 0.819,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  },
+  {
+   "day": 14,
+   "scenario": "cur-4b03ba45",
+   "tags": [
+    "dead_watch"
+   ],
+   "outcome_score": 0.4706,
+   "workers_alerted": 0,
+   "lessons_used": [],
+   "root_cause": "Nothing ran hotter than forecast. No change needed.",
+   "reflection_by": "code",
+   "proposed": [],
+   "gate": null,
+   "updates": [],
+   "playbook_version": 3,
+   "n_lessons": 2,
+   "safety_violations": 0
+  }
+ ],
+ "versions": [
+  {
+   "version": 0,
+   "day": 0,
+   "gate_score": 0.2732,
+   "gate_safety_violations": 0,
+   "lessons": []
+  },
+  {
+   "version": 1,
+   "day": 2,
+   "gate_score": 0.2991,
+   "gate_safety_violations": 0,
+   "lessons": [
+    {
+     "id": "L1",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "source": "day 2"
+    }
+   ]
+  },
+  {
+   "version": 2,
+   "day": 2,
+   "gate_score": 0.315,
+   "gate_safety_violations": 0,
+   "lessons": [
+    {
+     "id": "L1",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "source": "day 2"
+    },
+    {
+     "id": "L2",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00. Give Marcus that work before 10:00.",
+     "source": "day 2"
+    }
+   ]
+  },
+  {
+   "version": 3,
+   "day": 8,
+   "gate_score": 0.3179,
+   "gate_safety_violations": 0,
+   "lessons": [
+    {
+     "id": "L1",
+     "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+     "source": "day 2"
+    },
+    {
+     "id": "L2",
+     "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+     "source": "day 2; edited day 8"
+    }
+   ]
+  }
+ ],
+ "final_lessons": [
+  {
+   "id": "L1",
+   "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "unacclimatized",
+    "intensities": [
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 9,
+    "to_hour": 24,
+    "penalty": 20
+   },
+   "learned": "day 2",
+   "uses": 5,
+   "helped": 4
+  },
+  {
+   "id": "L2",
+   "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "Marcus",
+    "intensities": [
+     "moderate",
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 10,
+    "to_hour": 24,
+    "penalty": 25
+   },
+   "learned": "day 2",
+   "uses": 5,
+   "helped": 4
+  }
+ ],
+ "llm": {
+  "model": "claude-opus-5-5",
+  "calls": 10,
+  "cost_usd": 0.1355,
+  "cap_usd": 1.5,
+  "blocked_by_cap": 0,
+  "errors": 0
+ }
+}

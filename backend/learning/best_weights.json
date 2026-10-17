@@ -1,0 +1,72 @@
+{
+ "weights": {
+  "throughput": 10,
+  "margin": 4,
+  "fairness": 0,
+  "budget_margin_c": 0.075,
+  "priority_values": {
+   "1": 16,
+   "2": 6,
+   "3": 1
+  },
+  "storm": 22,
+  "rain": 10,
+  "hot_break_bonus": 4,
+  "early_line_c": 37.7,
+  "early_horizon_min": 20
+ },
+ "train": {
+  "weights": {
+   "throughput": 10,
+   "margin": 4,
+   "fairness": 0,
+   "budget_margin_c": 0.075,
+   "priority_values": {
+    "1": 16,
+    "2": 6,
+    "3": 1
+   },
+   "storm": 22,
+   "rain": 10,
+   "hot_break_bonus": 4,
+   "early_line_c": 37.7,
+   "early_horizon_min": 20
+  },
+  "n": 21,
+  "tasks_per_shift": 3.81,
+  "throughput": 0.7199,
+  "minutes_above_yellow": 47.43,
+  "minutes_above_red": 0.0,
+  "peak_p90_c": 37.938,
+  "fairness_spread": 37.0,
+  "safety_violations": 0,
+  "invalid": 0
+ },
+ "held_out": {
+  "weights": {
+   "throughput": 10,
+   "margin": 4,
+   "fairness": 0,
+   "budget_margin_c": 0.075,
+   "priority_values": {
+    "1": 16,
+    "2": 6,
+    "3": 1
+   },
+   "storm": 22,
+   "rain": 10,
+   "hot_break_bonus": 4,
+   "early_line_c": 37.7,
+   "early_horizon_min": 20
+  },
+  "n": 12,
+  "tasks_per_shift": 3.833,
+  "throughput": 0.6492,
+  "minutes_above_yellow": 89.25,
+  "minutes_above_red": 0.75,
+  "peak_p90_c": 37.913,
+  "fairness_spread": 41.4,
+  "safety_violations": 0,
+  "invalid": 0
+ }
+}

@@ -1,0 +1,166 @@
+{
+ "safety_violations": {
+  "ace_days": 0,
+  "ace_gates": 0,
+  "gepa_versions": 0,
+  "demo_days": 0,
+  "weight_search": 0
+ },
+ "all_zero": true,
+ "demo_days": {
+  "n": 8,
+  "day14_better": 1,
+  "day14_worse": 3,
+  "same": 4,
+  "mean_score_day1": 0.3137,
+  "mean_score_day14": 0.2657,
+  "mean_score_day14_evolved": 0.2614,
+  "alerts_day1": 0,
+  "alerts_day14": 1
+ },
+ "weights": {
+  "n_days": 12,
+  "default_optimizer_only": {
+   "tasks_per_shift": 4.083,
+   "throughput": 0.6827,
+   "minutes_above_yellow": 97.42,
+   "minutes_above_red": 0.67,
+   "peak_p90_c": 37.954,
+   "fairness_spread": 35.4,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  "tuned": {
+   "tasks_per_shift": 3.833,
+   "throughput": 0.6492,
+   "minutes_above_yellow": 89.25,
+   "minutes_above_red": 0.75,
+   "peak_p90_c": 37.913,
+   "fairness_spread": 41.4,
+   "safety_violations": 0,
+   "invalid": 0
+  }
+ },
+ "curriculum": {
+  "kept": 27,
+  "tried": 93,
+  "llm": {
+   "model": "claude-opus-5-5",
+   "calls": 7,
+   "cost_usd": 0.335,
+   "cap_usd": 0.5,
+   "blocked_by_cap": 1,
+   "errors": 0
+  }
+ },
+ "ace": {
+  "days": 14,
+  "final_version": 3,
+  "gate_score_start": 0.2732,
+  "gate_score_end": 0.3179,
+  "llm": {
+   "model": "claude-opus-5-5",
+   "calls": 10,
+   "cost_usd": 0.1355,
+   "cap_usd": 1.5,
+   "blocked_by_cap": 0,
+   "errors": 0
+  }
+ },
+ "gepa": {
+  "versions": 9,
+  "best": "a5",
+  "gain_val": 0.0731,
+  "llm": {
+   "model": "claude-opus-5-5",
+   "calls": 8,
+   "cost_usd": 0.3177,
+   "cap_usd": 3.0,
+   "blocked_by_cap": 0,
+   "errors": 0
+  }
+ },
+ "held_out": {
+  "test": {
+   "fixed": {
+    "success_rate": 0.0,
+    "safety_violations": 107,
+    "throughput": 0.86,
+    "world_score": -0.0908,
+    "world_alerted_per_day": 1.944
+   },
+   "optimizer": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.684,
+    "world_score": 0.4366,
+    "world_alerted_per_day": 0.194
+   },
+   "llm_only": {
+    "success_rate": 0.083,
+    "safety_violations": 38,
+    "throughput": 0.861,
+    "world_score": 0.1378,
+    "world_alerted_per_day": 1.667
+   },
+   "agent_day1": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.667,
+    "world_score": 0.4451,
+    "world_alerted_per_day": 0.167
+   },
+   "agent_day14": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.668,
+    "world_score": 0.4771,
+    "world_alerted_per_day": 0.111
+   },
+   "agent_evolved": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.61,
+    "world_score": 0.4668,
+    "world_alerted_per_day": 0.028
+   }
+  },
+  "home_val": {
+   "fixed": {
+    "success_rate": 0.0,
+    "safety_violations": 84,
+    "throughput": 0.984,
+    "world_score": -0.2065,
+    "world_alerted_per_day": 2.667
+   },
+   "optimizer": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.788,
+    "world_score": 0.3081,
+    "world_alerted_per_day": 0.867
+   },
+   "agent_day1": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.788,
+    "world_score": 0.3328,
+    "world_alerted_per_day": 0.8
+   },
+   "agent_day14": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.767,
+    "world_score": 0.3491,
+    "world_alerted_per_day": 0.667
+   },
+   "agent_evolved": {
+    "success_rate": 1.0,
+    "safety_violations": 0,
+    "throughput": 0.674,
+    "world_score": 0.4784,
+    "world_alerted_per_day": 0.133
+   }
+  }
+ }
+}
