@@ -33,7 +33,7 @@ export function Card({ title, right, children, className = "", bodyClass = "p-4"
   title?: React.ReactNode; right?: React.ReactNode; children: React.ReactNode; className?: string; bodyClass?: string;
 }) {
   return (
-    <section className={`flex flex-col rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${className}`}>
+    <section className={`flex min-w-0 flex-col rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${className}`}>
       {title && (
         <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
           <h2 className="text-sm font-semibold tracking-tight">{title}</h2>
