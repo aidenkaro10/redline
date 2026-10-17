@@ -60,10 +60,11 @@ def main():
     n_train = sum(v for k, v in stats.items() if k.startswith("train:"))
     print("dataset:", json.dumps(stats), flush=True)
     iters = math.ceil(args.epochs * n_train / SETTINGS["batch_size"])
+    updates = iters // SETTINGS["grad_accumulation_steps"]   # the LR schedule ticks once per optimizer update
     cfg = {**SETTINGS, "model": str(BASE_MODEL_DIR), "train": True, "data": str(SFT_DIR),
            "adapter_path": str(out_dir(ADAPTER_DIR)), "iters": iters,
-           "lr_schedule": {"name": "cosine_decay", "warmup": 30,
-                           "arguments": [SETTINGS["learning_rate"], iters, SETTINGS["learning_rate"] / 10]}}
+           "lr_schedule": {"name": "cosine_decay", "warmup": 10,
+                           "arguments": [SETTINGS["learning_rate"], updates, SETTINGS["learning_rate"] / 10]}}
     cfg_path = DATA_DIR / "lora_config.yaml"
     cfg_path.write_text(json.dumps(cfg, indent=1))          # JSON is valid YAML
     print(f"training {iters} steps ({args.epochs} epochs of {n_train} examples)", flush=True)
