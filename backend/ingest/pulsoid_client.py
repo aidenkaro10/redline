@@ -6,8 +6,9 @@ Heart rate from the Apple Watch, through Pulsoid's real-time WebSocket.
 Each message looks like:  {"measured_at": 1700000000000, "data": {"heart_rate": 82}}
 Messages arrive about every 5 s while a workout runs on the watch.
 
-Per the protocol table, heart rate ONLY comes from here (never from the band).
-We stamp each reading with the laptop's clock on arrival, like every other
+Heart rate can also come from a pulse sensor on the band (HR: lines); the
+pipeline fuses both (Kalman step_fused). Readings from here are tagged
+source="watch". We stamp each reading with the laptop's clock on arrival, like every other
 input, so all signals line up. If the connection drops we reconnect with a
 growing pause (1 s, 2 s, 4 s ... up to 30 s).
 """
@@ -34,7 +35,7 @@ def parse_message(text: str, worker_id: str, timestamp: float) -> Reading | None
         return None
     if not 20 <= hr <= 250:                  # obviously broken values
         return None
-    return Reading(worker_id=worker_id, timestamp=timestamp, hr=hr)
+    return Reading(worker_id=worker_id, timestamp=timestamp, hr=hr, source="watch")
 
 
 async def run(hub, token: str, worker_id: str, url: str = config.PULSOID_WS_URL, clock=time.time) -> None:

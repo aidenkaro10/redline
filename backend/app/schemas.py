@@ -24,6 +24,9 @@ class Reading(BaseModel):
     tilt: int | None = None               # tilt switch: 1 = tipped, 0 = upright
     activity: float | None = None         # tilt switch flickers per second
     accel: tuple[float, float, float] | None = None   # x, y, z in g (once we have one)
+    # Which device this came from: "watch" (Apple Watch via Pulsoid), "band" (the band's own
+    # lines, incl. its pulse sensor's HR:), "replay", "demo". Lets us log which HR source was used.
+    source: str | None = None
 
 
 class ButtonPress(BaseModel):
@@ -45,7 +48,7 @@ _LINE_KEYS = {
     "TILT": "tilt",
     "ACT": "activity",
     "ACC": "accel",
-    "HR": "hr",      # not sent by the band per the protocol table, accepted anyway
+    "HR": "hr",      # the band's own pulse sensor (only sent when its reading is confident)
     "BTN": "button",
 }
 
@@ -107,7 +110,7 @@ def parse_line(line: str) -> dict | None:
     return fields or None
 
 
-def events_from_line(line: str, worker_id: str, timestamp: float) -> list[Reading | ButtonPress]:
+def events_from_line(line: str, worker_id: str, timestamp: float, source: str = "band") -> list[Reading | ButtonPress]:
     """Parse a band line and wrap it as events with the laptop timestamp."""
     fields = parse_line(line)
     if fields is None:
@@ -115,7 +118,7 @@ def events_from_line(line: str, worker_id: str, timestamp: float) -> list[Readin
     events: list[Reading | ButtonPress] = []
     pressed = fields.pop("button", None)
     if fields:
-        events.append(Reading(worker_id=worker_id, timestamp=timestamp, **fields))
+        events.append(Reading(worker_id=worker_id, timestamp=timestamp, source=source, **fields))
     if pressed:
         events.append(ButtonPress(worker_id=worker_id, timestamp=timestamp, kind=pressed))
     return events

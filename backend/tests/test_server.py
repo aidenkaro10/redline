@@ -94,3 +94,31 @@ def test_recorder_roundtrip(tmp_path):
     rec.close()
     plan = from_jsonl(tmp_path / "s.jsonl")
     assert [i.data.get("hr") for i in plan.items] == [90, None]
+
+
+def test_database_logs_hr_sources(tmp_path):
+    from backend.app.hub import Hub
+    from backend.alerts.band_output import MultiBand
+    from backend.app.schemas import events_from_line
+    db = Database(tmp_path / "s.db")
+    hub = Hub(band=MultiBand([]), db=db)
+    for i in range(20):
+        for ev in events_from_line("HR:120", "w1", 1000.0 + i * 5):
+            hub.handle_input(ev, source="serial")
+    db.commit()
+    assert db.query("SELECT DISTINCT source FROM readings") == [("band",)]
+    assert db.query("SELECT hr_band, hr_sources FROM estimates LIMIT 1") == [(120.0, "band")]
+    db.close()
+
+
+def test_old_database_gets_new_columns(tmp_path):
+    import sqlite3
+    path = tmp_path / "old.db"
+    con = sqlite3.connect(path)
+    con.execute("CREATE TABLE readings (id INTEGER PRIMARY KEY, worker_id TEXT, timestamp REAL, hr REAL, "
+                "skin_temp REAL, tilt INTEGER, activity REAL, ax REAL, ay REAL, az REAL)")
+    con.commit()
+    con.close()
+    db = Database(path)
+    assert "source" in {r[1] for r in db.query("PRAGMA table_info(readings)")}
+    db.close()

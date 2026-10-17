@@ -29,9 +29,9 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 
 | `type` | When | Main fields |
 | --- | --- | --- |
-| `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line) |
+| `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line), `source`: `watch` (Pulsoid), `band` (band lines, incl. its pulse sensor's `HR:`), `replay`, `demo` |
 | `button` | Band button (raw input) | `kind`: `press` (`BTN:1`, "I'm OK") or `sos` (`BTN:SOS`, held 3 s) |
-| `estimate` | Once per worker per minute | `minute, hr, skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd, forecast{minutes[1..30], p10[], p50[], p90[]} or null, model, heat_level, true_core_temp` (replay of sim only) |
+| `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd, forecast{minutes[1..30], p10[], p50[], p90[]} or null, model, heat_level, true_core_temp` (replay of sim only) |
 | `heat_alert` | Heat level changes | `level` clear/yellow/red, `previous, value, threshold, rule` kalman/forecast, `demo` |
 | `heat_ack` | Button pressed during red | `after_s` |
 | `red_unacknowledged` | Red with no button for `HEAT_RED_ACK_TIMEOUT_S` | `red_since` |
@@ -51,6 +51,10 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 
 Band priority (one pattern at a time): `MANDOWN > HEAT_RED > LIGHTNING > HEAT_YELLOW > FLOOD_FIRE`, else `OFF`.
 SOS is never sent to the band (the band shows it by itself).
+
+### Heart rate from two devices
+
+Heart rate can come from the watch (Pulsoid, tagged `watch`) and/or the band's pulse sensor (`HR:` lines, tagged `band`; the band only sends it when confident). Each device gets its own 1-minute average. The Kalman runs `ECTempKalman.step_fused([(hr_watch, KALMAN_SIGMA_WATCH), (hr_band, KALMAN_SIGMA_BAND_PPG)])` every minute, skipping a device with no reading that minute (watch only = exactly ECTemp). The forecaster was trained on one HR input, so it gets the two minute averages blended with the same 1/sigma² weights. Note: its internal Kalman baseline is then a plain single-sigma Kalman on that blend, so `estimate.kalman` (fused) and the forecaster's own baseline can differ slightly when both devices are present.
 
 ### Heat alert rules (all numbers in `backend/config.py`)
 
@@ -155,10 +159,10 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 
 ## 5. Band line protocol (implemented exactly, 115200 baud)
 
-Follows `docs/firmware-contract.md`. Band → laptop: `TEMP:34.62` (every 5 s), `TILT:1,ACT:7` (every 1 s; ACT = tilt switch changes in the last second), `ACC:0.98,0.02,0.11` (later), `BTN:1` (short press) and `BTN:SOS` (held 3 s), both parsed into `ButtonPress` with `kind` `press` / `sos`. Lines starting with `#` are firmware debug prints and are ignored. Accepted extras: `HR:<bpm>` (fake band only; real HR comes from Pulsoid), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`, sent on change plus the 20 s keep-alive.
+Follows `docs/firmware-contract.md`. Band → laptop: `TEMP:34.62` (every 5 s), `TILT:1,ACT:7` (every 1 s; ACT = tilt switch changes in the last second), `ACC:0.98,0.02,0.11` (later), `BTN:1` (short press) and `BTN:SOS` (held 3 s), both parsed into `ButtonPress` with `kind` `press` / `sos`. Lines starting with `#` are firmware debug prints and are ignored. Accepted extras: `HR:<bpm>` (the band's pulse sensor, tagged `band`, fused with the watch), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`, sent on change plus the 20 s keep-alive.
 
 Every line is timestamped on the laptop when it arrives. UDP listener on `UDP_PORT` (5005) replies BUZZ lines to the band's address from the same port.
 
 ## 6. Storage (SQLite, `data/planit.db`)
 
-Tables: `workers`, `sites`, `readings`, `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `estimates` (one row per worker per minute: inputs, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.
+Tables: `workers`, `sites`, `readings` (with `source`), `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `estimates` (one row per worker per minute: inputs, `hr_watch`/`hr_band`/`hr_sources`, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.

@@ -9,7 +9,7 @@ Tables
                man-down, hazards (full event as JSON too)
     plans      schedules from the planner (session B)
     reports    crew photo reports (snake, standing water, downed line ...)
-    estimates  one row per worker per minute: inputs, Kalman, model estimate,
+    estimates  one row per worker per minute: inputs (per heart rate device too), Kalman, model estimate,
                forecast at +10/+20/+30 min, model name, twin version.
                The twins learn from this table later.
 
@@ -68,6 +68,18 @@ ALERT_EVENTS = {
 }
 COMMIT_EVERY_S = 1.0
 
+# Columns added after the first version. Older database files get them added on open.
+NEW_COLUMNS = {
+    "readings": [("source", "TEXT")],                                        # watch / band / replay / demo
+    "estimates": [("hr_watch", "REAL"), ("hr_band", "REAL"), ("hr_sources", "TEXT")],   # which HR fed the Kalman
+}
+ESTIMATE_COLUMNS = (
+    "worker_id", "timestamp", "minute", "hr", "skin_temp", "activity", "wbgt",
+    "kalman", "kalman_sd", "core_temp", "core_temp_sd",
+    "f10_p10", "f10_p50", "f10_p90", "f20_p10", "f20_p50", "f20_p90", "f30_p10", "f30_p50", "f30_p90",
+    "heat_level", "model", "twin_version", "hr_watch", "hr_band", "hr_sources",
+)
+
 
 class Database:
     def __init__(self, path: str | Path = "data/planit.db"):
@@ -78,6 +90,11 @@ class Database:
         self.conn = sqlite3.connect(str(path), check_same_thread=False)
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.executescript(SCHEMA)
+        for table, cols in NEW_COLUMNS.items():
+            have = {row[1] for row in self.conn.execute(f"PRAGMA table_info({table})")}
+            for name, kind in cols:
+                if name not in have:
+                    self.conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
         self._last_commit = time.monotonic()
 
     # -- writes ---------------------------------------------------------------
@@ -100,9 +117,9 @@ class Database:
 
     def add_reading(self, r) -> None:
         ax, ay, az = r.accel if r.accel else (None, None, None)
-        self._write("INSERT INTO readings (worker_id, timestamp, hr, skin_temp, tilt, activity, ax, ay, az) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (r.worker_id, r.timestamp, r.hr, r.skin_temp, r.tilt, r.activity, ax, ay, az))
+        self._write("INSERT INTO readings (worker_id, timestamp, hr, skin_temp, tilt, activity, ax, ay, az, source) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (r.worker_id, r.timestamp, r.hr, r.skin_temp, r.tilt, r.activity, ax, ay, az, r.source))
 
     def add_plan(self, ev: dict) -> None:
         self._write("INSERT INTO plans (timestamp, source, plan) VALUES (?, ?, ?)",
@@ -131,11 +148,14 @@ class Database:
         for h in (10, 20, 30):
             for q in ("p10", "p50", "p90"):
                 horizons.append(fc[q][h - 1] if fc else None)
-        self._write("INSERT OR REPLACE INTO estimates VALUES (" + ",".join("?" * 23) + ")", (
+        values = (
             ev["worker_id"], ev["timestamp"], ev["minute"],
             ev.get("hr"), ev.get("skin_temp"), ev.get("activity"), ev.get("wbgt"),
             ev.get("kalman"), ev.get("kalman_sd"), ev.get("core_temp"), ev.get("core_temp_sd"),
-            *horizons, ev.get("heat_level"), ev.get("model"), ev.get("twin_version")))
+            *horizons, ev.get("heat_level"), ev.get("model"), ev.get("twin_version"),
+            ev.get("hr_watch"), ev.get("hr_band"), ",".join(ev.get("hr_sources") or []))
+        self._write(f"INSERT OR REPLACE INTO estimates ({', '.join(ESTIMATE_COLUMNS)}) "
+                    f"VALUES ({', '.join('?' * len(ESTIMATE_COLUMNS))})", values)
 
     # -- reads ----------------------------------------------------------------
     def query(self, sql: str, args: tuple = ()) -> list[tuple]:

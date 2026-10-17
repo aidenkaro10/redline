@@ -27,7 +27,10 @@ from backend.models.kalman import ECTempKalman
 
 log = logging.getLogger(__name__)
 
-AVERAGED = ("hr", "skin_temp", "activity")      # per-minute averages of these reading fields
+AVERAGED = ("skin_temp", "activity")            # per-minute averages of these reading fields
+# Heart rate can come from two devices. Each gets its own 1-minute average and its own
+# noise level (sigma, bpm) in the Kalman's sensor fusion (ECTempKalman.step_fused).
+HR_SIGMA = {"watch": config.KALMAN_SIGMA_WATCH, "band": config.KALMAN_SIGMA_BAND_PPG}
 CONTEXT = ("wbgt", "workload")                  # per-minute values set from outside (weather, plan)
 HISTORY_KEEP = 600                              # estimates kept in memory for the dashboard (10 h)
 
@@ -56,11 +59,14 @@ class WorkerPipeline:
         self.t0: float | None = None
         self.k = 0                                       # the minute being filled now
         self.bucket = {name: [] for name in AVERAGED}
+        self.hr_bucket = {src: [] for src in HR_SIGMA}  # this minute's heart rates, per device
         self.empty_run = 0                               # minutes in a row with no readings at all
         self.n_minutes = 0                               # minutes closed so far
 
         # Per-minute history (what the forecaster reads), one list per signal.
-        self.signals = {name: [] for name in AVERAGED + CONTEXT}
+        # "hr" is the two devices blended (what the forecaster reads); hr_by_source keeps each one.
+        self.signals = {name: [] for name in ("hr",) + AVERAGED + CONTEXT}
+        self.hr_by_source = {src: [] for src in HR_SIGMA}
         self.context = {name: None for name in CONTEXT}  # current weather / planned workload
         # Known future (next 30 min): forecast WBGT and planned workload. The forecaster's
         # decoder reads these; without them its 90th percentile runs noticeably higher.
@@ -94,6 +100,12 @@ class WorkerPipeline:
                 value = getattr(event, name)
                 if value is not None:
                     self.bucket[name].append(float(value))
+            if event.hr is not None:
+                # The band's pulse sensor tags its readings "band"; everything else (Pulsoid,
+                # replay, demo) counts as the watch.
+                src = "band" if event.source == "band" else "watch"
+                self.hr_bucket[src].append(float(event.hr))
+                self.last_reading["hr_source"] = src
             for name in ("hr", "skin_temp", "tilt", "activity", "accel"):
                 value = getattr(event, name)
                 if value is not None:
@@ -161,7 +173,7 @@ class WorkerPipeline:
         return events
 
     def _close_minute(self) -> list[dict]:
-        has_data = any(self.bucket[name] for name in AVERAGED)
+        has_data = any(self.bucket[name] for name in AVERAGED) or any(self.hr_bucket.values())
         self.empty_run = 0 if has_data else self.empty_run + 1
         if self.empty_run > config.MAX_GAP_MIN:
             return []      # long silence (band off): stop adding empty minutes until data comes back
@@ -170,6 +182,10 @@ class WorkerPipeline:
             values = self.bucket[name]
             self.signals[name].append(float(np.mean(values)) if values else np.nan)
             self.bucket[name] = []
+        for src, values in self.hr_bucket.items():
+            self.hr_by_source[src].append(float(np.mean(values)) if values else np.nan)
+            self.hr_bucket[src] = []
+        self.signals["hr"].append(self._blend_hr())
         for name in CONTEXT:
             value = self.context[name]
             self.signals[name].append(np.nan if value is None else float(value))
@@ -181,8 +197,11 @@ class WorkerPipeline:
 
     def _estimate(self, t: float) -> dict:
         """Run the Kalman (always) and the forecaster (if we have one) on the history so far."""
-        hr = self.signals["hr"][-1]
-        ks = self.kalman.step(None if np.isnan(hr) else hr)
+        # Kalman sensor fusion: one (heart rate, sigma) per device. With only the watch this
+        # is exactly the published ECTemp step; the noisier band sensor counts less.
+        readings = [(None if np.isnan(v[-1]) else v[-1], HR_SIGMA[src]) for src, v in self.hr_by_source.items()]
+        ks = self.kalman.step_fused(readings)
+        sources = [src for src, v in self.hr_by_source.items() if not np.isnan(v[-1])]
         core, core_sd, curve, model = ks.ct, math.sqrt(ks.v), None, "kalman"
 
         if self.predictor is not None:
@@ -217,10 +236,23 @@ class WorkerPipeline:
         return {
             "type": "estimate", "timestamp": t, "minute": self.k,
             "hr": sig("hr"), "skin_temp": sig("skin_temp"), "activity": sig("activity"), "wbgt": sig("wbgt"),
+            "hr_watch": _r(self.hr_by_source["watch"][-1], 2), "hr_band": _r(self.hr_by_source["band"][-1], 2),
+            "hr_sources": sources,                   # which devices fed the Kalman this minute
             "kalman": _r(ks.ct), "kalman_sd": _r(math.sqrt(ks.v), 4),
             "core_temp": _r(core), "core_temp_sd": _r(core_sd, 4),
             "forecast": forecast, "model": model,
         }
+
+    def _blend_hr(self) -> float:
+        """
+        One heart rate for the forecaster (it was trained on a single HR input): the devices'
+        minute averages weighted by 1/sigma^2, the same weights the Kalman fusion gives them.
+        Only one device this minute -> its value. None -> NaN.
+        """
+        pairs = [(v[-1], 1 / HR_SIGMA[src] ** 2) for src, v in self.hr_by_source.items() if not np.isnan(v[-1])]
+        if not pairs:
+            return np.nan
+        return float(sum(hr * w for hr, w in pairs) / sum(w for _, w in pairs))
 
     def _model_arrays(self) -> dict[str, np.ndarray]:
         """

@@ -153,3 +153,32 @@ def test_sos_line_emits_sos_event_without_cancelling():
     sos = of(events, "sos")
     assert sos and sos[0]["pressed_at"] == 5.0 and "worker_name" in sos[0]
     assert p.mandown.state == "checking"
+
+
+def test_two_heart_rate_sources_are_fused():
+    from backend.models.kalman import ECTempKalman
+    p = WorkerPipeline("w1")
+    for i in range(24):                      # 2 minutes: watch says 150, band pulse sensor says 120
+        t = i * 5.0
+        p.handle(Reading(worker_id="w1", timestamp=t, hr=150, source="watch"))
+        p.handle(Reading(worker_id="w1", timestamp=t + 1, hr=120, source="band"))
+    est = p.estimates[0]
+    assert est["hr_watch"] == 150 and est["hr_band"] == 120 and est["hr_sources"] == ["watch", "band"]
+    # Kalman = step_fused with each device's sigma
+    kf = ECTempKalman()
+    expected = kf.step_fused([(150.0, config.KALMAN_SIGMA_WATCH), (120.0, config.KALMAN_SIGMA_BAND_PPG)])
+    assert abs(est["kalman"] - expected.ct) < 1e-3
+    # Blended HR for the forecaster leans to the watch (4x the weight at 2x the sigma)
+    assert est["hr"] == pytest.approx((150 * 4 + 120) / 5, abs=0.01)
+
+
+def test_band_only_hr_uses_band_sigma_and_watch_only_matches_ectemp():
+    from backend.models.kalman import ECTempKalman
+    band, watch = WorkerPipeline("b"), WorkerPipeline("w")
+    for i in range(24):
+        band.handle(Reading(worker_id="b", timestamp=i * 5.0, hr=150, source="band"))
+        watch.handle(Reading(worker_id="w", timestamp=i * 5.0, hr=150, source="watch"))
+    kb, kw = ECTempKalman(), ECTempKalman()
+    assert band.estimates[0]["kalman"] == pytest.approx(kb.step_fused([(150.0, config.KALMAN_SIGMA_BAND_PPG)]).ct, abs=1e-3)
+    assert watch.estimates[0]["kalman"] == pytest.approx(kw.step(150.0).ct, abs=1e-3)
+    assert band.estimates[0]["hr_sources"] == ["band"]

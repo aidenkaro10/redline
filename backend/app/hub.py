@@ -124,6 +124,8 @@ class Hub:
         """A reading or button press from any source. Unknown workers are created on the fly."""
         if event.worker_id not in self.pipelines:
             self.register_worker(event.worker_id, source=source)
+        if isinstance(event, Reading) and event.source is None:
+            event.source = source                           # tag untagged readings with where they came in
         if self.recorder and source != "replay":
             self.recorder.write(event)
         if self.db and isinstance(event, Reading):

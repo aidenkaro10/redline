@@ -89,6 +89,7 @@ class Replay:
             data = dict(item.data)
             if self.fallen_until.get(item.worker_id, -1e18) > t - self.start:
                 data.update(tilt=1, activity=0.0)          # injected fall: tipped and still
+            data.setdefault("source", "replay")
             self.sink.handle_input(Reading(worker_id=item.worker_id, timestamp=t, **data), source="replay")
 
     async def run(self) -> None:

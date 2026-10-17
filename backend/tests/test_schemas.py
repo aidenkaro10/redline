@@ -40,7 +40,7 @@ def test_events_from_line_splits_button_from_reading():
     assert events == [ButtonPress(worker_id="w1", timestamp=100.0, kind="sos")]
 
     events = events_from_line("TEMP:34.62", "w1", 100.0)
-    assert events == [Reading(worker_id="w1", timestamp=100.0, skin_temp=34.62)]
+    assert events == [Reading(worker_id="w1", timestamp=100.0, skin_temp=34.62, source="band")]
 
 
 def test_format_command():
