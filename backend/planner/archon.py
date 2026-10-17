@@ -22,6 +22,7 @@ No key = the same pipeline without the LLM steps.
 """
 
 import json
+import math
 import time
 from dataclasses import dataclass, field, replace
 
@@ -89,6 +90,11 @@ class AgentResult:
                             "violations": c.check.n_safety if c.check else None, "score": c.score}
                            for c in self.candidates],
         }
+
+
+def floor2(x: float) -> float:
+    """Round DOWN to 0.01, so a peak of 37.996 shows as 37.99, never as the 38.00 limit."""
+    return math.floor(x * 100) / 100
 
 
 # ---------------------------------------------------------------------------
@@ -222,8 +228,8 @@ def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], les
             playbook: Playbook | None) -> tuple[str, list[str]]:
     """Plain reasons for the crew lead. LLM-written with a key, template without."""
     sc = best.score
-    facts = (f"Peak 90th pct core temp {sc['peak_p90']:.2f} °C (limit {config.PLAN_MAX_P90_C}), tightest margin "
-             f"{sc['min_margin_c']:.2f} °C, {sc['throughput']:.0%} of priority-weighted work done.")
+    facts = (f"Peak 90th pct core temp {floor2(sc['peak_p90']):.2f} °C (limit {config.PLAN_MAX_P90_C}), tightest margin "
+             f"{floor2(sc['min_margin_c']):.2f} °C, {sc['throughput']:.0%} of priority-weighted work done.")
     reasons = [facts]
     blocked = sorted(scenario.stop_work_slots())
     if blocked:
@@ -234,7 +240,7 @@ def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], les
             reasons.append(f"{w.name} is not acclimatized: no very heavy work in high heat.")
     if alts:
         reasons.append("Alternatives: " + "; ".join(
-            f"{a.name} ({a.score['throughput']:.0%} work, peak {a.score['peak_p90']:.2f} °C)" for a in alts))
+            f"{a.name} ({a.score['throughput']:.0%} work, peak {floor2(a.score['peak_p90']):.2f} °C)" for a in alts))
     if playbook and lessons:
         used = {l.id: l.text for l in playbook.lessons}
         reasons += [f"Lesson {lid}: {used[lid]}" for lid in lessons if lid in used]
@@ -374,7 +380,7 @@ def plan_view(scenario: Scenario, plan: Plan, check: CheckResult | None = None) 
             "id": w.id, "name": w.name,
             "slots": [{"slot": k, "time": scenario.slot_time(k), "task": a, "task_name": names.get(a, "Rest (shade)")}
                       for k, a in enumerate(row)],
-            "peak_p90_c": round(check.peak_p90[w.id], 2) if check and w.id in check.peak_p90 else None,
+            "peak_p90_c": floor2(check.peak_p90[w.id]) if check and w.id in check.peak_p90 else None,
         })
     done = plan.units_done(scenario)
     return {
