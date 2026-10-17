@@ -456,11 +456,18 @@ if __name__ == "__main__":
     ap.add_argument("--llm-generator", action="store_true", help="also let Claude help plan each day")
     ap.add_argument("--fake", action="store_true")
     ap.add_argument("--budget", type=float, default=settings.BUDGET_ACE_USD)
+    ap.add_argument("--weights", action="store_true",
+                    help="plan on top of the weight search's best PlannerWeights (backend/learning/best_weights.json)")
     args = ap.parse_args()
     llm = FakeLLM() if args.fake else (get_budget_llm(args.budget, "ace") if (args.llm or args.llm_generator) else None)
     days, gate = ace_days(args.days)
     print(f"ACE: {len(days)} learning days, {len(gate)} gate days. Reflector/curator: {'Claude' if llm else 'code'}")
-    res = run_ace(days, gate, llm=llm, llm_in_generator=args.llm_generator)
+    agent = None
+    if args.weights:
+        from backend.planner.weights import PlannerWeights
+        agent = AgentSettings(weights=PlannerWeights.from_dict(
+            json.loads((settings.HERE / "best_weights.json").read_text())["weights"]))
+    res = run_ace(days, gate, llm=llm, agent_settings=agent, llm_in_generator=args.llm_generator)
     book = res["playbook"]
     book.save(settings.PLAYBOOK_PATH)
     settings.DATA_DIR.mkdir(parents=True, exist_ok=True)

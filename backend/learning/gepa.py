@@ -63,6 +63,8 @@ KNOBS = {
     "w_complaint": "0-0.2 (ranking penalty per confirmed critic complaint)",
     "time_limit_s": "1-5 (CP-SAT seconds per solve)",
     "critic_instructions": "text, max 400 chars",
+    "weights": "PlannerWeights dict or null (optimizer soft weights: margin, fairness 0-6; budget_margin_c 0-0.3; "
+               "priority_values {1,2,3}; storm 0-50; rain 0-30; hot_break_bonus 0-15). Validated by code.",
 }
 METRICS = ("strain_margin_c", "throughput", "fairness", "latency", "cost")   # all "higher is better" after sign flips
 
@@ -88,13 +90,34 @@ def clamp(genome: dict) -> dict:
     default_critic = AgentSettings().critic_instructions
     crit = str(s.get("critic_instructions") or default_critic)[:400]
     s["critic_instructions"] = crit if note_ok(crit)[0] else default_critic
+    s["weights"] = _clean_weights(s.get("weights"))
     note = str(genome.get("strategy_note", ""))[:400]
     return {"settings": s, "strategy_note": note if (not note or note_ok(note)[0]) else ""}
 
 
+def _clean_weights(w):
+    """PlannerWeights as a plain dict, or None (= B's defaults). Anything PlannerWeights.validate() refuses is dropped."""
+    from backend.planner.weights import PlannerWeights
+    if w is None:
+        return None
+    try:
+        d = w.to_dict() if isinstance(w, PlannerWeights) else dict(w)
+        d = PlannerWeights.from_dict(d).to_dict()            # validate: can't plan past the limit or act late
+        d["priority_values"] = {int(k): v for k, v in d["priority_values"].items()}
+        for k, hi in (("margin", 6), ("fairness", 6), ("storm", 50), ("rain", 30), ("hot_break_bonus", 15)):
+            d[k] = int(np.clip(int(d[k]), 0, hi))
+        d["budget_margin_c"] = float(np.clip(float(d["budget_margin_c"]), 0.0, 0.3))
+        return d
+    except (TypeError, ValueError, KeyError):
+        return None
+
+
 def to_settings(genome: dict) -> AgentSettings:
+    from backend.planner.weights import PlannerWeights
     s = dict(genome["settings"])
     s["objectives"] = tuple(s["objectives"])
+    w = _clean_weights(s.get("weights"))
+    s["weights"] = PlannerWeights.from_dict(w) if w else None
     allowed = {f.name for f in fields(AgentSettings)}
     return AgentSettings(**{k: v for k, v in s.items() if k in allowed})
 
@@ -191,6 +214,7 @@ def genome_distance(a: dict, b: dict) -> float:
     d += abs(sa["w_complaint"] - sb["w_complaint"]) / 0.2 + abs(sa["n_llm_ideas"] - sb["n_llm_ideas"]) / 3
     d += sum(sa[k] != sb[k] for k in ("use_playbook", "llm_direct_plan", "fuse")) / 3
     d += 0.5 * (a["strategy_note"] != b["strategy_note"]) + 0.5 * (sa["critic_instructions"] != sb["critic_instructions"])
+    d += 0.5 * (sa.get("weights") != sb.get("weights"))
     return d
 
 
@@ -273,6 +297,9 @@ def code_mutate(genome: dict, rows: list[dict], rng) -> tuple[dict, str]:
     if spread > 25:
         options.append(("w_fair", min(0.02, s["w_fair"] * 2 + 0.001), f"heat spread {spread:.0f}: weigh fairness more"))
     options.append(("fuse", not s["fuse"], "try the other fusion setting"))
+    if s.get("weights"):
+        from backend.learning.weights_search import nudge
+        options.append(("weights", nudge(s["weights"], rng), "nudge one optimizer weight"))
     options.append(("w_complaint", float(np.clip(s["w_complaint"] + rng.normal(0, 0.05), 0, 0.2)), "explore critic weight"))
     knob, value, why = options[int(rng.integers(0, min(len(options), 3)))] if len(options) > 2 else options[0]
     s[knob] = value
@@ -356,13 +383,19 @@ if __name__ == "__main__":
     ap.add_argument("--budget", type=float, default=settings.BUDGET_GEPA_USD)
     ap.add_argument("--n-train", type=int, default=12)
     ap.add_argument("--n-val", type=int, default=6)
+    ap.add_argument("--start-weights", action="store_true",
+                    help="start from the weight search's best PlannerWeights (backend/learning/best_weights.json)")
     args = ap.parse_args()
     llm = FakeLLM() if args.fake else (get_budget_llm(args.budget, "gepa") if args.llm else None)
     train = bank_scenarios(load_bank(split="train")[:args.n_train])
     val = bank_scenarios(load_bank(split="val")[:args.n_val])
     print(f"GEPA: {len(train)} train / {len(val)} val scenarios, {args.iterations} rounds, "
           f"mutator {'Claude' if llm else 'code'}, planner {'with' if args.llm_planner else 'without'} LLM")
-    res = run_gepa(train, val, args.iterations, llm=llm, llm_planner=args.llm_planner)
+    start = None
+    if args.start_weights:
+        start = seed_genome()
+        start["settings"]["weights"] = json.loads((settings.HERE / "best_weights.json").read_text())["weights"]
+    res = run_gepa(train, val, args.iterations, llm=llm, llm_planner=args.llm_planner, start=start)
     save_run(res)
     best = next(c for c in res["archive"] if c["id"] == res["best"])
     print(f"\nBest {res['best']} val score {best['val']['score']:.4f} ({res['gain_val']:+.4f} vs seed). "
