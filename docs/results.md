@@ -33,3 +33,18 @@ Notes:
 | Red false alarms / hr | 0.27 | 0.61 | |
 
 Swap check (`--swap-check`): fit on calib -> val coverage 0.96 / 0.96 / 0.95; fit on val -> calib coverage 0.84 / 0.81 / 0.80. Average is about right (~0.89), but 10 people is too few: person-to-person differences dominate. Plan: final calibration on calib + val (20 people) with the ensemble, then personal twins to shrink person-to-person error.
+
+## ens5: 5-model deep ensemble (2026-10-17)
+
+`python -m ml.train --name ens5 --seeds 5`, scored raw (uncalibrated) on val people:
+
+| | Kalman best | v1 | ens5 |
+| --- | --- | --- | --- |
+| NOW RMSE °C | 0.414 | 0.236 | 0.239 |
+| NOW bias °C | -0.077 | -0.033 | **+0.007** |
+| +10 / +20 / +30 RMSE °C | 0.445 / 0.456 / 0.457 | 0.254 / 0.282 / 0.311 | **0.229 / 0.230 / 0.238** |
+| +20 quantile loss | 0.1155 | 0.0723 | **0.0634** |
+| p90 coverage +10/+20/+30 | 0.84 / 0.90 / 0.90 | 0.82 / 0.88 / 0.89 | 0.94 / 0.96 / 0.96 |
+| Red caught / false alarms per hr | 75-88% / 0.41 | 75% / 0.27 | **88%** / 0.55 |
+
+Ensemble forecasts ~50% better than ECTemp and barely degrade with horizon. Ranges now too wide (ensemble spread + model ranges); final calibration on calib + val (20 people) will tighten them. Swap check on ens5: calib->val 0.95-0.96, val->calib 0.81-0.86.

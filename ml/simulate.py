@@ -319,13 +319,49 @@ def _simulate_group(rows, people, idx, weight, height, acclim_flag, rng, out):
     out["wbgt"][idx] = planned_wbgt + hourly_error
 
 
-def add_sensor_realism(sim: dict, seed: int = 1) -> dict:
-    """Apple Watch dropouts, diode offset/drift/noise, missing sensors."""
+def add_ppg_motion_artifacts(hr: np.ndarray, met: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    """
+    What a cheap pulse sensor on the band does while you move (one shift):
+    - noisier the harder you work
+    - sometimes locks onto your step rhythm instead of your pulse (reads 140-175 bpm)
+      or onto half of it (70-90 bpm) for 1 to 4 minutes
+    - drops out more often when moving (the firmware only reports confident readings)
+    """
+    out = hr.copy()
+    m = len(out)
+    effort = np.clip(met - 1.0, 0, None)                       # 0 at rest, ~4 at very heavy work
+    out = out + rng.normal(0, 1, m) * (1.5 + 1.2 * effort)
+    t = 0
+    while t < m:
+        if met[t] >= 3.0 and rng.uniform() < 0.03:
+            dur = int(rng.integers(1, 5))
+            locked = rng.uniform(140, 175) if rng.uniform() < 0.7 else rng.uniform(70, 90)
+            out[t:t + dur] = locked + rng.normal(0, 2, min(dur, m - t))
+            t += dur
+            continue
+        if met[t] >= 2.0 and rng.uniform() < 0.02:
+            dur = int(rng.integers(1, 4))
+            out[t:t + dur] = np.nan
+            t += dur
+            continue
+        t += 1
+    return out
+
+
+def add_sensor_realism(sim: dict, seed: int = 1, ppg_share: float = 0.5) -> dict:
+    """
+    Watch dropouts, diode offset/drift/noise, missing sensors.
+    ppg_share: fraction of shifts whose heart rate comes from a pulse sensor on the band
+    (with motion artifacts) instead of a watch. Stored per shift in sim["hr_source"].
+    """
     rng = np.random.default_rng(seed)
     n, m = sim["hr"].shape
     people = sim["people"]
     hr = sim["hr"].copy()
+    hr_source = (rng.uniform(size=n) < ppg_share).astype(np.int8)   # 1 = band pulse sensor
     for i in range(n):
+        if hr_source[i]:
+            hr[i] = add_ppg_motion_artifacts(hr[i], sim["met_actual"][i], rng)
         t = 0
         while t < m:                              # short watch gaps
             if rng.uniform() < 0.01:
@@ -342,7 +378,8 @@ def add_sensor_realism(sim: dict, seed: int = 1) -> dict:
     activity = sim["activity"].copy()
     activity[rng.uniform(size=n) < 0.05] = np.nan
     return {**sim, "hr": hr.astype(np.float32), "skin_temp": skin.astype(np.float32),
-            "activity": activity.astype(np.float32), "skin_temp_true": sim["skin_temp"]}
+            "activity": activity.astype(np.float32), "skin_temp_true": sim["skin_temp"],
+            "hr_source": hr_source}
 
 
 # ---------------------------------------------------------------------------
@@ -376,7 +413,8 @@ def load_sim(path: Path = SIM_PATH) -> list[Session]:
             condition="sim_shift",
             signals={k: z[k][i].astype(float) for k in SIGNAL_KEYS},
             meta={"acclim": float(z["acclim"][i]), "day": int(z["day"][i]),
-                  "forced_rest": z["forced_rest"][i].astype(bool)},
+                  "forced_rest": z["forced_rest"][i].astype(bool),
+                  "hr_source": "band_ppg" if "hr_source" in z and z["hr_source"][i] else "watch"},
         ))
     return sessions
 
@@ -387,8 +425,9 @@ if __name__ == "__main__":
     ap.add_argument("--days", type=int, default=10)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", type=Path, default=SIM_PATH)
+    ap.add_argument("--ppg-share", type=float, default=0.5, help="share of shifts with band pulse-sensor heart rate")
     args = ap.parse_args()
     t0 = time.time()
-    sim = add_sensor_realism(simulate(args.people, args.days, args.seed), seed=args.seed + 1)
+    sim = add_sensor_realism(simulate(args.people, args.days, args.seed), seed=args.seed + 1, ppg_share=args.ppg_share)
     save_sim(sim, args.out)
     print(f"Saved {len(sim['person_index'])} shifts from {args.people} people to {args.out} in {time.time() - t0:.0f}s")

@@ -27,6 +27,11 @@ KALMAN_B1 = 384.4286
 KALMAN_B0 = -7887.1
 KALMAN_CT_START = 37.1    # starting core temp (°C)
 KALMAN_V_START = 0.0      # starting uncertainty (variance), per Buller 2013
+# Sensor fusion (Kalman.step_fused): how noisy each heart rate source is, in bpm.
+# The watch uses the published sigma. A pulse sensor on the band is noisier while
+# moving, so it counts less. Provisional until we test the real band sensor.
+KALMAN_SIGMA_WATCH = KALMAN_SIGMA
+KALMAN_SIGMA_BAND_PPG = 2 * KALMAN_SIGMA
 
 
 # ---------------------------------------------------------------------------
