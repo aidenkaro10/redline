@@ -74,7 +74,8 @@ def site_status(entry, generated_at=None, worker_flag=None, workers_on_site=None
     """SiteStatus for one entry of hazard_picture()["sites"].
 
     worker_flag / workers_on_site come from the live system (session A);
-    index_tomorrow / index_drivers from the hazard index model (session C2).
+    index_tomorrow / index_drivers / hazard_index come from the hazard index model
+    (session C2) via entry["hazard_index"]; all None when the model isn't available.
     """
     events = entry["events"]
     index = entry.get("hazard_index") or {}
@@ -88,8 +89,11 @@ def site_status(entry, generated_at=None, worker_flag=None, workers_on_site=None
                           "band_pattern": e["band_pattern"], "ends": unix(e["ends"])}
                          for e in events if e["hazard"] == "weather"],
         "band_pattern": entry["band_pattern"],
-        "index_tomorrow": index.get("index") if isinstance(index, dict) else index,
-        "index_drivers": index.get("drivers", []) if isinstance(index, dict) else [],
+        # C2's full predict_index() JSON, plus the two fields the UI reads directly
+        "hazard_index": entry.get("hazard_index"),
+        "index_tomorrow": index.get("index"),
+        "index_drivers": [r["text"] for r in index.get("top_reasons", [])],
+        "tomorrow_rank": entry.get("tomorrow_rank"),
         "worker_flag": worker_flag,
         "workers_on_site": workers_on_site,
         "static_flood": entry["static"]["summary"],
