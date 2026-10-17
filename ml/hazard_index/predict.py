@@ -291,6 +291,20 @@ def predict_index(site_id: str, date, offline: bool = False, sites: list[Site] |
     )
 
 
+def past_incidents(site_id: str, limit: int = 10) -> list[dict]:
+    """
+    Real harm near the site, newest first, for the briefing: Storm Events with
+    damage, injuries or deaths, and OSHA heat and utility-fall injuries.
+    Reads the records built by `python -m ml.hazard_index.labels` (local, not committed).
+    """
+    recs = L.load_records()
+    recs = recs[(recs["site_id"] == site_id) & recs["source"].isin(["StormEvents", "OSHA"])
+                & (recs["level"] >= H.DAMAGE)]
+    recs = recs.sort_values("date", ascending=False).drop_duplicates(["date", "hazard", "detail"]).head(limit)
+    return [dict(date=r.date.isoformat(), hazard=r.hazard, level=int(r.level), source=r.source, text=r.detail)
+            for r in recs.itertuples()]
+
+
 def predict_all_sites(date, offline: bool = False) -> list[dict]:
     """Every site, ranked by index (highest first). For the map."""
     sites = load_sites()

@@ -19,9 +19,12 @@ import argparse
 import datetime as dt
 from pathlib import Path
 
+import json
+
 import joblib
 import numpy as np
 
+from ml.hazard_index import fetch
 from ml.hazard_index import hazards as H
 from ml.hazard_index import models as M
 from ml.hazard_index.evaluate import LEVELS, TARGETS, fit_boosted, load_dataset, target
@@ -31,6 +34,24 @@ from ml.hazard_index.sites import load_sites
 MODEL_PATH = Path(__file__).resolve().parent / "model" / "hazard_index.joblib"
 N_TREES = 400
 SHIPPED_KIND = "blend"       # "blend", "boosted_trees" or "logistic": whichever won in evaluate.py
+
+
+def climatology_wins() -> set[tuple[str, int]]:
+    """
+    (hazard, level) pairs where the evaluation's held-out years (time split) showed
+    the model did NOT beat climatology. For those we ship climatology. Note: this
+    choice is made after looking at 2023-2024, so those rows of the results table
+    are a little optimistic for the shipped mix.
+    """
+    path = fetch.data_dir() / "eval_results.json"
+    if not path.exists():
+        print("  (no eval_results.json yet: shipping the model everywhere; run evaluate.py first)")
+        return set()
+    out = set()
+    for r in json.loads(path.read_text()):
+        if r["split"] == "time" and r[f"pr_auc_{SHIPPED_KIND}"] <= r["pr_auc_climatology"]:
+            out.add((r["target"], int(r["level"])))
+    return out
 
 
 def main():
@@ -46,11 +67,16 @@ def main():
                train_years=[int(years[0]), int(years[-1])], sites=sorted(df["site_id"].unique().tolist()),
                site_source="placeholder" if all(s.site_id.startswith("ph-") for s in sites) else "plants.geojson",
                models={}, climatology={}, death_given_damage={})
+    use_clim = climatology_wins()
+    out["climatology_only"] = sorted(f"{h}>={lv}" for h, lv in use_clim)
     for hz in TARGETS:
         out["models"][hz], out["climatology"][hz] = {}, {}
         for level in LEVELS:
             y = target(df, hz, level)
-            if y.sum() < 10:
+            if (hz, level) in use_clim:
+                print(f"  {hz} >={level}: climatology beat the model on 2023-2024, shipping climatology")
+                out["models"][hz][str(level)] = None
+            elif y.sum() < 10:
                 print(f"  {hz} >={level}: only {int(y.sum())} yes-days, climatology only")
                 out["models"][hz][str(level)] = None
             else:

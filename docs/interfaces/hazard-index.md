@@ -17,6 +17,8 @@ ranked = predict_all_sites("2026-10-18")               # every site, highest ind
 - `offline=True` uses only cached downloads (no network). Raises `FileNotFoundError` if something isn't cached.
 - Dates older than 7 days use the Open-Meteo archive, the same as training. Recent dates use the Open-Meteo forecast API plus live IEM warnings, storm reports and SPC outlooks, re-downloaded at most once an hour.
 - Speed: first call per site and day takes a few seconds (a handful of polite web calls). After that it's cached.
+- Needs the trained model `ml/hazard_index/model/hazard_index.joblib` (committed, 0.8 MB, scikit-learn). If loading fails after a scikit-learn upgrade, retrain (below).
+- `top_reasons` can be empty: nothing pushed risk above a usual day.
 - `site_id` comes from `ml/hazard_index/sites.py:load_sites()`. That reads C1's `backend/sites/plants.geojson` once it exists (fields `site_id`, `id`, `plant_id` or `eia_plant_id`). Until then it uses 12 placeholder sites with ids starting `ph-`.
 
 ## JSON shape
@@ -54,19 +56,34 @@ How to read the number: it's the **expected level** on the label ladder (watch 1
 
 Show `text` as-is in the briefing. Show `notes` in small print.
 
+## Past incidents near a site (for the briefing)
+
+```python
+from ml.hazard_index.predict import past_incidents
+past_incidents("ph-tampa", limit=5)
+# [{"date": "2024-07-25", "hazard": "storm", "level": 10, "source": "StormEvents", "text": "Lightning, 3 hurt, 1 died"},
+#  {"date": "2024-08-23", "hazard": "heat", "level": 9, "source": "OSHA", "text": "Heat injury reported to OSHA nearby"}, ...]
+```
+
+Storm Events with damage, injury or death, plus OSHA heat injuries and utility/electrical fall injuries, newest first. Reads the local label records, so it needs `python -m ml.hazard_index.labels` run once on that machine.
+
 ## Hazards
 
 `heat`, `storm` (thunderstorms, lightning damage, wind, tornado, hail), `flood`, `fire`, `tropical`. Lightning itself isn't a separate hazard here because no free historical strike record exists; live lightning is C1's 10-mile rule.
 
+`fire` (every level) and heat at injury level use climatology, not the model: the model didn't beat climatology there on 2023-2024. The model file lists these under `climatology_only`.
+
 ## Retrain
 
 1. `python -m ml.hazard_index.labels` (downloads NWS warnings and storm reports per site, cached; about 3 s per site-year)
-2. `python -m ml.hazard_index.features` (downloads Open-Meteo archive weather, about 1-2 min per site, spaced out politely)
-3. `python -m ml.hazard_index.evaluate` (scores on 2023-2024, prints the table)
-4. `python -m ml.hazard_index.train` (fits on all years, writes `ml/hazard_index/model/hazard_index.json`)
+2. `python -m ml.hazard_index.features` (downloads Open-Meteo archive weather, about 2-3 min per site, spaced out politely)
+3. `python -m ml.hazard_index.evaluate` (scores on 2023-2024, prints the table; about 10 min for 12 sites)
+4. `python -m ml.hazard_index.train` (fits on all years, writes `ml/hazard_index/model/hazard_index.joblib`; ships climatology wherever step 3 showed the model didn't beat it)
+
+Prefix steps 3 and 4 with `OMP_NUM_THREADS=2` to leave CPU for the forecaster training.
 
 Add `--sites placeholder` or `--sites geojson` to any step to pick the site list. Downloads are cached in `data/raw/hazard_index/` in the main checkout (gitignored). For 50+ sites, Open-Meteo's free daily limit is the bottleneck: run step 2 in two sittings if it complains.
 
-Optional extra label sources (better damage/injury labels). Put the files here and rerun step 1:
+Extra label sources for damage and injury (already downloaded on Aiden's laptop). Put the files here and rerun step 1:
 - NOAA Storm Events yearly details CSVs → `data/raw/hazard_index/stormevents/`
 - OSHA Severe Injury Reports zip → `data/raw/hazard_index/osha/`
