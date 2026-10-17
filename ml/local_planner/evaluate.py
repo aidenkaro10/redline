@@ -91,17 +91,22 @@ def first_try(model: str, scenarios: list[Scenario], runs: int, temperature: flo
 
 
 def best_of_k_with_checker(rows: list[dict], scenarios: list[Scenario], opt_rows: dict) -> list[dict]:
-    """Keep the passing sample with the most work done; if none passed, use the optimizer's plan."""
+    """
+    A planner you could ship: the k samples AND the optimizer's plan go through the checker,
+    and we keep the verified plan that gets the most work done. `local_won` says whether a
+    local sample beat the optimizer's plan on that day.
+    """
     out = []
     for sc in scenarios:
         mine = [r for r in rows if r["scenario"] == sc.id]
+        o = opt_rows[sc.id]
         good = [r for r in mine if r["success"]]
-        if good:
-            best = max(good, key=lambda r: r["throughput"])
-            out.append({**best, "fallback": False, "latency_s": sum(r["latency_s"] for r in mine)})
+        best = max(good, key=lambda r: r["throughput"]) if good else None
+        lat = sum(r["latency_s"] for r in mine) + o["latency_s"]
+        if best is not None and best["throughput"] > o["throughput"]:
+            out.append({**best, "local_won": True, "latency_s": lat})
         else:
-            o = opt_rows[sc.id]
-            out.append({**o, "fallback": True, "latency_s": sum(r["latency_s"] for r in mine) + o["latency_s"]})
+            out.append({**o, "local_won": False, "latency_s": lat})
     return out
 
 
@@ -214,7 +219,6 @@ def main():
     if args.only in ("first_try", "all"):
         for m in models:
             raw[f"first_try:{m}"] = first_try(m, scenarios, args.runs, args.temperature)
-            raw[f"best_of_{args.runs}:{m}"] = best_of_k_with_checker(raw[f"first_try:{m}"], scenarios, raw["optimizer"])
             path.write_text(json.dumps(raw))
     if args.only in ("pipeline", "all"):
         for m in models:
@@ -222,6 +226,13 @@ def main():
             path.write_text(json.dumps(raw))
     path.write_text(json.dumps(raw))
 
+    for m in models + ["base", "finetuned"]:          # best-of-k is recomputed from the saved samples
+        if f"first_try:{m}" in raw:
+            n = len({r["run"] for r in raw[f"first_try:{m}"]})
+            for key in [k for k in raw if k.startswith("best_of_") and k.endswith(f":{m}")]:
+                del raw[key]
+            raw[f"best_of_{n}:{m}"] = best_of_k_with_checker(raw[f"first_try:{m}"], scenarios, raw["optimizer"])
+    path.write_text(json.dumps(raw))
     opt = list(raw["optimizer"].values())
     results = {"first_try": {"Claude Opus 5.5 alone (B's llm_only)": summarize(b_rows("llm_only"))},
                "pipeline": {"optimizer only": summarize(opt),
@@ -231,7 +242,8 @@ def main():
         if f"first_try:{m}" in raw:
             results["first_try"][f"{label} alone"] = summarize(raw[f"first_try:{m}"])
             k = next(key for key in raw if key.startswith("best_of_") and key.endswith(f":{m}"))
-            results["pipeline"][f"{label}, best of {k.split('_')[2].split(':')[0]} + checker (optimizer fallback)"] = summarize(raw[k])
+            wins = sum(r.get("local_won", False) for r in raw[k])
+            results["pipeline"][f"{label}, best of {k.split('_')[2].split(':')[0]} + optimizer plan, checker picks (local won {wins}/{len(raw[k])} days)"] = summarize(raw[k])
         if f"pipeline:{m}" in raw:
             results["pipeline"][f"{label} in the agent pipeline"] = summarize(raw[f"pipeline:{m}"])
     (EVAL_DIR / "summary.json").write_text(json.dumps(results, indent=1))
