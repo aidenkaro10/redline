@@ -66,6 +66,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--hazards", choices=["fake", "live", "off"], default=None,
                     help="session C1's hazard feeds: fake demo data, live feeds, or off "
                          "(default: fake with --source replay, live otherwise)")
+    ap.add_argument("--no-planner", dest="planner", action="store_false",
+                    help="don't run session B's planner for the live crew")
     ap.add_argument("--emergency-phone", choices=["dry_run", "fake", "live"], default="dry_run",
                     help="session D's phone backend for confirmed man-down calls (never dials 911)")
     ap.add_argument("--host", default="127.0.0.1")
@@ -133,6 +135,10 @@ async def lifespan(app: FastAPI):
     app.state.sites = make_bridge(hub, hazard_mode)     # session C1's 79 sites + hazards, if merged
     if app.state.sites is not None:
         tasks.append(asyncio.create_task(app.state.sites.run()))
+    from backend.app.planner_bridge import make_planner_bridge
+    app.state.planner = make_planner_bridge(hub) if s.planner else None
+    if app.state.planner is not None:
+        tasks.append(asyncio.create_task(app.state.planner.run()))
 
     if s.source == "replay":
         hub.start_replay(make_replay(hub, s))
@@ -242,6 +248,13 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
 
 
 app = FastAPI(title="PlanIT Control", lifespan=lifespan)
+try:
+    # Session B's planner: /api/schedule, /api/briefing, /api/planner/*. Mounted before
+    # frontend_router so its routes win over the empty fallbacks there.
+    from backend.planner.api import router as planner_router
+    app.include_router(planner_router)
+except ImportError:
+    pass
 app.include_router(frontend_router)
 # Let the Next.js dashboard (another port) call the REST API from the browser.
 app.add_middleware(CORSMiddleware, allow_methods=["*"], allow_headers=["*"],

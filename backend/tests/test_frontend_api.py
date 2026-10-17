@@ -19,7 +19,7 @@ MANDOWN_KEYS = {"id", "worker_id", "worker_name", "site_id", "site_name", "lat",
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--db", "", "--no-forecaster"]))
+    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--no-planner", "--db", "", "--no-forecaster"]))
     with TestClient(main.app) as c:
         yield c
 
@@ -93,9 +93,7 @@ def test_reports_sites_schedule(client):
     assert r["report"]["kind"] == "snake" and r["report"]["lat"] == hub.sites[hub.default_site_id]["lat"]
     assert client.get("/api/reports").json()[0]["note"] == "under the trailer"
     assert client.get("/api/sites").json()[0]["id"] == "site-gnv"
-    assert client.get("/api/schedule").status_code == 404
-    client.post("/api/plans", json={"date": "2026-10-17", "rows": []})
-    assert client.get("/api/schedule").json()["date"] == "2026-10-17"
+    # /api/schedule itself is the planner's route now (tested in test_planner_bridge.py).
     client.post("/api/sites/site-gnv/status", json={"hazards": [{"kind": "heat", "level": "high"}], "index_tomorrow": 7})
     s = client.get("/api/state").json()["sites"][0]
     assert s["index_tomorrow"] == 7 and s["hazards"][0]["level"] == "high"
@@ -155,3 +153,17 @@ def test_offset_update_is_body_data_not_for_crew(client):
                 if m["type"] == "alert" and m["alert"]["kind"] == "LIGHTNING":
                     break
         assert "offset_update" not in crew_types and "offset_update" in demo_types
+
+
+def test_snapshot_offsets_follow_privacy_rule(client):
+    hub = main.app.state.hub
+    hot_worker(hub, minutes=5)
+    raw = hub.pipelines["w1"].estimates[-1]["core_temp_raw"]
+    client.post("/api/spot-check", json={"worker_id": "w1", "thermometer_c": raw - 0.3})
+    demo = client.get("/api/state?view=demo").json()["offsets"]["w1"]
+    assert demo["n_checks"] == 1 and demo["offset_c"] > 0 and {"confidence", "worker_id"} <= demo.keys()
+    assert client.get("/api/state?view=crew").json()["offsets"] == {}
+    assert client.get("/api/state?view=worker&worker_id=w1").json()["offsets"]["w1"]["n_checks"] == 1
+    assert client.get("/api/state?view=worker&worker_id=w2").json()["offsets"] == {}
+    with client.websocket_connect("/ws/live?view=crew") as ws:
+        assert ws.receive_json()["offsets"] == {}
