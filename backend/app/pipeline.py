@@ -25,6 +25,7 @@ from backend.alerts.router import BandRouter
 from backend.app.model_runner import predict_at
 from backend.app.schemas import ButtonPress, Reading
 from backend.models.kalman import ECTempKalman
+from backend.models.personal_offset import PersonalOffset
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +78,11 @@ class WorkerPipeline:
         self.heat = HeatAlerter(demo)
         self.router = BandRouter(worker_id)
         self.mandown = ManDownDetector()
-        self.last_inputs: HeatInputs | None = None
+        self.last_inputs: HeatInputs | None = None       # what the heat alert last saw (offset applied)
+        self.raw_inputs: HeatInputs | None = None        # same, before the personal offset
+        # Personal offset twin: learned from thermometer spot checks, subtracted from the
+        # NOW estimate and every forecast percentile. Capped; never touches a threshold.
+        self.offset = PersonalOffset(worker_id)
         self.last_t: float | None = None                 # latest timestamp we've seen
         self.last_reading: dict = {}                     # latest value of each reading field + when
         self.estimates: deque = deque(maxlen=HISTORY_KEEP)
@@ -220,10 +225,16 @@ class WorkerPipeline:
 
         if curve is not None:
             p90 = config.FORECAST_QUANTILES.index(config.HEAT_ALERT_QUANTILE)
-            self.last_inputs = HeatInputs(core, float(curve[config.HEAT_DANGER_HORIZON_MIN - 1, p90]),
-                                          float(curve[config.HEAT_WARNING_HORIZON_MIN - 1, p90]))
+            self.raw_inputs = HeatInputs(core, float(curve[config.HEAT_DANGER_HORIZON_MIN - 1, p90]),
+                                         float(curve[config.HEAT_WARNING_HORIZON_MIN - 1, p90]))
         else:
-            self.last_inputs = HeatInputs(core)
+            self.raw_inputs = HeatInputs(core)
+        core_raw = core
+        offset = self.offset.offset_c
+        core = core - offset
+        if curve is not None:
+            curve = curve - offset
+        self.last_inputs = self._corrected(self.raw_inputs)
 
         forecast = None
         if curve is not None:
@@ -241,8 +252,43 @@ class WorkerPipeline:
             "hr_sources": sources,                   # which devices fed the Kalman this minute
             "kalman": _r(ks.ct), "kalman_sd": _r(math.sqrt(ks.v), 4),
             "core_temp": _r(core), "core_temp_sd": _r(core_sd, 4),
+            "core_temp_raw": _r(core_raw), "offset_c": _r(offset, 4),     # before the personal offset
             "forecast": forecast, "model": model,
         }
+
+    def _corrected(self, x: HeatInputs) -> HeatInputs:
+        """Heat alert inputs with this worker's personal offset applied (thresholds untouched)."""
+        o = self.offset.offset_c
+        sub = lambda v: None if v is None else v - o
+        return HeatInputs(x.estimate - o, sub(x.forecast10_p90), sub(x.forecast20_p90))
+
+    def spot_check(self, thermometer_c: float, t: float) -> list[dict]:
+        """
+        A thermometer reading (ear/oral, °C) taken at time t. Compares it with the model's
+        estimate for that minute BEFORE any offset (the raw miss), updates the offset, and
+        re-checks the heat alert with the new offset right away.
+        """
+        raw = [e for e in self.estimates if e.get("core_temp_raw") is not None]
+        if not raw:
+            return [{"type": "offset_update", "timestamp": t, "accepted": False,
+                     "reason": "no estimate yet", **self.offset_status()}]
+        est = min(raw, key=lambda e: abs(e["timestamp"] - t))
+        if abs(est["timestamp"] - t) > 10 * 60:
+            est = raw[-1]                                # far off (clock mix-up): use the latest
+        accepted = self.offset.add_check(est["core_temp_raw"], thermometer_c)
+        events = [{"type": "offset_update", "timestamp": t, "accepted": accepted,
+                   "thermometer_c": thermometer_c, "model_c": est["core_temp_raw"],
+                   "miss_c": _r(est["core_temp_raw"] - thermometer_c),
+                   "reason": None if accepted else "reading too far from the model, ignored as a bad reading",
+                   **self.offset_status()}]
+        if accepted and self.raw_inputs is not None and self.last_t is not None:
+            self.last_inputs = self._corrected(self.raw_inputs)
+            events += self._react(self.heat.update(self.last_t, self.last_inputs), self.last_t)
+        return self._stamp(events)
+
+    def offset_status(self) -> dict:
+        return {"offset_c": round(self.offset.offset_c, 4), "confidence": round(self.offset.confidence, 3),
+                "n_checks": len(self.offset.misses)}
 
     def _blend_hr(self) -> float:
         """
@@ -339,6 +385,7 @@ class WorkerPipeline:
             "site_id": self.site.get("site_id"), "heat_level": self.heat.level,
             "acknowledged": self.heat.acknowledged, "band_pattern": self.router.current,
             "mandown": self.mandown.state, "mandown_reason": self.mandown.reason, "demo": self.heat.demo,
+            "offset": self.offset_status(),
             "model": self.estimates[-1]["model"] if self.estimates else None,
             "latest": self.estimates[-1] if self.estimates else None,
             "last_reading": {k: v for k, v in self.last_reading.items() if not k.endswith("_at")},

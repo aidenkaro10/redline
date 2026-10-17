@@ -97,6 +97,10 @@ class Hub:
         self.pipelines[worker_id] = p
         if self.db:
             self.db.upsert_worker(info)
+            saved = self.db.load_offset(worker_id)          # personal offset survives restarts
+            if saved:
+                from backend.models.personal_offset import PersonalOffset
+                p.offset = PersonalOffset.from_dict(saved)
         t = self.clocks[worker_id].now()
         events = [{"type": "worker", "timestamp": t, **self.public_info(worker_id)}]
         # Any hazard already active at the site applies to the new worker too.
@@ -282,6 +286,22 @@ class Hub:
                 events += self.pipelines[wid].set_hazard(pattern, pattern_on, self.now(wid))
         self.dispatch(events)
         return ev
+
+    def spot_check(self, worker_id: str, thermometer_c: float, timestamp: float | None = None) -> dict:
+        """
+        A thermometer spot check for one worker (POST /spot-check). Updates and saves their
+        personal offset, then sends an "offset_update" event. Returns that event.
+        """
+        p = self.pipelines[worker_id]
+        events = p.spot_check(thermometer_c, self.now(worker_id) if timestamp is None else timestamp)
+        update = events[0]
+        if self.db:
+            if "thermometer_c" in update:
+                self.db.add_spot_check(update)
+            if update["accepted"]:
+                self.db.save_offset(p.offset.to_dict())
+        self.dispatch(events)
+        return update
 
     def set_site_status(self, site_id: str, status: dict) -> None:
         """

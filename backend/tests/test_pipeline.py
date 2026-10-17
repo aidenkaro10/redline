@@ -182,3 +182,31 @@ def test_band_only_hr_uses_band_sigma_and_watch_only_matches_ectemp():
     assert band.estimates[0]["kalman"] == pytest.approx(kb.step_fused([(150.0, config.KALMAN_SIGMA_BAND_PPG)]).ct, abs=1e-3)
     assert watch.estimates[0]["kalman"] == pytest.approx(kw.step(150.0).ct, abs=1e-3)
     assert band.estimates[0]["hr_sources"] == ["band"]
+
+
+def test_personal_offset_from_spot_checks():
+    from backend.models.personal_offset import PRIOR_CHECKS
+    p = WorkerPipeline("w1")
+    feed(p, 10, 140)
+    raw = p.estimates[-1]["core_temp_raw"]
+    ev = p.spot_check(raw - 0.4, p.estimates[-1]["timestamp"])[0]     # model reads 0.4 °C hot
+    assert ev["type"] == "offset_update" and ev["accepted"] and ev["n_checks"] == 1
+    assert ev["offset_c"] == pytest.approx(0.4 / (1 + PRIOR_CHECKS), abs=1e-3)
+    feed(p, 2, 140, start=600.0)
+    e = p.estimates[-1]
+    assert e["core_temp"] == pytest.approx(e["core_temp_raw"] - ev["offset_c"], abs=1e-3)
+    assert p.spot_check(raw + 5.0, e["timestamp"])[0]["accepted"] is False     # bad reading ignored
+
+
+def test_offset_applies_to_every_forecast_percentile():
+    from pathlib import Path
+    if not CHECKPOINT.exists():
+        pytest.skip("no checkpoint")
+    from backend.app.model_runner import load_best_predictor
+    pred = load_best_predictor(explicit=str(CHECKPOINT))
+    a, b = WorkerPipeline("a", predictor=pred), WorkerPipeline("b", predictor=pred)
+    b.offset.misses = [0.3, 0.3, 0.3]
+    ea, eb = of(feed(a, 12, 140), "estimate")[-1], of(feed(b, 12, 140), "estimate")[-1]
+    o = b.offset.offset_c
+    for q in ("p10", "p50", "p90"):
+        assert np.allclose(np.array(ea["forecast"][q]) - o, eb["forecast"][q], atol=2e-3)

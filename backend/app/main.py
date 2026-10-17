@@ -152,6 +152,9 @@ def print_key_event(ev: dict) -> None:
         v = ev["last_vitals"]
         text = (f"MANDOWN_CONFIRMED {ev['worker_name']} at {ev['site_name']} ({ev['reason']}, "
                 f"{ev['seconds_since_start']:.0f} s, core {v['core_temp']} °C, HR {v['hr']})")
+    elif kind == "offset_update":
+        text = (f"spot check {ev.get('thermometer_c')} °C -> personal offset {ev['offset_c']:+.2f} °C "
+                f"({ev['n_checks']} checks{'' if ev['accepted'] else ', reading rejected'})")
     elif kind == "sos":
         text = f"SOS from {ev['worker_name']} at {ev['site_name']}"
     elif kind == "emergency_status":
@@ -397,6 +400,20 @@ class SiteRequest(BaseModel, extra="allow"):
     name: str
     lat: float
     lon: float
+
+
+class SpotCheck(BaseModel):
+    worker_id: str
+    thermometer_c: float                # ear or oral thermometer reading, °C
+    timestamp: float | None = None      # when it was taken (default: now on that worker's clock)
+
+
+@app.post("/spot-check")
+@app.post("/api/spot-check")
+async def spot_check(body: SpotCheck):
+    """Personal offset twin: record a thermometer spot check for a worker."""
+    _worker(body.worker_id)
+    return hub_of().spot_check(body.worker_id, body.thermometer_c, body.timestamp)
 
 
 class WeatherRequest(BaseModel):

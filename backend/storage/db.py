@@ -9,6 +9,8 @@ Tables
                man-down, hazards (full event as JSON too)
     plans      schedules from the planner (session B)
     reports    crew photo reports (snake, standing water, downed line ...)
+    offsets    each worker's personal offset twin (thermometer spot-check misses)
+    spot_checks every thermometer spot check, kept or rejected
     estimates  one row per worker per minute: inputs (per heart rate device too), Kalman, model estimate,
                forecast at +10/+20/+30 min, model name, twin version.
                The twins learn from this table later.
@@ -46,6 +48,13 @@ CREATE TABLE IF NOT EXISTS reports (
     id TEXT PRIMARY KEY, site_id TEXT, worker_id TEXT, kind TEXT, note TEXT,
     lat REAL, lon REAL, photo TEXT, at REAL
 );
+CREATE TABLE IF NOT EXISTS offsets (
+    worker_id TEXT PRIMARY KEY, misses TEXT, offset_c REAL, confidence REAL, updated_at REAL
+);
+CREATE TABLE IF NOT EXISTS spot_checks (
+    id INTEGER PRIMARY KEY, worker_id TEXT, timestamp REAL, thermometer_c REAL, model_c REAL,
+    accepted INTEGER, offset_c REAL
+);
 CREATE TABLE IF NOT EXISTS estimates (
     worker_id TEXT, timestamp REAL, minute INTEGER,
     hr REAL, skin_temp REAL, activity REAL, wbgt REAL,
@@ -64,7 +73,7 @@ ALERT_EVENTS = {
     "band_command": "pattern", "hazard": "kind",
     "mandown_check": "reason", "mandown_cancelled": "by", "mandown_confirmed": "reason",
     "mandown_resolved": "by", "mandown_worker_responded": "by", "sos": None,
-    "emergency_status": "status",
+    "emergency_status": "status", "offset_update": "offset_c",
 }
 COMMIT_EVERY_S = 1.0
 
@@ -124,6 +133,22 @@ class Database:
     def add_plan(self, ev: dict) -> None:
         self._write("INSERT INTO plans (timestamp, source, plan) VALUES (?, ?, ?)",
                     (ev["timestamp"], ev.get("source"), json.dumps(ev["plan"])))
+
+    def save_offset(self, d: dict) -> None:
+        """d = PersonalOffset.to_dict(). Committed right away: it's precious and rare."""
+        self._write("INSERT OR REPLACE INTO offsets VALUES (?, ?, ?, ?, ?)",
+                    (d["worker_id"], json.dumps(d["misses"]), d["offset_c"], d["confidence"], time.time()))
+        self.commit()
+
+    def load_offset(self, worker_id: str) -> dict | None:
+        rows = self.query("SELECT misses FROM offsets WHERE worker_id = ?", (worker_id,))
+        return {"worker_id": worker_id, "misses": json.loads(rows[0][0])} if rows else None
+
+    def add_spot_check(self, ev: dict) -> None:
+        self._write("INSERT INTO spot_checks (worker_id, timestamp, thermometer_c, model_c, accepted, offset_c) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (ev["worker_id"], ev["timestamp"], ev.get("thermometer_c"), ev.get("model_c"),
+                     int(bool(ev.get("accepted"))), ev.get("offset_c")))
 
     def add_report(self, r: dict) -> None:
         self._write("INSERT OR REPLACE INTO reports VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",

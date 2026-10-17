@@ -93,6 +93,9 @@ class FrontendAdapter:
             out += self._emergency(ev)
         elif kind == "worker_removed":
             self.last_status.pop(wid, None)
+        elif kind == "offset_update":
+            # Not in E's contract yet: passed through as-is ({worker_id, offset_c, confidence, n_checks, ...}).
+            out.append({k: v for k, v in ev.items()})
         elif kind in ("demo", "replay"):
             out.append({"type": "demo", "demo": self.demo_state()})
 

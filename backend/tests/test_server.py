@@ -122,3 +122,24 @@ def test_old_database_gets_new_columns(tmp_path):
     db = Database(path)
     assert "source" in {r[1] for r in db.query("PRAGMA table_info(readings)")}
     db.close()
+
+
+def test_spot_check_route_persists_offset(tmp_path, monkeypatch):
+    path = tmp_path / "o.db"
+    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--db", str(path), "--no-forecaster"]))
+    with TestClient(main.app) as c:
+        hub = main.app.state.hub
+        add_readings(hub, n=90, hr=130)
+        raw = hub.pipelines["w1"].estimates[-1]["core_temp_raw"]
+        with c.websocket_connect("/ws") as ws:
+            ws.receive_json()
+            r = c.post("/spot-check", json={"worker_id": "w1", "thermometer_c": raw - 0.3}).json()
+            assert r["accepted"] and r["offset_c"] > 0
+            seen = [ws.receive_json()["type"] for _ in range(3)]
+            assert "offset_update" in seen
+        assert c.post("/api/spot-check", json={"worker_id": "nobody", "thermometer_c": 37}).status_code == 404
+    # A new server run loads the saved offset for the same worker.
+    with TestClient(main.app) as c:
+        hub = main.app.state.hub
+        add_readings(hub, n=5)
+        assert hub.pipelines["w1"].offset_status()["n_checks"] == 1
