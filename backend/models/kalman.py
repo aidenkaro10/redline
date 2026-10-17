@@ -68,6 +68,29 @@ class ECTempKalman:
         return self.state
 
 
+    def step_fused(self, readings: list[tuple[float | None, float]]) -> KalmanState:
+        """
+        Sensor fusion: advance one minute using SEVERAL heart rate sources at once.
+
+        readings: [(heart rate or None, sigma), ...], one per source. sigma is how noisy
+        that source is (bpm): the published value for a watch, bigger for a band pulse
+        sensor. Each available reading nudges the estimate in turn (a sequential Kalman
+        update), so a noisy source counts less and a dropped source simply skips.
+        With one source at the published sigma this is exactly ECTemp.
+        """
+        gamma_sq = config.KALMAN_GAMMA**2
+        ct, v = self.state.ct, self.state.v + gamma_sq        # predict once per minute
+        for hr, sigma in readings:
+            if hr is None or (isinstance(hr, float) and np.isnan(hr)):
+                continue
+            c = 2 * config.KALMAN_B2 * ct + config.KALMAN_B1
+            k = v * c / (c**2 * v + sigma**2)
+            ct = ct + k * (hr - expected_hr(ct))
+            v = (1 - k * c) * v
+        self.state = KalmanState(ct=ct, v=v)
+        return self.state
+
+
 def run_kalman(hr_per_minute, ct_start: float = config.KALMAN_CT_START,
                v_start: float = config.KALMAN_V_START) -> tuple[np.ndarray, np.ndarray]:
     """
