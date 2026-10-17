@@ -60,6 +60,13 @@ class Session:
 # ---------------------------------------------------------------------------
 MENDELEY_PATH = Path("data/raw/mendeley_buono/data.csv")
 
+# Study protocol (Northway, Jones & Buono 2023, IJOMEH): 2-hour treadmill walk, the
+# standard heat tolerance test, in a hot room (40 °C, 40% RH) or a neutral room
+# (22 °C, 40% RH). Indoors, so WBGT = 0.7 * wet bulb + 0.3 * air temp (no sun).
+# Workload assumes the standard test pace (5 km/h at 2% grade, about 4.5 met).
+MENDELEY_WBGT_C = {"heat": 32.0, "neutral": 16.4}
+MENDELEY_WORKLOAD_WM2 = 4.5 * 58.15
+
 
 def _num(x: str) -> float:
     return float(x) if x not in ("", "nan", "NaN") else np.nan
@@ -97,6 +104,9 @@ def load_mendeley(path: Path = MENDELEY_PATH) -> list[Session]:
             signals={
                 "hr": np.array([_num(r["hr_clean"]) for r in rows]),
                 "core_temp": core,
+                # known for the whole session from the protocol
+                "wbgt": np.full(len(rows), MENDELEY_WBGT_C[condition]),
+                "workload": np.full(len(rows), MENDELEY_WORKLOAD_WM2),
             },
             core_temp_measured=measured,
             meta={
