@@ -131,3 +131,8 @@ EMERGENCY_TEST_NUMBER = os.getenv("EMERGENCY_TEST_NUMBER", "")  # teammate playi
 
 # Every escalation step is appended here, one JSON object per line.
 EMERGENCY_LOG_PATH = os.getenv("EMERGENCY_LOG_PATH", "data/emergency_log.jsonl")
+
+# ElevenLabs voice agent (only used when EMERGENCY_LIVE_CALLS=1). From .env.
+ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY", "")
+ELEVENLABS_AGENT_ID = os.getenv("ELEVENLABS_AGENT_ID", "")
+ELEVENLABS_PHONE_NUMBER_ID = os.getenv("ELEVENLABS_PHONE_NUMBER_ID", "")

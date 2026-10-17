@@ -118,7 +118,8 @@ class Escalation:
         result = self.phone.call(number, script, build_report(self.event, self.clock()), on_status)
         self.calls[target] = result
         if result.status == "completed":
-            self._status("completed", target, number, "Dry run: no call placed" if result.mode == "dry_run" else "Call finished")
+            done_msg = {"dry_run": "Dry run: no call placed", "live": "Call placed"}.get(result.mode, "Call finished")
+            self._status("completed", target, number, done_msg)
         else:
             self._status("failed", target, number, result.error or "Call failed")
         self._log("call", target=target, number=result.number, mode=result.mode, script=script,
