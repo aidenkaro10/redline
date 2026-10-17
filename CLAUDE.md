@@ -7,7 +7,8 @@ Heat strain forecasting wearable for SwampHacks XII. **Read PROJECT.md for the f
 - Aiden owns all software, and that's our job: backend, Kalman filter, forecaster, ML training and eval, alerts, replay mode, frontend, stretch features.
 
 ## Rules
-- Build in the MVP order from PROJECT.md. Don't start a stretch feature until everything above it works.
+- Build in the phase order from PLAN.md (ML-first). Phase 0 foundation comes first, always.
+- Every model is scored by the evaluation harness next to the Kalman baseline before it ships.
 - Fake data and replay mode first. Every module must run and test without hardware.
 - Implement these exactly as written in PROJECT.md: the data contract, the serial line protocol (115200 baud), the Kalman equations and parameters, the alert thresholds.
 - All alert thresholds and safety limits live as named constants in `backend/config.py`. Safety limits are hard-coded, never learned. The LLM never makes safety calls.
