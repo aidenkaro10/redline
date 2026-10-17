@@ -11,6 +11,7 @@ import { Suspense, useState } from "react";
 
 import { Card, fmtClock } from "@/components/ui";
 import type { PhotoReport, ReportKind, Site } from "@/lib/contract";
+import { useCrew } from "@/lib/crew";
 import { apiPost, useFetch, useLive } from "@/lib/live";
 
 const KINDS: { v: ReportKind; t: string }[] = [
@@ -31,7 +32,10 @@ function ReportForm() {
   const workerId = params.get("worker");
   const { data: sites } = useFetch<Site[]>("/sites");
   const { reports, workers } = useLive();
-  const [siteId, setSiteId] = useState(workerId && workers[workerId] ? workers[workerId].site_id : "fl-deerhaven");
+  const crew = useCrew();
+  const [picked, setSiteId] = useState<string | null>(null);
+  // Default: the reporting worker's site, else the crew's first site.
+  const siteId = picked ?? (workerId && workers[workerId] ? workers[workerId].site_id : crew.siteIds[0] ?? "");
   const [kind, setKind] = useState<ReportKind>("snake");
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
@@ -55,8 +59,8 @@ function ReportForm() {
     } catch { setState("error"); }
   };
 
-  const crewSites = (sites ?? []).filter((s) => s.id === "fl-deerhaven" || s.id === "fl-kelly");
-  const otherSites = (sites ?? []).filter((s) => s.id !== "fl-deerhaven" && s.id !== "fl-kelly");
+  const crewSites = (sites ?? []).filter((s) => crew.siteIds.includes(s.id));
+  const otherSites = (sites ?? []).filter((s) => !crew.siteIds.includes(s.id));
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-6">

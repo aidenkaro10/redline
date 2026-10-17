@@ -8,13 +8,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useCrew } from "@/lib/crew";
 import { USING_MOCK, useLive, useSimNow } from "@/lib/live";
 import { fmtClockSec } from "./ui";
 
 const LINKS = [
   { href: "/", label: "Crew lead" },
   { href: "/demo", label: "Demo view" },
-  { href: "/worker/worker-1", label: "Worker phone" },
+  { href: "/worker", label: "Worker phone" },
   { href: "/briefing", label: "6 PM briefing" },
   { href: "/report", label: "Report hazard" },
 ];
@@ -23,6 +24,7 @@ export function Nav() {
   const path = usePathname();
   const { connected, demo, ready } = useLive();
   const now = useSimNow(500);
+  const { firstWorkerId } = useCrew();
   return (
     <header className="sticky top-0 z-[500] border-b border-line bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
@@ -34,7 +36,7 @@ export function Nav() {
           {LINKS.map((l) => {
             const active = l.href === "/" ? path === "/" : path.startsWith(l.href.split("/").slice(0, 2).join("/"));
             return (
-              <Link key={l.href} href={l.href}
+              <Link key={l.href} href={l.href === "/worker" ? `/worker/${firstWorkerId ?? ""}` : l.href}
                 className={`whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm ${active ? "bg-surface-2 font-semibold text-ink" : "text-ink-2 hover:bg-surface-2"}`}>
                 {l.label}
               </Link>

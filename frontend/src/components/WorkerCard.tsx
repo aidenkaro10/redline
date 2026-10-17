@@ -9,7 +9,7 @@ import Link from "next/link";
 
 import type { WorkerStatus } from "@/lib/contract";
 import { ALERT_LABEL } from "@/lib/contract";
-import { SITE_BY_ID } from "@/lib/sites";
+import { shortSiteName, useSites } from "@/lib/crew";
 import { AlertIcon, StatusBadge, alertTone, fmtCountdown } from "./ui";
 
 const EDGE: Record<WorkerStatus["status"], string> = {
@@ -19,14 +19,15 @@ const EDGE: Record<WorkerStatus["status"], string> = {
 };
 
 export function WorkerCard({ w, now, down }: { w: WorkerStatus; now: number; down: "mandown" | "sos" | null }) {
-  const site = SITE_BY_ID[w.site_id];
+  const { byId } = useSites();
+  const site = byId[w.site_id];
   const breakIn = w.break_at ? (w.break_at - now) : null;
   return (
     <article className={`flex flex-col gap-2.5 rounded-xl border border-line border-l-[6px] bg-surface p-3.5 ${down === "sos" ? "border-l-sos ring-2 ring-sos" : down ? "border-l-danger ring-2 ring-danger" : EDGE[w.status]}`}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <h3 className="truncate font-semibold leading-tight">{w.name}</h3>
-          <p className="truncate text-xs text-muted">{w.role} · {site?.name.replace(" Generating Station", "") ?? w.site_id}</p>
+          <p className="truncate text-xs text-muted">{w.role} · {site ? shortSiteName(site.name) : w.site_id}</p>
         </div>
         {down === "sos" ? <span className="pulse-sos rounded-full px-2 py-0.5 text-xs font-bold text-white">SOS</span>
           : down ? <span className="pulse-red rounded-full px-2 py-0.5 text-xs font-bold text-white">MAN DOWN</span>

@@ -8,18 +8,28 @@
 import { Card, HAZARD_TEXT_CLASS, HazardIcon, IndexChip, LevelPill, indexColor } from "@/components/ui";
 import type { Briefing, HazardKind, Site } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
+import { siteMeta, useCrew } from "@/lib/crew";
 import { USING_MOCK, useFetch } from "@/lib/live";
 
 const HOURS = { start: 6, end: 20 };
 const WINDOW_COLOR: Partial<Record<HazardKind, string>> = { heat: "var(--heat)", lightning: "var(--lightning)", flood: "var(--flood)", fire: "var(--fire)" };
-const CREW_SITES = new Set(["fl-deerhaven", "fl-kelly"]);
 
 export default function BriefingPage() {
   const { data: b, error } = useFetch<Briefing>("/briefing");
   const { data: sites } = useFetch<Site[]>("/sites");
   const byId = Object.fromEntries((sites ?? []).map((s) => [s.id, s]));
+  const CREW_SITES = new Set(useCrew().siteIds);
 
-  if (error) return <main className="p-6 text-danger-ink">Couldn&apos;t load the briefing: {error}</main>;
+  if (error) {
+    return (
+      <main className="mx-auto max-w-5xl px-4 py-10">
+        <p className="text-xs font-bold uppercase tracking-wider text-accent">6 PM briefing</p>
+        <h1 className="text-2xl font-bold">No briefing yet</h1>
+        <p className="mt-1 text-sm text-ink-2">The planner posts tomorrow&apos;s briefing at 6 PM. Nothing has been posted to this backend yet.</p>
+        <p className="mt-3 text-xs text-muted">{error}</p>
+      </main>
+    );
+  }
   if (!b || !sites) return <main className="p-6 text-muted">Loading the briefing…</main>;
 
   const day = new Date(b.for_date + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
@@ -91,7 +101,7 @@ export default function BriefingPage() {
                   <td className="px-4 py-2 text-muted tabular">{i + 1}</td>
                   <td className="px-2 py-2">
                     <p className="font-medium">{byId[s.site_id]?.name}</p>
-                    <p className="text-xs text-muted">{byId[s.site_id]?.county} Co. · {byId[s.site_id]?.tech}</p>
+                    <p className="text-xs text-muted">{siteMeta(byId[s.site_id], false)}</p>
                   </td>
                   <td className="px-2 py-2">
                     <div className="flex items-center gap-2">

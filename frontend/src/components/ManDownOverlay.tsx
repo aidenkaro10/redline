@@ -78,7 +78,7 @@ export function ManDownOverlay() {
           </div>
           <div className="mt-5 grid grid-cols-3 gap-2 text-center">
             <Vital label="Est. core temp" value={md.last_vitals.core_temp !== null ? `${md.last_vitals.core_temp.toFixed(1)} °C` : "--"} />
-            <Vital label="Heart rate" value={md.last_vitals.hr !== null ? `${md.last_vitals.hr} bpm` : "--"} />
+            <Vital label="Heart rate" value={md.last_vitals.hr !== null ? `${Math.round(md.last_vitals.hr)} bpm` : "--"} />
             <Vital label="Last reading" value={fmtClock(md.last_vitals.at)} />
           </div>
           <p className="mt-4 rounded-lg bg-black/25 px-3 py-2 text-sm font-medium">

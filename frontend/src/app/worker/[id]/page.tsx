@@ -16,7 +16,7 @@ import { CoreChart } from "@/components/Charts";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
-import { SITE_BY_ID } from "@/lib/sites";
+import { shortSiteName, useSites } from "@/lib/crew";
 
 const LOOK: Record<Status, { bg: string; fg: string; title: string; tip: string }> = {
   green: { bg: "#0b7a0b", fg: "#ffffff", title: "You're OK", tip: "Keep drinking water. Breaks as planned." },
@@ -32,7 +32,8 @@ export default function WorkerPhone() {
   const now = useSimNow(500);
   const [showNumbers, setShowNumbers] = useState(false);
   const w = live.workers[id];
-  const site = w ? SITE_BY_ID[w.site_id] : null;
+  const { byId } = useSites();
+  const site = w ? byId[w.site_id] : null;
   const siteStatus = w ? live.sites[w.site_id] : null;
   const md = live.mandown;
   const meDown = md && md.worker_id === id && (md.stage === "checking" || md.stage === "confirmed");
@@ -98,7 +99,7 @@ export default function WorkerPhone() {
     <Frame bg={look.bg} fg={look.fg} pulse={redUnacked ? "red" : undefined}>
       <div className="flex items-center justify-between text-sm font-semibold opacity-90">
         <span>{w.name}</span>
-        <span>{site?.name.replace(" Generating Station", "")}</span>
+        <span>{site ? shortSiteName(site.name) : w.site_id}</span>
       </div>
 
       {crewDown && (

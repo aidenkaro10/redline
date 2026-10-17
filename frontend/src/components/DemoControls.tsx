@@ -7,14 +7,19 @@
 
 import { useState } from "react";
 
+import { useCrew } from "@/lib/crew";
 import { apiPost, useLive } from "@/lib/live";
 
 const SPEEDS = [1, 5, 10, 30];
 
-export function DemoControls() {
-  const { demo } = useLive();
+/** `target`: who the man-down / SOS buttons act on (defaults to the first worker). */
+export function DemoControls({ target }: { target?: string }) {
+  const { demo, workers } = useLive();
+  const { firstWorkerId } = useCrew();
   const [busy, setBusy] = useState<string | null>(null);
   if (!demo) return null;
+  const who = target && workers[target] ? target : firstWorkerId;
+  const whoName = who ? workers[who]?.name.split(" ")[0] : "";
 
   const call = async (key: string, path: string, body: unknown = {}) => {
     setBusy(key);
@@ -32,8 +37,8 @@ export function DemoControls() {
         </Btn>
         <Btn onClick={() => call("lightning", "/demo/test-alert", { kind: "LIGHTNING" })} busy={busy === "lightning"}>Test lightning</Btn>
         <Btn onClick={() => call("flood", "/demo/test-alert", { kind: "FLOOD_FIRE" })} busy={busy === "flood"}>Test flood alert</Btn>
-        <Btn onClick={() => call("mandown", "/demo/mandown", { worker_id: "worker-1" })} busy={busy === "mandown"}>Trigger man-down</Btn>
-        <Btn onClick={() => call("sos", "/demo/sos", { worker_id: "worker-1" })} busy={busy === "sos"}>Trigger SOS</Btn>
+        <Btn onClick={() => call("mandown", "/demo/mandown", { worker_id: who })} busy={busy === "mandown"}>Man-down: {whoName}</Btn>
+        <Btn onClick={() => call("sos", "/demo/sos", { worker_id: who })} busy={busy === "sos"}>SOS: {whoName}</Btn>
         <Btn onClick={() => call("clear", "/demo/clear-hazards")} busy={busy === "clear"}>Clear hazards</Btn>
 
         <span className="mx-1 hidden h-5 w-px bg-line sm:inline-block" />

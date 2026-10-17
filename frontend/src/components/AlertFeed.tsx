@@ -9,11 +9,12 @@ import { useState } from "react";
 
 import { ALERT_LABEL } from "@/lib/contract";
 import { useLive } from "@/lib/live";
-import { SITE_BY_ID } from "@/lib/sites";
+import { useSites } from "@/lib/crew";
 import { AlertIcon, alertTone, fmtClockSec } from "./ui";
 
 export function AlertFeed() {
   const { alerts, log, workers } = useLive();
+  const { byId } = useSites();
   const [tab, setTab] = useState<"alerts" | "log">("alerts");
   const list = [...alerts].reverse();
   const entries = [...log].reverse();
@@ -39,7 +40,7 @@ export function AlertFeed() {
                     <p className="text-sm font-semibold leading-tight">
                       {ALERT_LABEL[a.kind]}
                       <span className="ml-1.5 font-normal text-muted">
-                        {a.worker_id ? workers[a.worker_id]?.name : SITE_BY_ID[a.site_id ?? ""]?.name}
+                        {a.worker_id ? workers[a.worker_id]?.name : byId[a.site_id ?? ""]?.name ?? a.site_id}
                       </span>
                     </p>
                     <p className="text-xs text-ink-2">{a.message}</p>

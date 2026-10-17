@@ -18,7 +18,7 @@ import { DemoControls } from "@/components/DemoControls";
 import { Card, StatusBadge, fmtClockSec } from "@/components/ui";
 import type { BandCommand } from "@/lib/contract";
 import { useLive, useSimNow } from "@/lib/live";
-import { SITE_BY_ID } from "@/lib/sites";
+import { useCrew, useSites } from "@/lib/crew";
 
 export default function DemoPage() {
   return <Suspense><DemoView /></Suspense>;
@@ -29,7 +29,9 @@ function DemoView() {
   const router = useRouter();
   const live = useLive();
   const now = useSimNow(500);
-  const id = params.get("worker") ?? "worker-1";
+  const crew = useCrew();
+  const { byId } = useSites();
+  const id = params.get("worker") ?? crew.firstWorkerId ?? "";
   const w = live.workers[id];
   const hist = live.history[id] ?? { vitals: [], estimates: [] };
   const lastV = hist.vitals[hist.vitals.length - 1];
@@ -39,16 +41,16 @@ function DemoView() {
 
   return (
     <main className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4">
-      <DemoControls />
+      <DemoControls target={id} />
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-bold uppercase tracking-wider text-accent">Demo view · raw biometrics shown with the wearer&apos;s consent</p>
           <h1 className="text-2xl font-bold tracking-tight">{w?.name ?? "…"}</h1>
-          <p className="text-sm text-ink-2">{w?.role} · {w ? SITE_BY_ID[w.site_id]?.name : ""}</p>
+          <p className="text-sm text-ink-2">{w?.role} · {w ? byId[w.site_id]?.name ?? w.site_id : ""}</p>
         </div>
         <div className="flex flex-wrap gap-1">
-          {Object.values(live.workers).map((x) => (
+          {crew.workers.map((x) => (
             <button key={x.worker_id} onClick={() => router.replace(`/demo?worker=${x.worker_id}`)}
               className={`rounded-md px-2.5 py-1 text-xs font-semibold ${x.worker_id === id ? "bg-ink text-page" : "border border-line text-ink-2 hover:bg-surface-2"}`}>
               {x.name.split(" ")[0]}
@@ -60,7 +62,7 @@ function DemoView() {
       {/* Big numbers */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Stat label="Status">{w ? <StatusBadge status={w.status} big /> : "--"}<p className="mt-1 text-xs text-ink-2">{w?.status_reason}</p></Stat>
-        <Stat label="Heart rate" value={lastV?.hr ?? "--"} unit="bpm" />
+        <Stat label="Heart rate" value={lastV?.hr != null ? Math.round(lastV.hr) : "--"} unit="bpm" />
         <Stat label="Skin temp" value={lastV?.skin_temp?.toFixed(1) ?? "--"} unit="°C" />
         <Stat label="Core temp now" value={lastE?.core.mean.toFixed(2) ?? "--"} unit="°C"
           sub={lastE ? `range ${lastE.core.p10.toFixed(1)}–${lastE.core.p90.toFixed(1)} · Kalman ${lastE.kalman.toFixed(2)}` : ""} />

@@ -73,6 +73,8 @@ export interface Hazard {
   updated_at: number;
   stop_work: boolean;         // true when work should stop (lightning within 10 mi, etc.)
   band_pattern: BuzzPattern | null;  // pattern the band gets for this hazard, if any
+  stale?: boolean;            // feed is down; this is the last good copy (show greyed)
+  fake?: boolean;             // test/demo data (show a TEST badge)
   /** Only for kind === "lightning". */
   lightning?: {
     nearest_miles: number | null;

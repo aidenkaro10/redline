@@ -7,6 +7,7 @@
 
 import type { Hazard, Site, SiteStatus } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
+import { siteMeta } from "@/lib/crew";
 import { useSimNow } from "@/lib/live";
 import { HAZARD_TEXT_CLASS, HazardIcon, IndexChip, LevelPill, fmtClock, fmtCountdown } from "./ui";
 
@@ -18,7 +19,7 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold leading-tight">{site.name}</h3>
-          <p className="text-xs text-muted">{site.operator} · {site.tech} · {site.capacity_mw.toLocaleString()} MW · {site.county} Co.</p>
+          <p className="text-xs text-muted">{siteMeta(site)}</p>
         </div>
         <div className="text-right">
           <IndexChip index={status.index_tomorrow} />
@@ -33,16 +34,21 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
 
       <ul className="divide-y divide-line rounded-lg border border-line">
         {status.hazards.map((h) => (
-          <li key={h.kind} className="flex gap-3 px-3 py-2.5">
+          <li key={h.kind} className={`flex gap-3 px-3 py-2.5 ${h.stale ? "opacity-55" : ""}`}>
             <span className={`mt-0.5 ${HAZARD_TEXT_CLASS[h.kind]}`}><HazardIcon kind={h.kind} className="h-5 w-5" /></span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold">{HAZARD_LABEL[h.kind]}</p>
+                <p className="text-sm font-semibold">
+                  {HAZARD_LABEL[h.kind]}
+                  {h.fake && <span className="ml-1.5 rounded bg-warn-bg px-1 py-px text-[10px] font-bold text-warn-ink">TEST</span>}
+                </p>
                 <LevelPill level={h.level} />
               </div>
               <p className="text-sm text-ink">{h.headline}</p>
               {h.detail && <p className="text-xs text-ink-2">{h.detail}</p>}
-              <p className="mt-0.5 text-[11px] text-muted">{h.source} · {fmtClock(h.updated_at)}{h.band_pattern ? ` · band: ${h.band_pattern}` : ""}</p>
+              <p className="mt-0.5 text-[11px] text-muted">
+                {[h.source, h.stale ? `feed down, last updated ${fmtClock(h.updated_at)}` : fmtClock(h.updated_at), h.band_pattern ? `band: ${h.band_pattern}` : ""].filter(Boolean).join(" · ")}
+              </p>
             </div>
           </li>
         ))}
