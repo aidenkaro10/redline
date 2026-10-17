@@ -294,29 +294,43 @@ def settings(tmp_path, *extra: str):
     return main.parse_args(args + list(extra))
 
 
+class AppFactory:
+    """
+    Starts the real app with safe settings, as many times as a test wants, and shuts
+    every one down in close(). Used by the live_app fixture (and by module-wide fixtures).
+    """
+
+    def __init__(self, tmp_path, monkeypatch):
+        self.tmp_path, self.mp = tmp_path, monkeypatch
+        self.clients: list[TestClient] = []
+        # Pin the emergency config to fake numbers, whatever the developer's .env says.
+        for role, attr in (("crew_lead", "CREW_LEAD_NUMBER"), ("safety_officer", "SAFETY_OFFICER_NUMBER"),
+                           ("emergency", "EMERGENCY_TEST_NUMBER")):
+            monkeypatch.setattr(config, attr, TEST_NUMBERS[role])
+        monkeypatch.setattr(config, "EMERGENCY_LIVE_CALLS", False)
+
+    def start(self, *extra: str, clock: StepClock | None = None) -> LiveApp:
+        self.mp.setattr(main, "SETTINGS", settings(self.tmp_path, *extra))
+        client = TestClient(main.app)
+        client.__enter__()
+        self.clients.append(client)
+        app = LiveApp(client, clock or StepClock())
+        if app.hub.why is not None:
+            app.hub.why = None        # session H's why-lines run a second model copy: too heavy here
+        return app
+
+    def close(self) -> None:
+        for client in reversed(self.clients):
+            client.__exit__(None, None, None)
+        self.clients.clear()
+
+
 @pytest.fixture
 def live_app(tmp_path, monkeypatch):
     """
     Factory: live_app("--checkpoint", path, ...) starts the real app and returns a LiveApp.
     The app shuts down cleanly when the test ends.
     """
-    # Pin the emergency config to fake numbers, whatever the developer's .env says.
-    for role, attr in (("crew_lead", "CREW_LEAD_NUMBER"), ("safety_officer", "SAFETY_OFFICER_NUMBER"),
-                       ("emergency", "EMERGENCY_TEST_NUMBER")):
-        monkeypatch.setattr(config, attr, TEST_NUMBERS[role])
-    monkeypatch.setattr(config, "EMERGENCY_LIVE_CALLS", False)
-    started = []
-
-    def start(*extra: str, clock: StepClock | None = None) -> LiveApp:
-        monkeypatch.setattr(main, "SETTINGS", settings(tmp_path, *extra))
-        client = TestClient(main.app)
-        client.__enter__()
-        started.append(client)
-        app = LiveApp(client, clock or StepClock())
-        if app.hub.why is not None:
-            app.hub.why = None        # session H's why-lines run a second model copy: too heavy here
-        return app
-
-    yield start
-    for client in reversed(started):
-        client.__exit__(None, None, None)
+    factory = AppFactory(tmp_path, monkeypatch)
+    yield factory.start
+    factory.close()
