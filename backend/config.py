@@ -220,3 +220,6 @@ PLAN_SMS_MAX_PER_HOUR = 6
 # ---------------------------------------------------------------------------
 BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real seconds);
                              # the band blinks cyan "no connection" after 60 s without a command
+# Bluetooth heart rate (backend/ingest/ble_hr.py): HeartCast relaying the Apple Watch, a strap, a Garmin.
+BLE_HR_DEVICE = os.getenv("BLE_HR_DEVICE", "")   # part of the device name, or its address; "" = first 0x180D device
+BLE_HR_STALE_S = 15          # connected but no heart rate this long -> "stale" status event

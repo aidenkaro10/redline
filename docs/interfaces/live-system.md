@@ -6,12 +6,12 @@ One Python process: FastAPI + background tasks. Start it:
 
 ```bash
 python -m backend.app.main --source replay --speed 10      # demo, no hardware
-python -m backend.app.main --source live                   # band (USB/WiFi) + Pulsoid
+python -m backend.app.main --source live                   # band (USB/WiFi) + Bluetooth heart rate (+ Pulsoid if a token is set)
 ```
 
 Default port 8000 (`SERVER_PORT`). Open `http://localhost:8000` for the bare chart page.
 
-Useful flags: `--speed 30` (faster replay), `--demo` (demo thresholds 37.3 / 37.5), `--hazards fake|live|off` (session C1's feeds; fake by default in replay), `--emergency-phone dry_run|fake|live` (session D; never dials 911), `--emergency-log <file>`, `--no-planner`, `--checkpoint <file>`, `--no-forecaster`, `--no-fall`, `--no-ack`, `--record`.
+Useful flags: `--speed 30` (faster replay), `--demo` (demo thresholds 37.3 / 37.5), `--hazards fake|live|off` (session C1's feeds; fake by default in replay), `--emergency-phone dry_run|fake|live` (session D; never dials 911), `--emergency-log <file>`, `--ble-device <name or address>`, `--no-ble`, `--no-pulsoid`, `--no-planner`, `--checkpoint <file>`, `--no-forecaster`, `--no-fall`, `--no-ack`, `--record`.
 
 ### What's plugged in (each one falls back cleanly when missing)
 
@@ -44,9 +44,10 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 
 | `type` | When | Main fields |
 | --- | --- | --- |
-| `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line), `source`: `watch` (Pulsoid), `band` (band lines, incl. its pulse sensor's `HR:`), `replay`, `demo` |
+| `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line), `source`: `ble` (Bluetooth heart rate), `watch` (Pulsoid), `band` (band lines, incl. its pulse sensor's `HR:`), `replay`, `demo` |
+| `hr_link` | Bluetooth heart rate link changes | `source: "ble", state` searching / connected / stale (connected but nothing for `BLE_HR_STALE_S` = 15 s) / lost, `device, address, message`. Also on `/ws/live` as-is to every view (no body numbers), plus a log line on connected/stale/lost |
 | `button` | Band button (raw input) | `kind`: `press` (`BTN:1`, "I'm OK") or `sos` (`BTN:SOS`, held 3 s) |
-| `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd` (personal offset applied), `core_temp_raw, offset_c` (before it), `forecast{minutes[1..30], p10[], p50[], p90[]}` (offset applied) or null, `model, heat_level, why` (latest why-line or null), `true_core_temp` (replay of sim only) |
+| `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_ble, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd` (personal offset applied), `core_temp_raw, offset_c` (before it), `forecast{minutes[1..30], p10[], p50[], p90[]}` (offset applied) or null, `model, heat_level, why` (latest why-line or null), `true_core_temp` (replay of sim only) |
 | `why` | A why-line is ready (0.1-0.3 s after its minute, background thread) | `minute, why, direction` rising/steady/falling, `contributions` {heart_rate, body_heat, skin_temp, activity, wbgt, workload, time} in °C. Raw `/ws` only; on `/ws/live` it fills in `Estimate.why` |
 | `schedule` | The planner's current plan changed (crew changed, or `POST /api/planner/plan`) | `schedule`: frontend `Schedule` shape. Also sent on `/ws/live` as `{type: "schedule", schedule}` to every view (no body numbers) |
 | `offset_update` | `POST /spot-check` | `offset_c, confidence, n_checks, accepted, thermometer_c, model_c, miss_c, reason`. Passed through on `/ws/live` as-is, **only to `view=demo` and `view=worker` for that worker** (body data, never crew) |
@@ -70,9 +71,11 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 Band priority (one pattern at a time): `MANDOWN > HEAT_RED > LIGHTNING > HEAT_YELLOW > FLOOD_FIRE`, else `OFF`.
 SOS is never sent to the band (the band shows it by itself).
 
-### Heart rate from two devices
+### Heart rate sources (Bluetooth, Pulsoid, band)
 
-Heart rate can come from the watch (Pulsoid, tagged `watch`) and/or the band's pulse sensor (`HR:` lines, tagged `band`; the band only sends it when confident). Each device gets its own 1-minute average. The Kalman runs `ECTempKalman.step_fused([(hr_watch, KALMAN_SIGMA_WATCH), (hr_band, KALMAN_SIGMA_BAND_PPG)])` every minute, skipping a device with no reading that minute (watch only = exactly ECTemp). The forecaster was trained on one HR input, so it gets the two minute averages blended with the same 1/sigma² weights. Note: its internal Kalman baseline is then a plain single-sigma Kalman on that blend, so `estimate.kalman` (fused) and the forecaster's own baseline can differ slightly when both devices are present.
+**Bluetooth first (works with no internet, `docs/decisions.md` entry 1).** `backend/ingest/ble_hr.py` (bleak) reads any standard Bluetooth heart rate sensor: the HeartCast app on an iPhone relaying the Apple Watch, a chest strap, or a Garmin with "broadcast heart rate" on. It scans for the Heart Rate Service (0x180D), or the device named in `BLE_HR_DEVICE` (part of the name, or the address; macOS shows a UUID instead of a MAC address), subscribes to Heart Rate Measurement (0x2A37), parses the flags byte (8- or 16-bit heart rate, skin contact, energy, RR intervals), drops readings from a strap that says it's off the skin, and stamps each reading with the laptop clock (`source: "ble"`). It reconnects by itself (1 s, 2 s ... 15 s) and sends `hr_link` status events. `--source live` starts it automatically when bleak is installed (`--no-ble` to skip). **macOS asks once for Bluetooth permission for the app running Python** (Terminal, iTerm, VS Code): say yes; if you said no, System Settings > Privacy & Security > Bluetooth. Quick check without the server: `python -m backend.ingest.ble_hr --scan` (lists heart rate devices) and `python -m backend.ingest.ble_hr` (prints heart rate as it arrives).
+
+Heart rate can also come from the watch through Pulsoid (online, tagged `watch`) and the band's pulse sensor (`HR:` lines, tagged `band`; the band only sends it when confident). Bluetooth and Pulsoid both use `KALMAN_SIGMA_WATCH`. If both relay the SAME Apple Watch, the fusion counts it twice and is a bit overconfident; use one of them for a single watch. Each device gets its own 1-minute average. The Kalman runs `ECTempKalman.step_fused([(hr_watch, KALMAN_SIGMA_WATCH), (hr_band, KALMAN_SIGMA_BAND_PPG), (hr_ble, KALMAN_SIGMA_WATCH)])` every minute, skipping a device with no reading that minute (watch only = exactly ECTemp). The forecaster was trained on one HR input, so it gets the minute averages blended with the same 1/sigma² weights. Note: its internal Kalman baseline is then a plain single-sigma Kalman on that blend, so `estimate.kalman` (fused) and the forecaster's own baseline can differ slightly when both devices are present.
 
 ### Personal offset twin (thermometer spot checks)
 

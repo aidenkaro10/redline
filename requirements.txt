@@ -5,6 +5,7 @@ uvicorn[standard] # runs FastAPI, includes WebSocket support
 python-dotenv    # loads secrets from .env
 pyserial         # reads the band over USB
 websockets       # Pulsoid heart rate client
+bleak            # Bluetooth heart rate (HeartCast / chest strap / Garmin), works with no internet
 
 # Testing
 pytest
