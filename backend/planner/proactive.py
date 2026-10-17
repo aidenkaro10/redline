@@ -2,7 +2,8 @@
 Acting on forecasts ("closing the loop"): when a worker is forecast to run hot, change the
 SCHEDULE before they get there.
 
-Trigger: the worker's 20-min forecast at the 90th pct reaches PLAN_EARLY_LINE_C (37.7 °C,
+Trigger: the worker's 20-min forecast at the 90th pct reaches the early line (PlannerWeights.early_line_c,
+default PLAN_EARLY_LINE_C = 37.7 °C,
 below the 38.0 yellow line). Live, that's the forecaster's estimate event, personal offset applied.
 
 Candidate changes, from the slot they're in (or the next one if this one is nearly over):
@@ -46,6 +47,7 @@ from backend.planner.notify import Feed
 from backend.planner.optimizer import PRIORITY_WEIGHT
 from backend.planner.rules import check_plan, check_plans, check_rules, check_structure
 from backend.planner.scenario import INTENSITIES, REST, HazardWindow, Plan, Scenario
+from backend.planner.weights import DEFAULT as DEFAULT_WEIGHTS, PlannerWeights
 
 log = logging.getLogger(__name__)
 TZ = ZoneInfo("America/New_York")
@@ -234,7 +236,8 @@ def never_worse(scenario: Scenario, new: Plan, base, chk, exempt: str | None = N
                for w in scenario.crew)
 
 
-def calibrate_to_live(rest: Scenario, plan_tail: Plan, forecasts: dict, heat_model: HeatModel) -> dict:
+def calibrate_to_live(rest: Scenario, plan_tail: Plan, forecasts: dict, heat_model: HeatModel,
+                      horizon_min: int = config.PLAN_EARLY_HORIZON_MIN) -> dict:
     """
     Line the planning model up with the live forecaster: for each worker with a live 20-min
     forecast (90th pct), shift their model so its own 20-min 90th pct matches. That carries what
@@ -243,7 +246,7 @@ def calibrate_to_live(rest: Scenario, plan_tail: Plan, forecasts: dict, heat_mod
     """
     if not forecasts:
         return {}
-    k = min(config.PLAN_EARLY_HORIZON_MIN, rest.n_slots * rest.slot_min) - 1
+    k = min(horizon_min, rest.n_slots * rest.slot_min) - 1
     shifts = {}
     for _ in range(2):                         # two passes: one shift doesn't fully close a 20-min gap
         model = heat_model.simulate(rest, [plan_tail])[0]
@@ -259,7 +262,8 @@ def calibrate_to_live(rest: Scenario, plan_tail: Plan, forecasts: dict, heat_mod
 
 
 def propose(scenario: Scenario, plan: Plan, wid: str, s: int, core_now: dict,
-            heat_model: HeatModel | None = None, forecasts: dict | None = None) -> list[Change]:
+            heat_model: HeatModel | None = None, forecasts: dict | None = None,
+            weights: PlannerWeights | None = None) -> list[Change]:
     """
     All verified candidate changes for worker wid from slot s, best first (auto ones first).
     core_now: {worker: current core temp}; forecasts: {worker: live 20-min 90th pct} (optional).
@@ -271,7 +275,8 @@ def propose(scenario: Scenario, plan: Plan, wid: str, s: int, core_now: dict,
     if not cands:
         return []
     rest = remaining_scenario(scenario, plan, s, core_now)
-    calibrate_to_live(rest, tail(plan, s), forecasts or {}, heat_model)
+    w8 = (weights or DEFAULT_WEIGHTS).validate()
+    calibrate_to_live(rest, tail(plan, s), forecasts or {}, heat_model, w8.early_horizon_min)
     checks = check_plans(rest, [tail(plan, s)] + [tail(p, s) for _, p, _ in cands], heat_model)
     base = checks[0]
     before_tp = weighted_done(scenario, plan)
@@ -281,7 +286,7 @@ def propose(scenario: Scenario, plan: Plan, wid: str, s: int, core_now: dict,
             continue                                     # the rule checker said no
         near = min(NEAR_MIN, rest.n_slots * rest.slot_min)
         peak_b, peak_a = float(base.trace[wid][:near, 2].max()), float(chk.trace[wid][:near, 2].max())
-        early, lim = config.PLAN_EARLY_LINE_C, config.PLAN_MAX_P90_C
+        early, lim = w8.early_line_c, config.PLAN_MAX_P90_C
         risk_b = dose(base.trace[wid][:near], early) + dose(base.trace[wid], lim)
         risk_a = dose(chk.trace[wid][:near], early) + dose(chk.trace[wid], lim)
         if risk_a >= risk_b - DOSE_TOL:
@@ -320,7 +325,8 @@ class ProactiveLoop:
     """
 
     def __init__(self, get_state, set_plan, feed: Feed | None = None, heat_model: HeatModel | None = None,
-                 asynchronous: bool = True):
+                 asynchronous: bool = True, weights: PlannerWeights | None = None):
+        self.weights = (weights or DEFAULT_WEIGHTS).validate()
         self.get_state, self.set_plan = get_state, set_plan
         self.feed = feed or Feed()
         self.heat_model = heat_model or default_heat_model()
@@ -344,10 +350,10 @@ class ProactiveLoop:
         self.expire(ts)
         f = ev.get("forecast") or {}
         p90 = f.get("p90") or []
-        h = config.PLAN_EARLY_HORIZON_MIN
+        h = self.weights.early_horizon_min
         if len(p90) >= h and p90[h - 1] is not None:
             self.forecast_now[wid] = float(p90[h - 1])
-        if len(p90) < h or p90[h - 1] is None or p90[h - 1] < config.PLAN_EARLY_LINE_C:
+        if len(p90) < h or p90[h - 1] is None or p90[h - 1] < self.weights.early_line_c:
             return
         if not self.allowed(wid, ts):
             return
@@ -390,7 +396,8 @@ class ProactiveLoop:
             return None
         if plan.assignments[wid][s] == REST and s + 1 < scenario.n_slots:
             s += 1                                          # already on a break: look at their next slot
-        changes = propose(scenario, plan, wid, s, self.core_now, self.heat_model, forecasts=dict(self.forecast_now))
+        changes = propose(scenario, plan, wid, s, self.core_now, self.heat_model, forecasts=dict(self.forecast_now),
+                          weights=self.weights)
         if not changes:
             return None
         ch = changes[0]
@@ -440,7 +447,8 @@ class ProactiveLoop:
         rules_ok = same_day and not (check_structure(scenario, new) + check_rules(scenario, new))
         if rules_ok:
             rest = remaining_scenario(scenario, plan, ch.slot, self.core_now)
-            calibrate_to_live(rest, tail(plan, ch.slot), dict(self.forecast_now), self.heat_model)
+            calibrate_to_live(rest, tail(plan, ch.slot), dict(self.forecast_now), self.heat_model,
+                              self.weights.early_horizon_min)
             base, chk = check_plans(rest, [tail(plan, ch.slot), tail(new, ch.slot)], self.heat_model)
             heat_ok = never_worse(scenario, new, base, chk, exempt=ch.worker_id)
         else:

@@ -35,6 +35,7 @@ from backend.planner.heat_model import PHSHeatModel
 from backend.planner.optimizer import optimize
 from backend.planner.proactive import propose, weighted_done
 from backend.planner.scenario import Scenario
+from backend.planner.weights import PlannerWeights
 
 OUT = Path("data/planner/proactive_eval.json")
 TRUE_OFFSET_MEAN, TRUE_OFFSET_SD = 0.15, 0.2
@@ -64,7 +65,8 @@ def true_core(truth: Scenario, plan, model) -> dict:
     return {wid: tr[:, 1] for wid, tr in model.simulate(truth, [plan])[0].items()}
 
 
-def run_arm(sc: Scenario, plan0, arm: str, model) -> dict:
+def run_arm(sc: Scenario, plan0, arm: str, model, weights: PlannerWeights | None = None) -> dict:
+    w8 = (weights or PlannerWeights()).validate()
     truth_sc = truth_scenario(sc)
     plan = plan0
     core = true_core(truth_sc, plan, model)
@@ -78,9 +80,9 @@ def run_arm(sc: Scenario, plan0, arm: str, model) -> dict:
             for w in sc.crew:
                 if not w.is_available(min(s, sc.n_slots - 1)):
                     continue
-                ahead = min(n_min - 1, minute + config.PLAN_EARLY_HORIZON_MIN)
+                ahead = min(n_min - 1, minute + w8.early_horizon_min)
                 forecast = core[w.id][ahead] + FORECAST_MARGIN_C
-                if forecast < config.PLAN_EARLY_LINE_C:
+                if forecast < w8.early_line_c:
                     continue
                 if minute - last.get(w.id, -1e9) < config.PLAN_PROACTIVE_COOLDOWN_MIN \
                         or count.get(w.id, 0) >= config.PLAN_PROACTIVE_MAX_PER_SHIFT:
@@ -88,7 +90,7 @@ def run_arm(sc: Scenario, plan0, arm: str, model) -> dict:
                 target = s if plan.assignments[w.id][s] != "rest" or s + 1 >= sc.n_slots else s + 1
                 now = {c.id: float(core[c.id][minute]) for c in sc.crew}
                 live = {c.id: float(core[c.id][ahead]) + FORECAST_MARGIN_C for c in sc.crew}
-                options = propose(sc, plan, w.id, target, now, model, forecasts=live)
+                options = propose(sc, plan, w.id, target, now, model, forecasts=live, weights=w8)
                 pick = next((c for c in options if c.auto), None)
                 if pick is None and arm == "auto+approve" and options:
                     pick = options[0]
@@ -105,6 +107,7 @@ def run_arm(sc: Scenario, plan0, arm: str, model) -> dict:
         "minutes_above_red": int((stack >= config.HEAT_DANGER_C).sum()),
         "true_peak_c": round(float(stack.max()), 3),
         "throughput": round(weighted_done(sc, plan), 4),
+        "tasks_completed": sum(n >= sc.task(t).units for t, n in plan.units_done(sc).items()),
         "changes": len(changes), "auto_changes": sum(c["auto"] for c in changes),
         "change_log": changes,
     }

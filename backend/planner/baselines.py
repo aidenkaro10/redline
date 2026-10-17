@@ -46,8 +46,8 @@ def fixed_schedule(scenario: Scenario, run: int = 0):
     return Plan(assign, source="fixed"), {"latency_s": time.time() - t0, "cost_usd": 0.0}
 
 
-def optimizer_only(scenario: Scenario, run: int = 0):
-    r = optimize(scenario, "throughput")
+def optimizer_only(scenario: Scenario, run: int = 0, weights=None):
+    r = optimize(scenario, "throughput", weights=weights)
     return r.plan, {"latency_s": r.solve_s, "cost_usd": 0.0, "notes": r.log[-1]}
 
 
@@ -121,19 +121,19 @@ def llm_only(scenario: Scenario, run: int = 0):
     return plan, {"latency_s": time.time() - t0, "cost_usd": cost}
 
 
-def agent_day1(scenario: Scenario, run: int = 0):
-    from backend.planner.archon import plan_with_agent
-    r = plan_with_agent(scenario, playbook=None, run=run)
+def agent_day1(scenario: Scenario, run: int = 0, weights=None):
+    from backend.planner.archon import AgentSettings, plan_with_agent
+    r = plan_with_agent(scenario, playbook=None, run=run, settings=AgentSettings(weights=weights))
     return r.plan, {"latency_s": r.latency_s, "cost_usd": r.cost_usd, "notes": r.summary}
 
 
-def agent_day14(scenario: Scenario, run: int = 0):
-    from backend.planner.archon import plan_with_agent
+def agent_day14(scenario: Scenario, run: int = 0, weights=None):
+    from backend.planner.archon import AgentSettings, plan_with_agent
     from backend.planner.playbook import Playbook
     book = Playbook.load_learned()
     if book is None:
         return None, {"latency_s": 0.0, "cost_usd": 0.0, "notes": "skipped: no learned playbook yet (run the Loop 2 training)"}
-    r = plan_with_agent(scenario, playbook=book, run=run)
+    r = plan_with_agent(scenario, playbook=book, run=run, settings=AgentSettings(weights=weights))
     return r.plan, {"latency_s": r.latency_s, "cost_usd": r.cost_usd, "notes": r.summary}
 
 
@@ -144,4 +144,5 @@ BASELINES = {
     "agent_day1": agent_day1,
     "agent_day14": agent_day14,
 }
-DETERMINISTIC = {"fixed", "optimizer"}   # same plan every run, so we run them once and count it 5 times
+DETERMINISTIC = {"fixed", "optimizer"}
+WEIGHTED = {"optimizer", "agent_day1", "agent_day14"}   # planners that take PlannerWeights   # same plan every run, so we run them once and count it 5 times

@@ -5,3 +5,4 @@ import os
 os.environ["PLANNER_LLM"] = "off"
 os.environ["PLANNER_STORM_MODE"] = "off"
 os.environ["PLANNER_SMS_MODE"] = "dry_run"
+os.environ["PLANNER_SOLVER_WORKERS"] = "2"

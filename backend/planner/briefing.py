@@ -33,7 +33,7 @@ from backend.planner.personal import apply_offsets, describe, load_offsets
 from backend.planner.playbook import Playbook
 from backend.planner.rules import CheckResult
 from backend.planner.scenario import REST, Plan, Scenario
-from backend.planner.storm_risk import add_storm_probs
+from backend.planner.storm_risk import add_storm_probs, mode as storm_mode
 from backend.planner.sources import (c1_entry, c1_hourly, c1_picture, c1_site, c2_incidents, c2_index,
                                      hazard_windows_from_events, slot_weather_from_hourly)
 
@@ -280,7 +280,7 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
 
     # Storm chances for the crew's day: a soft cost in the optimizer (the lightning rule stays hard).
     storm_source = add_storm_probs(crew_sc, (c1_entry(picture, crew_site["id"]) or {}).get("events"), live)
-    if storm_source == "none":
+    if storm_source == "none" and live and storm_mode() == "live":
         stubs.add("storm chances (Open-Meteo not reachable): none used")
 
     # The crew's suggested schedule: full agent pipeline on tomorrow's forecast, verified by the rule checker.

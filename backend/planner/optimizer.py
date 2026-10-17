@@ -19,6 +19,7 @@ How heat works inside the solver (all integers, in 0.01 °C):
 T is an upper bound on the 90th pct core temp at the end of each slot.
 """
 
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -28,10 +29,12 @@ from backend import config
 from backend.planner.heat_model import HeatModel, default_heat_model
 from backend.planner.rules import CheckResult, check_plan
 from backend.planner.scenario import REST, Plan, Scenario, all_rest_plan
+from backend.planner.weights import PlannerWeights
 
 PRIORITY_WEIGHT = {1: 10, 2: 5, 3: 2}     # value of one work unit, by task priority
 SCALE = 100                                # temps in 0.01 °C
 Q = 1000                                   # alpha as a fraction of 1000
+SOLVER_WORKERS = int(os.getenv("PLANNER_SOLVER_WORKERS", "8"))   # CPU threads per solve (tests use 2)
 
 
 @dataclass
@@ -49,6 +52,9 @@ class Objective:
     # costs storm * p, doubled for elevated or hard-to-stop tasks. 15 is below the value of any work
     # unit at 60% chance, so work moves EARLIER when there's room instead of being dropped.
     storm: int = 15
+    rain: int = 0                 # same idea for rain chance (default off)
+    hot_break_bonus: int = 0      # reward per rest slot in hot slots (WBGT >= PLAN_HOT_WBGT_C)
+    priority_values: dict = field(default_factory=lambda: dict(PRIORITY_WEIGHT))   # value of one work unit
     # Soft preferences, e.g. from playbook lessons or the LLM:
     # {"worker": "w3", "intensities": ["heavy", "very_heavy"], "from_slot": 10, "to_slot": 16, "penalty": 20}
     soft: list = field(default_factory=list)
@@ -56,12 +62,27 @@ class Objective:
     forbid: list = field(default_factory=list)
 
 
-OBJECTIVES = {
-    "throughput": Objective("throughput", throughput=10, margin=0, fairness=0, budget_margin_c=0.05),
-    "balanced": Objective("balanced", throughput=10, margin=1, fairness=1, budget_margin_c=0.10),
-    "margin": Objective("margin", throughput=10, margin=3, fairness=0, budget_margin_c=0.20),
-    "fairness": Objective("fairness", throughput=10, margin=1, fairness=4, budget_margin_c=0.10),
-}
+def objectives_for(w: PlannerWeights) -> dict[str, Objective]:
+    """
+    The four plan variants, built from PlannerWeights (weights.py). "throughput" is the weights as-is;
+    the others lean further toward heat margin or fairness. Default weights give the original presets.
+    """
+    w.validate()
+    base = dict(throughput=w.throughput, storm=w.storm, rain=w.rain, hot_break_bonus=w.hot_break_bonus,
+                priority_values=dict(w.priority_values))
+    return {
+        "throughput": Objective("throughput", margin=w.margin, fairness=w.fairness,
+                                budget_margin_c=w.budget_margin_c, **base),
+        "balanced": Objective("balanced", margin=w.margin + 1, fairness=w.fairness + 1,
+                              budget_margin_c=w.budget_margin_c + 0.05, **base),
+        "margin": Objective("margin", margin=w.margin + 3, fairness=w.fairness,
+                            budget_margin_c=max(w.budget_margin_c, 0.20), **base),
+        "fairness": Objective("fairness", margin=w.margin + 1, fairness=w.fairness + 4,
+                              budget_margin_c=w.budget_margin_c + 0.05, **base),
+    }
+
+
+OBJECTIVES = objectives_for(PlannerWeights())
 
 
 @dataclass
@@ -147,7 +168,7 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
                 m.Add(Q * nxt >= keep * T[w.id, s] + (Q - keep) * teq).OnlyEnforceIf(on)
 
     # Objective.
-    value = sum(PRIORITY_WEIGHT.get(t.priority, 1) * done[t.id] for t in tasks if not isinstance(done[t.id], int))
+    value = sum(objective.priority_values.get(t.priority, 1) * done[t.id] for t in tasks if not isinstance(done[t.id], int))
     obj = objective.throughput * SCALE * value
     if objective.margin:
         obj -= objective.margin * sum(peak.values())
@@ -156,13 +177,18 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
         m.AddMaxEquality(top, list(peak.values()))
         m.AddMinEquality(bottom, list(peak.values()))
         obj -= objective.fairness * len(crew) * (top - bottom)
-    if objective.storm:
+    if objective.storm or objective.rain:
         for (wid, s, tid), var in x.items():
             t = next(t for t in tasks if t.id == tid)
-            p = scenario.weather[s].storm_prob
-            if t.outdoor and p > 0:
+            wx = scenario.weather[s]
+            if t.outdoor and (wx.storm_prob > 0 or wx.rain_prob > 0):
                 mult = 1 + int(t.elevated) + int(t.hard_to_stop)
-                obj -= int(round(objective.storm * SCALE * p * mult)) * var
+                cost = objective.storm * wx.storm_prob * mult + objective.rain * wx.rain_prob
+                obj -= int(round(cost * SCALE)) * var
+    if objective.hot_break_bonus:
+        for (wid, s), var in rest.items():
+            if hot[s]:
+                obj += objective.hot_break_bonus * SCALE * var
     for pref in objective.soft:
         for s in range(pref.get("from_slot", 0), min(S, pref.get("to_slot", S))):
             for t in tasks:
@@ -178,7 +204,7 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
         solver.parameters.max_deterministic_time = time_limit_s
     else:
         solver.parameters.max_time_in_seconds = time_limit_s
-        solver.parameters.num_workers = 8
+        solver.parameters.num_workers = SOLVER_WORKERS
     status = solver.Solve(m)
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return None
@@ -193,13 +219,14 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
 
 
 def optimize(scenario: Scenario, objective: Objective | str = "throughput", heat_model: HeatModel | None = None,
-             max_rounds: int = 6, time_limit_s: float = 5.0, deterministic: bool = False) -> OptimizerResult:
+             max_rounds: int = 6, time_limit_s: float = 5.0, deterministic: bool = False,
+             weights: PlannerWeights | None = None) -> OptimizerResult:
     """Solve, verify with the full model, tighten budgets and re-solve until it passes.
     deterministic=True: same plan every run (single thread), for tests and reproducible results."""
     t0 = time.time()
     heat_model = heat_model or default_heat_model()
     if isinstance(objective, str):
-        objective = OBJECTIVES[objective]
+        objective = (objectives_for(weights) if weights is not None else OBJECTIVES)[objective]
     costs = heat_model.slot_costs(scenario)
     budgets = {w.id: config.PLAN_MAX_P90_C - objective.budget_margin_c for w in scenario.crew}
     log = []
