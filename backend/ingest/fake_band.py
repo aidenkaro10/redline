@@ -2,15 +2,17 @@
 Fake band: pretends to be the wristband, speaking the exact line protocol,
 so the live path (serial or WiFi) can be tested with no hardware.
 
-Every second it sends, like the real band:
-    TEMP:34.62            skin temperature
-    TILT:0,ACT:6          tilt switch + activity (flickers per second)
-and optionally HR:120 (--hr), standing in for Pulsoid when there's no watch.
+Like the real band (docs/firmware-contract.md) it sends:
+    # fake band booting   a debug line (the laptop ignores "#" lines)
+    TEMP:34.62            skin temperature, every 5 s
+    TILT:0,ACT:6          tilt switch + activity (switch changes in the last second), every 1 s
+and optionally HR:120 every 5 s (--hr), standing in for Pulsoid when there's no watch.
 
 It prints every command the laptop sends back (BUZZ:HEAT_RED ...), and can:
     --fall-at 30     tip over and stop moving 30 s in (for --fall-for seconds)
     --ack 5          press the button 5 s after it gets BUZZ:HEAT_RED
     --button-at 20   press the button once at 20 s
+    --sos-at 40      hold the button 3 s at 40 s (sends BTN:SOS)
 
 Run it (server first, in another terminal):
     WiFi:  python -m backend.ingest.fake_band --udp --hr --fall-at 60
@@ -32,8 +34,10 @@ from backend import config
 
 
 class FakeBand:
+    TEMP_EVERY_S = 5.0      # firmware: TEMP every 5 s (HR from Pulsoid also arrives about every 5 s)
+
     def __init__(self, send_hr=False, ramp_min=10.0, fall_at=None, fall_for=180.0, ack_after=None,
-                 button_at=None, seed=0):
+                 button_at=None, seed=0, sos_at=None):
         self.send_hr = send_hr
         self.ramp_s = ramp_min * 60
         self.fall_at, self.fall_for = fall_at, fall_for
@@ -41,20 +45,32 @@ class FakeBand:
         self.button_at = button_at
         self.rng = random.Random(seed)
         self.pending_buttons: list[float] = [] if button_at is None else [button_at]
+        self.sos_at = sos_at
+        self.next_temp = 0.0
+        self.booted = False
         self.received: list[str] = []
 
     def lines_at(self, t: float) -> list[str]:
         """What the band says at second t of its run."""
         fallen = self.fall_at is not None and self.fall_at <= t < self.fall_at + self.fall_for
-        skin = 33.8 + 1.2 * min(t / max(self.ramp_s, 1), 1) + self.rng.gauss(0, 0.05)
-        lines = [f"TEMP:{skin:.2f}"]
-        lines.append("TILT:1,ACT:0" if fallen else f"TILT:0,ACT:{self.rng.randint(3, 8)}")
-        if self.send_hr:
-            hr = 95 + 80 * min(t / max(self.ramp_s, 1), 1) + self.rng.gauss(0, 2)
-            lines.append(f"HR:{hr:.0f}")
+        lines = []
+        if not self.booted:
+            lines.append("# fake band booting")
+            self.booted = True
+        if t >= self.next_temp:                          # every 5 s
+            self.next_temp += self.TEMP_EVERY_S
+            skin = 33.8 + 1.2 * min(t / max(self.ramp_s, 1), 1) + self.rng.gauss(0, 0.05)
+            lines.append(f"TEMP:{skin:.2f}")
+            if self.send_hr:
+                hr = 95 + 80 * min(t / max(self.ramp_s, 1), 1) + self.rng.gauss(0, 2)
+                lines.append(f"HR:{hr:.0f}")
+        lines.append("TILT:1,ACT:0" if fallen else f"TILT:0,ACT:{self.rng.randint(3, 8)}")   # every call (1 s)
         while self.pending_buttons and self.pending_buttons[0] <= t:
             self.pending_buttons.pop(0)
             lines.append("BTN:1")
+        if self.sos_at is not None and t >= self.sos_at:
+            self.sos_at = None
+            lines.append("BTN:SOS")
         return lines
 
     def on_command(self, line: str, t: float) -> None:
@@ -122,9 +138,10 @@ def main(argv=None):
     ap.add_argument("--fall-for", type=float, default=180.0)
     ap.add_argument("--ack", type=float, default=None, help="press the button N s after BUZZ:HEAT_RED")
     ap.add_argument("--button-at", type=float, default=None)
+    ap.add_argument("--sos-at", type=float, default=None, help="send BTN:SOS (3 s hold) at this second")
     ap.add_argument("--duration", type=float, default=None, help="stop after N seconds")
     a = ap.parse_args(argv)
-    band = FakeBand(a.hr, a.ramp, a.fall_at, a.fall_for, a.ack, a.button_at)
+    band = FakeBand(a.hr, a.ramp, a.fall_at, a.fall_for, a.ack, a.button_at, sos_at=a.sos_at)
     try:
         if a.udp:
             run_udp(band, a.host, a.port, a.every, a.duration)

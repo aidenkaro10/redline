@@ -93,11 +93,16 @@ def test_serial_reader_thread_and_commands():
 
 def test_fake_band_lines_follow_protocol():
     from backend.app.schemas import parse_line
-    band = fake_band.FakeBand(send_hr=True, fall_at=10, fall_for=5, ack_after=2)
-    assert all(parse_line(l) is not None for l in band.lines_at(0))
+    band = fake_band.FakeBand(send_hr=True, fall_at=10, fall_for=5, ack_after=2, sos_at=30)
+    first = band.lines_at(0)
+    assert first[0].startswith("#") and parse_line(first[0]) is None      # debug line, ignored
+    assert all(parse_line(l) is not None for l in first[1:])
+    assert not any(l.startswith("TEMP") for l in band.lines_at(1))       # TEMP only every 5 s
+    assert any(l.startswith("TEMP") for l in band.lines_at(5))
     assert "TILT:1,ACT:0" in band.lines_at(12)
     band.on_command("BUZZ:HEAT_RED", 20)
     assert "BTN:1" in band.lines_at(22)
+    assert "BTN:SOS" in band.lines_at(30) and "BTN:SOS" not in band.lines_at(31)
 
 
 def test_fake_band_udp_end_to_end():
