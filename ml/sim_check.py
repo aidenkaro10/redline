@@ -51,9 +51,13 @@ def realism_stats(sessions: list[Session]) -> dict:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--sim", type=Path, default=SIM_PATH)
+    ap.add_argument("--sample", type=int, default=2000, help="random shifts to check (Kalman in Python is slow)")
     args = ap.parse_args()
     warnings.simplefilter("ignore")
-    real, sim = realism_stats(load_mendeley()), realism_stats(load_sim(args.sim))
+    sim_sessions = load_sim(args.sim)
+    rng = np.random.default_rng(0)
+    pick = rng.choice(len(sim_sessions), min(args.sample, len(sim_sessions)), replace=False)
+    real, sim = realism_stats(load_mendeley()), realism_stats([sim_sessions[i] for i in pick])
     print(f"{'':32}{'real (Mendeley)':>18}{'simulated':>14}")
     for k in real:
         fmt = (lambda v: f"{v:.0%}") if k.startswith("share") else (lambda v: f"{v:.3f}" if abs(v) < 10 else f"{v:.0f}")

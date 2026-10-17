@@ -361,7 +361,10 @@ def save_sim(sim: dict, path: Path = SIM_PATH) -> None:
 
 def load_sim(path: Path = SIM_PATH) -> list[Session]:
     """Load a saved simulation as Sessions (one per shift)."""
-    z = np.load(path)
+    # Read each array out of the compressed file ONCE. (Indexing the file object
+    # directly re-decompresses the whole array every time: very slow.)
+    with np.load(path) as f:
+        z = {k: f[k] for k in f.files}
     people = json.loads(path.with_suffix(".people.json").read_text())
     sessions = []
     for i in range(len(z["person_index"])):
