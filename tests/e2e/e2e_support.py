@@ -113,11 +113,15 @@ def hazard_files_in_tmp(tmp_path):
         yield
         return
     old_mode = store.get_mode()
+    (tmp_path / "hazards").mkdir(exist_ok=True)
     store.set_data_dir(tmp_path / "hazards")
     report_log.reset_log(tmp_path / "hazards" / "hazard_log.jsonl")
     clear_all_caches()
     clear_injected()
     yield
+    from backend.hazards import picture
+    with picture._latest_lock:
+        picture._latest = None          # C1's cached picture: never leak one test's into the next
     clear_injected()
     clear_all_caches()
     store.set_mode(old_mode)
