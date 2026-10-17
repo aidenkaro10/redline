@@ -200,6 +200,35 @@ test("03 contract: missing optional fields render as -- or are hidden (no NaN / 
   assert.doesNotMatch(pages[2], /data-testid="why"/);                               // why null: hidden
 });
 
+test("02 contract (session J's fixtures): unknown event types are ignored", { skip: hasJ ? false : "session J's tests/e2e/fixtures isn't merged yet" }, (t) => {
+  const now = Date.now();
+  t.mock.method(Date, "now", () => now);            // J's snapshot has a live SOS timer: freeze the clock between renders
+  for (const [view, filter] of [["crew", CREW], ["demo", DEMO]] as const) {
+    const before = stateOf(filter, [jFile(`live/snapshot_${view}.json`)[0]]);
+    const after = applyEvents(before, [{ type: "something_new", payload: { hr: 999 } } as unknown as LiveEvent]);
+    assert.deepEqual(after, before, view);
+    assert.equal(render(<CrewApp />, after), render(<CrewApp />, before));
+  }
+});
+
+test("03 contract (session J's fixtures): missing optional fields render as -- or are hidden", { skip: hasJ ? false : "session J's tests/e2e/fixtures isn't merged yet" }, () => {
+  const snap = jFile("live/snapshot_demo.json")[0] as LiveEvent & { workers: WorkerStatus[]; sites: SiteStatus[]; history: Record<string, { estimates: Estimate[] }> };
+  snap.workers = snap.workers.map((w) => ({ ...w, minutes_to_danger: null, break_at: null, on_break: false }));
+  snap.sites = snap.sites.map((x) => ({ ...x, hazard_index: null, index_tomorrow: null }));
+  for (const h of Object.values(snap.history ?? {})) h.estimates = (h.estimates ?? []).map((e) => ({ ...e, why: null }));
+  const id = snap.workers[0].worker_id;
+  const pages = [
+    render(<CrewApp />, stateOf(CREW, [clone(snap)])),
+    render(<CrewApp />, stateOf(CREW, [clone(snap)]), { path: "/", search: "tab=sites" }),
+    render(<WorkerPhonePage />, stateOf({ view: "worker", worker_id: id }, [clone(snap)]), { path: `/worker/${id}`, search: "details=1", params: { id } }),
+    render(<DemoPage />, stateOf(DEMO, [clone(snap)]), { path: "/demo", search: `worker=${id}` }),
+  ];
+  for (const html of pages) assert.doesNotMatch(text(html), /\bNaN\b|\bundefined\b|\bnull\b/);
+  assert.match(text(row(pages[0], snap.workers[0].name)), /Danger -- /);            // minutes_to_danger null
+  assert.doesNotMatch(text(pages[2]), /Next break/);                                // break_at null: tile hidden
+  assert.doesNotMatch(pages[2], /data-testid="why"/);                               // why null: hidden
+});
+
 // ---------------------------------------------------------------------------
 // Crew lead app
 // ---------------------------------------------------------------------------
@@ -526,24 +555,38 @@ test("18 worker: forecast chart has the median, the 10-90 band and the danger li
 
 test("19 judges: results numbers come from one data file and match docs/results.md", () => {
   const row = (name: string) => RESULTS.rows.find((r) => r.name === name)!;
-  assert.equal(row("+20 min RMSE").values[0], 0.456);                              // Kalman
-  assert.equal(row("+20 min RMSE").values[RESULTS.best], 0.23);                    // ours (ens5)
-  assert.equal(row("Red danger caught").values[0], 75);
-  assert.equal(row("Red danger caught").values[RESULTS.best], 88);
+  // Final numbers: the 10 locked test people (docs/results.md, "FINAL: final_cv").
+  assert.match(RESULTS.split, /10 unseen test people/);
+  assert.equal(row("+20 min RMSE").values[0], 0.481);                              // published Kalman
+  assert.equal(row("+20 min RMSE").values[RESULTS.best], 0.37);                    // ours (final_cv)
+  assert.equal(row("RMSE").values[RESULTS.best], 0.347);                           // now
+  assert.equal(row("+20 min coverage of p90 (want 90%)").values[RESULTS.best], 95);
+  assert.equal(row("Yellow warnings caught").values[RESULTS.best], 88);
+  assert.equal(row("Yellow warning lead time").values[RESULTS.best], 16.9);
+  assert.equal(row("Yellow warning lead time").values[1], 13.0);                   // card 2 compares to the trend baseline
+  assert.deepEqual(row("Yellow false alarms").values.slice(1), [0.23, 0.2]);
+  // No red-alert win: on test the trend baseline caught 10/10, ours 9/10. The table says so.
+  assert.equal(row("Red danger caught").values[1], 100);
+  assert.equal(row("Red danger caught").values[RESULTS.best], 90);
   const ai = RESULTS.planner!.rows.find((r) => r.name.startsWith("AI alone"))!;
   const ours = RESULTS.planner!.rows.find((r) => r.name.startsWith("Our agent"))!;
   assert.equal(ai.runs_with_violations_pct, 92);
   assert.equal(ours.runs_with_violations_pct, 0);
+  assert.equal(RESULTS.personalization!.rows[0].plus20_rmse_c, 0.308);
+  assert.equal(RESULTS.personalization!.rows[1].plus20_rmse_c, 0.27);
   // The same numbers in the source documents on main.
   const results = readFileSync(join(DOCS, "results.md"), "utf8");
-  assert.match(results, /0\.456/);
-  assert.match(results, /0\.230/);
-  assert.match(results, /\*\*88%\*\*/);
-  assert.match(results, /75%/);
+  const final = results.slice(results.indexOf("## FINAL: final_cv"));
+  assert.ok(final.length > 100, "docs/results.md has the FINAL section");
+  for (const n of ["0.481", "0.370", "0.347", "0.398", "0.95", "88%, **16.9 min**, **0.20**", "88%, 13.0 min, 0.23", "90% (9/10)", "100% (10/10)", "0.308 -> 0.270"]) {
+    assert.ok(final.includes(n), `FINAL section has ${n}`);
+  }
   assert.match(readFileSync(join(DOCS, "sessions", "planner.md"), "utf8"), /92% of runs have safety violations/);
   // And the page shows them (bundled copy, since no backend answers /api/results here).
   const t = text(render(<ResultsPage />, crewBase(), { path: "/demo/results" }));
-  for (const n of ["0.23", "0.456", "88", "92"]) assert.ok(t.includes(n), `results page shows ${n}`);
+  for (const n of ["0.37", "0.481", "16.9", "Simple trend: 13", "88% caught", "0.20 vs 0.23/hr", "92", "10 unseen test people", "now-only"]) assert.ok(t.includes(n), `results page shows ${n}`);
+  assert.doesNotMatch(t, /Heat danger caught/);                                      // no red-alert headline
+  assert.ok(!t.includes("0.456"), "the old validation Kalman number is gone (0.23 only appears in the note saying it was optimistic)");
 });
 
 test("20 judges: demo controls send the right request and show the current state", () => {

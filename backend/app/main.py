@@ -57,7 +57,7 @@ def parse_args(argv=None) -> argparse.Namespace:
                     help="replay workers never press the button (shows the red-unacknowledged man-down path)")
     ap.add_argument("--demo", action="store_true", help="start with demo thresholds (37.3 / 37.5 °C)")
     ap.add_argument("--no-forecaster", action="store_true", help="Kalman-only alerts")
-    ap.add_argument("--checkpoint", default=None, help="forecaster file (default: ml/checkpoints/ens5.pt, then v1.pt)")
+    ap.add_argument("--checkpoint", default=None, help="forecaster file (default: final_cv.pt, then ens5.pt, then v1.pt)")
     ap.add_argument("--serial", default=config.SERIAL_PORT, help="band USB serial port (live)")
     ap.add_argument("--udp-port", type=int, default=config.UDP_PORT, help="band WiFi UDP port (live)")
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
@@ -84,7 +84,7 @@ SETTINGS = parse_args([])         # defaults; replaced by main() when run from t
 
 
 def load_predictor(settings):
-    """Best forecaster available (ens5, then v1), else None = Kalman-only alerts."""
+    """Best forecaster available (final_cv, then ens5, then v1), else None = Kalman-only alerts."""
     if settings.no_forecaster:
         return None
     from backend.app.model_runner import load_best_predictor

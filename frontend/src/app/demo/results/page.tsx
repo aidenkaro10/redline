@@ -35,7 +35,11 @@ export default function ResultsPage() {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Headline label="Forecast error 20 min ahead" base={findRow(r, "+20 min RMSE")?.values[0]} ours={findRow(r, "+20 min RMSE")?.values[r.best]} unit="°C" />
-        <Headline label="Heat danger caught before it happened" base={findRow(r, "Red danger caught")?.values[0]} ours={findRow(r, "Red danger caught")?.values[r.best]} unit="%" higherIsBetter />
+        {/* The net's own win is warning earlier than the best simple baseline (catch rate ties at 88%).
+            Not red: on the test people our red alerts didn't beat that baseline (9/10 vs 10/10). */}
+        <Headline label="Heat warning, minutes ahead" unit="min" higherIsBetter
+          base={findRow(r, "Yellow warning lead time")?.values[1]} ours={findRow(r, "Yellow warning lead time")?.values[r.best]} baseLabel="Simple trend"
+          note={`${findRow(r, "Yellow warnings caught")?.values[r.best] ?? "--"}% caught, fewer false alarms: ${findRow(r, "Yellow false alarms")?.values[r.best]?.toFixed(2) ?? "--"} vs ${findRow(r, "Yellow false alarms")?.values[1]?.toFixed(2) ?? "--"}/hr`} />
         {r.planner
           ? <Headline label="Plans that broke a safety rule" base={r.planner.rows.find((x) => x.name.startsWith("AI alone"))?.runs_with_violations_pct} ours={r.planner.rows.find((x) => x.name.startsWith("Our agent"))?.runs_with_violations_pct} unit="%" baseLabel="Same AI without our rule checker" hideChange />
           : <Headline label="Core temp error now" base={r.rows[0].values[0]} ours={r.rows[0].values[r.best]} unit="°C" />}
@@ -108,8 +112,10 @@ function findRow(r: ModelResults, name: string) {
   return r.rows.find((x) => x.name === name);
 }
 
-function Headline({ label, base, ours, unit, higherIsBetter, baseLabel = "Kalman", hideChange }: { label: string; base?: number | null; ours?: number | null; unit: string; higherIsBetter?: boolean; baseLabel?: string; hideChange?: boolean }) {
-  const change = !hideChange && base && ours !== null && ours !== undefined ? ((ours - base) / base) * 100 : null;
+function Headline({ label, base, ours, unit, higherIsBetter, baseLabel = "Kalman", hideChange, note }: { label: string; base?: number | null; ours?: number | null; unit: string; higherIsBetter?: boolean; baseLabel?: string; hideChange?: boolean; note?: string }) {
+  // Percent metrics (catch rates) compare in points (88% vs 12% = +76 pts); the rest as a relative change.
+  const pts = unit === "%";
+  const change = !hideChange && base && ours !== null && ours !== undefined ? (pts ? ours - base : ((ours - base) / base) * 100) : null;
   const good = change !== null && (higherIsBetter ? change > 0 : change < 0);
   return (
     <div className="rounded-xl border border-line bg-surface p-4">
@@ -117,8 +123,9 @@ function Headline({ label, base, ours, unit, higherIsBetter, baseLabel = "Kalman
       <p className="mt-1 text-4xl font-bold">{ours ?? "--"}<span className="ml-1 text-base font-medium text-ink-2">{unit}</span></p>
       <p className="mt-1 text-sm">
         <span className="text-muted">{baseLabel}: {base ?? "--"} {unit}</span>
-        {change !== null && <span className={`ml-2 font-semibold ${good ? "text-ok-ink" : "text-danger-ink"}`}>{change > 0 ? "+" : ""}{Math.round(change)}%</span>}
+        {change !== null && <span className={`ml-2 font-semibold ${good ? "text-ok-ink" : "text-danger-ink"}`}>{change > 0 ? "+" : ""}{Math.round(change)}{pts ? " pts" : "%"}</span>}
       </p>
+      {note && <p className="mt-1 text-xs text-ink-2">{note}</p>}
     </div>
   );
 }
