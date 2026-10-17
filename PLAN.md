@@ -36,6 +36,7 @@ The ML is the long pole and needs no hardware, so it goes first. The rest of the
 | Results | Headline numbers on real data only, split by person | Simulator results are for development |
 | Agent | LLM keeps notes on preferences, never safety | LLM never makes safety calls |
 | Agent learning | Hand-written GEPA and ACE loops, no extra libraries | Small, fewer dependencies, judges can read it |
+| Heart rate source | Local Bluetooth (HeartCast relays the Apple Watch; any BLE strap works); Pulsoid optional when online | Remote sites have no internet; see docs/decisions.md |
 
 ## How it fits together
 

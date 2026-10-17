@@ -73,20 +73,21 @@ ALERT_EVENTS = {
     "band_command": "pattern", "hazard": "kind",
     "mandown_check": "reason", "mandown_cancelled": "by", "mandown_confirmed": "reason",
     "mandown_resolved": "by", "mandown_worker_responded": "by", "sos": None,
-    "emergency_status": "status", "offset_update": "offset_c",
+    "emergency_status": "status", "offset_update": "offset_c", "hr_link": "state",
 }
 COMMIT_EVERY_S = 1.0
 
 # Columns added after the first version. Older database files get them added on open.
 NEW_COLUMNS = {
     "readings": [("source", "TEXT")],                                        # watch / band / replay / demo
-    "estimates": [("hr_watch", "REAL"), ("hr_band", "REAL"), ("hr_sources", "TEXT")],   # which HR fed the Kalman
+    "estimates": [("hr_watch", "REAL"), ("hr_band", "REAL"), ("hr_sources", "TEXT"),   # which HR fed the Kalman
+                  ("hr_ble", "REAL")],
 }
 ESTIMATE_COLUMNS = (
     "worker_id", "timestamp", "minute", "hr", "skin_temp", "activity", "wbgt",
     "kalman", "kalman_sd", "core_temp", "core_temp_sd",
     "f10_p10", "f10_p50", "f10_p90", "f20_p10", "f20_p50", "f20_p90", "f30_p10", "f30_p50", "f30_p90",
-    "heat_level", "model", "twin_version", "hr_watch", "hr_band", "hr_sources",
+    "heat_level", "model", "twin_version", "hr_watch", "hr_band", "hr_sources", "hr_ble",
 )
 
 
@@ -178,7 +179,7 @@ class Database:
             ev.get("hr"), ev.get("skin_temp"), ev.get("activity"), ev.get("wbgt"),
             ev.get("kalman"), ev.get("kalman_sd"), ev.get("core_temp"), ev.get("core_temp_sd"),
             *horizons, ev.get("heat_level"), ev.get("model"), ev.get("twin_version"),
-            ev.get("hr_watch"), ev.get("hr_band"), ",".join(ev.get("hr_sources") or []))
+            ev.get("hr_watch"), ev.get("hr_band"), ",".join(ev.get("hr_sources") or []), ev.get("hr_ble"))
         self._write(f"INSERT OR REPLACE INTO estimates ({', '.join(ESTIMATE_COLUMNS)}) "
                     f"VALUES ({', '.join('?' * len(ESTIMATE_COLUMNS))})", values)
 

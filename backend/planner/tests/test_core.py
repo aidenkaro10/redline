@@ -33,7 +33,11 @@ def test_test_set_is_fixed_and_guarded():
     assert len(tests) == 12 and len(list(TEST_DIR.glob("*.json"))) == 12
     # regenerating from the seeds gives the same files (the set can't silently drift)
     from backend.planner.generate import TEST_SEEDS, TEST_TAGS
-    assert make_scenario(TEST_SEEDS[0], "test", TEST_TAGS[0]).to_dict() == tests[0].to_dict()
+    # (fields added after the test set was frozen are left out of the comparison)
+    newer = {"storm_prob", "rain_prob", "elevated", "hard_to_stop"}
+    strip = lambda d: {k: ([strip(x) if isinstance(x, dict) else x for x in v] if isinstance(v, list) else v)
+                       for k, v in d.items() if k not in newer}
+    assert strip(make_scenario(TEST_SEEDS[0], "test", TEST_TAGS[0]).to_dict()) == strip(tests[0].to_dict())
     with pytest.raises(ValueError):
         assert_not_test(tests[0])
     assert_not_test(make_scenario(3))   # training scenarios are fine

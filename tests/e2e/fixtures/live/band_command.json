@@ -1,0 +1,42 @@
+[
+ {
+  "type": "band_command",
+  "band": {
+   "worker_id": "demo-1",
+   "command": "BUZZ:HEAT_YELLOW",
+   "at": 1792000540.5
+  }
+ },
+ {
+  "type": "band_command",
+  "band": {
+   "worker_id": "demo-1",
+   "command": "BUZZ:LIGHTNING",
+   "at": 1792001200.0
+  }
+ },
+ {
+  "type": "band_command",
+  "band": {
+   "worker_id": "demo-2",
+   "command": "BUZZ:MANDOWN",
+   "at": 1792002445.5
+  }
+ },
+ {
+  "type": "band_command",
+  "band": {
+   "worker_id": "demo-1",
+   "command": "BUZZ:HEAT_RED",
+   "at": 1792002520.5
+  }
+ },
+ {
+  "type": "band_command",
+  "band": {
+   "worker_id": "demo-2",
+   "command": "BUZZ:OFF",
+   "at": 1792002620.0
+  }
+ }
+]

@@ -1,0 +1,163 @@
+[
+ {
+  "type": "emergency",
+  "emergency": {
+   "id": "inc-demo-2-1792002505",
+   "mandown_id": "md-demo-2-1792002445",
+   "worker_id": "demo-2",
+   "stage": "cancel_window",
+   "started_at": 1792002506.0,
+   "cancel_deadline": 1792002536.0,
+   "demo": true,
+   "target_label": "Demo: would call 911",
+   "steps": [
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Man-down confirmed: Maria. Notifying crew."
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550101"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550102"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "cancel_window",
+     "text": "Emergency call in 30 s unless cancelled."
+    }
+   ],
+   "transcript": [],
+   "outcome": null
+  }
+ },
+ {
+  "type": "emergency",
+  "emergency": {
+   "id": "inc-demo-2-1792002505",
+   "mandown_id": "md-demo-2-1792002445",
+   "worker_id": "demo-2",
+   "stage": "done",
+   "started_at": 1792002506.0,
+   "cancel_deadline": 1792002536.0,
+   "demo": true,
+   "target_label": "Demo: would call 911",
+   "steps": [
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Man-down confirmed: Maria. Notifying crew."
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550101"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550102"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002506.0,
+     "stage": "cancel_window",
+     "text": "Emergency call in 30 s unless cancelled."
+    },
+    {
+     "at": 1792002536.0,
+     "stage": "calling",
+     "text": "Dry run: would call +13525550103"
+    },
+    {
+     "at": 1792002536.0,
+     "stage": "connected",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002536.0,
+     "stage": "done",
+     "text": "Emergency report delivered."
+    }
+   ],
+   "transcript": [],
+   "outcome": "Emergency report delivered."
+  }
+ },
+ {
+  "type": "emergency",
+  "emergency": {
+   "id": "inc-demo-3-1792002620",
+   "mandown_id": "sos-demo-3-1792002620",
+   "worker_id": "demo-3",
+   "stage": "cancelled",
+   "started_at": 1792002620.0,
+   "cancel_deadline": 1792002650.0,
+   "demo": true,
+   "target_label": "Demo: would call 911",
+   "steps": [
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "SOS pressed by Dev. Notifying crew."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550101"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550102"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancel_window",
+     "text": "Emergency call in 30 s unless cancelled."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancelled",
+     "text": "Cancelled as a false alarm by crew_lead."
+    }
+   ],
+   "transcript": [],
+   "outcome": "Cancelled as a false alarm by crew_lead."
+  }
+ }
+]

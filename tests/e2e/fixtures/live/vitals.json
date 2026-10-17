@@ -1,0 +1,13 @@
+[
+ {
+  "type": "vitals",
+  "vitals": {
+   "worker_id": "demo-1",
+   "timestamp": 1792000000.5,
+   "hr": 110.26,
+   "skin_temp": 33.3,
+   "activity": 3.88,
+   "tilt": 0
+  }
+ }
+]

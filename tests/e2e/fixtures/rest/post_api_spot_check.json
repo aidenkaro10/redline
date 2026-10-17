@@ -1,0 +1,17 @@
+{
+ "request": "POST /api/spot-check",
+ "status": 200,
+ "body": {
+  "type": "offset_update",
+  "timestamp": 1792001200.0,
+  "accepted": true,
+  "thermometer_c": 37.24,
+  "model_c": 37.436,
+  "miss_c": 0.196,
+  "reason": null,
+  "offset_c": 0.0653,
+  "confidence": 0.333,
+  "n_checks": 1,
+  "worker_id": "demo-1"
+ }
+}

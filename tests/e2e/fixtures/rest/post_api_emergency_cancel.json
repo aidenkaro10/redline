@@ -1,0 +1,7 @@
+{
+ "request": "POST /api/emergency/cancel",
+ "status": 200,
+ "body": {
+  "cancelled": true
+ }
+}

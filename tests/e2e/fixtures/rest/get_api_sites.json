@@ -1,0 +1,72 @@
+{
+ "request": "GET /api/sites",
+ "status": 200,
+ "body": [
+  {
+   "id": "eia-136",
+   "name": "Seminole (FL)",
+   "operator": "Seminole Electric Cooperative Inc",
+   "tech": "gas",
+   "capacity_mw": 1897.8,
+   "lat": 29.73306,
+   "lon": -81.63278,
+   "county": "Putnam",
+   "coastal": false
+  },
+  {
+   "id": "eia-564",
+   "name": "Stanton Energy Center",
+   "operator": "Orlando Utilities Comm",
+   "tech": "coal",
+   "capacity_mw": 1262.0,
+   "lat": 28.4822,
+   "lon": -81.1678,
+   "county": "Orange",
+   "coastal": false
+  },
+  {
+   "id": "eia-609",
+   "name": "Cape Canaveral",
+   "operator": "Florida Power & Light Co",
+   "tech": "gas",
+   "capacity_mw": 1295.0,
+   "lat": 28.4698,
+   "lon": -80.7644,
+   "county": "Brevard",
+   "coastal": true
+  },
+  {
+   "id": "eia-612",
+   "name": "Fort Myers",
+   "operator": "Florida Power & Light Co",
+   "tech": "gas",
+   "capacity_mw": 2680.9,
+   "lat": 26.6967,
+   "lon": -81.7831,
+   "county": "Lee",
+   "coastal": true
+  },
+  {
+   "id": "eia-617",
+   "name": "Port Everglades",
+   "operator": "Florida Power & Light Co",
+   "tech": "gas",
+   "capacity_mw": 1352.0,
+   "lat": 26.0856,
+   "lon": -80.1253,
+   "county": "Broward",
+   "coastal": true
+  },
+  {
+   "id": "eia-619",
+   "name": "Riviera",
+   "operator": "Florida Power & Light Co",
+   "tech": "gas",
+   "capacity_mw": 1295.0,
+   "lat": 26.7653,
+   "lon": -80.0525,
+   "county": "Palm Beach",
+   "coastal": true
+  }
+ ]
+}

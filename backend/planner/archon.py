@@ -32,10 +32,12 @@ from backend import config
 from backend.planner.baselines import rules_in_words, scenario_brief
 from backend.planner.heat_model import HeatModel, default_heat_model
 from backend.planner.llm import extract_json, get_llm
-from backend.planner.optimizer import OBJECTIVES, PRIORITY_WEIGHT, Objective, optimize
+from backend.planner.optimizer import OBJECTIVES, PRIORITY_WEIGHT, Objective, objectives_for, optimize
+from backend.planner.weights import PlannerWeights
 from backend.planner.playbook import Playbook
 from backend.planner.rules import CheckResult, check_plans
 from backend.planner.scenario import INTENSITIES, REST, Plan, Scenario, all_rest_plan
+from backend.planner.storm_risk import storm_reason
 
 HOT_INTENSITIES = {"heavy", "very_heavy"}
 
@@ -54,6 +56,7 @@ class AgentSettings:
     critic_instructions: str = ("Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy "
                                 "work early in the day, respect stated preferences, explain trade-offs.")
     time_limit_s: float = 3.0
+    weights: PlannerWeights | None = None   # the optimizer's soft weights (None = defaults). Session F searches these.
 
 
 @dataclass
@@ -200,7 +203,8 @@ def llm_ideas(llm, scenario: Scenario, playbook: Playbook | None, best: Candidat
                 and 0 < int(p.get("penalty", 0)) <= 50]
         forbid = [tuple(f) for f in idea.get("forbid", []) if isinstance(f, list) and len(f) == 3
                   and f[0] in workers and f[2] in tasks and (f[1] is None or isinstance(f[1], int))]
-        base = OBJECTIVES.get(idea.get("objective"), OBJECTIVES["balanced"])
+        objs = objectives_for(s.weights) if s.weights is not None else OBJECTIVES
+        base = objs.get(idea.get("objective"), objs["balanced"])
         ideas.append((str(idea.get("name", "idea"))[:60], replace(base, name=f"llm:{base.name}", soft=soft, forbid=forbid),
                       str(idea.get("why", ""))[:200]))
     direct = None
@@ -237,6 +241,9 @@ def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], les
     if blocked:
         reasons.append(f"No outdoor work {scenario.slot_time(blocked[0])}-{scenario.slot_time(blocked[-1] + 1)} "
                        f"({', '.join(sorted({h.kind for h in scenario.hazards if h.stops_outdoor_work()}))}).")
+    storm = storm_reason(scenario, best.plan)
+    if storm:
+        reasons.append(storm)
     for w in scenario.crew:
         if w.acclim < config.PLAN_UNACCLIM_LEVEL:
             reasons.append(f"{w.name} is not acclimatized: no very heavy work in high heat.")
@@ -274,7 +281,7 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
     cands: list[Candidate] = []
     prefs, lessons_used = (playbook.soft_preferences(scenario) if (playbook and s.use_playbook) else ([], []))
     for name in s.objectives:
-        obj = OBJECTIVES[name]
+        obj = (objectives_for(s.weights) if s.weights is not None else OBJECTIVES)[name]
         r = optimize(scenario, obj, heat_model, time_limit_s=s.time_limit_s)
         cands.append(Candidate(f"optimizer:{name}", r.plan, obj))
         if prefs:

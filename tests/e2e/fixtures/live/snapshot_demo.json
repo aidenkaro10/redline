@@ -1,0 +1,2594 @@
+[
+ {
+  "type": "snapshot",
+  "view": "demo",
+  "sim_time": 1792002625.0,
+  "workers": [
+   {
+    "worker_id": "demo-1",
+    "name": "Jake",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "red",
+    "minutes_to_danger": 0,
+    "status_reason": "In heat danger now",
+    "hazard": "HEAT_RED",
+    "alert_acknowledged": true,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-2",
+    "name": "Maria",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "Normal",
+    "hazard": null,
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-3",
+    "name": "Dev",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "SOS pressed",
+    "hazard": "SOS",
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   },
+   {
+    "worker_id": "demo-4",
+    "name": "Tasha",
+    "role": "Crew",
+    "site_id": "eia-663",
+    "status": "green",
+    "minutes_to_danger": null,
+    "status_reason": "SOS pressed",
+    "hazard": "SOS",
+    "alert_acknowledged": null,
+    "on_break": false,
+    "break_at": null,
+    "band_connected": true,
+    "updated_at": 1792002625.0
+   }
+  ],
+  "sites": [
+   {
+    "site_id": "eia-136",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.63,
+      "heat_index_f": 90.9,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 1,
+       "label": "Minor",
+       "color": "yellow"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 42.3,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "high",
+      "headline": "Flood Warning",
+      "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (6.8 mi); Heavy rain: 90 mm in 24 h; River forecast to reach moderate flood (2.1 ft) by 2026-10-18T15:19:05Z: St. Johns River at Racy Point (in MHHW) (6.8 mi)",
+      "source": "NWS",
+      "updated_at": 1792264745.0,
+      "stop_work": false,
+      "band_pattern": "FLOOD_FIRE",
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "high",
+      "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+      "detail": null,
+      "source": "Open-Meteo",
+      "updated_at": 1792264745.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": 3.81,
+    "index_drivers": [
+     "Rain over the last 3 days: 3.8 in"
+    ],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-564",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.66,
+      "heat_index_f": 90.9,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 96.1,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "high",
+      "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+      "detail": null,
+      "source": "Open-Meteo",
+      "updated_at": 1792264745.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     },
+     {
+      "kind": "wildlife",
+      "level": "moderate",
+      "headline": "1 alligator sighting within 5 mi (nearest 0.5 mi, 2026-10-16)",
+      "detail": null,
+      "source": "iNaturalist",
+      "updated_at": 1792264745.0,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": true
+     }
+    ],
+    "index_tomorrow": 2.65,
+    "index_drivers": [
+     "Soil is nearly saturated after recent rain"
+    ],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-609",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 28.66,
+      "heat_index_f": 90.9,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 119.5,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": 1.46,
+    "index_drivers": [],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   },
+   {
+    "site_id": "eia-612",
+    "hazards": [
+     {
+      "kind": "heat",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "wbgt_c": 29.15,
+      "heat_index_f": 92.5,
+      "wbgt_flag": "green",
+      "heat_risk": {
+       "value": 2,
+       "label": "Moderate",
+       "color": "orange"
+      }
+     },
+     {
+      "kind": "lightning",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false,
+      "nearest_miles": 164.5,
+      "last_strike_at": null,
+      "all_clear_at": null,
+      "strikes": []
+     },
+     {
+      "kind": "flood",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "fire",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "soil",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     },
+     {
+      "kind": "wildlife",
+      "level": "none",
+      "headline": "No hazard",
+      "detail": null,
+      "source": null,
+      "updated_at": null,
+      "stop_work": false,
+      "band_pattern": null,
+      "stale": false,
+      "fake": false
+     }
+    ],
+    "index_tomorrow": 2.55,
+    "index_drivers": [
+     "Heat conditions above a usual day (demo data)"
+    ],
+    "worker_flag": "none",
+    "workers_on_site": 0,
+    "updated_at": 1792002625.0
+   }
+  ],
+  "alerts": [
+   {
+    "id": "al-1",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1791995500.5,
+    "message": "Heat warning: Dev",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1791998380.5
+   },
+   {
+    "id": "al-2",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-65292",
+    "started_at": 1792264743.119661,
+    "message": "Flood at Rice Creek",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.08692
+   },
+   {
+    "id": "al-3",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-628",
+    "started_at": 1792264743.1200378,
+    "message": "Lightning at Crystal River",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.0872269
+   },
+   {
+    "id": "al-4",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-641",
+    "started_at": 1792264743.120094,
+    "message": "Flood at Gulf Clean Energy Center",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.087305
+   },
+   {
+    "id": "al-5",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-136",
+    "started_at": 1792264743.120131,
+    "message": "Flood at Seminole (FL)",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.087442
+   },
+   {
+    "id": "al-6",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-64145",
+    "started_at": 1792264743.120161,
+    "message": "Lightning at Bay Trail Solar Power Plant",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.0874848
+   },
+   {
+    "id": "al-7",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-1",
+    "site_id": "eia-663",
+    "started_at": 1792000540.5,
+    "message": "Heat warning: Jake",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002520.5
+   },
+   {
+    "id": "al-8",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-663",
+    "started_at": 1792264745.5733051,
+    "message": "Lightning at Deerhaven Generating Station",
+    "source": "demo button",
+    "acknowledged_at": 1792002620.0,
+    "cleared_at": 1792264749.087518
+   },
+   {
+    "id": "al-9",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-57241",
+    "started_at": 1792264746.040389,
+    "message": "Lightning at Deerhaven Renewable",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.087998
+   },
+   {
+    "id": "al-11",
+    "kind": "MANDOWN",
+    "worker_id": "demo-2",
+    "site_id": "eia-663",
+    "started_at": 1792002445.5,
+    "message": "Man-down check: Maria",
+    "source": "tilt switch",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-12",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-1",
+    "site_id": "eia-663",
+    "started_at": 1792002520.5,
+    "message": "Heat danger: Jake",
+    "source": "forecaster",
+    "acknowledged_at": 1792002540.5,
+    "cleared_at": null
+   },
+   {
+    "id": "al-13",
+    "kind": "SOS",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "SOS from Dev",
+    "source": "SOS (phone)",
+    "acknowledged_at": null,
+    "cleared_at": null
+   },
+   {
+    "id": "al-14",
+    "kind": "SOS",
+    "worker_id": "demo-4",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "SOS from Tasha",
+    "source": "SOS (demo)",
+    "acknowledged_at": null,
+    "cleared_at": null
+   },
+   {
+    "id": "al-15",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-2",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat danger: Maria",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-16",
+    "kind": "HEAT_RED",
+    "worker_id": "demo-3",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat danger: Dev",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   },
+   {
+    "id": "al-17",
+    "kind": "HEAT_YELLOW",
+    "worker_id": "demo-4",
+    "site_id": "eia-663",
+    "started_at": 1792002620.0,
+    "message": "Heat warning: Tasha",
+    "source": "forecaster",
+    "acknowledged_at": null,
+    "cleared_at": 1792002620.0
+   }
+  ],
+  "mandown": {
+   "id": "sos-demo-3-1792002620",
+   "worker_id": "demo-3",
+   "worker_name": "Dev",
+   "site_id": "eia-663",
+   "site_name": "Deerhaven Generating Station",
+   "lat": 29.7592,
+   "lon": -82.3878,
+   "fell_at": 1792002620.0,
+   "check_started_at": 1792002620.0,
+   "confirm_at": 1792002620.0,
+   "confirmed_at": 1792002620.0,
+   "stage": "confirmed",
+   "reason": "sos",
+   "last_vitals": {
+    "core_temp": 37.407,
+    "hr": 67.15,
+    "at": 1792002580.5
+   }
+  },
+  "emergency": {
+   "id": "inc-demo-4-1792002620",
+   "mandown_id": "sos-demo-3-1792002620",
+   "worker_id": "demo-4",
+   "stage": "cancelled",
+   "started_at": 1792002620.0,
+   "cancel_deadline": 1792002650.0,
+   "demo": true,
+   "target_label": "Demo: would call 911",
+   "steps": [
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "SOS pressed by Tasha. Notifying crew."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550101"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: would call +13525550102"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "notifying",
+     "text": "Dry run: no call placed"
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancel_window",
+     "text": "Emergency call in 30 s unless cancelled."
+    },
+    {
+     "at": 1792002620.0,
+     "stage": "cancelled",
+     "text": "Cancelled as a false alarm by crew_lead."
+    }
+   ],
+   "transcript": [],
+   "outcome": "Cancelled as a false alarm by crew_lead."
+  },
+  "demo": {
+   "source": "replay",
+   "speed": 30.0,
+   "demo_threshold": false,
+   "thresholds": {
+    "warning": 38.0,
+    "danger": 38.5
+   },
+   "scenario": {
+    "running": true,
+    "step": "sim shift 9647 + crew [9568, 8130, 4464], starting at minute 116",
+    "started_at": 1792000000.0
+   },
+   "mock": false
+  },
+  "reports": [
+   {
+    "id": "rp-10",
+    "site_id": "eia-663",
+    "worker_id": "demo-1",
+    "kind": "snake",
+    "note": "Rattlesnake by gate 3",
+    "lat": 29.7592,
+    "lon": -82.3878,
+    "photo": "data:image/jpeg;base64,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "at": 1792001200.0
+   }
+  ],
+  "log": [
+   {
+    "at": 1792264749.087305,
+    "text": "Flood off at eia-641",
+    "source": "demo button"
+   },
+   {
+    "at": 1792264749.087442,
+    "text": "Flood off at eia-136",
+    "source": "demo button"
+   },
+   {
+    "at": 1792264749.0874848,
+    "text": "Lightning off at eia-64145",
+    "source": "demo button"
+   },
+   {
+    "at": 1792264749.087518,
+    "text": "Lightning off at eia-663",
+    "source": "demo button"
+   },
+   {
+    "at": 1792264749.087998,
+    "text": "Lightning off at eia-57241",
+    "source": "demo button"
+   }
+  ],
+  "history": {
+   "demo-1": {
+    "vitals": [
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002610.5,
+      "hr": 155.77,
+      "skin_temp": 34.74,
+      "activity": 8.47,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002615.5,
+      "hr": 155.77,
+      "skin_temp": 34.74,
+      "activity": 8.47,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002620.5,
+      "hr": 155.77,
+      "skin_temp": 34.74,
+      "activity": 0.0,
+      "tilt": 1
+     }
+    ],
+    "estimates": [
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002520.5,
+      "core": {
+       "mean": 38.043,
+       "p10": 37.853,
+       "p90": 38.233
+      },
+      "kalman": 38.24,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.792,
+        "p50": 38.039,
+        "p90": 38.27
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.819,
+        "p50": 38.062,
+        "p90": 38.296
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.846,
+        "p50": 38.087,
+        "p90": 38.325
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.871,
+        "p50": 38.112,
+        "p90": 38.354
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.895,
+        "p50": 38.138,
+        "p90": 38.383
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.918,
+        "p50": 38.163,
+        "p90": 38.411
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.939,
+        "p50": 38.186,
+        "p90": 38.438
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.958,
+        "p50": 38.209,
+        "p90": 38.463
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.975,
+        "p50": 38.229,
+        "p90": 38.487
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.99,
+        "p50": 38.247,
+        "p90": 38.51
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 38.002,
+        "p50": 38.264,
+        "p90": 38.531
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 38.014,
+        "p50": 38.279,
+        "p90": 38.55
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 38.024,
+        "p50": 38.293,
+        "p90": 38.568
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 38.033,
+        "p50": 38.305,
+        "p90": 38.585
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 38.042,
+        "p50": 38.317,
+        "p90": 38.601
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 38.05,
+        "p50": 38.328,
+        "p90": 38.616
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 38.058,
+        "p50": 38.339,
+        "p90": 38.631
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 38.065,
+        "p50": 38.35,
+        "p90": 38.645
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 38.073,
+        "p50": 38.36,
+        "p90": 38.659
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 38.08,
+        "p50": 38.37,
+        "p90": 38.674
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 38.088,
+        "p50": 38.381,
+        "p90": 38.688
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 38.095,
+        "p50": 38.391,
+        "p90": 38.702
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 38.103,
+        "p50": 38.401,
+        "p90": 38.715
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 38.11,
+        "p50": 38.411,
+        "p90": 38.729
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 38.117,
+        "p50": 38.422,
+        "p90": 38.742
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 38.125,
+        "p50": 38.432,
+        "p90": 38.756
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 38.132,
+        "p50": 38.442,
+        "p90": 38.77
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 38.14,
+        "p50": 38.453,
+        "p90": 38.784
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 38.147,
+        "p50": 38.464,
+        "p90": 38.798
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 38.155,
+        "p50": 38.475,
+        "p90": 38.813
+       }
+      ],
+      "why": "Heart rate 154 bpm, up 9 over 10 min, WBGT 31 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     },
+     {
+      "worker_id": "demo-1",
+      "timestamp": 1792002580.5,
+      "core": {
+       "mean": 38.068,
+       "p10": 37.874,
+       "p90": 38.262
+      },
+      "kalman": 38.266,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.814,
+        "p50": 38.065,
+        "p90": 38.3
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.84,
+        "p50": 38.086,
+        "p90": 38.324
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.865,
+        "p50": 38.109,
+        "p90": 38.352
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.889,
+        "p50": 38.134,
+        "p90": 38.38
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.912,
+        "p50": 38.158,
+        "p90": 38.407
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.934,
+        "p50": 38.182,
+        "p90": 38.434
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.955,
+        "p50": 38.205,
+        "p90": 38.46
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.973,
+        "p50": 38.226,
+        "p90": 38.484
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.989,
+        "p50": 38.245,
+        "p90": 38.507
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 38.003,
+        "p50": 38.263,
+        "p90": 38.528
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 38.015,
+        "p50": 38.278,
+        "p90": 38.548
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 38.025,
+        "p50": 38.293,
+        "p90": 38.567
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 38.035,
+        "p50": 38.306,
+        "p90": 38.584
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 38.043,
+        "p50": 38.317,
+        "p90": 38.6
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 38.051,
+        "p50": 38.329,
+        "p90": 38.616
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 38.059,
+        "p50": 38.339,
+        "p90": 38.63
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 38.066,
+        "p50": 38.35,
+        "p90": 38.644
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 38.073,
+        "p50": 38.36,
+        "p90": 38.658
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 38.08,
+        "p50": 38.37,
+        "p90": 38.672
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 38.087,
+        "p50": 38.379,
+        "p90": 38.685
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 38.094,
+        "p50": 38.389,
+        "p90": 38.699
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 38.101,
+        "p50": 38.399,
+        "p90": 38.712
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 38.108,
+        "p50": 38.409,
+        "p90": 38.724
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 38.115,
+        "p50": 38.419,
+        "p90": 38.737
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 38.122,
+        "p50": 38.428,
+        "p90": 38.75
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 38.129,
+        "p50": 38.438,
+        "p90": 38.764
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 38.136,
+        "p50": 38.448,
+        "p90": 38.777
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 38.144,
+        "p50": 38.459,
+        "p90": 38.791
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 38.151,
+        "p50": 38.469,
+        "p90": 38.805
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 38.158,
+        "p50": 38.48,
+        "p90": 38.82
+       }
+      ],
+      "why": "Heart rate 153 bpm, up 14 over 10 min, WBGT 31 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     }
+    ]
+   },
+   "demo-2": {
+    "vitals": [
+     {
+      "worker_id": "demo-2",
+      "timestamp": 1792002610.5,
+      "hr": 89.68,
+      "skin_temp": 32.77,
+      "activity": 0.0,
+      "tilt": 1
+     },
+     {
+      "worker_id": "demo-2",
+      "timestamp": 1792002615.5,
+      "hr": 89.68,
+      "skin_temp": 32.77,
+      "activity": 0.0,
+      "tilt": 1
+     },
+     {
+      "worker_id": "demo-2",
+      "timestamp": 1792002620.5,
+      "hr": 89.68,
+      "skin_temp": 32.77,
+      "activity": 0.0,
+      "tilt": 1
+     }
+    ],
+    "estimates": [
+     {
+      "worker_id": "demo-2",
+      "timestamp": 1792002520.5,
+      "core": {
+       "mean": 37.365,
+       "p10": 37.252,
+       "p90": 37.478
+      },
+      "kalman": 37.293,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.182,
+        "p50": 37.331,
+        "p90": 37.471
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.184,
+        "p50": 37.334,
+        "p90": 37.473
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.187,
+        "p50": 37.338,
+        "p90": 37.477
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.189,
+        "p50": 37.34,
+        "p90": 37.48
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.19,
+        "p50": 37.342,
+        "p90": 37.482
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.192,
+        "p50": 37.344,
+        "p90": 37.484
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.194,
+        "p50": 37.346,
+        "p90": 37.486
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.197,
+        "p50": 37.349,
+        "p90": 37.489
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.2,
+        "p50": 37.353,
+        "p90": 37.493
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.204,
+        "p50": 37.357,
+        "p90": 37.498
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 37.208,
+        "p50": 37.361,
+        "p90": 37.504
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 37.211,
+        "p50": 37.366,
+        "p90": 37.509
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 37.214,
+        "p50": 37.37,
+        "p90": 37.515
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 37.217,
+        "p50": 37.374,
+        "p90": 37.521
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 37.219,
+        "p50": 37.378,
+        "p90": 37.527
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 37.221,
+        "p50": 37.382,
+        "p90": 37.532
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 37.223,
+        "p50": 37.385,
+        "p90": 37.538
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 37.225,
+        "p50": 37.388,
+        "p90": 37.543
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 37.226,
+        "p50": 37.391,
+        "p90": 37.548
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 37.226,
+        "p50": 37.394,
+        "p90": 37.552
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 37.227,
+        "p50": 37.396,
+        "p90": 37.557
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 37.227,
+        "p50": 37.398,
+        "p90": 37.561
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 37.226,
+        "p50": 37.399,
+        "p90": 37.564
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 37.226,
+        "p50": 37.401,
+        "p90": 37.568
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 37.225,
+        "p50": 37.402,
+        "p90": 37.571
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 37.224,
+        "p50": 37.402,
+        "p90": 37.574
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 37.222,
+        "p50": 37.403,
+        "p90": 37.576
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 37.221,
+        "p50": 37.403,
+        "p90": 37.579
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 37.219,
+        "p50": 37.404,
+        "p90": 37.581
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 37.217,
+        "p50": 37.404,
+        "p90": 37.584
+       }
+      ],
+      "why": "Heart rate 94 bpm, steady over 10 min, WBGT 25 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     },
+     {
+      "worker_id": "demo-2",
+      "timestamp": 1792002580.5,
+      "core": {
+       "mean": 37.364,
+       "p10": 37.251,
+       "p90": 37.477
+      },
+      "kalman": 37.293,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.181,
+        "p50": 37.331,
+        "p90": 37.472
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.184,
+        "p50": 37.335,
+        "p90": 37.475
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.188,
+        "p50": 37.339,
+        "p90": 37.48
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.19,
+        "p50": 37.342,
+        "p90": 37.483
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.191,
+        "p50": 37.344,
+        "p90": 37.485
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.193,
+        "p50": 37.346,
+        "p90": 37.487
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.196,
+        "p50": 37.349,
+        "p90": 37.49
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.198,
+        "p50": 37.352,
+        "p90": 37.493
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.202,
+        "p50": 37.356,
+        "p90": 37.497
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.205,
+        "p50": 37.36,
+        "p90": 37.502
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 37.209,
+        "p50": 37.364,
+        "p90": 37.508
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 37.212,
+        "p50": 37.368,
+        "p90": 37.513
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 37.215,
+        "p50": 37.373,
+        "p90": 37.519
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 37.218,
+        "p50": 37.377,
+        "p90": 37.525
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 37.221,
+        "p50": 37.381,
+        "p90": 37.531
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 37.223,
+        "p50": 37.385,
+        "p90": 37.537
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 37.224,
+        "p50": 37.388,
+        "p90": 37.542
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 37.226,
+        "p50": 37.391,
+        "p90": 37.547
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 37.227,
+        "p50": 37.394,
+        "p90": 37.552
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 37.227,
+        "p50": 37.396,
+        "p90": 37.557
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 37.228,
+        "p50": 37.398,
+        "p90": 37.561
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 37.228,
+        "p50": 37.4,
+        "p90": 37.565
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 37.227,
+        "p50": 37.402,
+        "p90": 37.568
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 37.226,
+        "p50": 37.403,
+        "p90": 37.572
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 37.225,
+        "p50": 37.404,
+        "p90": 37.575
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 37.224,
+        "p50": 37.405,
+        "p90": 37.577
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 37.223,
+        "p50": 37.405,
+        "p90": 37.58
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 37.221,
+        "p50": 37.406,
+        "p90": 37.582
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 37.22,
+        "p50": 37.406,
+        "p90": 37.585
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 37.218,
+        "p50": 37.406,
+        "p90": 37.587
+       }
+      ],
+      "why": "Heart rate 91 bpm, steady over 10 min, WBGT 25 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     }
+    ]
+   },
+   "demo-3": {
+    "vitals": [
+     {
+      "worker_id": "demo-3",
+      "timestamp": 1792002610.5,
+      "hr": 67.15,
+      "skin_temp": 32.23,
+      "activity": 0.4,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-3",
+      "timestamp": 1792002615.5,
+      "hr": 67.15,
+      "skin_temp": 32.23,
+      "activity": 0.4,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-3",
+      "timestamp": 1792002620.5,
+      "hr": 67.15,
+      "skin_temp": 32.23,
+      "activity": 0.4,
+      "tilt": 0
+     }
+    ],
+    "estimates": [
+     {
+      "worker_id": "demo-3",
+      "timestamp": 1792002520.5,
+      "core": {
+       "mean": 37.416,
+       "p10": 37.3,
+       "p90": 37.532
+      },
+      "kalman": 37.143,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.247,
+        "p50": 37.395,
+        "p90": 37.538
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.223,
+        "p50": 37.374,
+        "p90": 37.519
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.211,
+        "p50": 37.364,
+        "p90": 37.509
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.203,
+        "p50": 37.359,
+        "p90": 37.506
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.197,
+        "p50": 37.357,
+        "p90": 37.507
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.195,
+        "p50": 37.359,
+        "p90": 37.512
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.195,
+        "p50": 37.363,
+        "p90": 37.52
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.198,
+        "p50": 37.369,
+        "p90": 37.53
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.202,
+        "p50": 37.377,
+        "p90": 37.542
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.207,
+        "p50": 37.386,
+        "p90": 37.556
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 37.213,
+        "p50": 37.396,
+        "p90": 37.57
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 37.22,
+        "p50": 37.407,
+        "p90": 37.584
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 37.227,
+        "p50": 37.417,
+        "p90": 37.599
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 37.234,
+        "p50": 37.428,
+        "p90": 37.614
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 37.24,
+        "p50": 37.438,
+        "p90": 37.628
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 37.247,
+        "p50": 37.448,
+        "p90": 37.642
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 37.253,
+        "p50": 37.457,
+        "p90": 37.655
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 37.259,
+        "p50": 37.466,
+        "p90": 37.668
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 37.264,
+        "p50": 37.475,
+        "p90": 37.68
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 37.269,
+        "p50": 37.483,
+        "p90": 37.691
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 37.274,
+        "p50": 37.49,
+        "p90": 37.702
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 37.278,
+        "p50": 37.497,
+        "p90": 37.712
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 37.282,
+        "p50": 37.504,
+        "p90": 37.723
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 37.287,
+        "p50": 37.512,
+        "p90": 37.733
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 37.292,
+        "p50": 37.519,
+        "p90": 37.744
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 37.296,
+        "p50": 37.526,
+        "p90": 37.754
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 37.301,
+        "p50": 37.533,
+        "p90": 37.764
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 37.305,
+        "p50": 37.54,
+        "p90": 37.774
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 37.309,
+        "p50": 37.546,
+        "p90": 37.783
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 37.313,
+        "p50": 37.552,
+        "p90": 37.792
+       }
+      ],
+      "why": "Heart rate 75 bpm, steady over 10 min, WBGT 24 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     },
+     {
+      "worker_id": "demo-3",
+      "timestamp": 1792002580.5,
+      "core": {
+       "mean": 37.407,
+       "p10": 37.291,
+       "p90": 37.523
+      },
+      "kalman": 37.132,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.238,
+        "p50": 37.386,
+        "p90": 37.528
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.217,
+        "p50": 37.368,
+        "p90": 37.513
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.208,
+        "p50": 37.362,
+        "p90": 37.508
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.203,
+        "p50": 37.36,
+        "p90": 37.508
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.2,
+        "p50": 37.36,
+        "p90": 37.512
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.199,
+        "p50": 37.363,
+        "p90": 37.517
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.2,
+        "p50": 37.368,
+        "p90": 37.525
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.203,
+        "p50": 37.374,
+        "p90": 37.535
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.207,
+        "p50": 37.382,
+        "p90": 37.547
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.212,
+        "p50": 37.391,
+        "p90": 37.56
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 37.218,
+        "p50": 37.4,
+        "p90": 37.574
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 37.224,
+        "p50": 37.41,
+        "p90": 37.588
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 37.23,
+        "p50": 37.42,
+        "p90": 37.602
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 37.236,
+        "p50": 37.43,
+        "p90": 37.616
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 37.241,
+        "p50": 37.439,
+        "p90": 37.63
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 37.247,
+        "p50": 37.448,
+        "p90": 37.643
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 37.252,
+        "p50": 37.457,
+        "p90": 37.656
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 37.257,
+        "p50": 37.465,
+        "p90": 37.668
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 37.261,
+        "p50": 37.473,
+        "p90": 37.679
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 37.266,
+        "p50": 37.48,
+        "p90": 37.69
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 37.269,
+        "p50": 37.487,
+        "p90": 37.701
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 37.274,
+        "p50": 37.494,
+        "p90": 37.711
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 37.278,
+        "p50": 37.501,
+        "p90": 37.721
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 37.283,
+        "p50": 37.508,
+        "p90": 37.732
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 37.287,
+        "p50": 37.515,
+        "p90": 37.742
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 37.291,
+        "p50": 37.522,
+        "p90": 37.752
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 37.295,
+        "p50": 37.529,
+        "p90": 37.762
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 37.299,
+        "p50": 37.535,
+        "p90": 37.771
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 37.303,
+        "p50": 37.541,
+        "p90": 37.78
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 37.307,
+        "p50": 37.547,
+        "p90": 37.788
+       }
+      ],
+      "why": "Heart rate 76 bpm, down 10 over 10 min, WBGT 24 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     }
+    ]
+   },
+   "demo-4": {
+    "vitals": [
+     {
+      "worker_id": "demo-4",
+      "timestamp": 1792002610.5,
+      "hr": 71.76,
+      "skin_temp": 32.32,
+      "activity": 0.0,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-4",
+      "timestamp": 1792002615.5,
+      "hr": 71.76,
+      "skin_temp": 32.32,
+      "activity": 0.0,
+      "tilt": 0
+     },
+     {
+      "worker_id": "demo-4",
+      "timestamp": 1792002620.5,
+      "hr": 71.76,
+      "skin_temp": 32.32,
+      "activity": 0.0,
+      "tilt": 0
+     }
+    ],
+    "estimates": [
+     {
+      "worker_id": "demo-4",
+      "timestamp": 1792002520.5,
+      "core": {
+       "mean": 37.41,
+       "p10": 37.3,
+       "p90": 37.52
+      },
+      "kalman": 37.061,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.236,
+        "p50": 37.378,
+        "p90": 37.513
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.212,
+        "p50": 37.358,
+        "p90": 37.495
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.199,
+        "p50": 37.346,
+        "p90": 37.482
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.187,
+        "p50": 37.334,
+        "p90": 37.47
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.175,
+        "p50": 37.322,
+        "p90": 37.458
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.164,
+        "p50": 37.312,
+        "p90": 37.448
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.155,
+        "p50": 37.304,
+        "p90": 37.441
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.15,
+        "p50": 37.299,
+        "p90": 37.437
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.146,
+        "p50": 37.297,
+        "p90": 37.436
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.145,
+        "p50": 37.297,
+        "p90": 37.438
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 37.145,
+        "p50": 37.299,
+        "p90": 37.441
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 37.145,
+        "p50": 37.301,
+        "p90": 37.445
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 37.147,
+        "p50": 37.304,
+        "p90": 37.45
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 37.148,
+        "p50": 37.307,
+        "p90": 37.455
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 37.15,
+        "p50": 37.31,
+        "p90": 37.461
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 37.152,
+        "p50": 37.314,
+        "p90": 37.466
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 37.153,
+        "p50": 37.317,
+        "p90": 37.471
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 37.155,
+        "p50": 37.32,
+        "p90": 37.475
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 37.156,
+        "p50": 37.322,
+        "p90": 37.48
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 37.156,
+        "p50": 37.325,
+        "p90": 37.484
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 37.157,
+        "p50": 37.327,
+        "p90": 37.488
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 37.157,
+        "p50": 37.329,
+        "p90": 37.491
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 37.158,
+        "p50": 37.33,
+        "p90": 37.495
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 37.158,
+        "p50": 37.332,
+        "p90": 37.498
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 37.158,
+        "p50": 37.333,
+        "p90": 37.502
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 37.158,
+        "p50": 37.335,
+        "p90": 37.505
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 37.157,
+        "p50": 37.336,
+        "p90": 37.509
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 37.157,
+        "p50": 37.337,
+        "p90": 37.512
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 37.156,
+        "p50": 37.338,
+        "p90": 37.515
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 37.156,
+        "p50": 37.339,
+        "p90": 37.517
+       }
+      ],
+      "why": "Heart rate 73 bpm, down 14 over 10 min, WBGT 24 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     },
+     {
+      "worker_id": "demo-4",
+      "timestamp": 1792002580.5,
+      "core": {
+       "mean": 37.399,
+       "p10": 37.29,
+       "p90": 37.508
+      },
+      "kalman": 37.051,
+      "forecast": [
+       {
+        "minutes_ahead": 1,
+        "p10": 37.226,
+        "p50": 37.368,
+        "p90": 37.502
+       },
+       {
+        "minutes_ahead": 2,
+        "p10": 37.204,
+        "p50": 37.349,
+        "p90": 37.485
+       },
+       {
+        "minutes_ahead": 3,
+        "p10": 37.192,
+        "p50": 37.338,
+        "p90": 37.473
+       },
+       {
+        "minutes_ahead": 4,
+        "p10": 37.181,
+        "p50": 37.327,
+        "p90": 37.462
+       },
+       {
+        "minutes_ahead": 5,
+        "p10": 37.17,
+        "p50": 37.316,
+        "p90": 37.451
+       },
+       {
+        "minutes_ahead": 6,
+        "p10": 37.161,
+        "p50": 37.308,
+        "p90": 37.443
+       },
+       {
+        "minutes_ahead": 7,
+        "p10": 37.155,
+        "p50": 37.303,
+        "p90": 37.439
+       },
+       {
+        "minutes_ahead": 8,
+        "p10": 37.151,
+        "p50": 37.3,
+        "p90": 37.437
+       },
+       {
+        "minutes_ahead": 9,
+        "p10": 37.149,
+        "p50": 37.3,
+        "p90": 37.439
+       },
+       {
+        "minutes_ahead": 10,
+        "p10": 37.149,
+        "p50": 37.301,
+        "p90": 37.441
+       },
+       {
+        "minutes_ahead": 11,
+        "p10": 37.15,
+        "p50": 37.303,
+        "p90": 37.446
+       },
+       {
+        "minutes_ahead": 12,
+        "p10": 37.151,
+        "p50": 37.306,
+        "p90": 37.451
+       },
+       {
+        "minutes_ahead": 13,
+        "p10": 37.153,
+        "p50": 37.31,
+        "p90": 37.456
+       },
+       {
+        "minutes_ahead": 14,
+        "p10": 37.155,
+        "p50": 37.314,
+        "p90": 37.462
+       },
+       {
+        "minutes_ahead": 15,
+        "p10": 37.157,
+        "p50": 37.317,
+        "p90": 37.467
+       },
+       {
+        "minutes_ahead": 16,
+        "p10": 37.159,
+        "p50": 37.321,
+        "p90": 37.473
+       },
+       {
+        "minutes_ahead": 17,
+        "p10": 37.161,
+        "p50": 37.324,
+        "p90": 37.478
+       },
+       {
+        "minutes_ahead": 18,
+        "p10": 37.162,
+        "p50": 37.327,
+        "p90": 37.483
+       },
+       {
+        "minutes_ahead": 19,
+        "p10": 37.164,
+        "p50": 37.33,
+        "p90": 37.488
+       },
+       {
+        "minutes_ahead": 20,
+        "p10": 37.164,
+        "p50": 37.332,
+        "p90": 37.492
+       },
+       {
+        "minutes_ahead": 21,
+        "p10": 37.165,
+        "p50": 37.335,
+        "p90": 37.496
+       },
+       {
+        "minutes_ahead": 22,
+        "p10": 37.165,
+        "p50": 37.337,
+        "p90": 37.5
+       },
+       {
+        "minutes_ahead": 23,
+        "p10": 37.166,
+        "p50": 37.339,
+        "p90": 37.504
+       },
+       {
+        "minutes_ahead": 24,
+        "p10": 37.166,
+        "p50": 37.34,
+        "p90": 37.508
+       },
+       {
+        "minutes_ahead": 25,
+        "p10": 37.166,
+        "p50": 37.342,
+        "p90": 37.511
+       },
+       {
+        "minutes_ahead": 26,
+        "p10": 37.166,
+        "p50": 37.344,
+        "p90": 37.515
+       },
+       {
+        "minutes_ahead": 27,
+        "p10": 37.166,
+        "p50": 37.345,
+        "p90": 37.518
+       },
+       {
+        "minutes_ahead": 28,
+        "p10": 37.165,
+        "p50": 37.346,
+        "p90": 37.521
+       },
+       {
+        "minutes_ahead": 29,
+        "p10": 37.165,
+        "p50": 37.347,
+        "p90": 37.524
+       },
+       {
+        "minutes_ahead": 30,
+        "p10": 37.164,
+        "p50": 37.348,
+        "p90": 37.527
+       }
+      ],
+      "why": "Heart rate 73 bpm, down 13 over 10 min, WBGT 24 °C.",
+      "thresholds": {
+       "warning": 38.0,
+       "danger": 38.5,
+       "demo": false
+      },
+      "model": "ens5"
+     }
+    ]
+   }
+  },
+  "band": [
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:HEAT_YELLOW",
+    "at": 1791995500.5
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:OFF",
+    "at": 1791998380.5
+   },
+   {
+    "worker_id": "demo-1",
+    "command": "BUZZ:HEAT_YELLOW",
+    "at": 1792000540.5
+   },
+   {
+    "worker_id": "demo-1",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-4",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792001200.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:MANDOWN",
+    "at": 1792002445.5
+   },
+   {
+    "worker_id": "demo-1",
+    "command": "BUZZ:HEAT_RED",
+    "at": 1792002520.5
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:HEAT_RED",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:HEAT_RED",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:LIGHTNING",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-2",
+    "command": "BUZZ:OFF",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-3",
+    "command": "BUZZ:OFF",
+    "at": 1792002620.0
+   },
+   {
+    "worker_id": "demo-4",
+    "command": "BUZZ:OFF",
+    "at": 1792002620.0
+   }
+  ],
+  "offsets": {
+   "demo-1": {
+    "type": "offset_update",
+    "worker_id": "demo-1",
+    "timestamp": 1792002625.0,
+    "accepted": true,
+    "offset_c": 0.0653,
+    "confidence": 0.333,
+    "n_checks": 1
+   },
+   "demo-2": {
+    "type": "offset_update",
+    "worker_id": "demo-2",
+    "timestamp": 1792002625.0,
+    "accepted": true,
+    "offset_c": 0.0,
+    "confidence": 0.0,
+    "n_checks": 0
+   },
+   "demo-3": {
+    "type": "offset_update",
+    "worker_id": "demo-3",
+    "timestamp": 1792002625.0,
+    "accepted": true,
+    "offset_c": 0.0,
+    "confidence": 0.0,
+    "n_checks": 0
+   },
+   "demo-4": {
+    "type": "offset_update",
+    "worker_id": "demo-4",
+    "timestamp": 1792002625.0,
+    "accepted": true,
+    "offset_c": 0.0,
+    "confidence": 0.0,
+    "n_checks": 0
+   }
+  }
+ }
+]

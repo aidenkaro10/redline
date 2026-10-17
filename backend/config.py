@@ -204,9 +204,22 @@ PLAN_STOP_WORK_HAZARDS = ("lightning", "severe_thunderstorm", "tornado", "flash_
 PLAN_MAX_COOLER_OFFSET_C = 0.3   # a worker can count as at most this much COOLER than the model (hotter: no cap here)
 PLAN_PERSON_SD_C = 0.15          # how unsure we are about a person with no spot checks yet (°C)
 PLAN_MIN_PERSON_SD_C = 0.05      # never more certain than this, however many checks
+# Acting on forecasts (backend/planner/proactive.py). The loop only changes the SCHEDULE.
+# It never touches heat alerts, man-down or emergency logic, which stay code-only.
+PLAN_EARLY_LINE_C = 37.7                  # 20-min forecast 90th pct at/above this = act early (below the 38.0 yellow line)
+PLAN_EARLY_HORIZON_MIN = 20               # which forecast minute the early line looks at
+PLAN_PROACTIVE_COOLDOWN_MIN = 20          # at most one schedule change per worker this often
+PLAN_PROACTIVE_MAX_PER_SHIFT = 6          # and at most this many per worker per shift
+PLAN_PROPOSAL_EXPIRE_MIN = 15             # a change waiting for the crew lead expires after this
+# One-way SMS to the crew lead (backend/planner/notify.py). Dry run unless PLANNER_SMS_MODE=twilio.
+PLAN_SMS_MIN_GAP_S = 300                  # at least 5 min between texts
+PLAN_SMS_MAX_PER_HOUR = 6
 
 # ---------------------------------------------------------------------------
 # LIVE SYSTEM (session A). Band link timing, from docs/firmware-contract.md.
 # ---------------------------------------------------------------------------
 BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real seconds);
                              # the band blinks cyan "no connection" after 60 s without a command
+# Bluetooth heart rate (backend/ingest/ble_hr.py): HeartCast relaying the Apple Watch, a strap, a Garmin.
+BLE_HR_DEVICE = os.getenv("BLE_HR_DEVICE", "")   # part of the device name, or its address; "" = first 0x180D device
+BLE_HR_STALE_S = 15          # connected but no heart rate this long -> "stale" status event

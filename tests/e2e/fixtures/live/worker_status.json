@@ -1,0 +1,146 @@
+[
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-1",
+   "name": "Jake",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": 30,
+   "status_reason": "Forecast to reach danger in ~30 min",
+   "hazard": null,
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792000420.5
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-1",
+   "name": "Jake",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "yellow",
+   "minutes_to_danger": 29,
+   "status_reason": "Forecast to reach danger in ~29 min",
+   "hazard": "HEAT_YELLOW",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792000540.5
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-1",
+   "name": "Jake",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "yellow",
+   "minutes_to_danger": 23,
+   "status_reason": "Forecast to reach danger in ~23 min",
+   "hazard": "LIGHTNING",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-2",
+   "name": "Maria",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": null,
+   "status_reason": "Normal",
+   "hazard": "LIGHTNING",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-2",
+   "name": "Maria",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": null,
+   "status_reason": "Man-down check",
+   "hazard": "MANDOWN",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002445.5
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-1",
+   "name": "Jake",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "red",
+   "minutes_to_danger": 0,
+   "status_reason": "In heat danger now",
+   "hazard": "HEAT_RED",
+   "alert_acknowledged": false,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002520.5
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-3",
+   "name": "Dev",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": null,
+   "status_reason": "SOS pressed",
+   "hazard": "SOS",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002620.0
+  }
+ },
+ {
+  "type": "worker_status",
+  "worker": {
+   "worker_id": "demo-3",
+   "name": "Dev",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "red",
+   "minutes_to_danger": 0,
+   "status_reason": "SOS pressed",
+   "hazard": "SOS",
+   "alert_acknowledged": false,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002620.0
+  }
+ }
+]

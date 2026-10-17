@@ -54,6 +54,8 @@ TASK_LIBRARY = [
     ("Shop equipment repair", "moderate", False, None),
 ]
 SKILLS = ["electrical", "climbing"]
+ELEVATED = {"Scaffold setup"}                                   # up high: slow to get down in a storm
+HARD_TO_STOP = {"Cable pulling", "Transformer maintenance"}     # can't be paused mid-way
 
 
 def is_test_scenario(scenario_id: str) -> bool:
@@ -169,12 +171,35 @@ def make_scenario(seed: int, prefix: str = "train", tags: list[str] | None = Non
             deadline = int(rng.integers(n_slots // 2, n_slots))
         tasks.append(Task(id=f"t{j + 1}", name=name, intensity=intensity, outdoor=outdoor,
                           units=max(1, int(round(share * demand))), priority=int(rng.choice([1, 2, 2, 3])),
-                          deadline=deadline, skill=skill))
+                          deadline=deadline, skill=skill, elevated=name in ELEVATED,
+                          hard_to_stop=name in HARD_TO_STOP))
 
     site = SITES[int(rng.integers(0, len(SITES)))]
+    add_storm_forecast(weather, hazards)
     return Scenario(id=f"{prefix}-{seed}", site=site, date="2026-07-15",
                     shift_start="11:00" if "replan" in tags else "07:00",
                     weather=weather, crew=crew, tasks=tasks, hazards=hazards, tags=tags)
+
+
+def add_storm_forecast(weather: list[SlotWeather], hazards: list[HazardWindow]) -> None:
+    """
+    What the evening-before forecast would have said: storm chances rising before each storm window.
+    (The window itself is what happens; the forecast only knows "likely in the afternoon".)
+    """
+    before = {-3: 0.2, -2: 0.4, -1: 0.6}       # slots before the storm: chances rising
+    after = {0: 0.5, 1: 0.3}                  # slots after it ends: chances falling
+    for h in hazards:
+        if h.kind not in ("lightning", "severe_thunderstorm"):
+            continue
+        for k in range(len(weather)):
+            if h.start_slot <= k < h.end_slot:
+                p = 0.6
+            elif k < h.start_slot:
+                p = before.get(k - h.start_slot, 0.0)
+            else:
+                p = after.get(k - h.end_slot, 0.0)
+            weather[k].storm_prob = max(weather[k].storm_prob, p)
+            weather[k].rain_prob = max(weather[k].rain_prob, p)
 
 
 def demo_scenario() -> Scenario:

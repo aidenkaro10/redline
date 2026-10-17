@@ -59,3 +59,12 @@ Owns `backend/sites/` and `backend/hazards/`. Interface for other sessions: [doc
 - Soil thresholds (0.30 / 0.38 m³/m³) are a first guess; check after a real heavy-rain day.
 - C2's hazard index: plug its predict function into `hazard_picture()` (`entry["hazard_index"]`).
 - Crew photo reports belong to session A; they could become `wildlife` / `flood` events via `inject_test_event`-style records with `source="crew report"` if A wants them on the map and in the log.
+
+## Round 2: hazard index wired in
+
+- Merged main, then `backend/hazards/index.py` wraps C2's `predict_index`. Tomorrow's 0-10 index goes into `entry["hazard_index"]` (C2's full JSON), with `tomorrow_rank`, `pic["riskiest_tomorrow"]` and `pic["index_status"]`. See docs/interfaces/site-hazards.md.
+- Real run, all 79 sites, Oct 17 afternoon: ~11 s per site (about 16 min total with the test suite competing for CPU), run in a background thread and saved to `data/hazards/cache/hazard_index_<date>-<am|pm>.json`. `hazard_picture()` never waits for it. Computed once in the morning and once after 6 PM Florida time.
+- The real result agreed with the live hazards: Sanford (4.67) and DeBary (4.63) on top, reason "NWS flood warning in effect at 6 PM", climatology 3.4. Next were low (about 1.1).
+- A failing site keeps `hazard_index: null` and is not retried until the next cache key. Missing model or sklearn -> state `unavailable`, rest of the picture unaffected.
+- Fake mode returns deterministic demo values (`data_mode: "mock"`, `fake: true`).
+- Fixed: reading GLM files from memory made HDF5 print a wall of "can't open glm.nc" errors; now read from a temp file.
