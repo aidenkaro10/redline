@@ -32,7 +32,7 @@ The band runs on an Adafruit ESP32-S3 Feather, which is wireless and has a built
 
 &#91;embedded content: concept sketch · the band on a forearm\]
 
-The Feather, LED strip, buzzer, button and tilt switch sit on a mini breadboard strapped to the forearm. The diode is taped against the skin under the strap, and the Apple Watch stays on the wrist for heart rate. When we get the Grove accelerometer, it replaces the tilt switch.
+The Feather, buzzer, button and tilt switch sit on a mini breadboard strapped to the forearm (the hardware team calls the built device the "Crew Beacon"). Status uses the Feather's built-in NeoPixel LED; the LED strip is not used (its stubs need soldering). The diode is taped against the skin under the strap, and the Apple Watch stays on the wrist for heart rate. When we get the Grove accelerometer, it replaces the tilt switch.
 
 **What we have**
 
@@ -40,9 +40,9 @@ The Feather, LED strip, buzzer, button and tilt switch sit on a mini breadboard 
 | --- | --- | --- |
 | Adafruit ESP32-S3 Feather (headers soldered) | Main board, WiFi | CpE Design Lab |
 | Arduino Uno + cable | Backup board | Ours |
-| APA102 LED strip, 5 LEDs | Status colors | Lab |
+| APA102 LED strip, 5 LEDs | Not used in the build (needs soldering); the built-in NeoPixel shows status | Lab |
 | Half-size breadboard | Prototyping | Lab |
-| Push button | Acknowledge alerts, cancel man-down | Lab |
+| Push button | Short press: acknowledge alert / cancel man-down. Hold 3 s: SOS | Lab |
 | Buzzer | Alert sounds | Lab |
 | 2 tilt switches | Man-down detection until we get an accelerometer | Lab |
 | 2 small glass diodes (1N4148) | DIY skin temperature sensor | Lab |
@@ -58,15 +58,15 @@ The Feather, LED strip, buzzer, button and tilt switch sit on a mini breadboard 
 - [ ] Pulsoid set up on the Apple Watch and iPhone
 - [ ] At the hackathon: Grove 3-Axis Accelerometer from the MLH hardware lab
 
-**Wiring to the Feather**
+**Wiring to the Feather (as built, Oct 17; full checklist for the beacon program: `docs/firmware-contract.md`)**
 
 | Part | Connection |
 | --- | --- |
-| LED strip | 5V → USB pin, GND → GND, D → D11, C → D12 |
-| Buzzer | D9 → 100Ω → buzzer → GND |
-| Button | D10 → button → GND (INPUT\_PULLUP) |
-| Tilt switch | D5 → switch → GND (INPUT\_PULLUP) |
-| Diode temp sensor | 3V → 10kΩ → diode → GND (black band to GND); read the resistor-diode junction on A5 |
+| Status light | Built-in NeoPixel (no wiring) |
+| Passive buzzer | pin 5 → buzzer → GND, driven with `tone(5, 2000)` |
+| Button | pin 6 → button → GND (INPUT\_PULLUP; LOW = pressed) |
+| Tilt switch | pin 9 → switch → GND (HIGH = tipped) |
+| Diode temp sensor | 3V → 10kΩ → diode → GND (striped end to GND); read the resistor-diode junction on A5, average 64 readings |
 | Accelerometer (later) | VCC → 3V, GND → GND, SDA → SDA, SCL → SCL, or the STEMMA QT port |
 
 Use A5 for the temperature sensor: A0 to A4 stop working as analog inputs while WiFi is on. Check pins against Adafruit's Feather ESP32-S3 pinout before wiring. Calibrate the diode against a real thermometer at two temperatures; it changes about 2 mV per °C.
@@ -82,7 +82,8 @@ The band sends one text line per reading and listens for command lines. Over USB
 | Band → laptop | TEMP:34.62 | Skin temperature, °C (from the calibrated diode) |
 | Band → laptop | TILT:1,ACT:7 | Tilt switch state and activity (switch flickers per second) |
 | Band → laptop | ACC:0.98,0.02,0.11 | Accelerometer x,y,z in g (once we have one) |
-| Band → laptop | BTN:1 | Button pressed |
+| Band → laptop | BTN:1 | Short press: acknowledge alert / cancel man-down ("I'm OK") |
+| Band → laptop | BTN:SOS | Button held 3 s: SOS, starts emergency escalation right away |
 | Laptop → band | BUZZ:HEAT\_YELLOW | Heat warning pattern |
 | Laptop → band | BUZZ:HEAT\_RED | Heat danger pattern |
 | Laptop → band | BUZZ:LIGHTNING | Lightning pattern |
@@ -182,11 +183,13 @@ Each hazard gets its own buzz and LED pattern, so the worker knows what's wrong 
 
 | Event | Trigger | Buzz | LED |
 | --- | --- | --- | --- |
+| All clear | No active alert | Silent | Solid green |
 | Heat warning | 20-min forecast (90th percentile) crosses 38.0 °C | One long buzz | Solid yellow |
-| Heat danger | Current estimate or 10-min forecast crosses 38.5 °C | Long buzz every 10 s until acknowledged | Flashing red |
+| Heat danger | Current estimate or 10-min forecast crosses 38.5 °C | Long buzz every 10 s until a short press | Flashing red |
 | Lightning | GOES-19 lightning within 10 miles (2+ good-quality flashes); stays on until 30 min with no strikes | Rapid pulses | Rapid white flashes |
-| Flood or fire weather | Active NWS alert at the site | Two short buzzes | Blue |
-| Man-down check | Band tips over, then no movement for 30–60 s | Continuous buzz; button press or movement cancels | Whole strip pulsing red |
+| Flood or fire weather | Active NWS alert at the site | Two short buzzes | Solid blue |
+| Man-down check | Band tips over, then no movement for 30–60 s | Continuous buzz; short press or movement cancels | Red breathing pulse |
+| SOS | Worker holds the button 3 s | 3 beeps | Blinking purple; starts emergency escalation immediately |
 
 If a man-down check isn't cancelled within a minute, the crew lead and nearby crewmates get an alert on the dashboard. Thresholds are configurable; safety limits are hard-coded and never learned.
 
@@ -199,7 +202,7 @@ Man-down fires when the worker appears to have fallen or stopped responding. We 
 - **Also trigger** on a red heat alert with no button press within a minute.
 - **Version 2 (ML):** a small classifier on accelerometer windows, trained on recorded falls, sits and normal movement from teammates.
 
-**On trigger:** buzz the worker first with the continuous man-down pattern. Any movement or a button press cancels it. If it isn't cancelled, alert the crew lead and nearby crewmates with the worker's location, then start emergency escalation (below).
+**On trigger:** buzz the worker first with the continuous man-down pattern. Any movement or a short button press cancels it. A 3-second hold (SOS) skips the wait and escalates right away. If it isn't cancelled, alert the crew lead and nearby crewmates with the worker's location, then start emergency escalation (below).
 
 ## Emergency escalation (confirmed man-down)
 
