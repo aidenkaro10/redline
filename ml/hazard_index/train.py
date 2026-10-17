@@ -38,10 +38,11 @@ SHIPPED_KIND = "blend"       # "blend", "boosted_trees" or "logistic": whichever
 
 def climatology_wins() -> set[tuple[str, int]]:
     """
-    (hazard, level) pairs where the evaluation's held-out years (time split) showed
-    the model did NOT beat climatology. For those we ship climatology. Note: this
-    choice is made after looking at 2023-2024, so those rows of the results table
-    are a little optimistic for the shipped mix.
+    (hazard, level) pairs where the evaluation's held-out years (time split) did NOT
+    show a clear win for the model: the model's PR-AUC gain over climatology must be
+    positive AND its 95% interval (resampled weeks) must stay above zero. For all
+    other pairs we ship climatology. This choice is made after looking at 2023-2024,
+    so those rows of the results table are a little optimistic for the shipped mix.
     """
     path = fetch.data_dir() / "eval_results.json"
     if not path.exists():
@@ -49,7 +50,11 @@ def climatology_wins() -> set[tuple[str, int]]:
         return set()
     out = set()
     for r in json.loads(path.read_text()):
-        if r["split"] == "time" and r[f"pr_auc_{SHIPPED_KIND}"] <= r["pr_auc_climatology"]:
+        if r["split"] != "time":
+            continue
+        gain = r[f"pr_auc_{SHIPPED_KIND}"] - r["pr_auc_climatology"]
+        ci = r.get("diff_ci")
+        if gain <= 0 or ci is None or ci[0] <= 0:
             out.add((r["target"], int(r["level"])))
     return out
 
@@ -74,7 +79,7 @@ def main():
         for level in LEVELS:
             y = target(df, hz, level)
             if (hz, level) in use_clim:
-                print(f"  {hz} >={level}: climatology beat the model on 2023-2024, shipping climatology")
+                print(f"  {hz} >={level}: no clear win over climatology on 2023-2024, shipping climatology")
                 out["models"][hz][str(level)] = None
             elif y.sum() < 10:
                 print(f"  {hz} >={level}: only {int(y.sum())} yes-days, climatology only")

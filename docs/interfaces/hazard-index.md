@@ -9,7 +9,7 @@ The index ranks sites and fills the 6 PM briefing. It is **not an alert** and ne
 ```python
 from ml.hazard_index.predict import predict_index, predict_all_sites
 
-r = predict_index("ph-gainesville", "2024-07-10")      # date = the day being scored, a date or "YYYY-MM-DD"
+r = predict_index("eia-663", "2024-07-10")      # date = the day being scored, a date or "YYYY-MM-DD"
 ranked = predict_all_sites("2026-10-18")               # every site, highest index first (for the map)
 ```
 
@@ -19,14 +19,14 @@ ranked = predict_all_sites("2026-10-18")               # every site, highest ind
 - Speed: first call per site and day takes a few seconds (a handful of polite web calls). After that it's cached.
 - Needs the trained model `ml/hazard_index/model/hazard_index.joblib` (committed, 0.8 MB, scikit-learn). If loading fails after a scikit-learn upgrade, retrain (below).
 - `top_reasons` can be empty: nothing pushed risk above a usual day.
-- `site_id` comes from `ml/hazard_index/sites.py:load_sites()`. That reads C1's `backend/sites/plants.geojson` once it exists (fields `site_id`, `id`, `plant_id` or `eia_plant_id`). Until then it uses 12 placeholder sites with ids starting `ph-`.
+- `site_id` is C1's id, e.g. `eia-663` (Deerhaven, Gainesville). The model is trained on all 79 plants in `backend/sites/plants.geojson`. `load_sites()` reads that file (or a copy in `data/raw/hazard_index/plants.geojson` before C1 is merged) and falls back to 12 placeholder `ph-*` sites only if neither exists. A site not in training still works: climatology borrows the nearest trained site and `notes` says so.
 
 ## JSON shape
 
 ```json
 {
-  "site_id": "ph-gainesville",
-  "site_name": "Gainesville (Deerhaven area), placeholder",
+  "site_id": "eia-663",
+  "site_name": "Deerhaven Generating Station",
   "date": "2024-07-10",
   "index": 4.1,                       // 0-10, overall
   "band": "high",                     // low <2, moderate <4, high <6, extreme 6+ (display only)
@@ -47,7 +47,7 @@ ranked = predict_all_sites("2026-10-18")               # every site, highest ind
   "cutoff": "2024-07-09T18:00:00-04:00",   // latest data the score is allowed to use
   "data_mode": "archive",                  // or "live"
   "model_version": "2026-10-17",
-  "notes": ["Trained on placeholder sites; retrain once backend/sites/plants.geojson lands."]
+  "notes": []                              // e.g. "Missing inputs filled with typical values: ..."
 }
 ```
 
@@ -60,7 +60,7 @@ Show `text` as-is in the briefing. Show `notes` in small print.
 
 ```python
 from ml.hazard_index.predict import past_incidents
-past_incidents("ph-tampa", limit=5)
+past_incidents("eia-663", limit=5)
 # [{"date": "2024-07-25", "hazard": "storm", "level": 10, "source": "StormEvents", "text": "Lightning, 3 hurt, 1 died"},
 #  {"date": "2024-08-23", "hazard": "heat", "level": 9, "source": "OSHA", "text": "Heat injury reported to OSHA nearby"}, ...]
 ```
@@ -71,18 +71,18 @@ Storm Events with damage, injury or death, plus OSHA heat injuries and utility/e
 
 `heat`, `storm` (thunderstorms, lightning damage, wind, tornado, hail), `flood`, `fire`, `tropical`. Lightning itself isn't a separate hazard here because no free historical strike record exists; live lightning is C1's 10-mile rule.
 
-`fire` (every level) and heat at injury level use climatology, not the model: the model didn't beat climatology there on 2023-2024. The model file lists these under `climatology_only`.
+`fire` (every level), heat at injury level and flood at damage level use climatology, not the model: the model's gain there wasn't clearly above zero on 2023-2024. The model file lists these under `climatology_only`.
 
 ## Retrain
 
 1. `python -m ml.hazard_index.labels` (downloads NWS warnings and storm reports per site, cached; about 3 s per site-year)
 2. `python -m ml.hazard_index.features` (downloads Open-Meteo archive weather, about 2-3 min per site, spaced out politely)
-3. `python -m ml.hazard_index.evaluate` (scores on 2023-2024, prints the table; about 10 min for 12 sites)
+3. `python -m ml.hazard_index.evaluate` (scores on 2023-2024, prints the table; about 30 min for 79 sites)
 4. `python -m ml.hazard_index.train` (fits on all years, writes `ml/hazard_index/model/hazard_index.joblib`; ships climatology wherever step 3 showed the model didn't beat it)
 
 Prefix steps 3 and 4 with `OMP_NUM_THREADS=2` to leave CPU for the forecaster training.
 
-Add `--sites placeholder` or `--sites geojson` to any step to pick the site list. Downloads are cached in `data/raw/hazard_index/` in the main checkout (gitignored). For 50+ sites, Open-Meteo's free daily limit is the bottleneck: run step 2 in two sittings if it complains.
+Add `--sites placeholder` or `--sites geojson` to any step to pick the site list. Downloads are cached in `data/raw/hazard_index/` in the main checkout (gitignored). Weather is the slow part: sites within ~10 km share one download, calls are 25 s apart (Open-Meteo's free limits), about 3 minutes per weather cell, so 79 sites took about 3.5 hours. If a cell fails, the rest continue; rerun and only the missing ones download. Set `HAZARD_INDEX_DATA_DIR` in `.env` to move the cache.
 
 Extra label sources for damage and injury (already downloaded on Aiden's laptop). Put the files here and rerun step 1:
 - NOAA Storm Events yearly details CSVs → `data/raw/hazard_index/stormevents/`
