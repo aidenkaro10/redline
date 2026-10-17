@@ -11,8 +11,8 @@ from ml.data import Session
 def _run(n=60):
     truth = np.linspace(37, 38, n)
     s = Session("p", "p-1", "test", "heat", {"hr": np.full(n, 100.0), "core_temp": truth})
-    fc = np.zeros((n, 30, 3))                       # forecast = Kalman (flat 37.0) for every quantile
-    return Run(s, np.full(n, 37.0), np.zeros(n), fc)
+    fc = np.full((n, 30, 3), 37.0)                  # absolute forecast: flat 37.0 for every quantile
+    return Run(s, np.full(n, 37.0), fc)
 
 
 def test_pairs_line_up_forecast_with_the_later_truth():

@@ -9,7 +9,7 @@ Everything is scored on Mendeley **validation** people only. Test people were ne
 1. Tests: `python -m pytest ml/explain ml/figures -q`  (13 pass)
 2. Why-lines on val examples: `python -m ml.explain.examples`
 3. Weaver vs equal weights: `python -m ml.explain.weaver`
-4. Figures (rewrites the 5 PNGs in `docs/figures/`): `python -m ml.figures.make_figures`
+4. Figures (rewrites the 5 PNGs in `docs/figures/`; final_cv on the 10 locked TEST people): `python -m ml.figures.make_figures`. The old validation version: `python -m ml.figures.make_figures --on val --model ens5`
 
 Data and checkpoints are the gitignored ones in the main checkout, referenced by absolute path (`MAIN` in each script). Use `PYTHONPATH=.` if Python can't find `backend`.
 One test to verify: step 1. `test_attributions_add_up_on_the_real_ensemble` checks the shares add up to the forecast difference.
@@ -78,3 +78,16 @@ Placement: the brief said main checkout `docs/figures/`. I wrote them to this wo
 
 - Live system: `explain()` expects `signals` with `wbgt` / `workload` filled 30 minutes past `minute` if known (same as the forecaster). Session A's note says without known-future inputs the p90 runs about 0.35 °C high; the explanation will then blame heart rate and body heat.
 - If you ever want twin-aware explanations, `explain` needs a `twins` argument passed into `m.encode`/`m.forecast` (one-line change in `_p90_delta`).
+
+## Round 2: figures redrawn on the TEST people with final_cv (plotting only)
+
+Asked by the main session. `python -m ml.figures.make_figures` now loads `final_cv.pt` (CV+ calibrated, as shipped) and scores the 10 locked test people (20 sessions) next to raw Kalman and Kalman + trend (error percentiles learned on the train people, same as `ml/baselines.py`). Same five file names, every figure says "Scored on 10 unseen test people". Nothing was tuned or chosen after seeing the plots: example people come from fixed rules (lowest peak, middle, highest peak that crosses 38.5 °C; the alert timeline uses the caught crossing with the MEDIAN lead time), and each headline number is computed from the data.
+
+Cross-check against docs/results.md "FINAL: final_cv" (the script prints these): RMSE +10/+20/+30 0.363 / 0.370 / 0.371 (model), 0.442 / 0.481 / 0.500 (raw Kalman), 0.384 / 0.380 / 0.400 (trend); p90 coverage 0.96 / 0.95 / 0.95, 0.56 / 0.52 / 0.48, 0.94 / 0.98 / 1.00. All match. NOW RMSE 0.35 vs 0.40 (raw Kalman), also matches.
+
+What the test plots show (told straight):
+- The model beats raw Kalman clearly, and Kalman + trend only slightly on error (0.37 vs 0.38 at +20). Kalman + trend's 90th percentile covers 98 to 100% at long horizons (wider than needed), ours about 95%.
+- Alert timeline: person 63, ours fires 25 min ahead, Kalman + trend 26 min ahead. Our red alert caught 9 of 10 crossings (leads 11, 15, 21, 22, 25, 27, 34, 54, 78 min).
+- Bland-Altman on test people shows a tilt: our NOW estimate runs high when the true temp is low and low when it is high, so the 95% band is -0.71 to +0.65 vs raw Kalman -0.77 to +0.79.
+
+To make this work I merged main into this branch (main already contained my earlier commits, so it was a fast-forward). That brought in the `final_cv` loader and the Mendeley wbgt/workload signals.
