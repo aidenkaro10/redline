@@ -22,6 +22,7 @@ import type { Site, SiteStatus, Status, WorkerStatus } from "@/lib/contract";
 import { ALERT_LABEL, HAZARD_LABEL } from "@/lib/contract";
 import { shortSiteName, siteMeta, useCrew } from "@/lib/crew";
 import { useFetch, useLive, useSimNow } from "@/lib/live";
+import { secondsUntil } from "@/lib/normalize";
 
 const STATUS_ORDER: Record<Status, number> = { red: 0, yellow: 1, green: 2 };
 
@@ -115,7 +116,7 @@ function SiteBanners({ siteIds, sites, now }: { siteIds: string[]; sites: Record
           {h.lightning?.all_clear_at && (
             <div className="text-right">
               <p className="text-[10px] font-bold uppercase opacity-80">All clear</p>
-              <p className="text-lg font-black tabular">{fmtCountdown(h.lightning.all_clear_at - now)}</p>
+              <p className="text-lg font-black tabular">{fmtCountdown(secondsUntil(h.lightning.all_clear_at, now))}</p>
             </div>
           )}
         </div>
@@ -181,7 +182,7 @@ function SitesTab() {
     const flag = { mandown: 0, sos: 0, heat: 1, none: 2 };
     return sites.filter((s) => live.sites[s.id]).sort((a, b) => {
       const A = live.sites[a.id], B = live.sites[b.id];
-      return flag[A.worker_flag] - flag[B.worker_flag] || B.index_tomorrow - A.index_tomorrow;
+      return flag[A.worker_flag] - flag[B.worker_flag] || (B.index_tomorrow ?? -1) - (A.index_tomorrow ?? -1);
     });
   }, [sites, live.sites]);
 

@@ -18,6 +18,7 @@ import { useState } from "react";
 import type { EmergencyCall, EmergencyStage, ManDown } from "@/lib/contract";
 import { CALL_FAILED_TEXT, callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
+import { secondsUntil } from "@/lib/normalize";
 import { fmtClock, fmtClockSec, fmtCountdown } from "./ui";
 
 const STEPS: { stage: EmergencyStage; label: string }[] = [
@@ -134,7 +135,7 @@ function Vital({ label, value }: { label: string; value: string }) {
 function stageText(call: EmergencyCall, now: number) {
   switch (call.stage) {
     case "notifying": return "Notifying crew lead";
-    case "cancel_window": return `Cancel window ${fmtCountdown((call.cancel_deadline ?? now) - now)}`;
+    case "cancel_window": return `Cancel window ${fmtCountdown(call.cancel_deadline ? secondsUntil(call.cancel_deadline, now) : 0)}`;
     case "calling": return "Calling (demo: would call 911)";
     case "connected": return "Connected";
     case "done": return "Call done";
@@ -204,7 +205,7 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
       {canCancel && (
         <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl bg-warn-bg p-3">
           <p className="flex-1 text-sm font-medium text-warn-ink">
-            {call.stage === "notifying" ? "Crew lead and safety officer are being notified." : `Calling in ${fmtCountdown((call.cancel_deadline ?? now) - now)} unless cancelled.`}
+            {call.stage === "notifying" ? "Crew lead and safety officer are being notified." : `Calling in ${fmtCountdown(call.cancel_deadline ? secondsUntil(call.cancel_deadline, now) : 0)} unless cancelled.`}
           </p>
           {/* Same route as session D suggests: cancel by worker, not by call id. */}
           <button onClick={() => apiPost("/emergency/cancel", { worker_id: call.worker_id })} className="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-page hover:opacity-90">

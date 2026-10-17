@@ -76,3 +76,20 @@ Still open:
 - Removed: planner chat page, 6 PM briefing page (Sites tab's 0-10 index covers the brief), report page (moved into worker Details), schedule grid, crew-side alert log, laptop dashboard layout. Mock planner chat removed.
 - Crew banners only for real alerts (stop work, flood/fire warnings), not everyday heat. Site panel shows active hazards first, "Show all" for the rest.
 - No data or safety logic changed; still works with A's backend.
+
+## Round 8 (2026-10-17): merged main, tested against the real merged backend
+
+Merged main (all sessions except F) into this branch, ran the UI against `python -m backend.app.main --source replay --speed 10` from the main checkout (port 8000).
+
+Works on the real backend: crew tab (statuses, lightning stop-work banner + countdown), sites tab (79 real plants, live lightning rings), worker app (status, hazard tile, SOS, details chart + session H why-line, spot check), SOS and man-down screens with session D's call, crew lead "close alert", judges' /demo.
+
+Fixed in the frontend:
+- Session C1's SiteStatus sends lightning/heat numbers flat on the hazard (`all_clear_at`, `strikes`, `wbgt_c`...) with null `detail`/`source`/`updated_at`. `src/lib/normalize.ts` turns them into the contract's nested shape (tested). The lightning countdown and 10-mile ring work again.
+- `index_tomorrow` can be null: chips show "--", sorting and map colors handle it.
+- Two clocks during replay: lightning all-clear (live feeds) and session D's call deadlines are real-clock, worker data is replay-clock. Countdowns now use whichever clock the time belongs to (`secondsUntil`).
+
+Backend gaps (not frontend code, for the main session / A):
+1. Session B's planner router isn't mounted and nothing posts to `/api/plans` or `/api/briefing`: `/api/schedule` and `/api/briefing` are 404, so "Next break" shows "--" (worker app + crew rows).
+2. Session C2's index isn't wired into C1's picture (`backend/hazards/picture.py` sets `hazard_index: None`): every site's 0-10 index is "--", so "Riskiest tomorrow" isn't ranked.
+3. `/api/state` snapshot has no `offsets`, so the "Learning your body" card resets to "Not personalized yet" on page reload even though A saved the offset (SQLite). Add `offsets: {worker_id: offset_update}` for demo/worker views.
+4. Old man-down incidents stay open until a crew lead closes them (replay falls stack up); only one shows at a time. Fine for now.

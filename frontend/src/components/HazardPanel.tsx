@@ -11,6 +11,7 @@ import type { Hazard, HazardIndex, IndexHazard, Site, SiteStatus } from "@/lib/c
 import { HAZARD_LABEL } from "@/lib/contract";
 import { siteMeta } from "@/lib/crew";
 import { useSimNow } from "@/lib/live";
+import { secondsUntil } from "@/lib/normalize";
 import { HAZARD_TEXT_CLASS, HazardIcon, IndexChip, LevelPill, fmtClock, fmtCountdown, indexColor } from "./ui";
 
 export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }) {
@@ -71,7 +72,7 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
 
 function LightningBanner({ h, now }: { h: Hazard; now: number }) {
   const l = h.lightning!;
-  const left = (l.all_clear_at ?? now) - now;
+  const left = l.all_clear_at ? secondsUntil(l.all_clear_at, now) : 0;
   return (
     <div className="rounded-xl border-2 border-lightning bg-surface-2 p-3">
       <div className="flex items-center justify-between gap-3">
