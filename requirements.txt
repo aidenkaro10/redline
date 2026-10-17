@@ -15,6 +15,9 @@ torch            # neural nets (forecaster, twins)
 pythermalcomfort # physiology simulator (ISO 7933 heat strain)
 matplotlib       # evaluation plots and slide figures
 
+# Site hazard layer
+netCDF4          # reads GOES-19 lightning files
+
 # Later (uncomment when we get there)
 # ortools          # schedule optimizer
 # anthropic        # planning agent

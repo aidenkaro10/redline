@@ -99,3 +99,44 @@ NWS_USER_AGENT = os.getenv("NWS_USER_AGENT", "planit-control (contact@example.co
 # Where things get saved
 DB_PATH = os.getenv("DB_PATH", "data/planit.db")
 RECORDINGS_DIR = "data/recordings"
+
+
+# ===========================================================================
+# SITE HAZARD LAYER (session C1: backend/sites, backend/hazards)
+# Safety limits for job-site hazards. Hard-coded on purpose, never learned.
+# ===========================================================================
+
+# Lightning stop-work rule (GOES-19 GLM flashes)
+LIGHTNING_STOP_RADIUS_MI = 10        # good-quality flash this close -> stop work
+LIGHTNING_ALL_CLEAR_MIN = 30         # back to work only after this long with no flash; resets on each new one
+LIGHTNING_MIN_FLASHES = 2            # need this many flashes before stopping (GOES-19 false flash problem)
+LIGHTNING_CONFIRM_WINDOW_MIN = 30    # ...within this many minutes of each other
+LIGHTNING_GOOD_QUALITY_FLAG = 0      # only keep flashes with flash_quality_flag == this
+LIGHTNING_WATCH_RADIUS_MI = 30       # flashes this close show "lightning nearby" (no stop)
+LIGHTNING_FEED_STALE_MIN = 5         # no fresh GLM data this long -> never give the all-clear
+
+# WBGT heat flags (°C), from the standard 80/85/88/90 °F flag system
+WBGT_GREEN_C = 26.7                  # 80 °F: heat is a factor, watch new workers
+WBGT_YELLOW_C = 29.4                 # 85 °F: more breaks
+WBGT_RED_C = 31.1                    # 88 °F: limit heavy work
+WBGT_BLACK_C = 32.2                  # 90 °F: extreme, stop strenuous outdoor work
+
+# Flooding
+RIVER_GAUGE_MAX_DIST_MI = 15         # ignore river gauges farther than this from a site
+TIDE_STATION_MAX_DIST_MI = 12        # sites within this of a tide station count as coastal
+FLOOD_FORECAST_HOURS = 48            # look this far ahead in river forecasts
+
+# Wildfire
+FIRE_DETECTION_WARNING_MI = 5        # satellite fire detection this close -> warning
+FIRE_DETECTION_ADVISORY_MI = 15      # ...this close -> advisory
+FIRE_INCIDENT_WARNING_MI = 10        # active NIFC wildfire this close -> warning
+
+# Soil saturation (Open-Meteo top-soil moisture, m³/m³; Florida sand saturates near 0.4)
+SOIL_WET_M3M3 = 0.30                 # advisory: soft ground, standing water likely
+SOIL_SATURATED_M3M3 = 0.38           # warning: saturated, flooding and equipment risk
+HEAVY_RAIN_24H_MM = 50               # this much rain in 24 h -> flooding advisory ("night of heavy rain")
+
+# Wildlife (iNaturalist sightings)
+WILDLIFE_RADIUS_MI = 5               # count sightings within this radius
+WILDLIFE_DAYS = 7                    # ...in the last this many days
+WILDLIFE_CLOSE_MI = 1                # alligator or venomous snake this close -> advisory
