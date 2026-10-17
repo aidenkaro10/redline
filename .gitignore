@@ -25,3 +25,6 @@ node_modules/
 
 # Raw datasets (download separately, see docs/datasets.md)
 data/raw/
+
+# Simulated data (regenerate with: python -m ml.simulate)
+data/sim/
