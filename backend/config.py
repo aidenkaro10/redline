@@ -94,3 +94,22 @@ NWS_USER_AGENT = os.getenv("NWS_USER_AGENT", "planit-control (contact@example.co
 # Where things get saved
 DB_PATH = os.getenv("DB_PATH", "data/planit.db")
 RECORDINGS_DIR = "data/recordings"
+
+
+# ---------------------------------------------------------------------------
+# PLANNER SAFETY LIMITS (session B, backend/planner/). Hard-coded, never learned.
+# The rule checker enforces these on every schedule. No learning loop, prompt,
+# or LLM can change them.
+# ---------------------------------------------------------------------------
+PLAN_SLOT_MIN = 30                        # schedules use 30-minute slots
+PLAN_MAX_P90_C = HEAT_WARNING_C           # planned 90th pct core temp must stay BELOW the yellow line, every minute
+PLAN_MAX_CONSECUTIVE_WORK_SLOTS = 3       # at most 90 min of work before a 30-min shade break
+PLAN_MAX_CONSECUTIVE_WORK_SLOTS_HOT = 2   # ...or 60 min when the slot WBGT is at/above PLAN_HOT_WBGT_C
+PLAN_HOT_WBGT_C = 30.0                    # "hot" slot for the break rule (°C WBGT)
+PLAN_LIGHTNING_RADIUS_MI = 10             # lightning within this many miles = stop outdoor work
+PLAN_LIGHTNING_ALLCLEAR_MIN = 30          # outdoor work resumes only 30 min after the last strike
+PLAN_UNACCLIM_LEVEL = 0.5                 # acclimatization below this = not acclimatized (new hire)
+PLAN_UNACCLIM_NO_VERY_HEAVY_WBGT_C = 28.0 # no very heavy work for unacclimatized workers at/above this WBGT
+# NWS hazard kinds that stop ALL outdoor work during their window.
+PLAN_STOP_WORK_HAZARDS = ("lightning", "severe_thunderstorm", "tornado", "flash_flood", "flood",
+                          "hurricane", "tropical_storm")

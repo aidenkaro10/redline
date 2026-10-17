@@ -16,5 +16,5 @@ pythermalcomfort # physiology simulator (ISO 7933 heat strain)
 matplotlib       # evaluation plots and slide figures
 
 # Later (uncomment when we get there)
-# ortools          # schedule optimizer
-# anthropic        # planning agent
+ortools          # schedule optimizer (planner, CP-SAT)
+anthropic        # planning agent (Claude API)

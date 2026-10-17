@@ -1,0 +1,280 @@
+{
+ "id": "test-1003",
+ "site": {
+  "id": "babcock-solar",
+  "name": "Babcock Ranch Solar Energy Center",
+  "lat": 26.834,
+  "lon": -81.747
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 24.57,
+   "rh": 87.6,
+   "solar": 99.2,
+   "wind": 2.16,
+   "wbgt": 23.65
+  },
+  {
+   "tdb": 25.39,
+   "rh": 84.4,
+   "solar": 188.1,
+   "wind": 2.08,
+   "wbgt": 24.34
+  },
+  {
+   "tdb": 26.19,
+   "rh": 81.2,
+   "solar": 274.4,
+   "wind": 2.12,
+   "wbgt": 25.0
+  },
+  {
+   "tdb": 26.96,
+   "rh": 78.1,
+   "solar": 357.1,
+   "wind": 1.91,
+   "wbgt": 25.65
+  },
+  {
+   "tdb": 27.71,
+   "rh": 75.2,
+   "solar": 435.1,
+   "wind": 1.66,
+   "wbgt": 26.28
+  },
+  {
+   "tdb": 28.43,
+   "rh": 72.3,
+   "solar": 507.2,
+   "wind": 2.51,
+   "wbgt": 26.72
+  },
+  {
+   "tdb": 29.11,
+   "rh": 69.6,
+   "solar": 572.6,
+   "wind": 2.08,
+   "wbgt": 27.27
+  },
+  {
+   "tdb": 29.74,
+   "rh": 67.1,
+   "solar": 630.3,
+   "wind": 1.35,
+   "wbgt": 27.87
+  },
+  {
+   "tdb": 30.33,
+   "rh": 64.8,
+   "solar": 679.7,
+   "wind": 1.82,
+   "wbgt": 28.18
+  },
+  {
+   "tdb": 30.86,
+   "rh": 62.7,
+   "solar": 720.0,
+   "wind": 2.13,
+   "wbgt": 28.47
+  },
+  {
+   "tdb": 31.33,
+   "rh": 60.8,
+   "solar": 750.7,
+   "wind": 1.78,
+   "wbgt": 28.83
+  },
+  {
+   "tdb": 31.75,
+   "rh": 59.2,
+   "solar": 771.3,
+   "wind": 1.65,
+   "wbgt": 29.1
+  },
+  {
+   "tdb": 32.1,
+   "rh": 57.8,
+   "solar": 324.5,
+   "wind": 1.48,
+   "wbgt": 28.24
+  },
+  {
+   "tdb": 29.77,
+   "rh": 56.7,
+   "solar": 324.5,
+   "wind": 2.2,
+   "wbgt": 25.89
+  },
+  {
+   "tdb": 29.63,
+   "rh": 55.8,
+   "solar": 320.1,
+   "wind": 1.4,
+   "wbgt": 25.73
+  },
+  {
+   "tdb": 29.72,
+   "rh": 55.2,
+   "solar": 311.5,
+   "wind": 2.23,
+   "wbgt": 25.65
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Jada",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 51,
+   "acclim": 1.0,
+   "clo": 0.61,
+   "skills": [
+    "climbing",
+    "electrical"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Marcus",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 22,
+   "acclim": 1.0,
+   "clo": 0.56,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Tom",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 38,
+   "acclim": 0.7,
+   "clo": 0.6,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Rosa",
+   "weight": 98.0,
+   "height": 1.85,
+   "age": 40,
+   "acclim": 1.0,
+   "clo": 0.51,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 10,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 1,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 9,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 2,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 14,
+   "skill": null
+  },
+  {
+   "id": "t5",
+   "name": "Control room checks",
+   "intensity": "light",
+   "units": 3,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 7,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t7",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 8,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "lightning",
+   "start_slot": 12,
+   "end_slot": 13,
+   "source": "GOES-19 GLM",
+   "note": "2+ flashes within 10 miles"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "storm_2pm"
+ ]
+}

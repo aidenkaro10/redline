@@ -1,0 +1,278 @@
+{
+ "id": "demo-7",
+ "site": {
+  "id": "crystal-river",
+  "name": "Crystal River Energy Complex",
+  "lat": 28.9572,
+  "lon": -82.6989
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 29.3,
+   "rh": 88.0,
+   "solar": 126.5,
+   "wind": 2.31,
+   "wbgt": 28.4
+  },
+  {
+   "tdb": 30.04,
+   "rh": 84.2,
+   "solar": 239.8,
+   "wind": 2.64,
+   "wbgt": 28.96
+  },
+  {
+   "tdb": 30.77,
+   "rh": 80.4,
+   "solar": 349.9,
+   "wind": 2.6,
+   "wbgt": 29.5
+  },
+  {
+   "tdb": 31.48,
+   "rh": 76.8,
+   "solar": 455.3,
+   "wind": 2.52,
+   "wbgt": 30.03
+  },
+  {
+   "tdb": 32.17,
+   "rh": 73.3,
+   "solar": 554.7,
+   "wind": 2.21,
+   "wbgt": 30.55
+  },
+  {
+   "tdb": 32.82,
+   "rh": 70.0,
+   "solar": 646.7,
+   "wind": 2.48,
+   "wbgt": 30.94
+  },
+  {
+   "tdb": 33.44,
+   "rh": 66.8,
+   "solar": 730.0,
+   "wind": 2.7,
+   "wbgt": 31.3
+  },
+  {
+   "tdb": 34.02,
+   "rh": 63.9,
+   "solar": 803.7,
+   "wind": 2.09,
+   "wbgt": 31.76
+  },
+  {
+   "tdb": 34.56,
+   "rh": 61.1,
+   "solar": 866.6,
+   "wind": 2.36,
+   "wbgt": 32.0
+  },
+  {
+   "tdb": 35.05,
+   "rh": 58.6,
+   "solar": 917.9,
+   "wind": 1.92,
+   "wbgt": 32.35
+  },
+  {
+   "tdb": 35.48,
+   "rh": 56.4,
+   "solar": 957.1,
+   "wind": 2.11,
+   "wbgt": 32.5
+  },
+  {
+   "tdb": 35.86,
+   "rh": 54.5,
+   "solar": 983.5,
+   "wind": 1.94,
+   "wbgt": 32.69
+  },
+  {
+   "tdb": 36.18,
+   "rh": 52.9,
+   "solar": 996.8,
+   "wind": 2.42,
+   "wbgt": 32.66
+  },
+  {
+   "tdb": 36.44,
+   "rh": 51.5,
+   "solar": 996.8,
+   "wind": 2.11,
+   "wbgt": 32.79
+  },
+  {
+   "tdb": 36.63,
+   "rh": 50.6,
+   "solar": 320.1,
+   "wind": 2.57,
+   "wbgt": 31.33
+  },
+  {
+   "tdb": 32.91,
+   "rh": 49.9,
+   "solar": 311.5,
+   "wind": 2.54,
+   "wbgt": 27.85
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Tom",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 59,
+   "acclim": 0.7,
+   "clo": 0.56,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Emma",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 39,
+   "acclim": 0.7,
+   "clo": 0.75,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Priya",
+   "weight": 98.0,
+   "height": 1.85,
+   "age": 27,
+   "acclim": 1.0,
+   "clo": 0.75,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Wei (new hire)",
+   "weight": 82.0,
+   "height": 1.65,
+   "age": 29,
+   "acclim": 0.0,
+   "clo": 0.65,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 4,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t2",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 9,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t3",
+   "name": "Control room checks",
+   "intensity": "light",
+   "units": 13,
+   "outdoor": false,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 4,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": 11,
+   "skill": null
+  },
+  {
+   "id": "t5",
+   "name": "Trenching for conduit",
+   "intensity": "very_heavy",
+   "units": 6,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 4,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "lightning",
+   "start_slot": 14,
+   "end_slot": 16,
+   "source": "GOES-19 GLM",
+   "note": "2+ flashes within 10 miles"
+  },
+  {
+   "kind": "heat_advisory",
+   "start_slot": 0,
+   "end_slot": 16,
+   "source": "NWS",
+   "note": "Heat Advisory (no stop-work)"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "heat_dome",
+  "storm_2pm",
+  "new_hire"
+ ]
+}

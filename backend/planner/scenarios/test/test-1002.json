@@ -1,0 +1,291 @@
+{
+ "id": "test-1002",
+ "site": {
+  "id": "crystal-river",
+  "name": "Crystal River Energy Complex",
+  "lat": 28.9572,
+  "lon": -82.6989
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 25.27,
+   "rh": 84.6,
+   "solar": 113.9,
+   "wind": 2.18,
+   "wbgt": 24.09
+  },
+  {
+   "tdb": 26.05,
+   "rh": 81.8,
+   "solar": 215.9,
+   "wind": 1.45,
+   "wbgt": 24.84
+  },
+  {
+   "tdb": 26.82,
+   "rh": 79.1,
+   "solar": 315.0,
+   "wind": 2.22,
+   "wbgt": 25.48
+  },
+  {
+   "tdb": 27.56,
+   "rh": 76.4,
+   "solar": 409.9,
+   "wind": 1.7,
+   "wbgt": 26.19
+  },
+  {
+   "tdb": 28.28,
+   "rh": 73.8,
+   "solar": 499.4,
+   "wind": 1.59,
+   "wbgt": 26.84
+  },
+  {
+   "tdb": 28.96,
+   "rh": 71.3,
+   "solar": 582.2,
+   "wind": 2.11,
+   "wbgt": 27.34
+  },
+  {
+   "tdb": 29.61,
+   "rh": 69.0,
+   "solar": 657.2,
+   "wind": 1.67,
+   "wbgt": 27.95
+  },
+  {
+   "tdb": 30.22,
+   "rh": 66.8,
+   "solar": 723.5,
+   "wind": 1.45,
+   "wbgt": 28.49
+  },
+  {
+   "tdb": 30.78,
+   "rh": 64.8,
+   "solar": 780.2,
+   "wind": 1.71,
+   "wbgt": 28.86
+  },
+  {
+   "tdb": 31.29,
+   "rh": 63.0,
+   "solar": 826.4,
+   "wind": 1.75,
+   "wbgt": 29.22
+  },
+  {
+   "tdb": 31.74,
+   "rh": 61.3,
+   "solar": 861.6,
+   "wind": 1.87,
+   "wbgt": 29.5
+  },
+  {
+   "tdb": 32.14,
+   "rh": 59.9,
+   "solar": 885.4,
+   "wind": 1.64,
+   "wbgt": 29.81
+  },
+  {
+   "tdb": 32.47,
+   "rh": 58.7,
+   "solar": 897.4,
+   "wind": 1.95,
+   "wbgt": 29.92
+  },
+  {
+   "tdb": 32.74,
+   "rh": 57.7,
+   "solar": 897.4,
+   "wind": 1.98,
+   "wbgt": 30.04
+  },
+  {
+   "tdb": 32.95,
+   "rh": 57.0,
+   "solar": 885.4,
+   "wind": 1.87,
+   "wbgt": 30.14
+  },
+  {
+   "tdb": 33.08,
+   "rh": 56.5,
+   "solar": 861.6,
+   "wind": 1.87,
+   "wbgt": 30.15
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Jada",
+   "weight": 82.0,
+   "height": 1.65,
+   "age": 30,
+   "acclim": 1.0,
+   "clo": 0.78,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Luis",
+   "weight": 74.0,
+   "height": 1.75,
+   "age": 34,
+   "acclim": 0.7,
+   "clo": 0.59,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Wei",
+   "weight": 66.0,
+   "height": 1.75,
+   "age": 39,
+   "acclim": 1.0,
+   "clo": 0.64,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Marcus",
+   "weight": 90.0,
+   "height": 1.75,
+   "age": 45,
+   "acclim": 1.0,
+   "clo": 0.54,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w5",
+   "name": "Rosa (new hire)",
+   "weight": 74.0,
+   "height": 1.65,
+   "age": 23,
+   "acclim": 0.0,
+   "clo": 0.69,
+   "skills": [
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Transformer maintenance",
+   "intensity": "moderate",
+   "units": 7,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t2",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 2,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "climbing"
+  },
+  {
+   "id": "t3",
+   "name": "Cable pulling",
+   "intensity": "heavy",
+   "units": 13,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t4",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": true,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t5",
+   "name": "Control room checks",
+   "intensity": "light",
+   "units": 10,
+   "outdoor": false,
+   "priority": 3,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t6",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 21,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t7",
+   "name": "Panel washing",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  }
+ ],
+ "hazards": [],
+ "slot_min": 30,
+ "tags": [
+  "new_hire"
+ ]
+}

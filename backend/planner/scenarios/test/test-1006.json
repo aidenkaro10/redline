@@ -1,0 +1,271 @@
+{
+ "id": "test-1006",
+ "site": {
+  "id": "crystal-river",
+  "name": "Crystal River Energy Complex",
+  "lat": 28.9572,
+  "lon": -82.6989
+ },
+ "date": "2026-07-15",
+ "shift_start": "07:00",
+ "weather": [
+  {
+   "tdb": 25.94,
+   "rh": 87.2,
+   "solar": 114.0,
+   "wind": 0.97,
+   "wbgt": 25.04
+  },
+  {
+   "tdb": 26.71,
+   "rh": 83.4,
+   "solar": 216.0,
+   "wind": 1.4,
+   "wbgt": 25.64
+  },
+  {
+   "tdb": 27.46,
+   "rh": 79.6,
+   "solar": 315.2,
+   "wind": 1.94,
+   "wbgt": 26.18
+  },
+  {
+   "tdb": 28.19,
+   "rh": 76.0,
+   "solar": 410.2,
+   "wind": 1.93,
+   "wbgt": 26.73
+  },
+  {
+   "tdb": 28.89,
+   "rh": 72.5,
+   "solar": 499.7,
+   "wind": 1.42,
+   "wbgt": 27.32
+  },
+  {
+   "tdb": 29.56,
+   "rh": 69.1,
+   "solar": 582.6,
+   "wind": 1.04,
+   "wbgt": 27.88
+  },
+  {
+   "tdb": 30.2,
+   "rh": 65.9,
+   "solar": 657.7,
+   "wind": 1.87,
+   "wbgt": 28.13
+  },
+  {
+   "tdb": 30.79,
+   "rh": 63.0,
+   "solar": 724.0,
+   "wind": 1.3,
+   "wbgt": 28.64
+  },
+  {
+   "tdb": 31.34,
+   "rh": 60.2,
+   "solar": 780.7,
+   "wind": 1.58,
+   "wbgt": 28.89
+  },
+  {
+   "tdb": 31.84,
+   "rh": 57.7,
+   "solar": 827.0,
+   "wind": 1.4,
+   "wbgt": 29.21
+  },
+  {
+   "tdb": 32.28,
+   "rh": 55.5,
+   "solar": 862.2,
+   "wind": 1.54,
+   "wbgt": 29.39
+  },
+  {
+   "tdb": 32.67,
+   "rh": 53.6,
+   "solar": 886.0,
+   "wind": 1.71,
+   "wbgt": 29.51
+  },
+  {
+   "tdb": 33.0,
+   "rh": 51.9,
+   "solar": 898.0,
+   "wind": 1.35,
+   "wbgt": 29.73
+  },
+  {
+   "tdb": 33.27,
+   "rh": 50.6,
+   "solar": 898.0,
+   "wind": 1.47,
+   "wbgt": 29.76
+  },
+  {
+   "tdb": 33.47,
+   "rh": 49.6,
+   "solar": 886.0,
+   "wind": 1.39,
+   "wbgt": 29.8
+  },
+  {
+   "tdb": 33.6,
+   "rh": 48.9,
+   "solar": 862.2,
+   "wind": 1.92,
+   "wbgt": 29.63
+  }
+ ],
+ "crew": [
+  {
+   "id": "w1",
+   "name": "Kofi",
+   "weight": 66.0,
+   "height": 1.85,
+   "age": 44,
+   "acclim": 0.7,
+   "clo": 0.72,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w2",
+   "name": "Priya",
+   "weight": 90.0,
+   "height": 1.65,
+   "age": 52,
+   "acclim": 1.0,
+   "clo": 0.59,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w3",
+   "name": "Tom",
+   "weight": 66.0,
+   "height": 1.65,
+   "age": 29,
+   "acclim": 1.0,
+   "clo": 0.51,
+   "skills": [
+    "electrical",
+    "climbing"
+   ],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  },
+  {
+   "id": "w4",
+   "name": "Dev (new hire)",
+   "weight": 74.0,
+   "height": 1.75,
+   "age": 24,
+   "acclim": 0.0,
+   "clo": 0.6,
+   "skills": [],
+   "start_core_c": null,
+   "available": null,
+   "core_offset_c": 0.0,
+   "core_sd_c": 0.15
+  }
+ ],
+ "tasks": [
+  {
+   "id": "t1",
+   "name": "Control room checks",
+   "intensity": "light",
+   "units": 11,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t2",
+   "name": "Scaffold setup",
+   "intensity": "heavy",
+   "units": 17,
+   "outdoor": true,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "climbing"
+  },
+  {
+   "id": "t3",
+   "name": "Shop equipment repair",
+   "intensity": "moderate",
+   "units": 4,
+   "outdoor": false,
+   "priority": 2,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t4",
+   "name": "Vegetation clearing",
+   "intensity": "heavy",
+   "units": 3,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  },
+  {
+   "id": "t5",
+   "name": "Inverter inspection",
+   "intensity": "light",
+   "units": 1,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": "electrical"
+  },
+  {
+   "id": "t6",
+   "name": "Pipe insulation",
+   "intensity": "moderate",
+   "units": 6,
+   "outdoor": true,
+   "priority": 1,
+   "earliest": 0,
+   "deadline": null,
+   "skill": null
+  }
+ ],
+ "hazards": [
+  {
+   "kind": "heat_advisory",
+   "start_slot": 0,
+   "end_slot": 16,
+   "source": "NWS",
+   "note": "Heat Advisory (no stop-work)"
+  }
+ ],
+ "slot_min": 30,
+ "tags": [
+  "heat_dome",
+  "new_hire"
+ ]
+}
