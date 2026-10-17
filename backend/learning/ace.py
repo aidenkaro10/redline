@@ -10,6 +10,8 @@ Each simulated day:
                 Code finds the facts; Claude (if there's a key) writes the root cause in
                 plain words. Without a key, a code template writes it.
   4. CURATOR    Turns the reflection into SMALL itemized updates: add / edit / merge.
+                Claude proposes up to 3; the code curator adds one written straight from the
+                measured facts. Each update is labeled with its author.
                 Never a full rewrite (ACE's "context collapse"). Near-duplicates get merged.
                 Every lesson goes through the code safety filter (safety.py): anything about
                 limits, thresholds, breaks, alerts or "can handle more" is rejected.
@@ -219,15 +221,18 @@ def code_curate(book: Playbook, facts: dict, day_label: str) -> list[dict]:
 
 
 def curate(llm, book: Playbook, reflection: dict, facts: dict, day_label: str) -> tuple[list[dict], str]:
+    """Claude's updates (if there's a key) PLUS the code curator's update written straight from the
+    measured facts. Each is labeled with who wrote it ("by"); the gate judges each one on its own."""
+    code_ops = [{**o, "by": "code"} for o in code_curate(book, facts, day_label)]
     if llm is None or reflection.get("by") != "llm":
-        return code_curate(book, facts, day_label), "code"
+        return code_ops, "code"
     llm.purpose = "ace:curate"
     pb = "\n".join(f"{l.id}: {l.text} | {json.dumps(l.hint)}" for l in book.lessons) or "(empty)"
     data = extract_json(llm.text(CURATE_PROMPT.format(playbook=pb, day=day_label, root_cause=reflection["root_cause"],
                                                       insights=reflection["insights"], facts=json.dumps(facts)),
                                  effort="low")) or {}
-    ops = [o for o in (data.get("operations") or []) if isinstance(o, dict)][:3]
-    return ops, "llm"
+    ops = [{**o, "by": "llm"} for o in (data.get("operations") or []) if isinstance(o, dict)][:3]
+    return ops + code_ops, "llm+code"
 
 
 def next_id(book: Playbook) -> str:
@@ -374,6 +379,8 @@ def run_ace(days: list, gate_days: list, llm=None, agent_settings: AgentSettings
         op_log, gates = [], []
         for op in ops:
             cand, log1 = apply_ops(book, [op], label)
+            for o in log1:
+                o["by"] = op.get("by", "?")
             op_log += log1
             changed = [o for o in log1 if o["result"] in ("applied", "merged near-duplicate")]
             if not changed:

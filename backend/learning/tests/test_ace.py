@@ -18,7 +18,7 @@ def test_curator_rejects_unsafe_lessons_from_the_llm():
     llm = FakeLLM()
     refl = {"root_cause": "x", "insights": [], "by": "llm"}
     ops, by = curate(llm, Playbook(), refl, {"findings": [], "alerts": []}, "day 1")
-    assert by == "llm" and len(ops) == 2
+    assert by == "llm+code" and len(ops) == 2 and all(o["by"] == "llm" for o in ops)
     book, log = apply_ops(Playbook(), ops, "day 1")
     assert [l.text for l in book.lessons] == ["Schedule new hires' heavy work before 11:00."]
     bad = next(e for e in log if e["result"] == "rejected")
