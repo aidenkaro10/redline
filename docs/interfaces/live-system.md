@@ -11,7 +11,7 @@ python -m backend.app.main --source live                   # band (USB/WiFi) + P
 
 Default port 8000 (`SERVER_PORT`). Open `http://localhost:8000` for the bare chart page.
 
-Useful flags: `--speed 30` (faster replay), `--demo` (demo thresholds 37.3 / 37.5), `--hazards fake|live|off` (session C1's feeds; fake by default in replay), `--emergency-phone dry_run|fake|live` (session D; never dials 911), `--no-planner`, `--checkpoint <file>`, `--no-forecaster`, `--no-fall`, `--no-ack`, `--record`.
+Useful flags: `--speed 30` (faster replay), `--demo` (demo thresholds 37.3 / 37.5), `--hazards fake|live|off` (session C1's feeds; fake by default in replay), `--emergency-phone dry_run|fake|live` (session D; never dials 911), `--emergency-log <file>`, `--no-planner`, `--checkpoint <file>`, `--no-forecaster`, `--no-fall`, `--no-ack`, `--record`.
 
 ### What's plugged in (each one falls back cleanly when missing)
 

@@ -66,6 +66,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--hazards", choices=["fake", "live", "off"], default=None,
                     help="session C1's hazard feeds: fake demo data, live feeds, or off "
                          "(default: fake with --source replay, live otherwise)")
+    ap.add_argument("--emergency-log", default=None,
+                    help="where session D logs every call step (default: its EMERGENCY_LOG_PATH; '' = memory only)")
     ap.add_argument("--no-planner", dest="planner", action="store_false",
                     help="don't run session B's planner for the live crew")
     ap.add_argument("--emergency-phone", choices=["dry_run", "fake", "live"], default="dry_run",
@@ -198,8 +200,10 @@ def wire_emergency(hub: Hub, s) -> list[asyncio.Task]:
         log.info("Emergency escalation (session D) not merged yet: man-down events still go to the dashboard")
         app.state.emergency = None
         return []
+    from backend.emergency.escalation import EscalationLog
+    kwargs = {"log": EscalationLog(s.emergency_log)} if s.emergency_log is not None else {}
     manager = EscalationManager(phone=make_phone(s.emergency_phone),
-                                emit=lambda status: hub.dispatch([status.model_dump()]))
+                                emit=lambda status: hub.dispatch([status.model_dump()]), **kwargs)
 
     def on_event(ev: dict) -> None:
         if ev["type"] in ("mandown_confirmed", "sos"):

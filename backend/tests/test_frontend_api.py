@@ -19,7 +19,7 @@ MANDOWN_KEYS = {"id", "worker_id", "worker_name", "site_id", "site_name", "lat",
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--no-planner", "--db", "", "--no-forecaster"]))
+    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--no-planner", "--emergency-log", "", "--db", "", "--no-forecaster"]))
     with TestClient(main.app) as c:
         yield c
 
