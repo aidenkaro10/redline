@@ -22,7 +22,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from backend.planner.agent import PlannerSession
-from backend.planner.archon import plan_view, plan_with_agent
+from backend.planner.archon import NO_LLM_NOTE, plan_view, plan_with_agent
 from backend.planner.briefing import frontend_schedule, make_briefing
 from backend.planner.generate import demo_scenario
 from backend.planner.personal import apply_offsets, load_offsets
@@ -83,7 +83,8 @@ class ChatRequest(BaseModel):
 def get_schedule():
     r = current_plan()
     sc = current_scenario()
-    return frontend_schedule(sc, r.plan, r.check, sc.date, [r.summary])
+    notes = [r.summary] + ([] if r.used_llm else [NO_LLM_NOTE])
+    return {**frontend_schedule(sc, r.plan, r.check, sc.date, notes), "llm": r.used_llm}
 
 
 @router.get("/api/briefing")

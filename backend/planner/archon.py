@@ -81,6 +81,7 @@ class AgentResult:
     latency_s: float
     cost_usd: float
     candidates: list = field(default_factory=list)
+    used_llm: bool = False           # False = made without Claude (no key, or use_llm=False): optimizer + rule checker only
 
     def to_dict(self, scenario: Scenario) -> dict:
         return {
@@ -89,10 +90,14 @@ class AgentResult:
                              for c in self.alternatives],
             "summary": self.summary, "reasons": self.reasons, "lessons_used": self.lessons_used,
             "log": self.log, "latency_s": round(self.latency_s, 2), "cost_usd": round(self.cost_usd, 4),
+            "llm": self.used_llm,
             "candidates": [{"name": c.name, "verified": bool(c.check and c.check.ok),
                             "violations": c.check.n_safety if c.check else None, "score": c.score}
                            for c in self.candidates],
         }
+
+
+NO_LLM_NOTE = "Made without the LLM (no ANTHROPIC_API_KEY, or LLM off): optimizer + rule checker only."
 
 
 def floor2(x: float) -> float:
@@ -319,7 +324,7 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
         fb = all_rest_plan(scenario)
         chk = check_plans(scenario, [fb], heat_model)[0]
         return AgentResult(fb, chk, [], "No verified plan: everyone rests in the shade.", [], [], log,
-                           time.time() - t0, llm.cost_usd if llm else 0.0, cands)
+                           time.time() - t0, llm.cost_usd if llm else 0.0, cands, used_llm=llm is not None)
 
     # 4. Cluster by outcome: same throughput and same per-worker peaks = same plan.
     clusters = {}
@@ -374,7 +379,7 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
     best.plan.lessons_used = used
     best.plan.source = f"agent:{best.name}"
     return AgentResult(best.plan, best.check, alts, summary, reasons, used, log, time.time() - t0,
-                       llm.cost_usd if llm else 0.0, cands)
+                       llm.cost_usd if llm else 0.0, cands, used_llm=llm is not None)
 
 
 # ---------------------------------------------------------------------------

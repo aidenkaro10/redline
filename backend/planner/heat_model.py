@@ -24,6 +24,7 @@ Note: live heat ALERTS use the forecaster's calibrated 90th percentile, not this
 This model is for planning ahead, when there's no heart rate yet.
 """
 
+import threading
 import warnings
 import zlib
 from dataclasses import dataclass
@@ -49,6 +50,20 @@ N_MEMBERS = 16
 
 # An activity is "rest" or (intensity, outdoor). Indoor work has no sun.
 Activity = str | tuple
+
+
+# pythermalcomfort's PHS runs numba code compiled with parallel=True. Two threads calling it at the
+# same moment make numba ABORT the whole process ("Concurrent access has been detected", exit 134).
+# The server does that (startup plan + briefing pre-build, overlapping requests), so every call takes
+# this one lock. Held per minute-step, so two simulations interleave instead of queueing whole runs.
+PHS_LOCK = threading.Lock()
+
+
+def run_phs(**kwargs):
+    """pythermalcomfort's phs(), one thread at a time, warnings off."""
+    with PHS_LOCK, warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        return phs(**kwargs)
 
 
 def activity_of(scenario: Scenario, worker: Worker, slot: int, assignment: str) -> Activity:
@@ -176,9 +191,7 @@ class PHSHeatModel:
                 tdb = tdb_s[s] + dtdb
                 solar = sol_s[s] * (1 - indoor[:, s])
                 tr = mean_radiant(tdb, solar, shade[:, s])
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    res = phs(tdb=tdb, tr=tr, v=np.full(len(g), wind_s[s]), rh=np.full(len(g), rh_s[s]),
+                res = run_phs(tdb=tdb, tr=tr, v=np.full(len(g), wind_s[s]), rh=np.full(len(g), rh_s[s]),
                               met=met[:, s], clo=clo, posture="standing", round_output=False,
                               limit_inputs=False, model="7933-2004", weight=weight, height=height,
                               acclimatized=acc, duration=1, **state)
@@ -225,9 +238,7 @@ class PHSHeatModel:
             state = {}
             for t in range(2 * sm):
                 met, tr = phases[t // sm]
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
-                    res = phs(tdb=tdb, tr=tr, v=v, rh=rh, met=met, clo=clo, posture="standing",
+                res = run_phs(tdb=tdb, tr=tr, v=v, rh=rh, met=met, clo=clo, posture="standing",
                               round_output=False, limit_inputs=False, model="7933-2004", weight=weight,
                               height=height, acclimatized=acc, duration=1, **state)
                 state = {k: np.asarray(getattr(res, k), dtype=float) for k in PHS_STATE}
