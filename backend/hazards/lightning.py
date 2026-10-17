@@ -223,6 +223,13 @@ def injected_flashes():
         return list(_injected)
 
 
+MAX_STRIKES_LISTED = 50
+
+
+def iso_s(epoch_s):
+    return iso(datetime.fromtimestamp(epoch_s, tz=timezone.utc))
+
+
 # ---------------------------------------------------------------------------
 # The stop-work rule (pure function: easy to test)
 # ---------------------------------------------------------------------------
@@ -281,6 +288,13 @@ def site_lightning_state(site, flashes, now, feed_ok_at):
         "nearest_mi_30min": round(nearest, 1) if nearest is not None else None,
         "flashes_10mi_30min": len(near_recent),
         "flashes_30mi_30min": sum(1 for _, d in recent if d <= LIGHTNING_WATCH_RADIUS_MI),
+        # Good flashes within 30 mi in the last 30 min, newest first (for the map ring)
+        "strikes": [{"lat": f["lat"], "lon": f["lon"], "at": iso_s(f["t"]),
+                     "miles": round(distance_mi(site.lat, site.lon, f["lat"], f["lon"]), 1)}
+                    for f in sorted(good, key=lambda f: -f["t"])
+                    if now_s - f["t"] <= confirm_s
+                    and distance_mi(site.lat, site.lon, f["lat"], f["lon"]) <= LIGHTNING_WATCH_RADIUS_MI
+                    ][:MAX_STRIKES_LISTED],
     }
 
 

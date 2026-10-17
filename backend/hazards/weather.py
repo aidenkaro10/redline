@@ -81,6 +81,26 @@ def add_wbgt(site, hourly):
     return hourly
 
 
+def heat_index_f(temp_c, rh_pct):
+    """NWS heat index (°F) from air temp (°C) and humidity (%): Rothfusz regression
+    with the NWS low-humidity and high-humidity adjustments."""
+    if temp_c is None or rh_pct is None:
+        return None
+    t = temp_c * 9 / 5 + 32
+    rh = rh_pct
+    simple = 0.5 * (t + 61.0 + (t - 68.0) * 1.2 + rh * 0.094)
+    if (simple + t) / 2 < 80:
+        return round(simple, 1)
+    hi = (-42.379 + 2.04901523 * t + 10.14333127 * rh - 0.22475541 * t * rh
+          - 0.00683783 * t * t - 0.05481717 * rh * rh + 0.00122874 * t * t * rh
+          + 0.00085282 * t * rh * rh - 0.00000199 * t * t * rh * rh)
+    if rh < 13 and 80 <= t <= 112:
+        hi -= (13 - rh) / 4 * ((17 - abs(t - 95)) / 17) ** 0.5
+    elif rh > 85 and 80 <= t <= 87:
+        hi += (rh - 85) / 10 * (87 - t) / 5
+    return round(hi, 1)
+
+
 def _hour_index(times, now):
     """Index of the latest hour at or before now (the 'current' row)."""
     idx = 0
@@ -125,6 +145,7 @@ def summarize(site, hourly, now):
         "wbgt_c": pick("wbgt"),
         "globe_c": pick("globe_temp"),
         "wbgt_flag": pick("wbgt_flag"),
+        "heat_index_f": heat_index_f(pick("temperature_2m"), pick("relative_humidity_2m")),
         "soil_moisture_m3m3": round(max(soil), 3) if soil else None,
         "rain_24h_mm": round(rain24, 1),
         "wbgt_max_next_12h": {"wbgt_c": next12[0], "at": next12[1], "flag": wbgt_flag(next12[0])},
