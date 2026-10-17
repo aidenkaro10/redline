@@ -21,7 +21,25 @@ from backend.emergency.phones import FakePhone
 from backend.emergency.report import build_report, emergency_script
 from backend.models.kalman import ECTempKalman
 from backend.replay import shifts
-from e2e_support import TEST_NUMBERS, StepClock
+from backend.app.pipeline import WorkerPipeline
+from backend.app.schemas import Reading
+from e2e_support import TEST_NUMBERS, StepClock, find_data
+
+MENDELEY = find_data("data/raw/mendeley_buono/data.csv")
+T0 = 1_792_000_000.0
+
+
+def feed(pipeline, readings):
+    """Hand readings to one worker's real pipeline; returns every event it produced."""
+    out = []
+    for r in readings:
+        out += pipeline.handle(r)
+    return out
+
+
+def minute_readings(m, wid="w", per_min=12, **fields):
+    """12 readings (every 5 s) in minute m, with the given fields."""
+    return [Reading(worker_id=wid, timestamp=T0 + 60 * m + 5 * j + 0.5, **fields) for j in range(per_min)]
 
 NEAR_MISS = ["TEMP:", "TEMP:abc", "ACC:1,2", "BTN:2", "BTN:", "TILT:x,ACT:1", "HR:", ":", "TEMP",
              "TEMP 34.5", "\x00TEMP\x00", "A" * 100_000, "TEMP:34.5" + "\x00" * 50, "#TEMP:34.5", ",TEMP:34"]
@@ -48,6 +66,101 @@ def test_A01_impossible_values_never_make_readings():
     assert [line for line in BAD_VALUES if events_from_line(line, "w", 1.0)] == []
 
 
+def test_A03_bursts_and_late_lines_never_make_minutes_go_backwards():
+    p = WorkerPipeline("w")
+    events = []
+    for m in range(10):
+        burst = minute_readings(m, hr=110 + m, skin_temp=34.0, tilt=0, activity=5)
+        events += feed(p, burst[::-1])                                  # each minute arrives backwards
+        events += feed(p, [Reading(worker_id="w", timestamp=T0 + 60 * m - 90, hr=200)])   # a very late line
+    events += p.tick(T0 + 60 * 11)
+    minutes = [e["minute"] for e in events if e["type"] == "estimate"]
+    assert minutes == list(range(len(minutes))) and len(minutes) >= 10
+
+
+def test_A03_duplicate_lines_do_not_double_count():
+    once, twice = WorkerPipeline("w"), WorkerPipeline("w")
+    for m in range(15):
+        rs = minute_readings(m, hr=100 + 3 * m, skin_temp=34.0, tilt=0, activity=4 + m % 3)
+        feed(once, rs)
+        feed(twice, [r for r in rs for _ in range(2)])                  # every line sent twice
+    once.tick(T0 + 60 * 16)
+    twice.tick(T0 + 60 * 16)
+    keys = ("hr", "skin_temp", "activity", "kalman", "core_temp")
+    assert [{k: e[k] for k in keys} for e in once.estimates] == [{k: e[k] for k in keys} for e in twice.estimates]
+
+
+def test_A03_one_udp_burst_is_stamped_on_arrival(live_app):
+    import socket
+    import time
+    from test_e2e_band_protocol import free_udp_port, wait_for
+    port = free_udp_port()
+    app = live_app("--source", "live", "--udp-port", str(port), "--serial", "", "--no-pulsoid")
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    before = time.time()
+    sock.sendto(("ID:burst\n" + "\n".join(f"TEMP:{33 + i / 100:.2f}" for i in range(30)) + "\n").encode(),
+                ("127.0.0.1", port))
+    wait_for(lambda: len(app.of_type("reading", "burst")) == 30, what="30 readings")
+    sock.close()
+    stamps = {r["timestamp"] for r in app.of_type("reading", "burst")}
+    assert len(stamps) == 1 and before <= stamps.pop() <= time.time()      # one packet, one arrival time
+
+
+def test_A04_two_heart_rate_sources_fuse_with_the_right_sigmas():
+    p = WorkerPipeline("w")
+    ref = ECTempKalman()
+    plan = [(100.0, 130.0)] * 5 + [(110.0, None)] * 4 + [(None, 140.0)] * 4 + [(120.0, None)] * 3
+    for m, (watch, band) in enumerate(plan):
+        rs = []
+        if watch is not None:
+            rs += minute_readings(m, hr=watch, source="watch")
+        if band is not None:
+            rs += minute_readings(m, hr=band, source="band")
+        feed(p, sorted(rs, key=lambda r: r.timestamp))
+    p.tick(T0 + 60 * (len(plan) + 1))
+    for m, (watch, band) in enumerate(plan):
+        st = ref.step_fused([(watch, config.KALMAN_SIGMA_WATCH), (band, config.KALMAN_SIGMA_BAND_PPG)])
+        e = p.estimates[m]
+        assert e["kalman"] == pytest.approx(st.ct, abs=1e-3), m
+        assert sorted(e["hr_sources"]) == sorted(src for src, v in (("watch", watch), ("band", band)) if v is not None)
+    # The band went silent after minute 4 and was never reused; then the watch dropped and the band carried on.
+    assert all(e["hr_band"] is None for e in list(p.estimates)[5:9])
+    assert all(e["hr_sources"] == ["band"] and e["core_temp"] is not None for e in list(p.estimates)[9:13])
+
+
+def test_A05_no_heart_rate_runs_predict_only_and_recovers():
+    p = WorkerPipeline("w")
+    for m in range(10):
+        feed(p, minute_readings(m, hr=150.0, skin_temp=34.5, tilt=0, activity=5))
+    for m in range(10, 20):                                             # Pulsoid gone: band lines only
+        feed(p, minute_readings(m, skin_temp=34.5, tilt=0, activity=5))
+    for m in range(20, 25):
+        feed(p, minute_readings(m, hr=150.0, skin_temp=34.5, tilt=0, activity=5))
+    p.tick(T0 + 60 * 26)
+    gap = list(p.estimates)[10:20]
+    assert all(e["hr_sources"] == [] for e in gap)
+    assert len({e["kalman"] for e in gap}) == 1                         # predict-only: the state holds
+    sds = [e["kalman_sd"] for e in gap]
+    assert all(b > a for a, b in zip(sds, sds[1:]))                     # ...and gets less sure every minute
+    after = list(p.estimates)[20:25]
+    assert all(e["hr_sources"] == ["watch"] for e in after)
+    assert after[-1]["kalman"] != gap[-1]["kalman"]                    # updates again once HR is back
+
+
+@pytest.mark.xfail(strict=True, reason="BUG -> session A: with no heart rate for 10 minutes the crew card still "
+                   "shows a plain 'Normal' green; WorkerStatus has nothing saying heart rate is missing")
+def test_A05_crew_card_says_heart_rate_is_missing(live_app):
+    app = live_app()
+    for m in range(5):
+        for r in minute_readings(m, wid="w1", hr=90.0, skin_temp=34.0, tilt=0, activity=5):
+            app.on_loop(app.hub.handle_input, r, "serial")
+    for m in range(5, 15):
+        for r in minute_readings(m, wid="w1", skin_temp=34.0, tilt=0, activity=5):
+            app.on_loop(app.hub.handle_input, r, "serial")
+    st = next(w for w in app.client.get("/api/workers").json() if w["worker_id"] == "w1")
+    assert st["status"] != "green" or "heart rate" in st["status_reason"].lower()
+
+
 def test_A06_button_press_acknowledges_and_never_escalates(live_app):
     app = live_app()
     for ev in events_from_line("BTN:1", "w1", 1000.0) + events_from_line("HR:120", "w1", 1001.0):
@@ -68,6 +181,27 @@ def test_A07_step_fused_with_one_source_equals_step():
         s1 = a.step(hr)
         s2 = b.step_fused([(hr, config.KALMAN_SIGMA_WATCH)])
         assert s2.ct == pytest.approx(s1.ct, abs=1e-12) and s2.v == pytest.approx(s1.v, abs=1e-12)
+
+
+@pytest.mark.skipif(MENDELEY is None, reason="needs data/raw/mendeley_buono/data.csv (gitignored, main checkout)")
+def test_A07_kalman_matches_the_mendeley_ectemp_column():
+    import csv
+    from collections import defaultdict
+
+    import numpy as np
+
+    from backend.models.kalman import run_kalman
+    sessions = defaultdict(list)
+    with MENDELEY.open() as f:
+        for row in csv.DictReader(f):
+            sessions[(row["condition"], row["subject"])].append(row)
+    num = lambda x: float(x) if x else np.nan  # noqa: E731
+    assert len(sessions) > 10
+    for rows in sessions.values():
+        ours, _ = run_kalman([num(r["hr_clean"]) for r in rows])
+        theirs = np.array([num(r["ectemp"]) for r in rows])
+        ok = ~np.isnan(theirs)
+        assert np.allclose(ours[ok], theirs[ok], atol=1e-9)
 
 
 def test_A08_corrupt_checkpoint_falls_back_to_kalman_only(live_app, tmp_path):
@@ -115,6 +249,42 @@ def test_A13_demo_threshold_changes_only_via_the_control_and_is_flagged(live_app
     snap = app.client.get("/api/state?view=demo").json()
     assert snap["demo"]["demo_threshold"] is True
     assert snap["history"]["demo-1"]["estimates"][-1]["thresholds"]["demo"] is True
+
+
+def test_A14_unacknowledged_red_starts_a_man_down_check(live_app):
+    app = live_app()
+    app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None, auto_ack_s=None))    # Jake never presses
+    app.step(70 * 60, until=lambda: app.of_type("mandown_check", "demo-1"))
+    red = next(e for e in app.of_type("heat_alert", "demo-1") if e["level"] == "red")
+    check = app.of_type("mandown_check", "demo-1")[0]
+    assert check["reason"] == "heat_red_unacknowledged"
+    assert check["timestamp"] - red["timestamp"] == pytest.approx(config.HEAT_RED_ACK_TIMEOUT_S, abs=2)
+    assert "BUZZ:MANDOWN" in app.band.lines_for("demo-1")
+
+
+@pytest.mark.xfail(strict=True, reason="BUG -> session A: the 'red, no button press' man-down check is cancelled in "
+                   "the same second by movement (the overheating worker is still walking), so it never escalates; "
+                   "only a button press (or a fall) should cancel this kind of check. The --no-ack demo path never "
+                   "reaches mandown_confirmed.")
+def test_A14_unacknowledged_red_escalates_while_the_worker_still_moves(live_app):
+    app = live_app()
+    app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None, auto_ack_s=None))
+    app.step(70 * 60, until=lambda: app.of_type("mandown_confirmed", "demo-1"))
+    confirmed = app.of_type("mandown_confirmed", "demo-1")
+    assert confirmed and confirmed[0]["trigger"] == "heat_red_unacked"
+
+
+def test_A14_ack_stops_the_buzz_but_red_stays(live_app):
+    app = live_app()
+    app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None))                     # presses 20 s after red
+    app.step(70 * 60)
+    assert app.of_type("heat_ack", "demo-1")
+    p = app.hub.pipelines["demo-1"]
+    assert p.heat.level == "red" and p.heat.acknowledged
+    assert app.band.lines_for("demo-1")[-1] == "BUZZ:HEAT_RED"           # still showing red, no BUZZ:OFF
+    st = next(w for w in app.client.get("/api/workers").json() if w["worker_id"] == "demo-1")
+    assert st["status"] == "red" and st["alert_acknowledged"] is True
+    assert app.of_type("mandown_check", "demo-1") == []                  # acknowledged: no man-down
 
 
 def test_A15_router_priority_and_fallback_to_the_next_active_pattern():
@@ -253,6 +423,21 @@ def test_A23_nws_extreme_heat_codes_and_patterns():
     assert classify({"event": "Severe Thunderstorm Warning"})[0] in ("weather", "lightning")
 
 
+def test_A24_live_feeds_offline_serve_stale_and_never_crash():
+    from backend.hazards import contract, picture, store
+    store.set_mode("live")                       # the real feed code, with the network blocked (conftest)
+    try:
+        pic = picture.hazard_picture(write_log=True)
+        assert len(pic["sites"]) >= 50
+        assert pic["feeds"] and all(f["stale"] for f in pic["feeds"].values())
+        statuses = contract.site_statuses(pic)
+        assert all(len(s["hazards"]) == 6 for s in statuses)
+        assert all(not h["stop_work"] or h["stale"] for s in statuses for h in s["hazards"])
+        picture.hazard_picture(write_log=True)   # and again (cached copies) without crashing
+    finally:
+        store.set_mode("fake")
+
+
 def test_A25_hazard_index_is_0_to_10_or_none_everywhere():
     from backend.hazards import contract, picture, store
     store.set_mode("fake")
@@ -329,14 +514,58 @@ def test_A32_replay_is_deterministic_and_speed_changes_skip_nothing(live_app):
     assert minutes == list(range(minutes[0], minutes[0] + len(minutes)))
 
 
-def test_A33_six_workers_full_shift_fast(live_app):
+def test_A33_six_workers_full_shift_no_drops_bounded_memory(live_app):
     import time
     app = live_app()
-    plan = shifts.synthetic(minutes=480, n_crew=5)
-    app.start_replay(plan)
+    app.start_replay(shifts.synthetic(minutes=480, n_crew=5))
     t0 = time.monotonic()
-    app.step(480 * 60, dt=5.0)
-    assert time.monotonic() - t0 < 120
+    got = []
+    with app.client.websocket_connect("/ws/live?view=demo") as ws:
+        ws.receive_json()
+        for _ in range(16):                                      # 8 h in half-hour chunks
+            app.step(30 * 60, dt=5.0)
+            got += app.drain(ws)
+    assert time.monotonic() - t0 < 180
     for wid in app.replay.workers:
-        assert len(app.of_type("estimate", wid)) >= 470
-        assert len(app.hub.pipelines[wid].estimates) <= 600       # memory stays bounded (HISTORY_KEEP)
+        made = len(app.of_type("estimate", wid))
+        assert made >= 470
+        sent = sum(1 for m in got if m["type"] == "estimate" and m["estimate"]["worker_id"] == wid)
+        assert sent == made, f"{wid}: {made} estimates made, {sent} reached the dashboard"
+        assert len(app.hub.pipelines[wid].estimates) <= 600       # memory stays bounded
+        assert len(app.frontend.estimates[wid]) <= 500 and len(app.frontend.vitals[wid]) <= 6000
+    assert len(app.hub.recent) <= 300
+
+
+def restart_after_alerts(live_app):
+    app = live_app(clock=StepClock(start=T0))
+    app.start_replay(shifts.synthetic(n_crew=1))
+    app.step(60 * 60)
+    alerts = [a["id"] for a in app.frontend.alerts]
+    schedule = {"date": "2026-10-18", "slot_minutes": 30, "day_start": T0, "notes": [], "checked_by_rules": True,
+                "rows": [{"worker_id": "demo-1", "name": "Jake", "slots": [{"start": T0, "task": "break", "label": "Shade"}]}]}
+    app.on_loop(app.hub.set_schedule, schedule)
+    live_app.stop(app)
+    again = live_app(clock=StepClock(start=T0 + 3700))
+    again.start_replay(shifts.synthetic(n_crew=1))
+    return alerts, again
+
+
+def test_A34_alert_log_is_saved_in_sqlite(live_app):
+    alerts, again = restart_after_alerts(live_app)
+    assert alerts
+    kinds = {r[0] for r in again.hub.db.query("SELECT type FROM alerts")}
+    assert {"heat_alert", "band_command", "mandown_confirmed"} <= kinds
+
+
+@pytest.mark.xfail(strict=True, reason="BUG -> session A: after a restart the dashboard's alert history is empty "
+                   "(FrontendAdapter keeps alerts in memory only; SQLite has them)")
+def test_A34_alert_history_comes_back_after_restart(live_app):
+    alerts, again = restart_after_alerts(live_app)
+    assert again.client.get("/api/state?view=crew").json()["alerts"]
+
+
+@pytest.mark.xfail(strict=True, reason="BUG -> session A: after a restart hub.schedule is empty (breaks gone from "
+                   "the worker cards) until the planner bridge replans; the current schedule isn't saved")
+def test_A34_current_schedule_comes_back_after_restart(live_app):
+    _, again = restart_after_alerts(live_app)
+    assert again.hub.schedule is not None
