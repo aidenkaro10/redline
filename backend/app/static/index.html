@@ -191,7 +191,12 @@ function drawControls() {
   $("demoTag").hidden = !S.demo;
   $("btnDemo").classList.toggle("on", S.demo);
   $("btnReplay").classList.toggle("on", !!S.replay.on);
-  $("replayTag").textContent = S.replay.on ? `replay ${S.replay.speed}x · ${S.replay.description || ""}` : "live";
+  if (S.replay.on && S.replay.speed) {
+    if (![...$("speed").options].some(o => +o.value === S.replay.speed))
+      $("speed").add(new Option(`${S.replay.speed}x`, S.replay.speed));
+    $("speed").value = S.replay.speed;
+  }
+  $("replayTag").textContent =S.replay.on ? `replay ${S.replay.speed}x · ${S.replay.description || ""}` : "live";
   const haz = S.hazards[siteOf()] || {};
   $("btnLightning").classList.toggle("on", !!haz.lightning);
   $("btnFlood").classList.toggle("on", !!haz.flood);
@@ -229,7 +234,8 @@ function onEvent(ev) {
         const wk = Object.assign(worker(x.worker_id), x);
         // history points come without forecast curves; swap in the latest one, which has it
         if (x.latest && wk.history.length) wk.history[wk.history.length - 1] = x.latest;
-        if (x.mandown !== "ok") S.mandown[x.worker_id] = {type: x.mandown === "confirmed" ? "mandown_confirmed" : "mandown_check"};
+        if (x.mandown !== "ok") S.mandown[x.worker_id] = {type: x.mandown === "confirmed" ? "mandown_confirmed" : "mandown_check",
+                                                           reason: x.mandown_reason};
       }
       for (const h of ev.hazards) (S.hazards[h.site_id] ||= {})[h.kind] = true;
       if (!S.workers[S.selected]) S.selected = Object.keys(S.workers)[0] || null;

@@ -291,7 +291,7 @@ class WorkerPipeline:
             "worker_id": self.worker_id, "name": self.info.get("name", self.worker_id),
             "site_id": self.site.get("site_id"), "heat_level": self.heat.level,
             "acknowledged": self.heat.acknowledged, "band_pattern": self.router.current,
-            "mandown": self.mandown.state, "demo": self.heat.demo,
+            "mandown": self.mandown.state, "mandown_reason": self.mandown.reason, "demo": self.heat.demo,
             "model": self.estimates[-1]["model"] if self.estimates else None,
             "latest": self.estimates[-1] if self.estimates else None,
             "last_reading": {k: v for k, v in self.last_reading.items() if not k.endswith("_at")},

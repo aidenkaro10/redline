@@ -20,6 +20,7 @@ import asyncio
 import contextlib
 import logging
 import math
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -116,6 +117,7 @@ async def lifespan(app: FastAPI):
         recorder = Recorder()
         log.info("Recording live inputs to %s", recorder.path)
     hub = Hub(predictor=load_predictor(s), band=band, db=db, recorder=recorder, demo=s.demo)
+    hub.add_listener(print_key_event)
     app.state.hub = hub
     tasks = [asyncio.create_task(_tick_forever(hub))]
 
@@ -135,6 +137,24 @@ async def lifespan(app: FastAPI):
             recorder.close()
         if db:
             db.close()
+
+
+def print_key_event(ev: dict) -> None:
+    """Console line for the events a person cares about (band commands print themselves)."""
+    kind, who = ev["type"], ev.get("worker_id", "")
+    if kind == "heat_alert":
+        text = f"heat {ev['level'].upper()} ({ev['value']} °C vs {ev['threshold']}, {ev['rule']} rule)"
+    elif kind == "mandown_confirmed":
+        v = ev["last_vitals"]
+        text = (f"MANDOWN_CONFIRMED {ev['worker_name']} at {ev['site_name']} ({ev['reason']}, "
+                f"{ev['seconds_since_start']:.0f} s, core {v['core_temp']} °C, HR {v['hr']})")
+    elif kind in ("mandown_check", "mandown_cancelled", "mandown_resolved", "heat_ack", "red_unacknowledged"):
+        text = kind + "".join(f" {k}={ev[k]}" for k in ("reason", "by") if ev.get(k))
+    elif kind == "hazard":
+        text, who = f"hazard {ev['kind']} {'ON' if ev['on'] else 'off'} ({ev['source']})", ev["site_id"]
+    else:
+        return
+    print(f"{time.strftime('%H:%M:%S')} [event {who}] {text}", flush=True)
 
 
 async def _tick_forever(hub: Hub):
