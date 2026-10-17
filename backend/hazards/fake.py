@@ -145,3 +145,42 @@ def weather(sites, now):
             h["soil_moisture_3_to_9cm"].append(soil - 0.01)
         out[s.site_id] = h
     return out
+
+
+def gauge_status(sites, context):
+    """Fake NWPS status for each site's gauge: the St. Johns site's gauge is in
+    minor flood and forecast to reach moderate tomorrow; everything else is normal."""
+    from backend.hazards.events import utc_now
+    now = utc_now()
+    out = {}
+    flood_gauge = (context.get(FLOOD_SITE, {}).get("gauges") or {}).get("lid")
+    for s in sites:
+        g = context.get(s.site_id, {}).get("gauges")
+        if not g:
+            continue
+        stages = g.get("stages", {})
+        if g["lid"] == flood_gauge:     # sites can share a gauge; they all see the flood
+            obs = {"primary": stages.get("minor", 2) + 0.2, "floodCategory": "minor"}
+            fc = {"primary": stages.get("moderate", 3) + 0.1, "floodCategory": "moderate",
+                  "validTime": iso(now + timedelta(hours=20))}
+        else:
+            obs = {"primary": round(stages.get("action", 2) * 0.6, 2), "floodCategory": "no_flooding"}
+            fc = {"primary": -999, "floodCategory": "fcst_not_current", "validTime": "0001-01-01T00:00:00Z"}
+        obs.update({"primaryUnit": "ft", "validTime": iso(now - timedelta(minutes=15))})
+        fc.update({"primaryUnit": "ft"})
+        out[g["lid"]] = {"observed": obs, "forecast": fc}
+    return out
+
+
+def water_levels(station_ids, context):
+    """Fake tide readings: every coastal station a foot below minor flood."""
+    from backend.hazards.events import utc_now
+    now = utc_now()
+    levels = {}
+    for entry in context.values():
+        st = entry.get("tides")
+        if st and st["id"] in station_ids:
+            levels[st["id"]] = {"t": iso(now - timedelta(minutes=6)),
+                                "ft_stnd": round(st["flood_levels_ft_stnd"]["minor"] - 1.0, 2),
+                                "preliminary": True}
+    return levels

@@ -1,5 +1,31 @@
 {
  "eia-10202": {
+  "gauges": {
+   "distance_mi": 0.9,
+   "lat": 30.6716666666667,
+   "lid": "FRDF1",
+   "lon": -81.465,
+   "name": "Atlantic Coast at Fernandina Beach (in MHHW)",
+   "stages": {
+    "action": 1.5,
+    "major": 3.5,
+    "minor": 2,
+    "moderate": 2.5
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 1.0,
+   "flood_levels_ft_stnd": {
+    "major": 11.76,
+    "minor": 10.26,
+    "moderate": 10.76
+   },
+   "id": "8720030",
+   "lat": 30.671356,
+   "lon": -81.46584,
+   "name": "Fernandina Beach"
+  },
   "zones": {
    "county": "FLC089",
    "cwa": "JAX",
@@ -8,6 +34,21 @@
   }
  },
  "eia-10434": {
+  "gauges": {
+   "distance_mi": 10.1,
+   "lat": 27.871944444444,
+   "lid": "LITF1",
+   "lon": -82.211388888889,
+   "name": "Alafia River at Lithia Pinecrest Road at Lithia",
+   "stages": {
+    "action": 11,
+    "major": 19,
+    "minor": 13,
+    "moderate": 16
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC105",
    "cwa": "TBW",
@@ -16,6 +57,21 @@
   }
  },
  "eia-136": {
+  "gauges": {
+   "distance_mi": 6.8,
+   "lat": 29.8,
+   "lid": "SRPF1",
+   "lon": -81.55,
+   "name": "St. Johns River at Racy Point (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 3,
+    "minor": 1.5,
+    "moderate": 2
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC107",
    "cwa": "JAX",
@@ -24,6 +80,8 @@
   }
  },
  "eia-54627": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC099",
    "cwa": "MFL",
@@ -32,6 +90,21 @@
   }
  },
  "eia-55286": {
+  "gauges": {
+   "distance_mi": 4.8,
+   "lat": 28.369444444444,
+   "lid": "COCF1",
+   "lon": -80.872777777778,
+   "name": "St. Johns River near Cocoa",
+   "stages": {
+    "action": 15.8,
+    "major": 17,
+    "minor": 16,
+    "moderate": 16.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC009",
    "cwa": "MLB",
@@ -40,6 +113,21 @@
   }
  },
  "eia-55318": {
+  "gauges": {
+   "distance_mi": 10.2,
+   "lat": 28.369444444444,
+   "lid": "COCF1",
+   "lon": -80.872777777778,
+   "name": "St. Johns River near Cocoa",
+   "stages": {
+    "action": 15.8,
+    "major": 17,
+    "minor": 16,
+    "moderate": 16.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC009",
    "cwa": "MLB",
@@ -48,6 +136,21 @@
   }
  },
  "eia-55412": {
+  "gauges": {
+   "distance_mi": 10.4,
+   "lat": 27.901944444444,
+   "lid": "BARF1",
+   "lon": -81.8175,
+   "name": "Peace River at SR 60 Bartow",
+   "stages": {
+    "action": 7.6,
+    "major": 10,
+    "minor": 8,
+    "moderate": 9.2
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC105",
    "cwa": "TBW",
@@ -56,6 +159,21 @@
   }
  },
  "eia-55415": {
+  "gauges": {
+   "distance_mi": 7.6,
+   "lat": 27.504166666667,
+   "lid": "ZFSF1",
+   "lon": -81.801111111111,
+   "name": "Peace River at Zolfo Springs",
+   "stages": {
+    "action": 14,
+    "major": 22,
+    "minor": 16,
+    "moderate": 20
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC049",
    "cwa": "TBW",
@@ -64,6 +182,8 @@
   }
  },
  "eia-55821": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC095",
    "cwa": "MLB",
@@ -72,6 +192,8 @@
   }
  },
  "eia-564": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC095",
    "cwa": "MLB",
@@ -80,6 +202,8 @@
   }
  },
  "eia-56407": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC099",
    "cwa": "MFL",
@@ -88,6 +212,21 @@
   }
  },
  "eia-57241": {
+  "gauges": {
+   "distance_mi": 10.8,
+   "lat": 29.921666666667,
+   "lid": "WORF1",
+   "lon": -82.426388888889,
+   "name": "Santa Fe River at Worthington Springs (in NAVD88)",
+   "stages": {
+    "action": 56,
+    "major": 66,
+    "minor": 59,
+    "moderate": 64
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC001",
    "cwa": "JAX",
@@ -96,6 +235,21 @@
   }
  },
  "eia-59993": {
+  "gauges": {
+   "distance_mi": 9.6,
+   "lat": 26.7228,
+   "lid": "OWCF1",
+   "lon": -81.7519,
+   "name": "Tide Gauge at Owl Creek (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 3.5,
+    "minor": 2,
+    "moderate": 2.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC015",
    "cwa": "TBW",
@@ -104,6 +258,21 @@
   }
  },
  "eia-60014": {
+  "gauges": {
+   "distance_mi": 4.4,
+   "lat": 27.670833333333,
+   "lid": "WIMF1",
+   "lon": -82.352777777778,
+   "name": "Little Manatee River near Wimauma at US 301",
+   "stages": {
+    "action": 9.5,
+    "major": 17,
+    "minor": 11,
+    "moderate": 14.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC081",
    "cwa": "TBW",
@@ -112,6 +281,21 @@
   }
  },
  "eia-60061": {
+  "gauges": {
+   "distance_mi": 8.1,
+   "lat": 27.221944444444,
+   "lid": "ARCF1",
+   "lon": -81.876111111111,
+   "name": "Peace River at SR 70 Arcadia",
+   "stages": {
+    "action": 9,
+    "major": 16,
+    "minor": 11,
+    "moderate": 14
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC027",
    "cwa": "TBW",
@@ -120,6 +304,8 @@
   }
  },
  "eia-60345": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC093",
    "cwa": "MLB",
@@ -128,6 +314,21 @@
   }
  },
  "eia-6042": {
+  "gauges": {
+   "distance_mi": 4.5,
+   "lat": 27.670833333333,
+   "lid": "WIMF1",
+   "lon": -82.352777777778,
+   "name": "Little Manatee River near Wimauma at US 301",
+   "stages": {
+    "action": 9.5,
+    "major": 17,
+    "minor": 11,
+    "moderate": 14.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC081",
    "cwa": "TBW",
@@ -136,6 +337,8 @@
   }
  },
  "eia-6043": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC085",
    "cwa": "MLB",
@@ -144,6 +347,21 @@
   }
  },
  "eia-6045": {
+  "gauges": {
+   "distance_mi": 1.8,
+   "lat": 27.345552,
+   "lid": "ANKF1",
+   "lon": -80.276275,
+   "name": "Indian River at Ankona (in MHHW)",
+   "stages": {
+    "action": 1.5,
+    "major": 5,
+    "minor": 2.5,
+    "moderate": 3.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC111",
    "cwa": "MLB",
@@ -152,6 +370,21 @@
   }
  },
  "eia-6046": {
+  "gauges": {
+   "distance_mi": 4.6,
+   "lat": 28.837777777778,
+   "lid": "SNFF1",
+   "lon": -81.324444444444,
+   "name": "St. Johns River near Sanford",
+   "stages": {
+    "action": 4.2,
+    "major": 8,
+    "minor": 5.5,
+    "moderate": 7
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC127",
    "cwa": "MLB",
@@ -160,6 +393,32 @@
   }
  },
  "eia-609": {
+  "gauges": {
+   "distance_mi": 9.6,
+   "lat": 28.369444444444,
+   "lid": "COCF1",
+   "lon": -80.872777777778,
+   "name": "St. Johns River near Cocoa",
+   "stages": {
+    "action": 15.8,
+    "major": 17,
+    "minor": 16,
+    "moderate": 16.5
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 11.1,
+   "flood_levels_ft_stnd": {
+    "major": 24.53,
+    "minor": 23.69,
+    "moderate": 24.03
+   },
+   "id": "8721604",
+   "lat": 28.4158,
+   "lon": -80.5931,
+   "name": "Trident Pier, Port Canaveral"
+  },
   "zones": {
    "county": "FLC009",
    "cwa": "MLB",
@@ -168,6 +427,32 @@
   }
  },
  "eia-612": {
+  "gauges": {
+   "distance_mi": 2.6,
+   "lat": 26.7228,
+   "lid": "OWCF1",
+   "lon": -81.7519,
+   "name": "Tide Gauge at Owl Creek (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 3.5,
+    "minor": 2,
+    "moderate": 2.5
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 6.4,
+   "flood_levels_ft_stnd": {
+    "major": 10.68,
+    "minor": 7.68,
+    "moderate": 9.18
+   },
+   "id": "8725520",
+   "lat": 26.647778,
+   "lon": -81.87111,
+   "name": "Fort Myers"
+  },
   "zones": {
    "county": "FLC071",
    "cwa": "TBW",
@@ -176,6 +461,21 @@
   }
  },
  "eia-61667": {
+  "gauges": {
+   "distance_mi": 6.8,
+   "lat": 27.670833333333,
+   "lid": "WIMF1",
+   "lon": -82.352777777778,
+   "name": "Little Manatee River near Wimauma at US 301",
+   "stages": {
+    "action": 9.5,
+    "major": 17,
+    "minor": 11,
+    "moderate": 14.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC057",
    "cwa": "TBW",
@@ -184,6 +484,32 @@
   }
  },
  "eia-617": {
+  "gauges": {
+   "distance_mi": 0.6,
+   "lat": 26.08167,
+   "lid": "PEGF1",
+   "lon": -80.11667,
+   "name": "Atlantic Ocean Tide Gauge at South Port Everglades (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 2.5,
+    "minor": 1.3,
+    "moderate": 1.7
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 0.6,
+   "flood_levels_ft_stnd": {
+    "major": 29.38,
+    "minor": 28.18,
+    "moderate": 28.58
+   },
+   "id": "8722956",
+   "lat": 26.081667,
+   "lon": -80.11667,
+   "name": "South Port Everglades"
+  },
   "zones": {
    "county": "FLC011",
    "cwa": "MFL",
@@ -192,6 +518,21 @@
   }
  },
  "eia-61763": {
+  "gauges": {
+   "distance_mi": 2.6,
+   "lat": 30.3255555555556,
+   "lid": "WSPF1",
+   "lon": -82.7383333333333,
+   "name": "Suwannee River at White Springs (in NAVD88)",
+   "stages": {
+    "action": 69,
+    "major": 86,
+    "minor": 74,
+    "moderate": 80
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC023",
    "cwa": "JAX",
@@ -200,6 +541,21 @@
   }
  },
  "eia-61807": {
+  "gauges": {
+   "distance_mi": 2.4,
+   "lat": 30.410277777778,
+   "lid": "WTHF1",
+   "lon": -83.180277777778,
+   "name": "Withlacoochee River near Lee (in NAVD88)",
+   "stages": {
+    "action": 44,
+    "major": 58,
+    "minor": 50,
+    "moderate": 54
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC047",
    "cwa": "JAX",
@@ -208,6 +564,32 @@
   }
  },
  "eia-619": {
+  "gauges": {
+   "distance_mi": 8.7,
+   "lat": 26.6392,
+   "lid": "IWBF1",
+   "lon": -80.0407,
+   "name": "Atlantic Ocean Tide Gauge at Ibis Way Bridge (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 2.5,
+    "minor": 1.3,
+    "moderate": 1.7
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 10.6,
+   "flood_levels_ft_stnd": {
+    "major": 35.55,
+    "minor": 34.35,
+    "moderate": 34.75
+   },
+   "id": "8722670",
+   "lat": 26.612778,
+   "lon": -80.034164,
+   "name": "Lake Worth Pier, Atlantic Ocean"
+  },
   "zones": {
    "county": "FLC099",
    "cwa": "MFL",
@@ -216,6 +598,21 @@
   }
  },
  "eia-61982": {
+  "gauges": {
+   "distance_mi": 2.6,
+   "lat": 29.848611111111,
+   "lid": "FWHF1",
+   "lon": -82.715277777778,
+   "name": "Santa Fe River near Fort White (in NAVD88)",
+   "stages": {
+    "action": 22,
+    "major": 29,
+    "minor": 23,
+    "moderate": 25
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC023",
    "cwa": "JAX",
@@ -224,6 +621,21 @@
   }
  },
  "eia-620": {
+  "gauges": {
+   "distance_mi": 0.3,
+   "lat": 28.837777777778,
+   "lid": "SNFF1",
+   "lon": -81.324444444444,
+   "name": "St. Johns River near Sanford",
+   "stages": {
+    "action": 4.2,
+    "major": 8,
+    "minor": 5.5,
+    "moderate": 7
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC127",
    "cwa": "MLB",
@@ -232,6 +644,21 @@
   }
  },
  "eia-621": {
+  "gauges": {
+   "distance_mi": 8.0,
+   "lat": 25.32767,
+   "lid": "GBPF1",
+   "lon": -80.283084,
+   "name": "Tide Station at Ocean Reef on Card Sound (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 2.2,
+    "minor": 1.2,
+    "moderate": 1.7
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC086",
    "cwa": "MFL",
@@ -240,6 +667,21 @@
   }
  },
  "eia-62490": {
+  "gauges": {
+   "distance_mi": 7.8,
+   "lat": 30.3255555555556,
+   "lid": "WSPF1",
+   "lon": -82.7383333333333,
+   "name": "Suwannee River at White Springs (in NAVD88)",
+   "stages": {
+    "action": 69,
+    "major": 86,
+    "minor": 74,
+    "moderate": 80
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC121",
    "cwa": "JAX",
@@ -248,6 +690,21 @@
   }
  },
  "eia-62543": {
+  "gauges": {
+   "distance_mi": 6.4,
+   "lat": 29.589444444444,
+   "lid": "WCXF1",
+   "lon": -82.936666666667,
+   "name": "Suwannee River near Wilcox - US 19 (in NAVD88)",
+   "stages": {
+    "action": 7,
+    "major": 20,
+    "minor": 10,
+    "moderate": 13
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC041",
    "cwa": "JAX",
@@ -256,6 +713,32 @@
   }
  },
  "eia-627": {
+  "gauges": {
+   "distance_mi": 0.5,
+   "lat": 27.76,
+   "lid": "SAPF1",
+   "lon": -82.6267,
+   "name": "Tide Gauge at St. Petersburg (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 6,
+    "minor": 2.7,
+    "moderate": 4
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 0.5,
+   "flood_levels_ft_stnd": {
+    "major": 11.63,
+    "minor": 8.33,
+    "moderate": 10.63
+   },
+   "id": "8726520",
+   "lat": 27.7606,
+   "lon": -82.6269,
+   "name": "St. Petersburg"
+  },
   "zones": {
    "county": "FLC103",
    "cwa": "TBW",
@@ -264,6 +747,21 @@
   }
  },
  "eia-628": {
+  "gauges": {
+   "distance_mi": 2.8,
+   "lat": 28.925277777778,
+   "lid": "SISF1",
+   "lon": -82.690555555556,
+   "name": "Tide Gauge at Crystal River Mouth near Shell Island (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 5,
+    "minor": 3,
+    "moderate": 4
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC017",
    "cwa": "TBW",
@@ -272,6 +770,32 @@
   }
  },
  "eia-634": {
+  "gauges": {
+   "distance_mi": 1.2,
+   "lat": 27.8441,
+   "lid": "WDCF1",
+   "lon": -82.6113,
+   "name": "Tide Gauge at Weedon Island (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 5,
+    "minor": 3,
+    "moderate": 4
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 3.0,
+   "flood_levels_ft_stnd": {
+    "major": 36.75,
+    "minor": 33.45,
+    "moderate": 34.75
+   },
+   "id": "8726607",
+   "lat": 27.8578,
+   "lon": -82.5528,
+   "name": "Old Port Tampa"
+  },
   "zones": {
    "county": "FLC103",
    "cwa": "TBW",
@@ -280,6 +804,21 @@
   }
  },
  "eia-63517": {
+  "gauges": {
+   "distance_mi": 2.4,
+   "lat": 29.848611111111,
+   "lid": "FWHF1",
+   "lon": -82.715277777778,
+   "name": "Santa Fe River near Fort White (in NAVD88)",
+   "stages": {
+    "action": 22,
+    "major": 29,
+    "minor": 23,
+    "moderate": 25
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC023",
    "cwa": "JAX",
@@ -288,6 +827,21 @@
   }
  },
  "eia-63518": {
+  "gauges": {
+   "distance_mi": 5.5,
+   "lat": 30.3927777777778,
+   "lid": "LIKF1",
+   "lon": -82.9333333333333,
+   "name": "Suwannee River near Suwannee Springs (in NAVD88)",
+   "stages": {
+    "action": 58,
+    "major": 72,
+    "minor": 60,
+    "moderate": 65
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC047",
    "cwa": "JAX",
@@ -296,6 +850,21 @@
   }
  },
  "eia-63982": {
+  "gauges": {
+   "distance_mi": 11.0,
+   "lat": 27.75111111111111,
+   "lid": "FTMF1",
+   "lon": -81.78222222222222,
+   "name": "Peace River at Fort Meade",
+   "stages": {
+    "action": 77,
+    "major": 79.5,
+    "minor": 78,
+    "moderate": 79
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC049",
    "cwa": "TBW",
@@ -304,6 +873,32 @@
   }
  },
  "eia-641": {
+  "gauges": {
+   "distance_mi": 4.3,
+   "lat": 30.522816,
+   "lid": "CEPF1",
+   "lon": -87.173441,
+   "name": "Escambia Bay Tide Station at Cypress Point (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 5.5,
+    "minor": 3,
+    "moderate": 4
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 11.2,
+   "flood_levels_ft_stnd": {
+    "major": 15.69,
+    "minor": 11.69,
+    "moderate": 12.69
+   },
+   "id": "8729840",
+   "lat": 30.4044,
+   "lon": -87.2112,
+   "name": "Pensacola"
+  },
   "zones": {
    "county": "FLC033",
    "cwa": "MOB",
@@ -312,6 +907,21 @@
   }
  },
  "eia-64145": {
+  "gauges": {
+   "distance_mi": 5.3,
+   "lat": 28.925277777778,
+   "lid": "SISF1",
+   "lon": -82.690555555556,
+   "name": "Tide Gauge at Crystal River Mouth near Shell Island (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 5,
+    "minor": 3,
+    "moderate": 4
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC017",
    "cwa": "TBW",
@@ -320,6 +930,21 @@
   }
  },
  "eia-64146": {
+  "gauges": {
+   "distance_mi": 0.9,
+   "lat": 30.11442,
+   "lid": "SYCF1",
+   "lon": -85.4176,
+   "name": "Sandy Creek at Sandy Creek Boat Ramp (in NAVD88)",
+   "stages": {
+    "action": 3,
+    "major": 7,
+    "minor": 4,
+    "moderate": 5.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC005",
    "cwa": "TAE",
@@ -328,6 +953,32 @@
   }
  },
  "eia-643": {
+  "gauges": {
+   "distance_mi": 5.6,
+   "lat": 30.269444444444446,
+   "lid": "DPLF1",
+   "lon": -85.60722222222222,
+   "name": "Deer Point Lake at Deer Point Dam (in NAVD88)",
+   "stages": {
+    "action": 5.5,
+    "major": 9,
+    "minor": 6.5,
+    "moderate": 8
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 8.5,
+   "flood_levels_ft_stnd": {
+    "major": 9.68,
+    "minor": 6.68,
+    "moderate": 8.18
+   },
+   "id": "8729108",
+   "lat": 30.149723,
+   "lon": -85.664444,
+   "name": "Panama City"
+  },
   "zones": {
    "county": "FLC005",
    "cwa": "TAE",
@@ -336,6 +987,32 @@
   }
  },
  "eia-645": {
+  "gauges": {
+   "distance_mi": 3.2,
+   "lat": 27.837555,
+   "lid": "BFOF1",
+   "lon": -82.382999,
+   "name": "Tide Gauge at Bullfrog Creek (In MHHW)",
+   "stages": {
+    "action": 1.5,
+    "major": 4.5,
+    "minor": 2,
+    "moderate": 3
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 9.0,
+   "flood_levels_ft_stnd": {
+    "major": 8.84,
+    "minor": 5.54,
+    "moderate": 6.84
+   },
+   "id": "8726674",
+   "lat": 27.9231,
+   "lon": -82.4214,
+   "name": "East Bay"
+  },
   "zones": {
    "county": "FLC057",
    "cwa": "TBW",
@@ -344,6 +1021,21 @@
   }
  },
  "eia-64533": {
+  "gauges": {
+   "distance_mi": 12.4,
+   "lat": 27.75111111111111,
+   "lid": "FTMF1",
+   "lon": -81.78222222222222,
+   "name": "Peace River at Fort Meade",
+   "stages": {
+    "action": 77,
+    "major": 79.5,
+    "minor": 78,
+    "moderate": 79
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC049",
    "cwa": "TBW",
@@ -352,6 +1044,21 @@
   }
  },
  "eia-65170": {
+  "gauges": {
+   "distance_mi": 2.4,
+   "lat": 29.9525,
+   "lid": "ICSF1",
+   "lon": -82.786111111111,
+   "name": "Ichetucknee River below Ichetucknee Springs State Park - US-27 (in NAVD88)",
+   "stages": {
+    "action": 16,
+    "major": 24,
+    "minor": 19,
+    "moderate": 21
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC121",
    "cwa": "JAX",
@@ -360,6 +1067,32 @@
   }
  },
  "eia-65171": {
+  "gauges": {
+   "distance_mi": 2.3,
+   "lat": 30.134367,
+   "lid": "PEPF1",
+   "lon": -85.505974,
+   "name": "Pelican Point at Cooks Bayou (in MHHW)",
+   "stages": {
+    "action": 1.5,
+    "major": 3.5,
+    "minor": 2,
+    "moderate": 2.5
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 10.4,
+   "flood_levels_ft_stnd": {
+    "major": 9.68,
+    "minor": 6.68,
+    "moderate": 8.18
+   },
+   "id": "8729108",
+   "lat": 30.149723,
+   "lon": -85.664444,
+   "name": "Panama City"
+  },
   "zones": {
    "county": "FLC005",
    "cwa": "TAE",
@@ -368,6 +1101,21 @@
   }
  },
  "eia-65172": {
+  "gauges": {
+   "distance_mi": 1.2,
+   "lat": 29.825555555556,
+   "lid": "POEF1",
+   "lon": -82.648888888889,
+   "name": "Santa Fe River at Poe Springs Pool (in NAVD88)",
+   "stages": {
+    "action": 27,
+    "major": 39,
+    "minor": 29,
+    "moderate": 33
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC001",
    "cwa": "JAX",
@@ -376,6 +1124,21 @@
   }
  },
  "eia-65173": {
+  "gauges": {
+   "distance_mi": 8.0,
+   "lat": 29.49,
+   "lid": "MSPF1",
+   "lon": -82.976944444444,
+   "name": "Suwannee River at Manatee Springs - Source (in NAVD88)",
+   "stages": {
+    "action": 5,
+    "major": 12.5,
+    "minor": 7,
+    "moderate": 10
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC075",
    "cwa": "TBW",
@@ -384,6 +1147,21 @@
   }
  },
  "eia-65292": {
+  "gauges": {
+   "distance_mi": 9.8,
+   "lat": 29.8,
+   "lid": "SRPF1",
+   "lon": -81.55,
+   "name": "St. Johns River at Racy Point (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 3,
+    "minor": 1.5,
+    "moderate": 2
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC107",
    "cwa": "JAX",
@@ -392,6 +1170,21 @@
   }
  },
  "eia-65422": {
+  "gauges": {
+   "distance_mi": 8.7,
+   "lat": 30.533888888889,
+   "lid": "ALTF1",
+   "lon": -85.165277777778,
+   "name": "Chipola River near Altha (CR 274)",
+   "stages": {
+    "action": 18,
+    "major": 30,
+    "minor": 22,
+    "moderate": 23
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC013",
    "cwa": "TAE",
@@ -400,6 +1193,21 @@
   }
  },
  "eia-65429": {
+  "gauges": {
+   "distance_mi": 11.0,
+   "lat": 30.286666666667,
+   "lid": "SCTF1",
+   "lon": -85.144722222222,
+   "name": "Chipola River at Scott's Ferry",
+   "stages": {
+    "action": 21,
+    "major": 28,
+    "minor": 22,
+    "moderate": 25
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC013",
    "cwa": "TAE",
@@ -408,6 +1216,21 @@
   }
  },
  "eia-65433": {
+  "gauges": {
+   "distance_mi": 4.7,
+   "lat": 30.708333333333,
+   "lid": "MLNF1",
+   "lon": -86.972222222222,
+   "name": "Big Coldwater Creek near Milton",
+   "stages": {
+    "action": 5,
+    "major": 23,
+    "minor": 10,
+    "moderate": 15
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC113",
    "cwa": "MOB",
@@ -416,6 +1239,21 @@
   }
  },
  "eia-65501": {
+  "gauges": {
+   "distance_mi": 1.2,
+   "lat": 30.11442,
+   "lid": "SYCF1",
+   "lon": -85.4176,
+   "name": "Sandy Creek at Sandy Creek Boat Ramp (in NAVD88)",
+   "stages": {
+    "action": 3,
+    "major": 7,
+    "minor": 4,
+    "moderate": 5.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC005",
    "cwa": "TAE",
@@ -424,6 +1262,32 @@
   }
  },
  "eia-6584": {
+  "gauges": {
+   "distance_mi": 1.3,
+   "lat": 24.5773,
+   "lid": "RCNF1",
+   "lon": -81.720582,
+   "name": "Tide Station at Raccoon Key on Boca Chica Channel (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 2.1,
+    "minor": 1.1,
+    "moderate": 1.6
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 4.7,
+   "flood_levels_ft_stnd": {
+    "major": 8.47,
+    "minor": 7.47,
+    "moderate": 7.97
+   },
+   "id": "8724580",
+   "lat": 24.5557,
+   "lon": -81.8079,
+   "name": "Key West"
+  },
   "zones": {
    "county": "FLC087",
    "cwa": "KEY",
@@ -432,6 +1296,21 @@
   }
  },
  "eia-65866": {
+  "gauges": {
+   "distance_mi": 10.3,
+   "lat": 30.752777777778,
+   "lid": "MLGF1",
+   "lon": -86.629166666667,
+   "name": "Yellow River (AL) at Milligan",
+   "stages": {
+    "action": 7,
+    "major": 18,
+    "minor": 12,
+    "moderate": 15
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC091",
    "cwa": "MOB",
@@ -440,6 +1319,21 @@
   }
  },
  "eia-65886": {
+  "gauges": {
+   "distance_mi": 2.1,
+   "lat": 30.533888888889,
+   "lid": "ALTF1",
+   "lon": -85.165277777778,
+   "name": "Chipola River near Altha (CR 274)",
+   "stages": {
+    "action": 18,
+    "major": 30,
+    "minor": 22,
+    "moderate": 23
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC013",
    "cwa": "TAE",
@@ -448,6 +1342,21 @@
   }
  },
  "eia-65888": {
+  "gauges": {
+   "distance_mi": 4.3,
+   "lat": 30.38739,
+   "lid": "LGPF1",
+   "lon": -86.35902,
+   "name": "Choctawhatchee Bay at Legion Park (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 4.5,
+    "minor": 3,
+    "moderate": 3.5
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": null,
    "cwa": "MOB",
@@ -456,6 +1365,21 @@
   }
  },
  "eia-65927": {
+  "gauges": {
+   "distance_mi": 9.2,
+   "lat": 30.533888888889,
+   "lid": "ALTF1",
+   "lon": -85.165277777778,
+   "name": "Chipola River near Altha (CR 274)",
+   "stages": {
+    "action": 18,
+    "major": 30,
+    "minor": 22,
+    "moderate": 23
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC013",
    "cwa": "TAE",
@@ -464,6 +1388,32 @@
   }
  },
  "eia-65978": {
+  "gauges": {
+   "distance_mi": 1.7,
+   "lat": 26.0887,
+   "lid": "SFRF1",
+   "lon": -80.182,
+   "name": "South Fork New River near Secret Woods Nature Center (in MHHW)",
+   "stages": {
+    "action": 1,
+    "major": 2.5,
+    "minor": 1.3,
+    "moderate": 1.7
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 5.2,
+   "flood_levels_ft_stnd": {
+    "major": 29.38,
+    "minor": 28.18,
+    "moderate": 28.58
+   },
+   "id": "8722956",
+   "lat": 26.081667,
+   "lon": -80.11667,
+   "name": "South Port Everglades"
+  },
   "zones": {
    "county": "FLC011",
    "cwa": "MFL",
@@ -472,6 +1422,21 @@
   }
  },
  "eia-66128": {
+  "gauges": {
+   "distance_mi": 13.7,
+   "lat": 27.901944444444,
+   "lid": "BARF1",
+   "lon": -81.8175,
+   "name": "Peace River at SR 60 Bartow",
+   "stages": {
+    "action": 7.6,
+    "major": 10,
+    "minor": 8,
+    "moderate": 9.2
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC105",
    "cwa": "TBW",
@@ -480,6 +1445,21 @@
   }
  },
  "eia-663": {
+  "gauges": {
+   "distance_mi": 11.5,
+   "lat": 29.921666666667,
+   "lid": "WORF1",
+   "lon": -82.426388888889,
+   "name": "Santa Fe River at Worthington Springs (in NAVD88)",
+   "stages": {
+    "action": 56,
+    "major": 66,
+    "minor": 59,
+    "moderate": 64
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC001",
    "cwa": "JAX",
@@ -488,6 +1468,21 @@
   }
  },
  "eia-66553": {
+  "gauges": {
+   "distance_mi": 3.9,
+   "lat": 30.244722222222,
+   "lid": "DOUF1",
+   "lon": -83.249722222222,
+   "name": "Suwannee River at Dowling Park - CR 250 (in NAVD88)",
+   "stages": {
+    "action": 43,
+    "major": 58,
+    "minor": 47,
+    "moderate": 52
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC079",
    "cwa": "TAE",
@@ -496,6 +1491,21 @@
   }
  },
  "eia-66639": {
+  "gauges": {
+   "distance_mi": 3.0,
+   "lat": 30.384444444444,
+   "lid": "ELLF1",
+   "lon": -83.171944444444,
+   "name": "Suwannee River at Ellaville - US 90 (in NAVD88)",
+   "stages": {
+    "action": 49,
+    "major": 65,
+    "minor": 53,
+    "moderate": 60
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC121",
    "cwa": "JAX",
@@ -504,6 +1514,32 @@
   }
  },
  "eia-667": {
+  "gauges": {
+   "distance_mi": 2.1,
+   "lat": 30.3866666666667,
+   "lid": "DMSF1",
+   "lon": -81.5583333333333,
+   "name": "St. Johns River at Dames Point Bridge (I-295) (in MHHW)",
+   "stages": {
+    "action": 1.1,
+    "major": 3.1,
+    "minor": 1.6,
+    "moderate": 2.1
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 2.1,
+   "flood_levels_ft_stnd": {
+    "major": 10.57,
+    "minor": 9.07,
+    "moderate": 9.57
+   },
+   "id": "8720219",
+   "lat": 30.3867,
+   "lon": -81.5583,
+   "name": "Dames Point"
+  },
   "zones": {
    "county": "FLC031",
    "cwa": "JAX",
@@ -512,6 +1548,21 @@
   }
  },
  "eia-67049": {
+  "gauges": {
+   "distance_mi": 1.9,
+   "lat": 29.825555555556,
+   "lid": "POEF1",
+   "lon": -82.648888888889,
+   "name": "Santa Fe River at Poe Springs Pool (in NAVD88)",
+   "stages": {
+    "action": 27,
+    "major": 39,
+    "minor": 29,
+    "moderate": 33
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC041",
    "cwa": "JAX",
@@ -520,6 +1571,21 @@
   }
  },
  "eia-676": {
+  "gauges": {
+   "distance_mi": 13.9,
+   "lat": 27.901944444444,
+   "lid": "BARF1",
+   "lon": -81.8175,
+   "name": "Peace River at SR 60 Bartow",
+   "stages": {
+    "action": 7.6,
+    "major": 10,
+    "minor": 8,
+    "moderate": 9.2
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC105",
    "cwa": "TBW",
@@ -528,6 +1594,21 @@
   }
  },
  "eia-67692": {
+  "gauges": {
+   "distance_mi": 3.1,
+   "lat": 30.244722222222,
+   "lid": "DOUF1",
+   "lon": -83.249722222222,
+   "name": "Suwannee River at Dowling Park - CR 250 (in NAVD88)",
+   "stages": {
+    "action": 43,
+    "major": 58,
+    "minor": 47,
+    "moderate": 52
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC079",
    "cwa": "TAE",
@@ -536,6 +1617,21 @@
   }
  },
  "eia-68472": {
+  "gauges": {
+   "distance_mi": 10.8,
+   "lat": 27.473333333333,
+   "lid": "MKHF1",
+   "lon": -82.211388888889,
+   "name": "Manatee River near Myakka Head at SR 64",
+   "stages": {
+    "action": 9.5,
+    "major": 17,
+    "minor": 11,
+    "moderate": 15
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC081",
    "cwa": "TBW",
@@ -544,6 +1640,8 @@
   }
  },
  "eia-68595": {
+  "gauges": null,
+  "tides": null,
   "zones": {
    "county": "FLC075",
    "cwa": "TBW",
@@ -552,6 +1650,21 @@
   }
  },
  "eia-688": {
+  "gauges": {
+   "distance_mi": 4.5,
+   "lat": 30.42982,
+   "lid": "MNRF1",
+   "lon": -84.32922,
+   "name": "Munson Slough at Roberts Avenue (in NAVD88)",
+   "stages": {
+    "action": 44.5,
+    "major": 49.5,
+    "minor": 46,
+    "moderate": 48
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC073",
    "cwa": "TAE",
@@ -560,6 +1673,21 @@
   }
  },
  "eia-690": {
+  "gauges": {
+   "distance_mi": 0.1,
+   "lat": 30.708055555556,
+   "lid": "WDRF1",
+   "lon": -84.865555555556,
+   "name": "Apalachicola River at Woodruff Dam (in NGVD29)",
+   "stages": {
+    "action": 56,
+    "major": 74,
+    "minor": 63,
+    "moderate": 69
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC063",
    "cwa": "TAE",
@@ -568,6 +1696,21 @@
   }
  },
  "eia-7238": {
+  "gauges": {
+   "distance_mi": 5.2,
+   "lat": 28.266944444444,
+   "lid": "SHIF1",
+   "lon": -81.448055555556,
+   "name": "Shingle Creek at Campbell",
+   "stages": {
+    "action": 59,
+    "major": 62,
+    "minor": 60,
+    "moderate": 61
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC097",
    "cwa": "MLB",
@@ -576,6 +1719,21 @@
   }
  },
  "eia-7242": {
+  "gauges": {
+   "distance_mi": 12.8,
+   "lat": 27.75111111111111,
+   "lid": "FTMF1",
+   "lon": -81.78222222222222,
+   "name": "Peace River at Fort Meade",
+   "stages": {
+    "action": 77,
+    "major": 79.5,
+    "minor": 78,
+    "moderate": 79
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC105",
    "cwa": "TBW",
@@ -584,6 +1742,21 @@
   }
  },
  "eia-7302": {
+  "gauges": {
+   "distance_mi": 5.9,
+   "lat": 27.75111111111111,
+   "lid": "FTMF1",
+   "lon": -81.78222222222222,
+   "name": "Peace River at Fort Meade",
+   "stages": {
+    "action": 77,
+    "major": 79.5,
+    "minor": 78,
+    "moderate": 79
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC105",
    "cwa": "TBW",
@@ -592,6 +1765,21 @@
   }
  },
  "eia-7380": {
+  "gauges": {
+   "distance_mi": 13.4,
+   "lat": 27.75111111111111,
+   "lid": "FTMF1",
+   "lon": -81.78222222222222,
+   "name": "Peace River at Fort Meade",
+   "stages": {
+    "action": 77,
+    "major": 79.5,
+    "minor": 78,
+    "moderate": 79
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC049",
    "cwa": "TBW",
@@ -600,6 +1788,21 @@
   }
  },
  "eia-7846": {
+  "gauges": {
+   "distance_mi": 8.4,
+   "lat": 30.358611111111,
+   "lid": "MACF1",
+   "lon": -82.081666666667,
+   "name": "St. Marys River near Macclenny",
+   "stages": {
+    "action": 10,
+    "major": 19,
+    "minor": 12,
+    "moderate": 15
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC031",
    "cwa": "JAX",
@@ -608,6 +1811,32 @@
   }
  },
  "eia-7873": {
+  "gauges": {
+   "distance_mi": 0.4,
+   "lat": 27.9133,
+   "lid": "MCYF1",
+   "lon": -82.425,
+   "name": "Tide Gauge at McKay Bay Entrance (in MHHW)",
+   "stages": {
+    "action": 2,
+    "major": 7.3,
+    "minor": 2.7,
+    "moderate": 5
+   },
+   "units": "ft"
+  },
+  "tides": {
+   "distance_mi": 1.1,
+   "flood_levels_ft_stnd": {
+    "major": 8.84,
+    "minor": 5.54,
+    "moderate": 6.84
+   },
+   "id": "8726674",
+   "lat": 27.9231,
+   "lon": -82.4214,
+   "name": "East Bay"
+  },
   "zones": {
    "county": "FLC057",
    "cwa": "TBW",
@@ -616,6 +1845,21 @@
   }
  },
  "eia-8048": {
+  "gauges": {
+   "distance_mi": 3.0,
+   "lat": 28.1595,
+   "lid": "AECF1",
+   "lon": -82.7475,
+   "name": "Anclote River at Elfers Spur",
+   "stages": {
+    "action": 2,
+    "major": 5,
+    "minor": 3,
+    "moderate": 4
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC101",
    "cwa": "TBW",
@@ -624,6 +1868,21 @@
   }
  },
  "eia-8049": {
+  "gauges": {
+   "distance_mi": 6.1,
+   "lat": 28.266944444444,
+   "lid": "SHIF1",
+   "lon": -81.448055555556,
+   "name": "Shingle Creek at Campbell",
+   "stages": {
+    "action": 59,
+    "major": 62,
+    "minor": 60,
+    "moderate": 61
+   },
+   "units": "ft"
+  },
+  "tides": null,
   "zones": {
    "county": "FLC097",
    "cwa": "MLB",

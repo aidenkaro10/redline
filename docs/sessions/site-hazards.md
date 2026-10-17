@@ -30,3 +30,9 @@ Owns `backend/sites/` and `backend/hazards/`. Interface for other sessions: [doc
 - Rule: 2 good flashes within 10 mi within 30 min -> stop work; all-clear 30 min after the last flash within 10 mi, reset by every new one.
 - **Safety choice I added (tell Aiden):** if the GLM feed has had no fresh data for 5 min (`LIGHTNING_FEED_STALE_MIN`), the all-clear is never given, because we can't know there were no new strikes. The site stays in stop-work with "can't confirm all-clear".
 - The first call takes ~10 s (backfill). Session A should run `refresh_all()` in a background task, not inside a request.
+
+## Flooding
+
+- **NWPS:** `https://api.water.noaa.gov/nwps/v1/gauges?bbox.xmin=-88&bbox.ymin=24.3&bbox.xmax=-79.8&bbox.ymax=31.1&srid=EPSG_4326` returns all 847 gauges in and around Florida in one call, each with current and forecast `floodCategory`. So the live loop is one call; per-gauge detail (`/gauges/{lid}`, flood stages) is only fetched once per site. 72 of 79 sites have a gauge with flood stages within 15 mi (49 gauges). Astor (ASTF1) live: minor now (2.51 ft), moderate forecast Oct 20, matching data-sources.md.
+- **Tides & Currents:** station list has 302 water-level stations; 15 sites are within 12 mi of one (12 stations). Flood levels come as `nws_minor/moderate/major` and `nos_*`, in feet on the station datum; `water_level&datum=STND&date=latest` is directly comparable (Mayport 11.0 ft vs minor 15.8 ft today). We use the NWS levels, NOS as fallback. Values come back as strings marked preliminary.
+- River forecasts are capped at "advisory" so a flood forecast for tomorrow shows on the map and briefing but never buzzes a band. Observed minor flood -> warning (FLOOD_FIRE), moderate/major -> danger.
