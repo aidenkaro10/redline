@@ -18,6 +18,7 @@ input readers) live in main.py and the source modules, and call into here.
 
 import asyncio
 import logging
+import time
 from collections import deque
 from typing import Callable
 
@@ -72,6 +73,7 @@ class Hub:
         self.replay = None              # the running Replay, if any
         self.replay_task: asyncio.Task | None = None
         self.real_clock = RealClock()
+        self.last_sent: dict[str, float] = {}          # worker -> monotonic time of the last command to their band
 
     # ------------------------------------------------------------------
     # Workers and sites
@@ -159,6 +161,21 @@ class Hub:
             if self._prerolling(wid):
                 continue        # its readings are still catching up to the clock
             self.dispatch(p.tick(self.clocks[wid].now()))
+        self.keep_alive()
+
+    def keep_alive(self, now: float | None = None) -> None:
+        """
+        Re-send each real band its current status every BAND_RESEND_S real seconds, so it
+        never thinks the link is dead (firmware contract). Console and replay workers are
+        skipped; there's no physical band behind them.
+        """
+        now = time.monotonic() if now is None else now
+        for wid, p in self.pipelines.items():
+            if self.workers[wid]["source"] == "replay":
+                continue
+            if now - self.last_sent.get(wid, now - config.BAND_RESEND_S - 1) >= config.BAND_RESEND_S:
+                self.band.send(wid, f"BUZZ:{p.router.current}", physical_only=True)
+                self.last_sent[wid] = now
 
     def _prerolling(self, worker_id: str) -> bool:
         return self.replay is not None and self.replay.prerolling and worker_id in self.replay.workers
@@ -183,6 +200,7 @@ class Hub:
             elif kind == "band_command":
                 if not self._prerolling(ev["worker_id"]):      # history, not news: don't buzz anyone
                     self.band.send(ev["worker_id"], ev["line"])
+                    self.last_sent[ev["worker_id"]] = time.monotonic()
                 if self.replay is not None:
                     self.replay.on_band_command(ev["worker_id"], ev["pattern"], ev["timestamp"])
             elif kind == "mandown_confirmed":

@@ -24,6 +24,8 @@ log = logging.getLogger(__name__)
 class BandOutput:
     """Base class: send one command line to one worker's band."""
 
+    physical = True          # a real link to a band (False for the console printer)
+
     def send(self, worker_id: str, line: str) -> None:
         raise NotImplementedError
 
@@ -33,6 +35,8 @@ class BandOutput:
 
 class ConsoleBand(BandOutput):
     """Prints commands, e.g.  [band worker-1] BUZZ:HEAT_RED"""
+
+    physical = False
 
     def __init__(self, stream=None):
         self.stream = stream or sys.stdout
@@ -92,8 +96,11 @@ class MultiBand(BandOutput):
         if output in self.outputs:
             self.outputs.remove(output)
 
-    def send(self, worker_id: str, line: str) -> None:
+    def send(self, worker_id: str, line: str, physical_only: bool = False) -> None:
+        """physical_only=True: skip the console (used for the 20 s keep-alive re-send)."""
         for out in self.outputs:
+            if physical_only and not out.physical:
+                continue
             try:
                 out.send(worker_id, line)
             except Exception as e:          # a dead cable must never stop the alert reaching others

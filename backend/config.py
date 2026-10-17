@@ -94,3 +94,10 @@ NWS_USER_AGENT = os.getenv("NWS_USER_AGENT", "planit-control (contact@example.co
 # Where things get saved
 DB_PATH = os.getenv("DB_PATH", "data/planit.db")
 RECORDINGS_DIR = "data/recordings"
+
+
+# ---------------------------------------------------------------------------
+# LIVE SYSTEM (session A). Band link timing, from docs/firmware-contract.md.
+# ---------------------------------------------------------------------------
+BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real seconds);
+                             # the band blinks cyan "no connection" after 60 s without a command
