@@ -25,13 +25,19 @@ log = logging.getLogger(__name__)
 
 def read_lines(port, on_line, stop: threading.Event, clock=time.time) -> None:
     """Read lines until `stop` is set. on_line(text, laptop_timestamp) for each one."""
+    broken = False
     while not stop.is_set():
         try:
             raw = port.readline()                 # returns b"" after the timeout if nothing came
         except serial.SerialException as e:
-            log.warning("serial read failed (%s); retrying", e)
-            time.sleep(1)
+            if not broken:                        # say it once, not every second
+                log.warning("serial read failed (%s). Cable unplugged? Retrying quietly.", e)
+                broken = True
+            time.sleep(2)
             continue
+        if broken:
+            log.info("serial port is back")
+            broken = False
         if raw:
             on_line(raw.decode("utf-8", errors="replace"), clock())
 
