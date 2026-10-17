@@ -27,7 +27,7 @@ def test_sites_default_and_band_patterns():
     pic = {"now": {"generated_at": "x", "sites": [{"site": {"site_id": "eia-663"}, "band_pattern": "LIGHTNING"},
                                                    {"site": {"site_id": "eia-628"}, "band_pattern": "HEAT_YELLOW"}]}}
     hub, b = make(pic)
-    assert b.load_sites() == 3 and hub.default_site_id == "eia-663"
+    assert b.load_sites() == 2 and hub.default_site_id == "eia-663" and "site-gnv" not in hub.sites
     hub.handle_input(Reading(worker_id="w1", timestamp=1.0, hr=90))
     assert hub.workers["w1"]["site_id"] == "eia-663"
     b.refresh()

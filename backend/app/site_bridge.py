@@ -37,10 +37,15 @@ class SiteBridge:
         self.crew_site = os.getenv("CREW_SITE_ID", "eia-663")
 
     def load_sites(self) -> int:
+        old_default = self.hub.default_site_id
         for rec in self.contract.site_records():
             self.hub.add_site({**rec, "site_id": rec["id"]})
         if self.crew_site in self.hub.sites:
             self.hub.default_site_id = self.crew_site
+            # The built-in demo site is only a stand-in for C1's real ones: drop it if nobody's on it.
+            if old_default != self.crew_site and not any(
+                    w["site_id"] == old_default for w in self.hub.workers.values()):
+                self.hub.sites.pop(old_default, None)
         return len(self.hub.sites)
 
     def refresh(self) -> None:

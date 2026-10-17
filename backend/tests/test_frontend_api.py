@@ -19,7 +19,7 @@ MANDOWN_KEYS = {"id", "worker_id", "worker_name", "site_id", "site_name", "lat",
 
 @pytest.fixture
 def client(monkeypatch):
-    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--db", "", "--no-forecaster"]))
+    monkeypatch.setattr(main, "SETTINGS", main.parse_args(["--source", "none", "--hazards", "off", "--db", "", "--no-forecaster"]))
     with TestClient(main.app) as c:
         yield c
 
@@ -89,7 +89,8 @@ def test_demo_rest_paths(client):
 
 def test_reports_sites_schedule(client):
     r = client.post("/api/reports", json={"kind": "snake", "note": "under the trailer"}).json()
-    assert r["report"]["kind"] == "snake" and r["report"]["lat"] == config.JOB_SITE_LAT
+    hub = main.app.state.hub
+    assert r["report"]["kind"] == "snake" and r["report"]["lat"] == hub.sites[hub.default_site_id]["lat"]
     assert client.get("/api/reports").json()[0]["note"] == "under the trailer"
     assert client.get("/api/sites").json()[0]["id"] == "site-gnv"
     assert client.get("/api/schedule").status_code == 404
@@ -121,7 +122,8 @@ def test_sos_incident_flow(client):
         assert sos["source"] == "phone" and sos["escalated"] is True
     st = client.get("/api/state").json()
     assert st["mandown"]["reason"] == "sos" and st["mandown"]["stage"] == "confirmed"
-    assert st["workers"][0]["hazard"] == "SOS" and st["sites"][0]["worker_flag"] == "sos"
+    site = next(s for s in st["sites"] if s["site_id"] == st["workers"][0]["site_id"])
+    assert st["workers"][0]["hazard"] == "SOS" and site["worker_flag"] == "sos"
     assert client.post("/api/workers/w1/sos").json()["action"] == "ignored_active_incident"
     client.post(f"/api/mandown/{st['mandown']['id']}/resolve")
     assert client.get("/api/state").json()["mandown"] is None
