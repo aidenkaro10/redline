@@ -125,3 +125,8 @@ export function callForIncident(em: EmergencyCall | null, md: ManDown): Emergenc
   if (em.worker_id === md.worker_id && em.started_at >= md.fell_at - 1) return em;
   return null;
 }
+
+/** The crew lead's "Cancel, false alarm": same route session D suggests (cancel by worker, not by call id). */
+export function cancelCallRequest(call: Pick<EmergencyCall, "worker_id">): [string, { worker_id: string }] {
+  return ["/emergency/cancel", { worker_id: call.worker_id }];
+}

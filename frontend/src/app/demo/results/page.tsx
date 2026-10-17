@@ -15,7 +15,7 @@ import { Nav, useIsDark } from "@/components/Nav";
 import { Card } from "@/components/ui";
 import type { MetricRow, ModelResults } from "@/lib/contract-extra";
 import { useFetch } from "@/lib/live";
-import { RESULTS as BUNDLED } from "@/mock/extras";
+import { RESULTS as BUNDLED } from "@/lib/results-data";
 
 export default function ResultsPage() {
   const { data, error } = useFetch<ModelResults>("/results");

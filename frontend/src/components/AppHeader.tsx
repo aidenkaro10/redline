@@ -18,7 +18,7 @@ export function AppHeader({ title }: { title: string }) {
       {demo?.source === "replay" && <span className="rounded bg-accent px-1.5 py-0.5 text-[10px] font-bold text-accent-ink">REPLAY</span>}
       <span className="flex items-center gap-1.5 text-xs text-ink-2" title={USING_MOCK ? "Mock data" : "Live"}>
         <span className={`h-2 w-2 rounded-full ${connected ? "bg-ok" : "bg-danger"}`} />
-        {connected ? (USING_MOCK ? "Mock" : "Live") : "Offline"}
+        {connected ? (USING_MOCK ? "Mock" : "Live") : "Reconnecting…"}
       </span>
       <ThemeToggle />
     </header>

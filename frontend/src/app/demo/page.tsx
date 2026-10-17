@@ -15,6 +15,7 @@ import { Suspense } from "react";
 import { AlertFeed } from "@/components/AlertFeed";
 import { CoreChart, CoreLegend, Sparkline } from "@/components/Charts";
 import { DemoControls } from "@/components/DemoControls";
+import { WhyLine } from "@/components/WhyLine";
 import { Nav } from "@/components/Nav";
 import { LearningCard } from "@/components/LearningCard";
 import { Card, StatusBadge, fmtClockSec } from "@/components/ui";
@@ -79,10 +80,7 @@ function DemoView() {
         <Card className="xl:col-span-2" title="Core temperature: now and the next 30 minutes" right={lastE?.model}>
           <CoreChart estimates={hist.estimates} now={now} height={360} />
           <div className="mt-3 flex flex-col gap-2">
-            <p className="rounded-lg bg-surface-2 px-3 py-2 text-base font-medium">
-              <span className="mr-2 text-xs font-bold uppercase tracking-wider text-muted">Why</span>
-              {lastE ? lastE.why ?? <span className="text-muted">No explanation for this minute.</span> : "…"}
-            </p>
+            <WhyLine why={lastE?.why} />
             <CoreLegend />
             <p className="text-xs text-muted">
               Alerts use the cautious 90th percentile: yellow when the 20-minute forecast crosses the warning line,
