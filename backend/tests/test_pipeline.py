@@ -210,3 +210,37 @@ def test_offset_applies_to_every_forecast_percentile():
     o = b.offset.offset_c
     for q in ("p10", "p50", "p90"):
         assert np.allclose(np.array(ea["forecast"][q]) - o, eb["forecast"][q], atol=2e-3)
+
+
+def test_why_adapter_off_without_explain_and_threaded_with_it():
+    import threading
+    from backend.alerts.band_output import MultiBand
+    from backend.app.hub import Hub
+    from backend.app.why import WhyExplainer, load_explain
+
+    # Not merged yet in this branch -> disabled, why stays None.
+    if load_explain() is None:
+        assert not WhyExplainer("unused.pt", on_result=lambda *a: None).enabled
+
+    done = threading.Event()
+    got = []
+
+    def fake_explain(signals, minute, predictor):
+        assert len(signals["hr"]) == minute + 1 + 30        # history + 30 known-future rows
+        return {"why": f"Rising at minute {minute}", "direction": "rising", "contributions": {"heart_rate": 0.2}}
+
+    hub = Hub(band=MultiBand([]))
+
+    def on_result(*r):
+        got.append(r)
+        done.set()
+
+    hub.why = WhyExplainer(None, on_result=on_result, explain_fn=fake_explain, predictor=object())
+    for i in range(14):                                          # two minutes close
+        hub.handle_input(Reading(worker_id="w1", timestamp=i * 10.0, hr=120))
+    ev = dict(hub.pipelines["w1"].estimates[-1], forecast={"p90": [38.0]})   # pretend the forecaster ran
+    hub._add_why(ev)
+    assert ev["why"] is None                                    # nothing explained yet
+    assert done.wait(5)
+    hub.on_why(*got[0])
+    assert hub.whys["w1"]["why"] == "Rising at minute 1"

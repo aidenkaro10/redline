@@ -93,6 +93,12 @@ class FrontendAdapter:
             out += self._emergency(ev)
         elif kind == "worker_removed":
             self.last_status.pop(wid, None)
+        elif kind == "why":
+            # A model-based why-line arrived for a minute we already sent: fill it in for
+            # snapshots/history (the next estimate carries it live).
+            for e in reversed(self.estimates.get(wid, [])):
+                e["why"] = ev["why"] or e["why"]
+                break
         elif kind == "offset_update":
             # Not in E's contract yet: passed through as-is ({worker_id, offset_c, confidence, n_checks, ...}).
             out.append({k: v for k, v in ev.items()})
@@ -141,7 +147,9 @@ class FrontendAdapter:
         return {
             "worker_id": ev["worker_id"], "timestamp": ev["timestamp"],
             "core": {"mean": core, "p10": round(core - Z90 * sd, 3), "p90": round(core + Z90 * sd, 3)},
-            "kalman": ev.get("kalman"), "forecast": points, "why": self._why(ev["worker_id"]),
+            "kalman": ev.get("kalman"), "forecast": points,
+            # Session H's model-based why-line when merged, else a plain heart-rate sentence.
+            "why": ev.get("why") or self._why(ev["worker_id"]),
             "thresholds": {"warning": warning, "danger": danger, "demo": self.hub.demo},
             "model": ev.get("model"),
         }

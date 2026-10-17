@@ -32,6 +32,7 @@ def load_best_predictor(paths=CHECKPOINTS, explicit: str | None = None):
         try:
             from backend.models.forecaster import ForecasterPredictor
             predictor = ForecasterPredictor.load(path)
+            predictor.source_path = path                 # so helpers (why-lines) can load their own copy
             log.info("Loaded forecaster %s (%d model%s) from %s", predictor.name, len(predictor.models),
                      "s" if len(predictor.models) > 1 else "", path)
             return predictor

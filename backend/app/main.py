@@ -112,6 +112,13 @@ async def lifespan(app: FastAPI):
         log.info("Recording live inputs to %s", recorder.path)
     hub = Hub(predictor=load_predictor(s), band=band, db=db, recorder=recorder, demo=s.demo)
     hub.add_listener(print_key_event)
+    if hub.predictor is not None:
+        from backend.app.why import WhyExplainer
+        loop = asyncio.get_running_loop()
+        hub.why = WhyExplainer(hub.predictor.source_path,
+                               on_result=lambda *r: loop.call_soon_threadsafe(hub.on_why, *r))
+        log.info("Why-lines: %s", "on (session H's explain)" if hub.why.enabled
+                 else "off until session H's ml/explain is merged")
     app.state.hub = hub
     app.state.frontend = FrontendAdapter(hub)           # the Next.js dashboard's contract (/ws/live)
     hub.add_listener(app.state.frontend.on_event)

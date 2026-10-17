@@ -74,6 +74,8 @@ class Hub:
         self.replay_task: asyncio.Task | None = None
         self.real_clock = RealClock()
         self.last_sent: dict[str, float] = {}          # worker -> monotonic time of the last command to their band
+        self.why = None                                 # WhyExplainer (backend/app/why.py), set by main.py
+        self.whys: dict[str, dict] = {}                 # worker -> latest why-line result
 
     # ------------------------------------------------------------------
     # Workers and sites
@@ -203,6 +205,7 @@ class Hub:
                 ev["preroll"] = True        # replayed history, not news (the console skips these)
             if kind == "estimate":
                 self._add_truth(ev)
+                self._add_why(ev)
             elif kind == "band_command":
                 if not self._prerolling(ev["worker_id"]):      # history, not news: don't buzz anyone
                     self.band.send(ev["worker_id"], ev["line"])
@@ -224,6 +227,26 @@ class Hub:
                 except Exception as e:
                     log.warning("listener failed on %s: %s", kind, e)
             self.broadcast(ev)
+
+    def _add_why(self, ev: dict) -> None:
+        """
+        Attach the latest why-line (None until session H's ml/explain is merged) and ask
+        for a fresh one for this minute; it arrives later as a "why" event.
+        """
+        wid = ev["worker_id"]
+        ev["why"] = self.whys.get(wid, {}).get("why")
+        p = self.pipelines.get(wid)
+        if self.why is not None and self.why.enabled and ev.get("forecast") and p and not ev.get("preroll"):
+            self.why.request(wid, p._model_arrays(), p.n_minutes - 1)
+
+    def on_why(self, worker_id: str, minute: int, result: dict) -> None:
+        """A why-line is ready (called on the event loop)."""
+        if worker_id not in self.pipelines:
+            return
+        self.whys[worker_id] = {"minute": minute, **result}
+        self.dispatch([{"type": "why", "timestamp": self.now(worker_id), "worker_id": worker_id,
+                        "minute": minute, "why": result.get("why"), "direction": result.get("direction"),
+                        "contributions": result.get("contributions")}])
 
     def _add_truth(self, ev: dict) -> None:
         """Replay of simulated shifts: attach the simulator's true core temp (for the chart only)."""
