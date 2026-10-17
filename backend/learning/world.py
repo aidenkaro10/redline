@@ -130,12 +130,14 @@ def score_outcome(scenario: Scenario, plan: Plan, actual: dict[str, np.ndarray])
     p1 = [t for t in scenario.tasks if t.priority == 1]
     done = plan.units_done(scenario)
     p1_done = all(done[t.id] >= t.units for t in p1)
+    p1_share = sum(done[t.id] for t in p1) / max(1, sum(t.units for t in p1))
     score = tp - settings.ALERT_PENALTY * n_alert - settings.PEAK_PENALTY * max(0.0, peak - settings.PEAK_COMFORT_C)
     return {"score": round(score, 4), "throughput": round(tp, 4), "actual_peak_c": round(peak, 3),
             "strain_margin_c": round(config.HEAT_WARNING_C - peak, 3), "workers_alerted": n_alert,
             "alert_minutes": alerts, "actual_peaks": {k: round(v, 3) for k, v in peaks.items()},
             "heat_spread": round(float(np.std(doses)), 1), "priority1_done": p1_done,
-            "solved": n_alert == 0 and p1_done}
+            "priority1_share": round(p1_share, 3),
+            "solved": n_alert == 0 and p1_share >= settings.SOLVED_PRIORITY1_SHARE}
 
 
 def outcomes(scenario: Scenario, plan: Plan, realizations=(0,)) -> list[dict]:

@@ -12,8 +12,8 @@ Loop 4 for the planner: a self-proposed scenario curriculum (Absolute Zero + DAP
    that is (or copies) a held-out test scenario, and anything out of bounds.
 3. Solve rate: the current agent plans the day, then the plan is worked on SOLVE_RUNS
    simulated days (different weather/effort luck, world.py). "Solved" = the rule
-   checker passed it, nobody hit a heat alert in the simulated day, and all
-   priority-1 work got done.
+   checker passed it, nobody hit a heat alert in the simulated day, and at least
+   75% of the priority-1 work fit in the plan (settings.SOLVED_PRIORITY1_SHARE).
 4. Reward = 1 - solve rate, and 0 if never solved (Absolute Zero). We keep days the
    agent solves SOMETIMES but not always: 0 < solve rate < 1. All-solved or
    never-solved days teach nothing (DAPO's dynamic sampling idea).
@@ -77,14 +77,16 @@ def solve_rate(scenario, planner=None, runs: int = settings.SOLVE_RUNS) -> dict:
     return {"solve_rate": rate, "reward": round(reward, 3), "safety_violations": safety,
             "mean_score": round(float(np.mean([o["score"] for o in outs])), 4),
             "alerts": int(sum(o["workers_alerted"] for o in outs)),
-            "priority1_done": bool(outs[0]["priority1_done"])}
+            "priority1_share": outs[0]["priority1_share"], "priority1_done": bool(outs[0]["priority1_done"])}
 
 
 PROPOSE_PROMPT = """TASK: PROPOSE
 You design stress-test days for a crew-scheduling agent at Florida power plants. The agent
 plans 30-minute work slots; a code rule checker enforces every safety rule; then the plan is
-worked in a simulator. A day counts as "solved" when the simulated crew finished all
-priority-1 work and nobody hit a heat alert.
+worked in a simulator. A day counts as "solved" when the plan fits at least 75% of the
+priority-1 work and nobody in the simulated crew hits a heat alert. Too much work for the
+crew's hours makes a day unsolvable no matter what (lower demand); heat makes alerts
+random (more heat, heavier work = more alerts).
 
 We want days the agent solves SOMETIMES, not always and not never (target solve rate 25-75%).
 
@@ -104,10 +106,19 @@ Make too-easy families harder and too-hard ones easier.
 Answer with JSON only: {{"specs": [{{"family": "...", "seed": 123, "crew": "home", ...knobs}}]}}"""
 
 
+def _why(r: dict) -> str:
+    """Why a day was (not) solved, in words the proposer can act on."""
+    bits = [f"heat alerts in {r['alerts']} of {settings.SOLVE_RUNS} simulated days" if r.get("alerts") else "no heat alerts"]
+    if r.get("priority1_share") is not None:
+        bits.append(f"{r['priority1_share']:.0%} of priority-1 work fit in the plan")
+    return ", ".join(bits)
+
+
 def llm_propose(llm, refs: list[dict], n: int, home_share: int = 60) -> list[dict]:
     llm.purpose = "curriculum:propose"
     bounds = json.dumps({k: list(v) for k, v in SPEC_BOUNDS.items()})
-    ref_txt = "\n".join(f"- {json.dumps(r['spec'])} -> solve rate {r['solve_rate']:.2f}" for r in refs[-16:]) or "(none yet)"
+    ref_txt = "\n".join(f"- {json.dumps(r['spec'])} -> solve rate {r['solve_rate']:.2f} ({_why(r)})"
+                        for r in refs[-20:]) or "(none yet)"
     prompt = PROPOSE_PROMPT.format(bounds=bounds, families=", ".join(FAMILIES), refs=ref_txt, n=n, home_share=home_share)
     data = extract_json(llm.text(prompt, effort="low")) or {}
     out = []
@@ -172,10 +183,11 @@ def run_curriculum(rounds: int = 4, per_round: int = 10, llm=None, seed: int = 0
                 dials[fam] += 0.15 if res["solve_rate"] == 1 else (-0.15 if res["solve_rate"] == 0 else 0)
                 dials[fam] = float(np.clip(dials[fam], 0, 1))
             log.append({**entry, "id": sc.id, "kept": keep, "solve_rate": res["solve_rate"], "reward": res["reward"],
+                        "alerts": res["alerts"], "priority1_share": res["priority1_share"],
                         "reason": "learnable" if keep else ("always solved" if res["solve_rate"] == 1 else "never solved")})
             if verbose:
                 print(f"  round {r} {proposer:4s} {fam:10s} {sc.id} solve {res['solve_rate']:.2f} "
-                      f"reward {res['reward']:.2f} alerts {res['alerts']} p1 done {res['priority1_done']} "
+                      f"reward {res['reward']:.2f} alerts {res['alerts']} p1 {res['priority1_share']:.0%} "
                       f"{'KEEP' if keep else '-'}", flush=True)
     # Split, per crew type: every 4th kept day goes to "val" (only for gates and final picks, never for learning)
     seen = {}

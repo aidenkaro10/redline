@@ -32,6 +32,7 @@ PEAK_COMFORT_C = 37.5
 
 # --- Curriculum (Loop 4) ---
 SOLVE_RUNS = 6                 # how many simulated days we run each scenario to get a solve rate
+SOLVED_PRIORITY1_SHARE = 0.75  # "solved" = nobody hits a heat alert AND at least this share of priority-1 work is done
 
 # --- ACE (Loop 2) ---
 ACE_DAYS = 14                  # simulated days of learning
