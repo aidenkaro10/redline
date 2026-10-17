@@ -45,6 +45,10 @@ class Objective:
     margin: int = 0               # weight on keeping everyone's peak heat low
     fairness: int = 0             # weight on keeping peaks similar across the crew
     budget_margin_c: float = 0.05 # plan this far under the limit (the table is approximate)
+    # Storm chance as a SOFT cost (storm_risk.py): an outdoor work unit in a slot with storm chance p
+    # costs storm * p, doubled for elevated or hard-to-stop tasks. 15 is below the value of any work
+    # unit at 60% chance, so work moves EARLIER when there's room instead of being dropped.
+    storm: int = 15
     # Soft preferences, e.g. from playbook lessons or the LLM:
     # {"worker": "w3", "intensities": ["heavy", "very_heavy"], "from_slot": 10, "to_slot": 16, "penalty": 20}
     soft: list = field(default_factory=list)
@@ -71,7 +75,7 @@ class OptimizerResult:
 
 
 def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, float],
-          time_limit_s: float = 5.0) -> Plan | None:
+          time_limit_s: float = 5.0, deterministic: bool = False) -> Plan | None:
     """One CP-SAT solve. Returns None if no schedule satisfies every constraint."""
     m = cp_model.CpModel()
     S, crew, tasks = scenario.n_slots, scenario.crew, scenario.tasks
@@ -152,6 +156,13 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
         m.AddMaxEquality(top, list(peak.values()))
         m.AddMinEquality(bottom, list(peak.values()))
         obj -= objective.fairness * len(crew) * (top - bottom)
+    if objective.storm:
+        for (wid, s, tid), var in x.items():
+            t = next(t for t in tasks if t.id == tid)
+            p = scenario.weather[s].storm_prob
+            if t.outdoor and p > 0:
+                mult = 1 + int(t.elevated) + int(t.hard_to_stop)
+                obj -= int(round(objective.storm * SCALE * p * mult)) * var
     for pref in objective.soft:
         for s in range(pref.get("from_slot", 0), min(S, pref.get("to_slot", S))):
             for t in tasks:
@@ -160,9 +171,14 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
     m.Maximize(obj)
 
     solver = cp_model.CpSolver()
-    solver.parameters.max_time_in_seconds = time_limit_s
-    solver.parameters.num_workers = 8
     solver.parameters.random_seed = 0
+    if deterministic:
+        # Same answer every run (tests, reproducible demos): one thread, a work budget instead of a clock.
+        solver.parameters.num_workers = 1
+        solver.parameters.max_deterministic_time = time_limit_s
+    else:
+        solver.parameters.max_time_in_seconds = time_limit_s
+        solver.parameters.num_workers = 8
     status = solver.Solve(m)
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
         return None
@@ -177,8 +193,9 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
 
 
 def optimize(scenario: Scenario, objective: Objective | str = "throughput", heat_model: HeatModel | None = None,
-             max_rounds: int = 6, time_limit_s: float = 5.0) -> OptimizerResult:
-    """Solve, verify with the full model, tighten budgets and re-solve until it passes."""
+             max_rounds: int = 6, time_limit_s: float = 5.0, deterministic: bool = False) -> OptimizerResult:
+    """Solve, verify with the full model, tighten budgets and re-solve until it passes.
+    deterministic=True: same plan every run (single thread), for tests and reproducible results."""
     t0 = time.time()
     heat_model = heat_model or default_heat_model()
     if isinstance(objective, str):
@@ -187,7 +204,7 @@ def optimize(scenario: Scenario, objective: Objective | str = "throughput", heat
     budgets = {w.id: config.PLAN_MAX_P90_C - objective.budget_margin_c for w in scenario.crew}
     log = []
     for rnd in range(1, max_rounds + 1):
-        plan = solve(scenario, costs, objective, budgets, time_limit_s)
+        plan = solve(scenario, costs, objective, budgets, time_limit_s, deterministic)
         if plan is None:
             log.append(f"round {rnd}: no feasible schedule under the current budgets")
             break

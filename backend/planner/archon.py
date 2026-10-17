@@ -36,6 +36,7 @@ from backend.planner.optimizer import OBJECTIVES, PRIORITY_WEIGHT, Objective, op
 from backend.planner.playbook import Playbook
 from backend.planner.rules import CheckResult, check_plans
 from backend.planner.scenario import INTENSITIES, REST, Plan, Scenario, all_rest_plan
+from backend.planner.storm_risk import storm_reason
 
 HOT_INTENSITIES = {"heavy", "very_heavy"}
 
@@ -237,6 +238,9 @@ def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], les
     if blocked:
         reasons.append(f"No outdoor work {scenario.slot_time(blocked[0])}-{scenario.slot_time(blocked[-1] + 1)} "
                        f"({', '.join(sorted({h.kind for h in scenario.hazards if h.stops_outdoor_work()}))}).")
+    storm = storm_reason(scenario, best.plan)
+    if storm:
+        reasons.append(storm)
     for w in scenario.crew:
         if w.acclim < config.PLAN_UNACCLIM_LEVEL:
             reasons.append(f"{w.name} is not acclimatized: no very heavy work in high heat.")
