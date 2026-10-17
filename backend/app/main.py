@@ -38,7 +38,6 @@ from backend.replay.replay import Replay
 
 log = logging.getLogger("planit")
 STATIC = Path(__file__).parent / "static"
-CHECKPOINT = Path("ml/checkpoints/v1.pt")
 TICK_S = 0.5                     # how often timers are checked (real seconds)
 
 
@@ -58,7 +57,7 @@ def parse_args(argv=None) -> argparse.Namespace:
                     help="replay workers never press the button (shows the red-unacknowledged man-down path)")
     ap.add_argument("--demo", action="store_true", help="start with demo thresholds (37.3 / 37.5 °C)")
     ap.add_argument("--no-forecaster", action="store_true", help="Kalman-only alerts")
-    ap.add_argument("--checkpoint", default=str(CHECKPOINT))
+    ap.add_argument("--checkpoint", default=None, help="forecaster file (default: ml/checkpoints/ens5.pt, then v1.pt)")
     ap.add_argument("--serial", default=config.SERIAL_PORT, help="band USB serial port (live)")
     ap.add_argument("--udp-port", type=int, default=config.UDP_PORT, help="band WiFi UDP port (live)")
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
@@ -75,21 +74,11 @@ SETTINGS = parse_args([])         # defaults; replaced by main() when run from t
 
 
 def load_predictor(settings):
-    """Forecaster v1 if the checkpoint is there, else None (Kalman-only alerts)."""
+    """Best forecaster available (ens5, then v1), else None = Kalman-only alerts."""
     if settings.no_forecaster:
         return None
-    path = Path(settings.checkpoint)
-    if not path.exists():
-        log.warning("No forecaster checkpoint at %s: running Kalman-only alerts", path)
-        return None
-    try:
-        from backend.models.forecaster import ForecasterPredictor
-        predictor = ForecasterPredictor.load(path)
-        log.info("Loaded forecaster %s", predictor.name)
-        return predictor
-    except Exception as e:
-        log.warning("Could not load forecaster (%s): running Kalman-only alerts", e)
-        return None
+    from backend.app.model_runner import load_best_predictor
+    return load_best_predictor(explicit=settings.checkpoint)
 
 
 def make_replay(hub: Hub, settings, source: str | None = None, speed: float | None = None) -> Replay:

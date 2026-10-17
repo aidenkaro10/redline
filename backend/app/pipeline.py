@@ -22,6 +22,7 @@ from backend import config
 from backend.alerts.heat import RED, YELLOW, HeatAlerter, HeatInputs
 from backend.alerts.mandown import ManDownDetector
 from backend.alerts.router import BandRouter
+from backend.app.model_runner import predict_at
 from backend.app.schemas import ButtonPress, Reading
 from backend.models.kalman import ECTempKalman
 
@@ -207,11 +208,11 @@ class WorkerPipeline:
         if self.predictor is not None:
             try:
                 arrays = self._model_arrays()
-                kal, now_delta, now_var, fc = self.predictor.predict_signals(arrays)
                 i = self.n_minutes                       # this minute's row (rows after it = known future)
-                core = float(kal[i] + now_delta[i])
-                core_sd = float(math.sqrt(now_var[i]))
-                curve = kal[i] + fc[i]                   # (30, 3): °C at +1..+30 min, 10/50/90th pct
+                kal_i, now_delta, now_var, fc = predict_at(self.predictor, arrays, i)
+                core = kal_i + now_delta
+                core_sd = math.sqrt(now_var)
+                curve = kal_i + fc                       # (30, 3): °C at +1..+30 min, 10/50/90th pct
                 model = self.predictor.name
             except Exception as e:                       # never let a model bug stop the Kalman alerts
                 log.warning("forecaster failed for %s, using Kalman only: %s", self.worker_id, e)
