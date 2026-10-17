@@ -261,10 +261,10 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     ble_on = False
     if s.ble:
         from backend.ingest import ble_hr
-        if not ble_hr.available():
+        if not ble_hr.safe_to_scan():
+            log.info("Bluetooth heart rate off (test suite or PLANIT_BLE=off)")
+        elif not ble_hr.available():
             log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
-        elif not ble_hr.safe_to_scan():
-            log.info("Bluetooth heart rate not started inside the test suite")
         else:
             # In a helper process: if macOS refuses Bluetooth it kills that process, not this server.
             reader = ble_hr.BleHelper(hub, config.WORKER_ID, wanted=s.ble_device or None)

@@ -230,10 +230,10 @@ class BleHelper:
     """
 
     def __init__(self, hub, worker_id: str, wanted: str | None = None, cmd: list[str] | None = None,
-                 clock=time.time, restart_s: float = 5.0):
-        self.hub, self.worker_id, self.clock, self.restart_s = hub, worker_id, clock, restart_s
-        self.cmd = cmd or [sys.executable, "-m", "backend.ingest.ble_hr", "--json"] + (
-            ["--device", wanted] if wanted else [])
+                 clock=time.time, restart_s: float = 5.0, max_restart_s: float = 60.0):
+        self.hub, self.worker_id, self.clock = hub, worker_id, clock
+        self.restart_s, self.max_restart_s = restart_s, max_restart_s
+        self.cmd = cmd or helper_command(wanted)
         self.state = "off"
         self.device = self.address = None
         self.readings = 0
@@ -263,7 +263,9 @@ class BleHelper:
 
     async def run(self) -> None:
         """Forever: keep the helper running. Cancel the task to stop it (and the helper)."""
+        pause = self.restart_s
         while True:
+            before = self.readings
             proc = await asyncio.create_subprocess_exec(
                 *self.cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL)
             try:
@@ -277,25 +279,35 @@ class BleHelper:
                 if proc.returncode is None:
                     proc.kill()
                 raise
+            how = f"killed by signal {-code}" if code < 0 else f"exit code {code}"
             hint = ("" if code == 0 else
                     ". If this repeats: System Settings > Privacy & Security > Bluetooth, allow the app running "
                     "Python (Terminal), or start with --no-ble")
-            self._status("lost", f"Bluetooth helper stopped (exit code {code}){hint}; restarting")
-            await asyncio.sleep(self.restart_s)
+            # Got heart rate this time -> retry soon; nothing at all -> back off (5 s, 10 s ... 60 s).
+            pause = self.restart_s if self.readings > before else min(pause * 2, self.max_restart_s)
+            self._status("lost", f"Bluetooth heart rate unavailable (helper {how}){hint}; "
+                                 f"trying again in {pause:.0f} s")
+            self.state = "restarting"                     # so the next "lost" is reported again
+            await asyncio.sleep(pause)
+
+
+def helper_command(wanted: str | None = None) -> list[str]:
+    """The helper process the server runs (tests swap this for a fake)."""
+    return [sys.executable, "-m", "backend.ingest.ble_hr", "--json"] + (["--device", wanted] if wanted else [])
 
 
 def safe_to_scan() -> bool:
-    """Never touch real Bluetooth inside the test suite (no adapter in CI, permission prompts on a Mac)."""
-    return "PYTEST_CURRENT_TEST" not in os.environ
+    """
+    Never touch real Bluetooth inside the test suite: no adapter in CI, and on a Mac a process
+    without Bluetooth permission is killed outright. PLANIT_BLE=off turns it off anywhere.
+    """
+    return "PYTEST_CURRENT_TEST" not in os.environ and os.getenv("PLANIT_BLE", "on").lower() != "off"
 
 
 def available() -> bool:
-    """True if bleak is installed (it doesn't check the adapter: that happens on first scan)."""
-    try:
-        import bleak  # noqa: F401
-        return True
-    except ImportError:
-        return False
+    """True if bleak is installed. Looks it up WITHOUT importing it (importing loads CoreBluetooth)."""
+    import importlib.util
+    return importlib.util.find_spec("bleak") is not None
 
 
 # ---------------------------------------------------------------------------
