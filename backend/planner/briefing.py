@@ -27,7 +27,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from backend import config
-from backend.planner.archon import plan_view, plan_with_agent
+from backend.planner.archon import NO_LLM_NOTE, plan_view, plan_with_agent
 from backend.planner.generate import SITES, demo_scenario, weather_slots
 from backend.planner.personal import apply_offsets, describe, load_offsets
 from backend.planner.playbook import Playbook
@@ -296,7 +296,10 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
         "generated_at": generated_at, "for_date": for_date, "summary": summary,
         "sites": out_sites,
         "schedule_suggestions": suggestions + r.reasons,
-        "schedule": frontend_schedule(crew_sc, r.plan, r.check, for_date, [r.summary] + suggestions),
+        "schedule": {**frontend_schedule(crew_sc, r.plan, r.check, for_date,
+                                         [r.summary] + suggestions + ([] if r.used_llm else [NO_LLM_NOTE])),
+                     "llm": r.used_llm},
+        "llm": r.used_llm,
         "plan": plan_view(crew_sc, r.plan, r.check),
         "crew_site_id": crew_site["id"],
         "crew_data_sources": crew_entry["data_sources"] if crew_entry else None,
