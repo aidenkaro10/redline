@@ -15,8 +15,10 @@ Next.js + Tailwind + Recharts + Leaflet. Runs on its own with a built-in **mock 
 | --- | --- | --- |
 | `/` | Crew lead dashboard: worker cards, risk-ranked map of 60 Florida sites, hazard panel, schedule, alerts | Crew lead (status only, no raw biometrics) |
 | `/demo` | Live heart rate, skin temp, core temp with the forecast band and the "why" line | Judges, with the wearer's consent |
-| `/worker/worker-1` | Phone view: giant status color, current hazard, break countdown | The worker |
+| `/worker/<id>` | Phone view: giant status color, current hazard, break countdown | The worker |
 | `/briefing` | 6 PM briefing for tomorrow | Crew lead |
+| `/planner` | Chat with the planning agent next to today's schedule | Crew lead |
+| `/results` | Our model next to the Kalman baseline (real numbers from docs/results.md), personal twins panel | Judges |
 | `/report` | Crew photo report form | Workers |
 
 The man-down screen pops up on every page. Demo controls sit at the top of `/` and `/demo`.
@@ -27,7 +29,9 @@ Click **▶ Play scripted demo**. About 3 minutes: Maria heats up (yellow, then 
 
 ## Switch to the real backend
 
-1. Start session A's FastAPI server (port 8000).
+Tested with session A's backend (replay + forecaster v1): dashboard, demo view and SOS all work. Worker and site ids come from the backend, nothing is hardcoded.
+
+1. Start session A's FastAPI server: `python -m backend.app.main --source replay --speed 10` (port 8000).
 2. Create `frontend/.env.local` with one line: `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
 3. Restart `npm run dev`.
 

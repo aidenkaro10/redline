@@ -17,6 +17,8 @@ const LINKS = [
   { href: "/demo", label: "Demo view" },
   { href: "/worker", label: "Worker phone" },
   { href: "/briefing", label: "6 PM briefing" },
+  { href: "/planner", label: "Planner" },
+  { href: "/results", label: "Results" },
   { href: "/report", label: "Report hazard" },
 ];
 

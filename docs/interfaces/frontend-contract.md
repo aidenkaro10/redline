@@ -170,6 +170,14 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 
 `task` in the schedule: `heavy, moderate, light, break, stop_work, off`.
 
+### Results, twins, planner chat (types in `frontend/src/lib/contract-extra.ts`)
+
+| Method | Path | Owner | Returns |
+| --- | --- | --- | --- |
+| GET | `/api/results` | ML session (A serves it) | `ModelResults`: `updated, split, models[]` (first = Kalman baseline), `rows[{group, name, unit, better: lower\|higher\|closer, target?, values[], text?[]}]`, `rmse_by_horizon[{minutes_ahead, values[]}]`, `notes[]`. Until a backend serves it, the page shows a bundled copy of `docs/results.md`. |
+| GET | `/api/twins` | ML session (Phase 6) | `TwinReport`: `available, mock, note, workers[{worker_id, name, days[{day, hr_rmse_bpm, core_rmse_c, kept}]}]`. 404 or `available: false` shows "not trained yet". |
+| POST | `/api/planner/chat` | B (already built) | `{message, session_id?}` → `{session_id, reply, tool_calls[{tool, input}], plan, llm, cost_usd}` |
+
 ### Demo controls (one click each)
 
 | Method | Path | Body | Does |

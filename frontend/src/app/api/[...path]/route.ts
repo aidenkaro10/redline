@@ -9,6 +9,7 @@
 
 import type { ViewFilter } from "@/lib/contract.ts";
 import { getEngine } from "@/mock/server.ts";
+import { plannerChat, RESULTS, twins } from "@/mock/extras.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,9 @@ export async function GET(req: Request, ctx: Ctx) {
     worker_id: url.searchParams.get("worker_id") || undefined,
   });
 
+  if (path[0] === "results") return Response.json(RESULTS);
+  if (path[0] === "twins") return Response.json(twins([...engine.workers.values()].map((w) => w.def)));
+
   const res = engine.handle("GET", path, url.searchParams, {});
   return Response.json(res.json, { status: res.status });
 }
@@ -33,6 +37,10 @@ export async function POST(req: Request, ctx: Ctx) {
   const url = new URL(req.url);
   let body: Record<string, unknown> = {};
   try { body = await req.json(); } catch { /* empty body is fine */ }
+  if (path[0] === "planner" && path[1] === "chat") {
+    await new Promise((r) => setTimeout(r, 700));   // feels like thinking
+    return Response.json(plannerChat(String(body.message ?? ""), body.session_id as string | undefined));
+  }
   const res = getEngine().handle("POST", path, url.searchParams, body);
   return Response.json(res.json, { status: res.status });
 }
