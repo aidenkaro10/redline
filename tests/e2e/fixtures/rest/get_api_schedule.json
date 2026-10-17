@@ -18,7 +18,7 @@
      {
       "start": 1784115000,
       "task": "heavy",
-      "label": "Scaffold setup"
+      "label": "Cable pulling"
      },
      {
       "start": 1784116800,
@@ -33,7 +33,7 @@
      {
       "start": 1784120400,
       "task": "heavy",
-      "label": "Cable pulling"
+      "label": "Scaffold setup"
      },
      {
       "start": 1784122200,
@@ -80,7 +80,7 @@
    }
   ],
   "notes": [
-   "Recommended: optimizer:balanced. Peak 90th pct core temp 37.86 \u00b0C (limit 38.0), tightest margin 0.13 \u00b0C, 100% of priority-weighted work done."
+   "Recommended: fused. Peak 90th pct core temp 37.86 \u00b0C (limit 38.0), tightest margin 0.13 \u00b0C, 100% of priority-weighted work done."
   ],
   "checked_by_rules": true
  }

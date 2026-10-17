@@ -80,8 +80,8 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "wbgt_c": 28.57,
-      "heat_index_f": 90.0,
+      "wbgt_c": 28.63,
+      "heat_index_f": 90.9,
       "wbgt_flag": "green",
       "heat_risk": {
        "value": 1,
@@ -109,9 +109,9 @@
       "kind": "flood",
       "level": "high",
       "headline": "Flood Warning",
-      "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (6.8 mi); Heavy rain: 90 mm in 24 h; River forecast to reach moderate flood (2.1 ft) by 2026-10-18T14:59:17Z: St. Johns River at Racy Point (in MHHW) (6.8 mi)",
+      "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (6.8 mi); Heavy rain: 90 mm in 24 h; River forecast to reach moderate flood (2.1 ft) by 2026-10-18T15:19:05Z: St. Johns River at Racy Point (in MHHW) (6.8 mi)",
       "source": "NWS",
-      "updated_at": 1792263557.0,
+      "updated_at": 1792264745.0,
       "stop_work": false,
       "band_pattern": "FLOOD_FIRE",
       "stale": false,
@@ -135,7 +135,7 @@
       "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
       "detail": null,
       "source": "Open-Meteo",
-      "updated_at": 1792263557.0,
+      "updated_at": 1792264745.0,
       "stop_work": false,
       "band_pattern": null,
       "stale": false,
@@ -154,8 +154,10 @@
       "fake": false
      }
     ],
-    "index_tomorrow": null,
-    "index_drivers": [],
+    "index_tomorrow": 3.81,
+    "index_drivers": [
+     "Rain over the last 3 days: 3.8 in"
+    ],
     "worker_flag": "none",
     "workers_on_site": 0,
     "updated_at": 1792002625.0
@@ -174,8 +176,8 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "wbgt_c": 28.61,
-      "heat_index_f": 90.0,
+      "wbgt_c": 28.66,
+      "heat_index_f": 90.9,
       "wbgt_flag": "green",
       "heat_risk": {
        "value": 2,
@@ -194,7 +196,7 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "nearest_miles": 113.0,
+      "nearest_miles": 96.1,
       "last_strike_at": null,
       "all_clear_at": null,
       "strikes": []
@@ -229,7 +231,7 @@
       "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
       "detail": null,
       "source": "Open-Meteo",
-      "updated_at": 1792263557.0,
+      "updated_at": 1792264745.0,
       "stop_work": false,
       "band_pattern": null,
       "stale": false,
@@ -241,15 +243,17 @@
       "headline": "1 alligator sighting within 5 mi (nearest 0.5 mi, 2026-10-16)",
       "detail": null,
       "source": "iNaturalist",
-      "updated_at": 1792263557.0,
+      "updated_at": 1792264745.0,
       "stop_work": false,
       "band_pattern": null,
       "stale": false,
       "fake": true
      }
     ],
-    "index_tomorrow": null,
-    "index_drivers": [],
+    "index_tomorrow": 2.65,
+    "index_drivers": [
+     "Soil is nearly saturated after recent rain"
+    ],
     "worker_flag": "none",
     "workers_on_site": 0,
     "updated_at": 1792002625.0
@@ -268,8 +272,8 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "wbgt_c": 28.61,
-      "heat_index_f": 90.0,
+      "wbgt_c": 28.66,
+      "heat_index_f": 90.9,
       "wbgt_flag": "green",
       "heat_risk": {
        "value": 2,
@@ -288,7 +292,7 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "nearest_miles": 130.2,
+      "nearest_miles": 119.5,
       "last_strike_at": null,
       "all_clear_at": null,
       "strikes": []
@@ -342,7 +346,7 @@
       "fake": false
      }
     ],
-    "index_tomorrow": null,
+    "index_tomorrow": 1.46,
     "index_drivers": [],
     "worker_flag": "none",
     "workers_on_site": 0,
@@ -362,8 +366,8 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "wbgt_c": 29.09,
-      "heat_index_f": 91.5,
+      "wbgt_c": 29.15,
+      "heat_index_f": 92.5,
       "wbgt_flag": "green",
       "heat_risk": {
        "value": 2,
@@ -382,7 +386,7 @@
       "band_pattern": null,
       "stale": false,
       "fake": false,
-      "nearest_miles": 214.3,
+      "nearest_miles": 164.5,
       "last_strike_at": null,
       "all_clear_at": null,
       "strikes": []
@@ -436,8 +440,10 @@
       "fake": false
      }
     ],
-    "index_tomorrow": null,
-    "index_drivers": [],
+    "index_tomorrow": 2.55,
+    "index_drivers": [
+     "Heat conditions above a usual day (demo data)"
+    ],
     "worker_flag": "none",
     "workers_on_site": 0,
     "updated_at": 1792002625.0
@@ -459,37 +465,59 @@
     "id": "al-2",
     "kind": "FLOOD_FIRE",
     "worker_id": null,
-    "site_id": "eia-641",
-    "started_at": 1792263548.843881,
-    "message": "Flood at Gulf Clean Energy Center",
-    "source": "C1 hazard feeds",
-    "acknowledged_at": null,
-    "cleared_at": 1792263564.645539
-   },
-   {
-    "id": "al-3",
-    "kind": "FLOOD_FIRE",
-    "worker_id": null,
     "site_id": "eia-65292",
-    "started_at": 1792263548.846804,
+    "started_at": 1792264743.119661,
     "message": "Flood at Rice Creek",
     "source": "C1 hazard feeds",
     "acknowledged_at": null,
-    "cleared_at": 1792263564.645914
+    "cleared_at": 1792264749.08692
+   },
+   {
+    "id": "al-3",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-628",
+    "started_at": 1792264743.1200378,
+    "message": "Lightning at Crystal River",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.0872269
    },
    {
     "id": "al-4",
     "kind": "FLOOD_FIRE",
     "worker_id": null,
-    "site_id": "eia-136",
-    "started_at": 1792263548.846947,
-    "message": "Flood at Seminole (FL)",
+    "site_id": "eia-641",
+    "started_at": 1792264743.120094,
+    "message": "Flood at Gulf Clean Energy Center",
     "source": "C1 hazard feeds",
     "acknowledged_at": null,
-    "cleared_at": 1792263564.6460679
+    "cleared_at": 1792264749.087305
    },
    {
     "id": "al-5",
+    "kind": "FLOOD_FIRE",
+    "worker_id": null,
+    "site_id": "eia-136",
+    "started_at": 1792264743.120131,
+    "message": "Flood at Seminole (FL)",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.087442
+   },
+   {
+    "id": "al-6",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-64145",
+    "started_at": 1792264743.120161,
+    "message": "Lightning at Bay Trail Solar Power Plant",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.0874848
+   },
+   {
+    "id": "al-7",
     "kind": "HEAT_YELLOW",
     "worker_id": "demo-1",
     "site_id": "eia-663",
@@ -500,29 +528,29 @@
     "cleared_at": 1792002520.5
    },
    {
-    "id": "al-6",
+    "id": "al-8",
     "kind": "LIGHTNING",
     "worker_id": null,
     "site_id": "eia-663",
-    "started_at": 1792263554.421824,
+    "started_at": 1792264745.5733051,
     "message": "Lightning at Deerhaven Generating Station",
     "source": "demo button",
     "acknowledged_at": 1792002620.0,
-    "cleared_at": 1792263564.6462421
-   },
-   {
-    "id": "al-7",
-    "kind": "LIGHTNING",
-    "worker_id": null,
-    "site_id": "eia-57241",
-    "started_at": 1792263554.9718778,
-    "message": "Lightning at Deerhaven Renewable",
-    "source": "C1 hazard feeds",
-    "acknowledged_at": null,
-    "cleared_at": 1792263564.64659
+    "cleared_at": 1792264749.087518
    },
    {
     "id": "al-9",
+    "kind": "LIGHTNING",
+    "worker_id": null,
+    "site_id": "eia-57241",
+    "started_at": 1792264746.040389,
+    "message": "Lightning at Deerhaven Renewable",
+    "source": "C1 hazard feeds",
+    "acknowledged_at": null,
+    "cleared_at": 1792264749.087998
+   },
+   {
+    "id": "al-11",
     "kind": "MANDOWN",
     "worker_id": "demo-2",
     "site_id": "eia-663",
@@ -533,7 +561,7 @@
     "cleared_at": 1792002620.0
    },
    {
-    "id": "al-10",
+    "id": "al-12",
     "kind": "HEAT_RED",
     "worker_id": "demo-1",
     "site_id": "eia-663",
@@ -544,7 +572,7 @@
     "cleared_at": null
    },
    {
-    "id": "al-11",
+    "id": "al-13",
     "kind": "SOS",
     "worker_id": "demo-3",
     "site_id": "eia-663",
@@ -555,7 +583,7 @@
     "cleared_at": null
    },
    {
-    "id": "al-12",
+    "id": "al-14",
     "kind": "SOS",
     "worker_id": "demo-4",
     "site_id": "eia-663",
@@ -566,7 +594,7 @@
     "cleared_at": null
    },
    {
-    "id": "al-13",
+    "id": "al-15",
     "kind": "HEAT_RED",
     "worker_id": "demo-2",
     "site_id": "eia-663",
@@ -577,7 +605,7 @@
     "cleared_at": 1792002620.0
    },
    {
-    "id": "al-14",
+    "id": "al-16",
     "kind": "HEAT_RED",
     "worker_id": "demo-3",
     "site_id": "eia-663",
@@ -588,7 +616,7 @@
     "cleared_at": 1792002620.0
    },
    {
-    "id": "al-15",
+    "id": "al-17",
     "kind": "HEAT_YELLOW",
     "worker_id": "demo-4",
     "site_id": "eia-663",
@@ -685,7 +713,7 @@
   },
   "reports": [
    {
-    "id": "rp-8",
+    "id": "rp-10",
     "site_id": "eia-663",
     "worker_id": "demo-1",
     "kind": "snake",
@@ -698,27 +726,27 @@
   ],
   "log": [
    {
-    "at": 1792263564.645539,
+    "at": 1792264749.087305,
     "text": "Flood off at eia-641",
     "source": "demo button"
    },
    {
-    "at": 1792263564.645914,
-    "text": "Flood off at eia-65292",
-    "source": "demo button"
-   },
-   {
-    "at": 1792263564.6460679,
+    "at": 1792264749.087442,
     "text": "Flood off at eia-136",
     "source": "demo button"
    },
    {
-    "at": 1792263564.6462421,
+    "at": 1792264749.0874848,
+    "text": "Lightning off at eia-64145",
+    "source": "demo button"
+   },
+   {
+    "at": 1792264749.087518,
     "text": "Lightning off at eia-663",
     "source": "demo button"
    },
    {
-    "at": 1792263564.64659,
+    "at": 1792264749.087998,
     "text": "Lightning off at eia-57241",
     "source": "demo button"
    }

@@ -2,7 +2,7 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-5",
+   "id": "al-7",
    "kind": "HEAT_YELLOW",
    "worker_id": "demo-1",
    "site_id": "eia-663",
@@ -16,11 +16,11 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-6",
+   "id": "al-8",
    "kind": "LIGHTNING",
    "worker_id": null,
    "site_id": "eia-663",
-   "started_at": 1792263554.421824,
+   "started_at": 1792264745.5733051,
    "message": "Lightning at Deerhaven Generating Station",
    "source": "demo button",
    "acknowledged_at": null,
@@ -30,7 +30,7 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-9",
+   "id": "al-11",
    "kind": "MANDOWN",
    "worker_id": "demo-2",
    "site_id": "eia-663",
@@ -44,7 +44,7 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-5",
+   "id": "al-7",
    "kind": "HEAT_YELLOW",
    "worker_id": "demo-1",
    "site_id": "eia-663",
@@ -58,7 +58,7 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-10",
+   "id": "al-12",
    "kind": "HEAT_RED",
    "worker_id": "demo-1",
    "site_id": "eia-663",
@@ -72,7 +72,7 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-10",
+   "id": "al-12",
    "kind": "HEAT_RED",
    "worker_id": "demo-1",
    "site_id": "eia-663",
@@ -86,7 +86,7 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-11",
+   "id": "al-13",
    "kind": "SOS",
    "worker_id": "demo-3",
    "site_id": "eia-663",
@@ -100,11 +100,11 @@
  {
   "type": "alert",
   "alert": {
-   "id": "al-6",
+   "id": "al-8",
    "kind": "LIGHTNING",
    "worker_id": null,
    "site_id": "eia-663",
-   "started_at": 1792263554.421824,
+   "started_at": 1792264745.5733051,
    "message": "Lightning at Deerhaven Generating Station",
    "source": "demo button",
    "acknowledged_at": 1792002620.0,
