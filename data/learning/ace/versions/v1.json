@@ -1,0 +1,101 @@
+{
+ "version": 1,
+ "lessons": [
+  {
+   "id": "L1",
+   "text": "Don't give the same person heavy and very heavy jobs back to back. Put a light or moderate job between them so they can level off.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "all",
+    "intensities": [
+     "very_heavy"
+    ],
+    "from_hour": 10,
+    "to_hour": 24,
+    "penalty": 10
+   },
+   "source": "day 2",
+   "uses": 0,
+   "helped": 0
+  },
+  {
+   "id": "L2",
+   "text": "Give new hires like Kofi lighter jobs in their first hours. Avoid stacking very heavy shop equipment repair right after pipe insulation for them.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "unacclimatized",
+    "intensities": [
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 9,
+    "to_hour": 24,
+    "penalty": 20
+   },
+   "source": "day 2",
+   "uses": 0,
+   "helped": 0
+  },
+  {
+   "id": "L3",
+   "text": "For new hires, expect hard work to wear on them faster than on seasoned crew, and plan their day to match.",
+   "hint": null,
+   "source": "day 2",
+   "uses": 0,
+   "helped": 0
+  }
+ ],
+ "day": 2,
+ "gate": {
+  "score": 0.2991,
+  "throughput": 0.8043,
+  "actual_peak_c": 38.0729,
+  "strain_margin_c": -0.0729,
+  "workers_alerted": 0.875,
+  "solve_rate": 0.125,
+  "safety_violations": 0,
+  "heat_spread": 47.0
+ },
+ "change": [
+  {
+   "op": "add",
+   "id": "L1",
+   "text": "Don't give the same person heavy and very heavy jobs back to back. Put a light or moderate job between them so they can level off.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "all",
+    "intensities": [
+     "very_heavy"
+    ],
+    "from_hour": 10,
+    "to_hour": 24,
+    "penalty": 10
+   },
+   "result": "applied"
+  },
+  {
+   "op": "add",
+   "id": "L2",
+   "text": "Give new hires like Kofi lighter jobs in their first hours. Avoid stacking very heavy shop equipment repair right after pipe insulation for them.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "unacclimatized",
+    "intensities": [
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 9,
+    "to_hour": 24,
+    "penalty": 20
+   },
+   "result": "applied"
+  },
+  {
+   "op": "add",
+   "id": "L3",
+   "text": "For new hires, expect hard work to wear on them faster than on seasoned crew, and plan their day to match.",
+   "hint": null,
+   "result": "applied"
+  }
+ ]
+}
