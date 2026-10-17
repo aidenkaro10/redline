@@ -200,6 +200,35 @@ test("03 contract: missing optional fields render as -- or are hidden (no NaN / 
   assert.doesNotMatch(pages[2], /data-testid="why"/);                               // why null: hidden
 });
 
+test("02 contract (session J's fixtures): unknown event types are ignored", { skip: hasJ ? false : "session J's tests/e2e/fixtures isn't merged yet" }, (t) => {
+  const now = Date.now();
+  t.mock.method(Date, "now", () => now);            // J's snapshot has a live SOS timer: freeze the clock between renders
+  for (const [view, filter] of [["crew", CREW], ["demo", DEMO]] as const) {
+    const before = stateOf(filter, [jFile(`live/snapshot_${view}.json`)[0]]);
+    const after = applyEvents(before, [{ type: "something_new", payload: { hr: 999 } } as unknown as LiveEvent]);
+    assert.deepEqual(after, before, view);
+    assert.equal(render(<CrewApp />, after), render(<CrewApp />, before));
+  }
+});
+
+test("03 contract (session J's fixtures): missing optional fields render as -- or are hidden", { skip: hasJ ? false : "session J's tests/e2e/fixtures isn't merged yet" }, () => {
+  const snap = jFile("live/snapshot_demo.json")[0] as LiveEvent & { workers: WorkerStatus[]; sites: SiteStatus[]; history: Record<string, { estimates: Estimate[] }> };
+  snap.workers = snap.workers.map((w) => ({ ...w, minutes_to_danger: null, break_at: null, on_break: false }));
+  snap.sites = snap.sites.map((x) => ({ ...x, hazard_index: null, index_tomorrow: null }));
+  for (const h of Object.values(snap.history ?? {})) h.estimates = (h.estimates ?? []).map((e) => ({ ...e, why: null }));
+  const id = snap.workers[0].worker_id;
+  const pages = [
+    render(<CrewApp />, stateOf(CREW, [clone(snap)])),
+    render(<CrewApp />, stateOf(CREW, [clone(snap)]), { path: "/", search: "tab=sites" }),
+    render(<WorkerPhonePage />, stateOf({ view: "worker", worker_id: id }, [clone(snap)]), { path: `/worker/${id}`, search: "details=1", params: { id } }),
+    render(<DemoPage />, stateOf(DEMO, [clone(snap)]), { path: "/demo", search: `worker=${id}` }),
+  ];
+  for (const html of pages) assert.doesNotMatch(text(html), /\bNaN\b|\bundefined\b|\bnull\b/);
+  assert.match(text(row(pages[0], snap.workers[0].name)), /Danger -- /);            // minutes_to_danger null
+  assert.doesNotMatch(text(pages[2]), /Next break/);                                // break_at null: tile hidden
+  assert.doesNotMatch(pages[2], /data-testid="why"/);                               // why null: hidden
+});
+
 // ---------------------------------------------------------------------------
 // Crew lead app
 // ---------------------------------------------------------------------------
