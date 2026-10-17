@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ml.local_planner.common import ADAPTER_DIR, BASE_MODEL_DIR
+from ml.local_planner.prompts import compact_prompt
 
 LOCAL_MAX_TOKENS = int(os.getenv("PLANNER_LOCAL_MAX_TOKENS", "2500"))    # a plan is ~600-900 tokens
 _CACHE = {}                    # (model dir, adapter dir) -> (model, tokenizer), loaded once per process
@@ -104,6 +105,7 @@ class LocalLLM:
         """Ask once, get the text answer (same signature as the Claude wrapper; cache_key is ignored)."""
         if self.skip_critic and "Verified plans:" in prompt and "List concrete complaints" in prompt:
             return '{"complaints": []}'
+        prompt = compact_prompt(prompt)            # same shortening the training data got
         msgs = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
         t0 = time.time()
         out, n_in, n_out = self._generate(msgs, max_tokens)

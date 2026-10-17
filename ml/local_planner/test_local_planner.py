@@ -101,3 +101,19 @@ def test_parse_plan_and_summary():
     s = summarize(rows)
     assert s["pass_at_1"] == 0.5 and s["pass_all_runs"] == 0.0 and s["safety_violations_per_run"] == 1.0
     assert s["throughput_if_passed"] == 0.6
+
+
+def test_compact_prompt_keeps_the_plan_facts():
+    from backend.planner.archon import plan_view
+    from backend.planner.scenario import Plan
+    from ml.local_planner.prompts import compact_prompt
+    sc = make_scenario(3, prefix="train")
+    plan = Plan({w.id: [sc.tasks[0].id] * sc.n_slots for w in sc.crew}, source="optimizer:throughput")
+    view = json.dumps(plan_view(sc, plan))
+    prompt = f"Scenario:\n{{}}\n\nBest optimizer plan so far:\n{view}\n\nSuggest up to 3 different strategy ideas"
+    small = compact_prompt(prompt)
+    assert len(small) < len(prompt) / 2
+    body = json.loads(small.split("so far:\n")[1].split("\n\nSuggest")[0])
+    assert body["assignments"] == plan.assignments and body["source"] == "optimizer:throughput"
+    assert compact_prompt("Write 3 short bullets") == "Write 3 short bullets"            # other prompts untouched
+    assert compact_prompt(prompt.replace(view, "{broken")) == prompt.replace(view, "{broken")

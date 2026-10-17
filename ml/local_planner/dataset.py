@@ -10,7 +10,7 @@ the LLM does in the planner:
              - Claude's own direct schedule, if it passed and scored as well as the agent's pick
                (STaR: keep the model's own correct answers), otherwise
              - the agent's final verified plan (STaR "rationalization": show the right answer).
-  ideas    the agent's "strategy ideas" prompt -> Claude's ideas (schema-checked), with the
+  ideas    the agent's "strategy ideas" prompt (plan view made compact, see prompts.py) -> Claude's ideas (schema-checked), with the
            direct_plan replaced by the verified target plan (Claude's own direct plans fail
            the heat rule most of the time, we never teach a failing plan)
   explain  the agent's "explain to the crew lead" prompt -> Claude's bullets
@@ -28,6 +28,7 @@ import re
 from collections import Counter
 
 from ml.local_planner.common import DATA_DIR, out_dir
+from ml.local_planner.prompts import compact_prompt
 
 from backend.planner.archon import IDEAS_SYSTEM
 from backend.planner.baselines import LLM_SYSTEM, llm_prompt
@@ -123,7 +124,7 @@ def examples_from_run(run: dict) -> tuple[list[dict], str]:
             if ans:
                 out.append({"kind": "ideas", "messages": [
                     {"role": "system", "content": IDEAS_SYSTEM},
-                    {"role": "user", "content": call["prompt"]},
+                    {"role": "user", "content": compact_prompt(call["prompt"])},
                     {"role": "assistant", "content": compact(ans)}]})
         elif call["kind"] == "explain":
             msgs = [{"role": "user", "content": call["prompt"]},

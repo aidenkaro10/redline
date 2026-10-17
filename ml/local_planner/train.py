@@ -21,7 +21,7 @@ from ml.local_planner.common import ADAPTER_DIR, BASE_MODEL_DIR, DATA_DIR, out_d
 from ml.local_planner.dataset import SFT_DIR, build
 
 BUSY_PATTERN = "ml.final|ml.train|ml.search|ml.meta"
-MAX_TOKENS = 8192             # longest example we train on (the ideas prompts are ~4-7k tokens)
+MAX_TOKENS = 4096             # longest example we train on (8192 pinned ~14 GB and made the Mac swap)
 
 SETTINGS = {
     "fine_tune_type": "lora",

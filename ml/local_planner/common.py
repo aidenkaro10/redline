@@ -21,7 +21,7 @@ os.environ.setdefault("NUMBA_NUM_THREADS", os.getenv("LOCAL_PLANNER_NUMBA_THREAD
 DATA_DIR = Path(os.getenv("LOCAL_PLANNER_DATA", "data/local_planner"))
 CKPT_DIR = Path(os.getenv("LOCAL_PLANNER_CKPT", "ml/checkpoints/local_planner"))
 BASE_MODEL_DIR = CKPT_DIR / "Qwen3-1.7B-4bit"       # mlx-community/Qwen3-1.7B-4bit (Apache 2.0)
-ADAPTER_DIR = CKPT_DIR / "adapter"                  # our LoRA adapter
+ADAPTER_DIR = Path(os.getenv("LOCAL_PLANNER_ADAPTER", str(CKPT_DIR / "adapter")))   # our LoRA adapter
 BASE_MODEL_REPO = "mlx-community/Qwen3-1.7B-4bit"
 
 # CP-SAT threads per solve. B's optimizer asks for 8; we run a few scenarios at once.
