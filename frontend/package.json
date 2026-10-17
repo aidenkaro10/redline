@@ -9,7 +9,7 @@
     "prebuild": "node scripts/copy-figures.mjs",
     "build": "next build",
     "start": "next start",
-    "test": "node --test \"src/**/*.test.ts\"",
+    "test": "node --import ./src/test/register.mjs --test \"src/**/*.test.ts\" \"src/**/*.test.tsx\"",
     "typecheck": "next typegen && tsc --noEmit",
     "check": "next typegen && tsc --noEmit && npm test && npm run build"
   },

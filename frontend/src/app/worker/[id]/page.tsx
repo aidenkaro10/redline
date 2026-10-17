@@ -10,12 +10,13 @@
  * person's own numbers and nobody else's.
  */
 
-import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { CoreChart } from "@/components/Charts";
 import { LearningCard } from "@/components/LearningCard";
 import { ReportForm } from "@/components/ReportForm";
+import { WhyLine } from "@/components/WhyLine";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
@@ -33,11 +34,16 @@ const LOOK: Record<Status, { bg: string; fg: string; title: string; tip: string 
 
 const STOP_LOOK = { bg: "#4b3fb0", fg: "#ffffff", title: "Stop work. Shelter now.", tip: "Lightning within 10 miles. Wait for the all clear." };
 
-export default function WorkerPhone() {
+export default function WorkerPhonePage() {
+  return <Suspense><WorkerPhone /></Suspense>;
+}
+
+function WorkerPhone() {
   const { id } = useParams<{ id: string }>();
+  const search = useSearchParams();
   const live = useLive();
   const now = useSimNow(500);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(search.get("details") === "1");   // ?details=1 opens it
   const w = live.workers[id];
   const { byId } = useSites();
   const site = w ? byId[w.site_id] : null;
@@ -178,7 +184,7 @@ export default function WorkerPhone() {
             <div className="rounded-xl bg-surface p-1 text-ink">
               <CoreChart estimates={est} now={now} height={190} />
             </div>
-            {est[est.length - 1]?.why && <p className="mt-2 text-sm opacity-90">{est[est.length - 1]?.why}</p>}
+            <WhyLine why={est[est.length - 1]?.why} tone="glass" />
           </Section>
           <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
           <Section title="Report a hazard">

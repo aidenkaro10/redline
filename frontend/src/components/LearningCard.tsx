@@ -132,15 +132,15 @@ export function SpotCheckForm({ workerId, glass }: { workerId: string; glass?: b
       <div className="mt-1 flex gap-2">
         <div className="relative flex-1">
           <input id={`spot-${workerId}`} inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="37.2"
-            className={`w-full rounded-lg border px-3 py-2 pr-9 text-base tabular ${glass ? "border-white/40 bg-white/15 text-inherit placeholder:text-white/50" : "border-line bg-surface"}`} />
+            className={`min-h-11 w-full rounded-lg border px-3 py-2 pr-9 text-base tabular ${glass ? "border-white/40 bg-white/15 text-inherit placeholder:text-white/50" : "border-line bg-surface"}`} />
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm opacity-60">°C</span>
         </div>
-        <button disabled={busy || !value.trim()} className={`rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-50 ${glass ? "bg-white text-black" : "bg-accent text-accent-ink"}`}>
+        <button disabled={busy || !value.trim()} className={`min-h-11 rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-50 ${glass ? "bg-white text-black" : "bg-accent text-accent-ink"}`}>
           {busy ? "…" : "Add"}
         </button>
       </div>
       {USING_MOCK && (
-        <button type="button" onClick={sample} className={`mt-1 text-xs underline ${glass ? "opacity-80" : "text-accent"}`}>
+        <button type="button" onClick={sample} className={`mt-1 inline-flex min-h-11 items-center text-xs underline ${glass ? "opacity-80" : "text-accent"}`}>
           Mock: fill in a sample reading
         </button>
       )}

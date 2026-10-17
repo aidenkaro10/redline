@@ -237,7 +237,7 @@ function SitesTab() {
           })}
         </ol>
         {ranked.length > 10 && (
-          <button onClick={() => setShowAll(!showAll)} className="mt-1 px-1 py-2 text-sm font-semibold text-accent">
+          <button onClick={() => setShowAll(!showAll)} className="mt-1 min-h-11 px-1 py-2 text-sm font-semibold text-accent">
             {showAll ? "Show top 10" : `Show all ${ranked.length} sites`}
           </button>
         )}
