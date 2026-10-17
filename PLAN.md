@@ -169,10 +169,34 @@ Full design: [docs/research/self-improving-design.md](docs/research/self-improvi
 11. **Demo:** day 1 vs day 14 agent on the same heat wave, the growing playbook, the agent family tree, zero violations in every version.
 12. **Hard line:** alerts never go through the LLM. It can't change limits. The LLM proposes; the rule checker approves.
 
+## Track brief scope (added 2026-10-17)
+
+The PlanIT Control track brief asks for more than the original spec. Sources and gotchas: [docs/data-sources.md](docs/data-sources.md).
+
+**Two layers:**
+- **Site layer:** how dangerous is each job site tomorrow and right now? 50+ real Florida power plant sites (EIA-860M) on a risk-ranked map, live hazard feeds, a 0-10 ML hazard index, a 6 PM briefing, crew photo reports.
+- **Worker layer:** how is each worker coping right now? The wristband, Kalman, forecaster, twins (everything above).
+
+**Brief requirements → where they're built:**
+
+| Requirement | Live source | Built in |
+| --- | --- | --- |
+| 50+ job sites | EIA-860M, converted once to `plants.geojson` | C1 |
+| Extreme heat | NWS alerts, Open-Meteo (WBGT via Liljegren), NWS HeatRisk label | C1 |
+| Lightning: 10-mile stop-work, 30-min countdown | GOES-19 GLM flashes (quality flag 0, 2+ flashes) | C1 |
+| Flooding after rain | NWS river gauges (NWPS), flood alerts, Tides & Currents for coastal sites | C1 |
+| Wildfire | NASA FIRMS, NIFC incidents, Red Flag Warnings | C1 |
+| Soil saturation | Open-Meteo soil moisture | C1 |
+| Wildlife | iNaturalist + crew photo reports | C1 (feed), A (reports) |
+| 0-10 hazard index | Trained on IEM warnings, Storm Events, OSHA, Open-Meteo archive | C2 |
+| 6 PM briefing | Forecasts + index + past incidents near the site | B |
+
+**Parallel sessions (each on its own branch):** A = live system (Phase 0 rest), B = planner (Phase 7) + 6 PM briefing, C1 = site hazards live, C2 = hazard index ML. This session keeps the worker-layer ML.
+
 ## Phase 8: hazards and man-down
 
 1. `hazards/nws.py`: active alerts + hourly forecast at the job site, cached, survives WiFi drops.
-2. `hazards/wbgt.py`: Liljegren WBGT from the forecast (also a model input).
+2. `hazards/wbgt.py`: Liljegren WBGT from the forecast (also a model input). Weather from Open-Meteo, since the NWS hourly forecast has no solar radiation.
 3. `alerts/router.py`: priority `MANDOWN` > `HEAT_RED` > `LIGHTNING` > `HEAT_YELLOW` > `FLOOD_FIRE`, sends only on change, no flicker.
 4. `alerts/mandown.py`: tilt rule, accelerometer rule when the Grove part arrives, unacknowledged red alert trigger.
 5. Man-down classifier on accelerometer windows (falls, sits, normal movement recorded by teammates).
