@@ -21,12 +21,18 @@ class BandRouter:
 
     def set(self, condition: str, on: bool, t: float) -> list[dict]:
         """Turn one condition on or off. Returns a band_command event if the pattern changes."""
-        if condition not in PRIORITY:
-            raise ValueError(f"Unknown condition: {condition}")
-        if on:
-            self.active.add(condition)
-        else:
-            self.active.discard(condition)
+        return self.set_many({condition: on}, t)
+
+    def set_many(self, changes: dict[str, bool], t: float) -> list[dict]:
+        """Apply several on/off changes at once, then send at most one command
+        (so yellow -> red never flashes OFF in between)."""
+        for condition, on in changes.items():
+            if condition not in PRIORITY:
+                raise ValueError(f"Unknown condition: {condition}")
+            if on:
+                self.active.add(condition)
+            else:
+                self.active.discard(condition)
         return self._maybe_send(t)
 
     def pattern(self) -> str:

@@ -92,3 +92,10 @@ def test_router_priority_and_only_on_change():
     r.set("HEAT_RED", False, 5)
     r.set("HEAT_YELLOW", False, 6)
     assert r.set("FLOOD_FIRE", False, 7)[0]["line"] == "BUZZ:OFF"
+
+
+def test_router_set_many_no_off_flash():
+    r = BandRouter("w1")
+    r.set("HEAT_YELLOW", True, 0)
+    ev = r.set_many({"HEAT_YELLOW": False, "HEAT_RED": True}, 1)
+    assert [e["pattern"] for e in ev] == ["HEAT_RED"]

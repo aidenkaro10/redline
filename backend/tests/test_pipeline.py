@@ -1,0 +1,114 @@
+"""Per-worker pipeline: minutes, Kalman, forecaster, alerts, band commands."""
+
+from pathlib import Path
+
+import numpy as np
+import pytest
+
+from backend import config
+from backend.app.pipeline import WorkerPipeline
+from backend.app.schemas import ButtonPress, Reading
+from backend.models.kalman import run_kalman
+
+CHECKPOINT = Path("ml/checkpoints/v1.pt")    # gitignored: symlink it from the main checkout
+
+
+def feed(p, minutes, hr, start=0.0, every=5.0, **fields):
+    """Send readings every 5 s for `minutes` minutes. Returns all events."""
+    events = []
+    n = int(minutes * 60 / every)
+    for i in range(n):
+        h = hr(start + i * every) if callable(hr) else hr
+        events += p.handle(Reading(worker_id=p.worker_id, timestamp=start + i * every, hr=h, **fields))
+    return events
+
+
+def of(events, kind):
+    return [e for e in events if e["type"] == kind]
+
+
+def test_minute_averages_match_offline_kalman():
+    p = WorkerPipeline("w1")
+    hr = lambda t: 100 + (t // 60) * 2           # rises 2 bpm per minute
+    events = feed(p, 10, hr)
+    est = of(events, "estimate")
+    assert len(est) == 9                          # minute 10 closes only when minute 11 starts
+    offline, _ = run_kalman([100 + 2 * k for k in range(9)])
+    assert np.allclose([e["kalman"] for e in est], offline, atol=1e-3)
+    assert est[0]["model"] == "kalman" and est[0]["forecast"] is None
+
+
+def test_hot_worker_yellow_then_red_commands():
+    p = WorkerPipeline("w1")
+    events = feed(p, 120, 175)
+    cmds = [e["line"] for e in of(events, "band_command")]
+    assert cmds[:2] == ["BUZZ:HEAT_YELLOW", "BUZZ:HEAT_RED"]
+    assert all(e["worker_id"] == "w1" for e in events)
+
+
+def test_gap_fills_missing_minutes_but_caps_long_silence():
+    p = WorkerPipeline("w1")
+    feed(p, 2, 90)                                       # minutes 0-1
+    p.handle(Reading(worker_id="w1", timestamp=5 * 60 + 1, hr=90))    # 3 quiet minutes
+    assert len(p.signals["hr"]) == 5
+    assert np.isnan(p.signals["hr"][2]) and np.isnan(p.signals["hr"][4])
+    p.tick(60 * 60)                                      # band off for ~55 minutes
+    assert len(p.signals["hr"]) == 5 + config.MAX_GAP_MIN + 1
+
+
+def test_demo_threshold_rechecks_immediately():
+    p = WorkerPipeline("w1")
+    feed(p, 30, 125)                       # warm, but under 38.0
+    assert p.heat.level == "clear"
+    assert 37.3 < p.estimates[-1]["core_temp"] < 38.0
+    events = p.set_demo(True)
+    assert of(events, "heat_alert") and of(events, "band_command")
+
+
+def test_scripted_fall_mandown_then_confirmed():
+    p = WorkerPipeline("w1", site={"site_id": "s1", "name": "Plant A", "lat": 29.6, "lon": -82.3},
+                       info={"name": "Ana"})
+    feed(p, 3, 110, tilt=0, activity=4.0)
+    t = 180.0
+    events = []
+    while t < 180 + config.MANDOWN_STILL_S + config.MANDOWN_ESCALATE_S + 5:
+        events += p.handle(Reading(worker_id="w1", timestamp=t, tilt=1, activity=0.0, hr=95))
+        t += 1
+    cmds = [e["line"] for e in of(events, "band_command")]
+    assert cmds == ["BUZZ:MANDOWN"]
+    conf = of(events, "mandown_confirmed")
+    assert len(conf) == 1
+    c = conf[0]
+    assert c["worker_name"] == "Ana" and c["site_name"] == "Plant A" and c["location"]["lat"] == 29.6
+    assert c["reason"] == "fall" and c["last_vitals"]["hr"] == 95
+    assert c["seconds_since_start"] >= config.MANDOWN_STILL_S + config.MANDOWN_ESCALATE_S - 1
+
+
+def test_button_cancels_mandown_check():
+    p = WorkerPipeline("w1")
+    for t in range(0, config.MANDOWN_STILL_S + 2):
+        p.handle(Reading(worker_id="w1", timestamp=float(t), tilt=1, activity=0.0))
+    assert p.mandown.state == "checking"
+    events = p.handle(ButtonPress(worker_id="w1", timestamp=60.0))
+    assert of(events, "mandown_cancelled")[0]["by"] == "button"
+    assert of(events, "band_command")[0]["line"] == "BUZZ:OFF"
+
+
+def test_unacknowledged_red_triggers_mandown_check():
+    p = WorkerPipeline("w1", demo=True)
+    events = feed(p, 60, 150)                   # no button, no activity field
+    assert p.heat.level == "red"
+    checks = of(events, "mandown_check")
+    assert checks and checks[0]["reason"] == "heat_red_unacknowledged"
+
+
+@pytest.mark.skipif(not CHECKPOINT.exists(), reason="forecaster checkpoint not in this checkout")
+def test_forecaster_estimates():
+    from backend.models.forecaster import ForecasterPredictor
+    p = WorkerPipeline("w1", predictor=ForecasterPredictor.load(CHECKPOINT))
+    events = feed(p, 15, 140)
+    est = of(events, "estimate")[-1]
+    assert est["model"].startswith("v1")
+    fc = est["forecast"]
+    assert len(fc["p90"]) == 30
+    assert all(lo <= mid <= hi for lo, mid, hi in zip(fc["p10"], fc["p50"], fc["p90"]))
