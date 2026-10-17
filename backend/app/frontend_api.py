@@ -100,6 +100,9 @@ class FrontendAdapter:
             for e in reversed(self.estimates.get(wid, [])):
                 e["why"] = ev["why"] or e["why"]
                 break
+        elif kind == "hr_link":
+            # Heart rate link status (Bluetooth searching / connected / stale / lost). No body numbers.
+            out.append(dict(ev))
         elif kind == "schedule":
             out.append({"type": "schedule", "schedule": ev["schedule"]})   # no body numbers: every view
             for w in list(self.hub.pipelines):
@@ -443,6 +446,8 @@ class FrontendAdapter:
             return f"{name}: man-down {kind.split('_')[1]} ({ev['by']})"
         if kind == "sos":
             return f"{name}: SOS pressed"
+        if kind == "hr_link" and ev["state"] in ("connected", "stale", "lost"):
+            return f"{name}: Bluetooth heart rate {ev['state']}" + (f" ({ev['device']})" if ev.get("device") else "")
         if kind == "demo":
             return f"Demo thresholds {'ON' if ev['demo'] else 'off'}"
         return None

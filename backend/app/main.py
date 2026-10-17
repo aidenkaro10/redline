@@ -61,6 +61,9 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--serial", default=config.SERIAL_PORT, help="band USB serial port (live)")
     ap.add_argument("--udp-port", type=int, default=config.UDP_PORT, help="band WiFi UDP port (live)")
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
+    ap.add_argument("--no-ble", dest="ble", action="store_false", help="live mode without Bluetooth heart rate")
+    ap.add_argument("--ble-device", default=config.BLE_HR_DEVICE,
+                    help="Bluetooth heart rate device: part of its name or its address (default: BLE_HR_DEVICE)")
     ap.add_argument("--record", action="store_true", help="save live inputs to data/recordings/*.jsonl")
     ap.add_argument("--db", default=config.DB_PATH, help="SQLite file ('' = no database)")
     ap.add_argument("--hazards", choices=["fake", "live", "off"], default=None,
@@ -174,6 +177,8 @@ def print_key_event(ev: dict) -> None:
     elif kind == "offset_update":
         text = (f"spot check {ev.get('thermometer_c')} °C -> personal offset {ev['offset_c']:+.2f} °C "
                 f"({ev['n_checks']} checks{'' if ev['accepted'] else ', reading rejected'})")
+    elif kind == "hr_link":
+        text = f"heart rate ({ev['source']}) {ev['state']}: {ev['message']}"
     elif kind == "sos":
         text = f"SOS from {ev['worker_name']} at {ev['site_name']}"
     elif kind == "emergency_status":
@@ -243,11 +248,24 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
             log.info("Reading the band on %s at %d baud", s.serial, config.SERIAL_BAUD)
         except Exception as e:
             log.warning("Serial port %s not available (%s). Continuing without USB.", s.serial, e)
+    # Heart rate. Bluetooth first (no internet needed); Pulsoid as an optional online second source.
+    # When both are on, the Kalman fuses them (step_fused) and keeps going if one drops.
+    ble_on = False
+    if s.ble:
+        from backend.ingest import ble_hr
+        if ble_hr.available():
+            reader = ble_hr.BleHeartRate(hub, config.WORKER_ID, wanted=s.ble_device or None)
+            tasks.append(asyncio.create_task(reader.run()))
+            ble_on = True
+            log.info("Bluetooth heart rate started (%s). macOS asks for Bluetooth permission the first time.",
+                     f"device {s.ble_device!r}" if s.ble_device else "first heart rate device found")
+        else:
+            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
     if config.PULSOID_TOKEN and not s.no_pulsoid:
         tasks.append(asyncio.create_task(pulsoid_client.run(hub, config.PULSOID_TOKEN, worker_id=config.WORKER_ID)))
         log.info("Pulsoid heart rate client started")
-    else:
-        log.warning("No PULSOID_TOKEN in .env: no live heart rate (band lines still flow)")
+    elif not ble_on:
+        log.warning("No heart rate source: no Bluetooth and no PULSOID_TOKEN (band lines still flow)")
     return tasks
 
 

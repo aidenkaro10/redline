@@ -30,6 +30,11 @@ Branch `claude/live-system-f3b5f1`. Interface: [docs/interfaces/live-system.md](
 - Why-line adapter (`backend/app/why.py`), C1 bridge with fake/live/off, D bridge: all import their modules only when merged.
 - Checked in a throwaway merge of this branch + C1 + D + H (not committed, removed): 234 tests pass, and the replay demo runs end to end with 79 sites, C1 fake hazards, H's why-lines, the D chain through "Demo: would call 911", test lightning reaching the crew's bands by router priority, and a spot check. Merge needs both sides kept in `backend/config.py` and `.env.example` (append-only conflicts).
 
+## Bluetooth heart rate (Oct 17, evening)
+
+- `backend/ingest/ble_hr.py` (bleak 3.0.2): HeartCast / chest strap / Garmin over the standard Heart Rate profile, no internet. Auto-reconnect, `hr_link` status events (searching / connected / stale / lost), fused with Pulsoid via `step_fused`, started automatically by `--source live`. Fake device for tests in `backend/ingest/fake_ble.py` (real example packets).
+- Not tested against a real phone or strap from this session (a scan would pop a macOS Bluetooth prompt for this process, not Aiden's Terminal).
+
 ## Findings for the ML session
 
 1. **The forecaster needs its "known future" inputs.** Without the next 30 minutes of planned workload and WBGT, the 20-min 90th percentile runs about 0.35 °C higher, and yellow fires on nearly every simulated shift (even workers whose true core temp never passes 37.8). The pipeline now passes 30 rows of known future to `predict_signals` (rows after the current minute, only WBGT/workload filled). Live, that needs the planner (workload) and C1 (forecast WBGT). Worth scoring the "no future inputs" case in the harness, since that's the live default until B is wired.

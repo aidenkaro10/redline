@@ -32,7 +32,9 @@ log = logging.getLogger(__name__)
 AVERAGED = ("skin_temp", "activity")            # per-minute averages of these reading fields
 # Heart rate can come from two devices. Each gets its own 1-minute average and its own
 # noise level (sigma, bpm) in the Kalman's sensor fusion (ECTempKalman.step_fused).
-HR_SIGMA = {"watch": config.KALMAN_SIGMA_WATCH, "band": config.KALMAN_SIGMA_BAND_PPG}
+# "ble" = a Bluetooth heart rate sensor (HeartCast relaying the watch, a chest strap, a Garmin).
+HR_SIGMA = {"watch": config.KALMAN_SIGMA_WATCH, "band": config.KALMAN_SIGMA_BAND_PPG,
+            "ble": config.KALMAN_SIGMA_WATCH}
 CONTEXT = ("wbgt", "workload")                  # per-minute values set from outside (weather, plan)
 HISTORY_KEEP = 600                              # estimates kept in memory for the dashboard (10 h)
 
@@ -107,9 +109,9 @@ class WorkerPipeline:
                 if value is not None:
                     self.bucket[name].append(float(value))
             if event.hr is not None:
-                # The band's pulse sensor tags its readings "band"; everything else (Pulsoid,
-                # replay, demo) counts as the watch.
-                src = "band" if event.source == "band" else "watch"
+                # "band" = the band's pulse sensor, "ble" = Bluetooth heart rate, everything
+                # else (Pulsoid, replay, demo) counts as the watch.
+                src = event.source if event.source in ("band", "ble") else "watch"
                 self.hr_bucket[src].append(float(event.hr))
                 self.last_reading["hr_source"] = src
             for name in ("hr", "skin_temp", "tilt", "activity", "accel"):
@@ -249,6 +251,7 @@ class WorkerPipeline:
             "type": "estimate", "timestamp": t, "minute": self.k,
             "hr": sig("hr"), "skin_temp": sig("skin_temp"), "activity": sig("activity"), "wbgt": sig("wbgt"),
             "hr_watch": _r(self.hr_by_source["watch"][-1], 2), "hr_band": _r(self.hr_by_source["band"][-1], 2),
+            "hr_ble": _r(self.hr_by_source["ble"][-1], 2),
             "hr_sources": sources,                   # which devices fed the Kalman this minute
             "kalman": _r(ks.ct), "kalman_sd": _r(math.sqrt(ks.v), 4),
             "core_temp": _r(core), "core_temp_sd": _r(core_sd, 4),
