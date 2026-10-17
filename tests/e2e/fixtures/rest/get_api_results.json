@@ -1,0 +1,7 @@
+{
+ "request": "GET /api/results",
+ "status": 404,
+ "body": {
+  "detail": "Not Found"
+ }
+}

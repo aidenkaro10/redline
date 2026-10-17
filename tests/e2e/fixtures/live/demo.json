@@ -1,0 +1,20 @@
+[
+ {
+  "type": "demo",
+  "demo": {
+   "source": "replay",
+   "speed": 10.0,
+   "demo_threshold": true,
+   "thresholds": {
+    "warning": 37.3,
+    "danger": 37.5
+   },
+   "scenario": {
+    "running": true,
+    "step": "sim shift 9647 + crew [9568, 8130, 4464], starting at minute 116",
+    "started_at": 1792000000.0
+   },
+   "mock": false
+  }
+ }
+]

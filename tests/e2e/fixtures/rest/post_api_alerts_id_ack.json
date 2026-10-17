@@ -1,0 +1,7 @@
+{
+ "request": "POST /api/alerts/{id}/ack",
+ "status": 200,
+ "body": {
+  "ok": true
+ }
+}

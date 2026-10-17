@@ -1,0 +1,963 @@
+[
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-663",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "wbgt_c": 28.65,
+     "heat_index_f": 90.9,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 1,
+      "label": "Minor",
+      "color": "yellow"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 55.4,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 1.28,
+   "index_drivers": [],
+   "worker_flag": "heat",
+   "workers_on_site": 4,
+   "updated_at": 1792000541.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-628",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "wbgt_c": 28.67,
+     "heat_index_f": 90.9,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 1,
+      "label": "Minor",
+      "color": "yellow"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "extreme",
+     "headline": "Lightning within 10 mi (0.8 mi): STOP WORK, all-clear in 30 min",
+     "detail": null,
+     "source": "GOES-19 GLM",
+     "updated_at": 1792264745.0,
+     "stop_work": true,
+     "band_pattern": "LIGHTNING",
+     "stale": false,
+     "fake": true,
+     "nearest_miles": 0.8,
+     "last_strike_at": 1792264720.0,
+     "all_clear_at": 1792266520.0,
+     "strikes": [
+      {
+       "lat": 28.9737,
+       "lon": -82.6513,
+       "at": 1792264720.0,
+       "miles": 2.9
+      },
+      {
+       "lat": 28.9943,
+       "lon": -82.6613,
+       "at": 1792264680.0,
+       "miles": 3.0
+      },
+      {
+       "lat": 28.9885,
+       "lon": -82.6712,
+       "at": 1792264640.0,
+       "miles": 2.3
+      },
+      {
+       "lat": 28.9616,
+       "lon": -82.6811,
+       "at": 1792264600.0,
+       "miles": 1.0
+      },
+      {
+       "lat": 28.9384,
+       "lon": -82.6911,
+       "at": 1792264560.0,
+       "miles": 1.9
+      },
+      {
+       "lat": 28.9402,
+       "lon": -82.701,
+       "at": 1792264520.0,
+       "miles": 1.8
+      },
+      {
+       "lat": 28.9653,
+       "lon": -82.711,
+       "at": 1792264480.0,
+       "miles": 0.8
+      },
+      {
+       "lat": 28.9907,
+       "lon": -82.7209,
+       "at": 1792264440.0,
+       "miles": 2.2
+      },
+      {
+       "lat": 28.993,
+       "lon": -82.7308,
+       "at": 1792264400.0,
+       "miles": 2.8
+      },
+      {
+       "lat": 28.9701,
+       "lon": -82.7408,
+       "at": 1792264360.0,
+       "miles": 2.6
+      },
+      {
+       "lat": 28.9431,
+       "lon": -82.7507,
+       "at": 1792264320.0,
+       "miles": 3.6
+      },
+      {
+       "lat": 28.9368,
+       "lon": -82.7606,
+       "at": 1792264280.0,
+       "miles": 4.3
+      },
+      {
+       "lat": 28.957,
+       "lon": -82.7706,
+       "at": 1792264240.0,
+       "miles": 4.4
+      },
+      {
+       "lat": 28.9851,
+       "lon": -82.7805,
+       "at": 1792264200.0,
+       "miles": 5.2
+      },
+      {
+       "lat": 28.9953,
+       "lon": -82.7905,
+       "at": 1792264160.0,
+       "miles": 6.0
+      },
+      {
+       "lat": 28.9782,
+       "lon": -82.8004,
+       "at": 1792264120.0,
+       "miles": 6.3
+      },
+      {
+       "lat": 28.9495,
+       "lon": -82.8103,
+       "at": 1792264080.0,
+       "miles": 6.9
+      },
+      {
+       "lat": 28.9356,
+       "lon": -82.8203,
+       "at": 1792264040.0,
+       "miles": 7.7
+      },
+      {
+       "lat": 28.9493,
+       "lon": -82.8302,
+       "at": 1792264000.0,
+       "miles": 8.1
+      },
+      {
+       "lat": 28.978,
+       "lon": -82.8402,
+       "at": 1792263960.0,
+       "miles": 8.7
+      },
+      {
+       "lat": 28.9953,
+       "lon": -82.8501,
+       "at": 1792263920.0,
+       "miles": 9.4
+      },
+      {
+       "lat": 28.9853,
+       "lon": -82.86,
+       "at": 1792263880.0,
+       "miles": 9.9
+      },
+      {
+       "lat": 28.9572,
+       "lon": -82.87,
+       "at": 1792263840.0,
+       "miles": 10.4
+      },
+      {
+       "lat": 28.9368,
+       "lon": -82.8799,
+       "at": 1792263800.0,
+       "miles": 11.2
+      },
+      {
+       "lat": 28.9429,
+       "lon": -82.8899,
+       "at": 1792263760.0,
+       "miles": 11.7
+      },
+      {
+       "lat": 28.9698,
+       "lon": -82.8998,
+       "at": 1792263720.0,
+       "miles": 12.2
+      },
+      {
+       "lat": 28.9929,
+       "lon": -82.9097,
+       "at": 1792263680.0,
+       "miles": 13.0
+      },
+      {
+       "lat": 28.9908,
+       "lon": -82.9197,
+       "at": 1792263640.0,
+       "miles": 13.5
+      },
+      {
+       "lat": 28.9656,
+       "lon": -82.9296,
+       "at": 1792263600.0,
+       "miles": 14.0
+      }
+     ]
+    },
+    {
+     "kind": "flood",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 3.44,
+   "index_drivers": [
+    "SPC storm outlook for tomorrow: slight risk"
+   ],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-645",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "extreme",
+     "headline": "WBGT 32.9 °C (black flag)",
+     "detail": "Heat Advisory",
+     "source": "Open-Meteo",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": "HEAT_YELLOW",
+     "stale": false,
+     "fake": true,
+     "wbgt_c": 32.87,
+     "heat_index_f": 110.2,
+     "wbgt_flag": "black",
+     "heat_risk": {
+      "value": 3,
+      "label": "Major",
+      "color": "red"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 81.0,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 3.96,
+   "index_drivers": [
+    "Heat index reached 109°F by 6 PM today"
+   ],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-136",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "wbgt_c": 28.63,
+     "heat_index_f": 90.9,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 1,
+      "label": "Minor",
+      "color": "yellow"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 42.3,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "high",
+     "headline": "Flood Warning",
+     "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (6.8 mi); Heavy rain: 90 mm in 24 h; River forecast to reach moderate flood (2.1 ft) by 2026-10-18T15:19:05Z: St. Johns River at Racy Point (in MHHW) (6.8 mi)",
+     "source": "NWS",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": "FLOOD_FIRE",
+     "stale": false,
+     "fake": true
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "high",
+     "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+     "detail": null,
+     "source": "Open-Meteo",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": true
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 3.81,
+   "index_drivers": [
+    "Rain over the last 3 days: 3.8 in"
+   ],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-65292",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "wbgt_c": 28.64,
+     "heat_index_f": 90.9,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 1,
+      "label": "Minor",
+      "color": "yellow"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 38.3,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "high",
+     "headline": "Flood Warning",
+     "detail": "River at minor flood: St. Johns River at Racy Point (in MHHW) (9.8 mi); River forecast to reach moderate flood (2.1 ft) by 2026-10-18T15:19:05Z: St. Johns River at Racy Point (in MHHW) (9.8 mi)",
+     "source": "NWS",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": "FLOOD_FIRE",
+     "stale": false,
+     "fake": true
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 1.61,
+   "index_drivers": [],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-641",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "wbgt_c": 28.68,
+     "heat_index_f": 90.9,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 1,
+      "label": "Minor",
+      "color": "yellow"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 280.1,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "fire",
+     "level": "high",
+     "headline": "Red Flag Warning",
+     "detail": "Satellite fire detection 3.0 mi away",
+     "source": "NWS",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": "FLOOD_FIRE",
+     "stale": false,
+     "fake": true
+    },
+    {
+     "kind": "soil",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 2.99,
+   "index_drivers": [
+    "Dry ground and low humidity forecast tomorrow"
+   ],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-564",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "wbgt_c": 28.66,
+     "heat_index_f": 90.9,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 2,
+      "label": "Moderate",
+      "color": "orange"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 96.1,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "high",
+     "headline": "Saturated ground (soil moisture 0.41 m³/m³)",
+     "detail": null,
+     "source": "Open-Meteo",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": true
+    },
+    {
+     "kind": "wildlife",
+     "level": "moderate",
+     "headline": "1 alligator sighting within 5 mi (nearest 0.5 mi, 2026-10-16)",
+     "detail": null,
+     "source": "iNaturalist",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": true
+    }
+   ],
+   "index_tomorrow": 2.65,
+   "index_drivers": [
+    "Soil is nearly saturated after recent rain"
+   ],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ },
+ {
+  "type": "site_status",
+  "site": {
+   "site_id": "eia-7873",
+   "hazards": [
+    {
+     "kind": "heat",
+     "level": "high",
+     "headline": "Heat Advisory",
+     "detail": null,
+     "source": "NWS",
+     "updated_at": 1792264745.0,
+     "stop_work": false,
+     "band_pattern": "HEAT_YELLOW",
+     "stale": false,
+     "fake": true,
+     "wbgt_c": 29.12,
+     "heat_index_f": 92.5,
+     "wbgt_flag": "green",
+     "heat_risk": {
+      "value": 2,
+      "label": "Moderate",
+      "color": "orange"
+     }
+    },
+    {
+     "kind": "lightning",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false,
+     "nearest_miles": 73.1,
+     "last_strike_at": null,
+     "all_clear_at": null,
+     "strikes": []
+    },
+    {
+     "kind": "flood",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "fire",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "soil",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    },
+    {
+     "kind": "wildlife",
+     "level": "none",
+     "headline": "No hazard",
+     "detail": null,
+     "source": null,
+     "updated_at": null,
+     "stop_work": false,
+     "band_pattern": null,
+     "stale": false,
+     "fake": false
+    }
+   ],
+   "index_tomorrow": 1.46,
+   "index_drivers": [],
+   "worker_flag": "none",
+   "workers_on_site": 0,
+   "updated_at": 1792001200.0
+  }
+ }
+]

@@ -1,0 +1,8 @@
+{
+ "request": "POST /api/workers/{id}/sos",
+ "status": 200,
+ "body": {
+  "ok": true,
+  "action": "escalated"
+ }
+}

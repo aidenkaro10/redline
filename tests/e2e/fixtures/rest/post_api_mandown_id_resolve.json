@@ -1,0 +1,7 @@
+{
+ "request": "POST /api/mandown/{id}/resolve",
+ "status": 200,
+ "body": {
+  "ok": true
+ }
+}

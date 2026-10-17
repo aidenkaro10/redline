@@ -1,0 +1,66 @@
+{
+ "request": "GET /api/workers",
+ "status": 200,
+ "body": [
+  {
+   "worker_id": "demo-1",
+   "name": "Jake",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "red",
+   "minutes_to_danger": 0,
+   "status_reason": "In heat danger now",
+   "hazard": "HEAT_RED",
+   "alert_acknowledged": true,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002625.0
+  },
+  {
+   "worker_id": "demo-2",
+   "name": "Maria",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": null,
+   "status_reason": "Normal",
+   "hazard": null,
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002625.0
+  },
+  {
+   "worker_id": "demo-3",
+   "name": "Dev",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": null,
+   "status_reason": "SOS pressed",
+   "hazard": "SOS",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002625.0
+  },
+  {
+   "worker_id": "demo-4",
+   "name": "Tasha",
+   "role": "Crew",
+   "site_id": "eia-663",
+   "status": "green",
+   "minutes_to_danger": null,
+   "status_reason": "SOS pressed",
+   "hazard": "SOS",
+   "alert_acknowledged": null,
+   "on_break": false,
+   "break_at": null,
+   "band_connected": true,
+   "updated_at": 1792002625.0
+  }
+ ]
+}
