@@ -23,6 +23,13 @@ Branch `claude/live-system-f3b5f1`. Interface: [docs/interfaces/live-system.md](
 
 `python -m backend.app.main --source replay --speed 10`: sim shift 9647 (Jake) plus 3 calm crewmates, starting at minute 116 (first 116 minutes pre-rolled instantly). At 10x: yellow after ~1 min, red after ~3.7 min (Jake presses the button 20 s later), Maria falls at 4 min → `BUZZ:MANDOWN` 4.5 s later → `mandown_confirmed` 6 s after that. True core temp (from the simulator) is drawn dashed on the chart. `--speed 30` for a faster run.
 
+## Integration round (Oct 17, afternoon)
+
+- Forecaster: `ens5.pt` (5-model ensemble) loads first, then `v1.pt`, then Kalman-only. `backend/app/model_runner.predict_at` runs it for the newest minute only (0.11 s vs 0.41 s late in a shift); a test checks it equals `predict_signals` for both checkpoints. With ens5 the demo story is unchanged: Jake yellow at +9 replay min, red at +38, crewmates calm, pre-roll ~6 s.
+- Personal offset twin wired (`POST /spot-check`, SQLite, `offset_update`).
+- Why-line adapter (`backend/app/why.py`), C1 bridge with fake/live/off, D bridge: all import their modules only when merged.
+- Checked in a throwaway merge of this branch + C1 + D + H (not committed, removed): 234 tests pass, and the replay demo runs end to end with 79 sites, C1 fake hazards, H's why-lines, the D chain through "Demo: would call 911", test lightning reaching the crew's bands by router priority, and a spot check. Merge needs both sides kept in `backend/config.py` and `.env.example` (append-only conflicts).
+
 ## Findings for the ML session
 
 1. **The forecaster needs its "known future" inputs.** Without the next 30 minutes of planned workload and WBGT, the 20-min 90th percentile runs about 0.35 °C higher, and yellow fires on nearly every simulated shift (even workers whose true core temp never passes 37.8). The pipeline now passes 30 rows of known future to `predict_signals` (rows after the current minute, only WBGT/workload filled). Live, that needs the planner (workload) and C1 (forecast WBGT). Worth scoring the "no future inputs" case in the harness, since that's the live default until B is wired.

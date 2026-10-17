@@ -11,6 +11,20 @@ python -m backend.app.main --source live                   # band (USB/WiFi) + P
 
 Default port 8000 (`SERVER_PORT`). Open `http://localhost:8000` for the bare chart page.
 
+Useful flags: `--speed 30` (faster replay), `--demo` (demo thresholds 37.3 / 37.5), `--hazards fake|live|off` (session C1's feeds; fake by default in replay), `--emergency-phone dry_run|fake|live` (session D; never dials 911), `--checkpoint <file>`, `--no-forecaster`, `--no-fall`, `--no-ack`, `--record`.
+
+### What's plugged in (each one falls back cleanly when missing)
+
+| Piece | Where it comes from | When it's missing |
+| --- | --- | --- |
+| Forecaster | `ml/checkpoints/ens5.pt` (5-model ensemble), else `v1.pt` | Kalman-only alerts (Kalman rule) |
+| Personal offset twin | `backend/models/personal_offset.py` + `POST /spot-check` | offset 0 (average person) |
+| Why-lines | session H, `ml/explain/` (branch `claude/ml-explain-071c08`) | `estimate.why` is null; `/ws/live` uses a plain heart-rate sentence |
+| Site hazards | session C1, `backend/hazards/` + `backend/sites/` | one demo site `site-gnv`, demo-button hazards only |
+| Emergency escalation | session D, `backend/emergency/` | `mandown_confirmed` / `sos` still go to the dashboard, nobody is called |
+
+Heart-rate twins stay off (they didn't help on real people, see `docs/results.md`).
+
 There are **two live streams**:
 
 | Stream | Who uses it | Shapes |
@@ -31,7 +45,9 @@ The first `/ws` message is a `snapshot` (`GET /api/raw/state` returns the same).
 | --- | --- | --- |
 | `reading` | Every input reading | `hr, skin_temp, tilt, activity, accel` (null = not in this line), `source`: `watch` (Pulsoid), `band` (band lines, incl. its pulse sensor's `HR:`), `replay`, `demo` |
 | `button` | Band button (raw input) | `kind`: `press` (`BTN:1`, "I'm OK") or `sos` (`BTN:SOS`, held 3 s) |
-| `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd, forecast{minutes[1..30], p10[], p50[], p90[]} or null, model, heat_level, true_core_temp` (replay of sim only) |
+| `estimate` | Once per worker per minute | `minute, hr` (devices blended), `hr_watch, hr_band, hr_sources` (devices that fed the Kalman this minute), `skin_temp, activity, wbgt, kalman, kalman_sd, core_temp, core_temp_sd` (personal offset applied), `core_temp_raw, offset_c` (before it), `forecast{minutes[1..30], p10[], p50[], p90[]}` (offset applied) or null, `model, heat_level, why` (latest why-line or null), `true_core_temp` (replay of sim only) |
+| `why` | A why-line is ready (0.1-0.3 s after its minute, background thread) | `minute, why, direction` rising/steady/falling, `contributions` {heart_rate, body_heat, skin_temp, activity, wbgt, workload, time} in °C. Also passed through on `/ws/live` as-is (not in E's contract yet) |
+| `offset_update` | `POST /spot-check` | `offset_c, confidence, n_checks, accepted, thermometer_c, model_c, miss_c, reason`. Also passed through on `/ws/live` as-is (not in E's contract yet) |
 | `heat_alert` | Heat level changes | `level` clear/yellow/red, `previous, value, threshold, rule` kalman/forecast, `demo` |
 | `heat_ack` | Button pressed during red | `after_s` |
 | `red_unacknowledged` | Red with no button for `HEAT_RED_ACK_TIMEOUT_S` | `red_since` |
@@ -55,6 +71,10 @@ SOS is never sent to the band (the band shows it by itself).
 ### Heart rate from two devices
 
 Heart rate can come from the watch (Pulsoid, tagged `watch`) and/or the band's pulse sensor (`HR:` lines, tagged `band`; the band only sends it when confident). Each device gets its own 1-minute average. The Kalman runs `ECTempKalman.step_fused([(hr_watch, KALMAN_SIGMA_WATCH), (hr_band, KALMAN_SIGMA_BAND_PPG)])` every minute, skipping a device with no reading that minute (watch only = exactly ECTemp). The forecaster was trained on one HR input, so it gets the two minute averages blended with the same 1/sigma² weights. Note: its internal Kalman baseline is then a plain single-sigma Kalman on that blend, so `estimate.kalman` (fused) and the forecaster's own baseline can differ slightly when both devices are present.
+
+### Personal offset twin (thermometer spot checks)
+
+`POST /spot-check` (alias `/api/spot-check`) `{worker_id, thermometer_c, timestamp?}`. The miss is the model's NOW estimate **before** any offset (the estimate nearest `timestamp`, default now on that worker's clock) minus the thermometer reading, fed to `PersonalOffset.add_check` (it rejects readings more than 1.5 °C off). `offset_c` is subtracted from the NOW estimate and every forecast percentile from then on, and the heat alert is re-checked right away. Capped at ±0.6 °C by the ML session's code; thresholds never change. Offsets are saved per worker in SQLite (`offsets`, every check in `spot_checks`) and reloaded when the worker reappears. Returns the `offset_update` event.
 
 ### Heat alert rules (all numbers in `backend/config.py`)
 
@@ -110,6 +130,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | POST | `/api/sites` | `{site_id, name, lat, lon, ...extra}` | add a site |
 | POST | `/api/sites/{id}/status` | contract SiteStatus | C1's full hazard picture for the dashboard |
 | POST | `/api/sites/{id}/weather` | `{wbgt, future_wbgt?[30]}` | forecaster input for every worker at the site |
+| POST | `/spot-check` (or `/api/spot-check`) | `{worker_id, thermometer_c, timestamp?}` | personal offset twin, returns `offset_update` |
 | POST | `/api/workers` | `{worker_id, name?, site_id?}` | create / move a worker (resets their pipeline) |
 | POST | `/api/workers/{id}/context` | `{wbgt?, workload?, future_wbgt?[30], future_workload?[30]}` | planned workload (B) |
 | POST | `/api/plans` | any JSON | stored + broadcast as `plan`; a Schedule-shaped one feeds `/api/schedule` |
@@ -147,13 +168,13 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 
 ## 4. Plugging in other sessions
 
-**C1 (site hazards).** Nothing to do if C1's code is merged: `backend/app/site_bridge.py` imports `backend.hazards.picture` / `backend.hazards.contract`, loads the 79 sites, makes `CREW_SITE_ID` (default `eia-663`) the default site, starts C1's 60 s background refresh, and every 15 s pushes each SiteStatus to the dashboard and turns band patterns on/off (`BUZZ:LIGHTNING` → lightning, `BUZZ:FLOOD_FIRE` → flood). C1's site-level `HEAT_YELLOW` doesn't go to bands: each worker's own heat alert owns that. `POST /api/demo/test-alert` calls C1's `test_alert()` (so the real 10-mile / 30-min rules run) and also turns the pattern on right away. From a separate process, use `POST /api/hazards` and `POST /api/sites/{id}/status` instead. WBGT for the forecaster: `hub.set_site_weather(site_id, wbgt, future_wbgt)` or `POST /api/sites/{id}/weather`.
+**C1 (site hazards).** Nothing to do if C1's code is merged (`--hazards fake` uses C1's built-in demo data, no internet; `live` uses the real feeds; `off` skips C1). Then `backend/app/site_bridge.py` imports `backend.hazards.picture` / `backend.hazards.contract`, loads the 79 sites, makes `CREW_SITE_ID` (default `eia-663`) the default site (the stand-in `site-gnv` disappears), starts C1's 60 s background refresh, and every 15 s pushes each SiteStatus to the dashboard and turns band patterns on/off (`BUZZ:LIGHTNING` → lightning, `BUZZ:FLOOD_FIRE` → flood). C1's site-level `HEAT_YELLOW` doesn't go to bands: each worker's own heat alert owns that. `POST /api/demo/test-alert` calls C1's `test_alert()` (so the real 10-mile / 30-min rules run) and also turns the pattern on right away. From a separate process, use `POST /api/hazards` and `POST /api/sites/{id}/status` instead. WBGT for the forecaster: `hub.set_site_weather(site_id, wbgt, future_wbgt)` or `POST /api/sites/{id}/weather`.
 
 **B (planner).** Post a plan to `POST /api/plans` (Schedule shape from the contract: `date, slot_minutes, day_start, rows[], notes[], checked_by_rules`) and the 6 PM briefing to `POST /api/briefing`. Planned workload per worker (W/m², now + next 30 min) improves the forecast a lot: `POST /api/workers/{id}/context` or `hub.set_context(worker_id, workload=..., future_workload=[...])`. Without it the forecaster's 90th percentile runs about 0.35 °C high (more false yellows). Read forecasts from `GET /api/raw/workers/{id}/estimates` or `hub.pipelines[id].estimates`. The planner never changes thresholds.
 
 **D (emergency).** See §3.
 
-**E (frontend).** `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000` in `frontend/.env.local`. Answers to the contract's open questions: (1) yes, one `/ws/live` with `view` filtering; (2) yes, replay time everywhere + `clock` twice a second; (3) yes, photo data URLs in JSON, capped at ~1.5 MB; (4) A computes `minutes_to_danger` (first forecast minute whose 90th pct ≥ the danger line; 0 when red) and `status_reason`. `Estimate.why` is a simple heart-rate line until the ML session's explainability lands. `on_break`/`break_at` are false/null until B's schedule is wired. `transcript` in `EmergencyCall` stays empty (D's status events don't carry it).
+**E (frontend).** `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000` in `frontend/.env.local`. Answers to the contract's open questions: (1) yes, one `/ws/live` with `view` filtering; (2) yes, replay time everywhere + `clock` twice a second; (3) yes, photo data URLs in JSON, capped at ~1.5 MB; (4) A computes `minutes_to_danger` (first forecast minute whose 90th pct ≥ the danger line; 0 when red) and `status_reason`. `Estimate.why` is session H's model why-line once `ml/explain` is merged (it lags its minute by one: the next estimate carries it), else a simple heart-rate line. New events you may want to show: `offset_update` (spot-check result) and `why` (raw shape in §1). `on_break`/`break_at` are false/null until B's schedule is wired. `transcript` in `EmergencyCall` stays empty (D's status events don't carry it).
 
 ---
 
@@ -165,4 +186,4 @@ Every line is timestamped on the laptop when it arrives. UDP listener on `UDP_PO
 
 ## 6. Storage (SQLite, `data/planit.db`)
 
-Tables: `workers`, `sites`, `readings` (with `source`), `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `estimates` (one row per worker per minute: inputs, `hr_watch`/`hr_band`/`hr_sources`, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.
+Tables: `workers`, `sites`, `readings` (with `source`), `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `offsets` (personal offset per worker), `spot_checks`, `estimates` (one row per worker per minute: inputs, `hr_watch`/`hr_band`/`hr_sources`, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.
