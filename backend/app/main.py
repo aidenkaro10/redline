@@ -155,6 +155,8 @@ async def lifespan(app: FastAPI):
 def print_key_event(ev: dict) -> None:
     """Console line for the events a person cares about (band commands print themselves)."""
     kind, who = ev["type"], ev.get("worker_id", "")
+    if ev.get("preroll"):
+        return
     if kind == "heat_alert":
         text = f"heat {ev['level'].upper()} ({ev['value']} °C vs {ev['threshold']}, {ev['rule']} rule)"
     elif kind == "mandown_confirmed":

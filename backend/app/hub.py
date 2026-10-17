@@ -176,6 +176,8 @@ class Hub:
     def dispatch(self, events: list[dict]) -> None:
         for ev in events:
             kind = ev["type"]
+            if ev.get("worker_id") and self._prerolling(ev["worker_id"]):
+                ev["preroll"] = True        # replayed history, not news (the console skips these)
             if kind == "estimate":
                 self._add_truth(ev)
             elif kind == "band_command":
