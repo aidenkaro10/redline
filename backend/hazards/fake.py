@@ -116,7 +116,7 @@ def weather(sites, now):
     times = [start + timedelta(hours=h) for h in range(24 * 4)]
     out = {}
     for s in sites:
-        hot = 2.5 if s.site_id == HEAT_SITE else (1.0 if s.lat < 28 else 0.0)
+        hot = 3.0 if s.site_id == HEAT_SITE else (0.5 if s.lat < 28 else 0.0)
         h = {k: [] for k in ("time", "temperature_2m", "relative_humidity_2m", "surface_pressure",
                              "wind_speed_10m", "shortwave_radiation", "precipitation",
                              "soil_moisture_0_to_1cm", "soil_moisture_1_to_3cm",
@@ -132,7 +132,7 @@ def weather(sites, now):
             if s.site_id == FLOOD_SITE and -20 <= (t - now).total_seconds() / 3600 <= -8:
                 rain = 7.5          # ~90 mm over the night
             h["time"].append(iso(t))
-            h["temperature_2m"].append(round(28.5 + hot + 5.0 * day, 1))
+            h["temperature_2m"].append(round(26.0 + hot + 5.0 * day, 1))
             humid = 12 if s.site_id == HEAT_SITE else 0
             h["relative_humidity_2m"].append(round(70 + humid - 18 * day, 0))
             h["surface_pressure"].append(1013.0)
@@ -147,11 +147,9 @@ def weather(sites, now):
     return out
 
 
-def gauge_status(sites, context):
+def gauge_status(sites, context, now):
     """Fake NWPS status for each site's gauge: the St. Johns site's gauge is in
     minor flood and forecast to reach moderate tomorrow; everything else is normal."""
-    from backend.hazards.events import utc_now
-    now = utc_now()
     out = {}
     flood_gauge = (context.get(FLOOD_SITE, {}).get("gauges") or {}).get("lid")
     for s in sites:
@@ -172,10 +170,8 @@ def gauge_status(sites, context):
     return out
 
 
-def water_levels(station_ids, context):
+def water_levels(station_ids, context, now):
     """Fake tide readings: every coastal station a foot below minor flood."""
-    from backend.hazards.events import utc_now
-    now = utc_now()
     levels = {}
     for entry in context.values():
         st = entry.get("tides")

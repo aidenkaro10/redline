@@ -197,8 +197,8 @@ def flood_events(sites, context=None, now=None):
     stations = [context.get(s.site_id, {}).get("tides") for s in sites]
     station_ids = [st["id"] for st in stations if st]
     if store.is_fake():
-        g_result = fake.feed_result(fake.gauge_status(sites, context), now)
-        t_result = fake.feed_result(fake.water_levels(station_ids, context), now)
+        g_result = fake.feed_result(fake.gauge_status(sites, context, now), now)
+        t_result = fake.feed_result(fake.water_levels(station_ids, context, now), now)
     else:
         g_result = gauges_cache.get(fetch_gauge_status, now=now)
         t_result = tides_cache.get(lambda: fetch_water_levels(station_ids), now=now)
