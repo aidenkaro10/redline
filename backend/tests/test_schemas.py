@@ -7,7 +7,14 @@ def test_parses_every_line_in_the_protocol_table():
     assert parse_line("TEMP:34.62") == {"skin_temp": 34.62}
     assert parse_line("TILT:1,ACT:7") == {"tilt": 1, "activity": 7.0}
     assert parse_line("ACC:0.98,0.02,0.11") == {"accel": (0.98, 0.02, 0.11)}
-    assert parse_line("BTN:1") == {"button": True}
+    assert parse_line("BTN:1") == {"button": "press"}
+    assert parse_line("BTN:SOS") == {"button": "sos"}
+
+
+@pytest.mark.parametrize("debug", ["# booting", "#TEMP:30.0", "  # wifi up"])
+def test_firmware_debug_lines_are_ignored(debug):
+    assert parse_line(debug) is None
+    assert events_from_line(debug, "w1", 1.0) == []
 
 
 def test_handles_mixed_lines_and_whitespace():
@@ -27,6 +34,10 @@ def test_unknown_keys_are_ignored():
 def test_events_from_line_splits_button_from_reading():
     events = events_from_line("BTN:1", "w1", 100.0)
     assert events == [ButtonPress(worker_id="w1", timestamp=100.0)]
+    assert events[0].kind == "press"
+
+    events = events_from_line("BTN:SOS", "w1", 100.0)
+    assert events == [ButtonPress(worker_id="w1", timestamp=100.0, kind="sos")]
 
     events = events_from_line("TEMP:34.62", "w1", 100.0)
     assert events == [Reading(worker_id="w1", timestamp=100.0, skin_temp=34.62)]

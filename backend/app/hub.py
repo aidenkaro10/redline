@@ -24,7 +24,7 @@ from typing import Callable
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand
 from backend.app.pipeline import WorkerPipeline
-from backend.app.schemas import ButtonPress, Reading, SosPress
+from backend.app.schemas import ButtonPress, Reading
 from backend.replay.clock import RealClock
 
 log = logging.getLogger(__name__)
@@ -118,7 +118,7 @@ class Hub:
     # ------------------------------------------------------------------
     # Inputs
     # ------------------------------------------------------------------
-    def handle_input(self, event: Reading | ButtonPress | SosPress, source: str = "live") -> None:
+    def handle_input(self, event: Reading | ButtonPress, source: str = "live") -> None:
         """A reading or button press from any source. Unknown workers are created on the fly."""
         if event.worker_id not in self.pipelines:
             self.register_worker(event.worker_id, source=source)
@@ -126,9 +126,9 @@ class Hub:
             self.recorder.write(event)
         if self.db and isinstance(event, Reading):
             self.db.add_reading(event)
-        # Raw inputs go out too (the chart's live HR). SOS doesn't: the pipeline sends the full
-        # "sos" event with who/where/vitals, and listeners must only ever see that one.
-        out = [] if isinstance(event, SosPress) else [event.model_dump()]
+        # Raw inputs go out too (the chart's live HR). An SOS goes out raw as a "button" with
+        # kind "sos"; the pipeline adds the full "sos" event (who/where/vitals) that session D acts on.
+        out = [event.model_dump()]
         derived = self.pipelines[event.worker_id].handle(event)
         for ev in derived:
             if ev["type"] == "sos":     # where the press came from: the band, the phone, a demo button
@@ -274,7 +274,7 @@ class Hub:
 
     def press_sos(self, worker_id: str, source: str = "demo") -> None:
         """Act as if the worker held the band button for 3 s (SOS). source: demo | phone."""
-        self.handle_input(SosPress(worker_id=worker_id, timestamp=self.now(worker_id)), source=source)
+        self.handle_input(ButtonPress(worker_id=worker_id, timestamp=self.now(worker_id), kind="sos"), source=source)
 
     def press_button(self, worker_id: str) -> None:
         """Demo: act as if the worker pressed the band button."""

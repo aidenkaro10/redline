@@ -156,7 +156,7 @@ def from_jsonl(path: Path, auto_ack_s: float | None = None) -> ReplayPlan:
     (with its original timestamp). Offsets keep the original spacing.
     """
     rows = [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
-    rows = [r for r in rows if r.get("type") in ("reading", "button", "sos")]
+    rows = [r for r in rows if r.get("type") in ("reading", "button")]
     if not rows:
         raise ValueError(f"No readings in {path}")
     t0 = min(r["timestamp"] for r in rows)

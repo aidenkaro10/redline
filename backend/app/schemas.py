@@ -27,22 +27,16 @@ class Reading(BaseModel):
 
 
 class ButtonPress(BaseModel):
-    """The worker pressed the band's button (acknowledge alert / cancel man-down)."""
+    """
+    The worker used the band's button.
+      kind="press": short press, BTN:1  -> "I'm OK" (acknowledge alert / cancel man-down)
+      kind="sos":   held 3 s, BTN:SOS   -> "I need help" (emergency escalation right away)
+    """
 
     type: Literal["button"] = "button"
     worker_id: str
     timestamp: float
-
-
-class SosPress(BaseModel):
-    """
-    The worker held the band's button for 3 s: "I need help now" (line BTN:SOS).
-    Not in the original protocol table: added for session D's emergency escalation.
-    """
-
-    type: Literal["sos"] = "sos"
-    worker_id: str
-    timestamp: float
+    kind: Literal["press", "sos"] = "press"
 
 
 # What each key in a band line means, and which Reading field it fills.
@@ -64,14 +58,15 @@ def parse_line(line: str) -> dict | None:
         "TEMP:34.62"          -> {"skin_temp": 34.62}
         "TILT:1,ACT:7"        -> {"tilt": 1, "activity": 7.0}
         "ACC:0.98,0.02,0.11"  -> {"accel": (0.98, 0.02, 0.11)}
-        "BTN:1"               -> {"button": True}
-        "BTN:SOS"             -> {"sos": True}     (button held 3 s)
+        "BTN:1"               -> {"button": "press"}
+        "BTN:SOS"             -> {"button": "sos"}     (button held 3 s)
+        "# booting..."        -> None                  (firmware debug print)
 
     Returns None for garbage (boards print junk on boot, cables glitch).
     """
     line = line.strip()
-    if not line:
-        return None
+    if not line or line.startswith("#"):
+        return None          # empty, or a firmware debug print (firmware contract: "#" lines aren't data)
 
     # Group tokens by key. A token without ":" belongs to the previous key,
     # which is how "ACC:0.98,0.02,0.11" keeps all three numbers together.
@@ -99,10 +94,11 @@ def parse_line(line: str) -> dict | None:
             elif name == "tilt":
                 fields["tilt"] = int(float(values[0]))
             elif name == "button":
-                if values[0].upper() == "SOS":
-                    fields["sos"] = True
-                else:
-                    fields["button"] = values[0] == "1"
+                value = values[0].upper()
+                if value == "SOS":
+                    fields["button"] = "sos"
+                elif value == "1":
+                    fields["button"] = "press"
             else:
                 fields[name] = float(values[0])
     except ValueError:
@@ -111,19 +107,17 @@ def parse_line(line: str) -> dict | None:
     return fields or None
 
 
-def events_from_line(line: str, worker_id: str, timestamp: float) -> list[Reading | ButtonPress | SosPress]:
+def events_from_line(line: str, worker_id: str, timestamp: float) -> list[Reading | ButtonPress]:
     """Parse a band line and wrap it as events with the laptop timestamp."""
     fields = parse_line(line)
     if fields is None:
         return []
-    events: list[Reading | ButtonPress | SosPress] = []
-    pressed = fields.pop("button", False)
-    if fields.pop("sos", False):
-        events.append(SosPress(worker_id=worker_id, timestamp=timestamp))
+    events: list[Reading | ButtonPress] = []
+    pressed = fields.pop("button", None)
     if fields:
         events.append(Reading(worker_id=worker_id, timestamp=timestamp, **fields))
     if pressed:
-        events.append(ButtonPress(worker_id=worker_id, timestamp=timestamp))
+        events.append(ButtonPress(worker_id=worker_id, timestamp=timestamp, kind=pressed))
     return events
 
 

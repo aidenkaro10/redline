@@ -22,7 +22,7 @@ from backend import config
 from backend.alerts.heat import RED, YELLOW, HeatAlerter, HeatInputs
 from backend.alerts.mandown import ManDownDetector
 from backend.alerts.router import BandRouter
-from backend.app.schemas import ButtonPress, Reading, SosPress
+from backend.app.schemas import ButtonPress, Reading
 from backend.models.kalman import ECTempKalman
 
 log = logging.getLogger(__name__)
@@ -78,10 +78,10 @@ class WorkerPipeline:
     # ------------------------------------------------------------------
     # Inputs
     # ------------------------------------------------------------------
-    def handle(self, event: Reading | ButtonPress | SosPress) -> list[dict]:
+    def handle(self, event: Reading | ButtonPress) -> list[dict]:
         t = event.timestamp
         events = self._advance(t)
-        if isinstance(event, SosPress):
+        if isinstance(event, ButtonPress) and event.kind == "sos":
             # Held the button 3 s: session D escalates right away. A deliberate press is also
             # movement, but it must NOT cancel anything, so it skips the man-down detector.
             self.mandown.last_movement_at = t
@@ -275,7 +275,7 @@ class WorkerPipeline:
         """
         Who, where, and last vitals: what session D's voice agent reads out.
         Flat fields (lat, lon, core_temp_c, hr_bpm, skin_temp_c) match D's
-        MandownConfirmed / SosPressed models; the nested ones are for the dashboard.
+        MandownConfirmed / SosPressed models (session D); the nested ones are for the dashboard.
         """
         last = self.estimates[-1] if self.estimates else {}
         r = self.last_reading
