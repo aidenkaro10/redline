@@ -476,6 +476,8 @@ async def spot_check(body: SpotCheck):
 class WeatherRequest(BaseModel):
     wbgt: float
     future_wbgt: list[float] | None = None     # next 30 minutes, one per minute (optional)
+    temp_c: float | None = None                # site air temp + humidity: compared with each band's
+    rh_pct: float | None = None                # air sensor for a local WBGT correction (optional)
 
 
 class ContextRequest(BaseModel):
@@ -513,7 +515,7 @@ async def site_status(site_id: str, body: dict):
 
 @app.post("/api/sites/{site_id}/weather")
 async def site_weather(site_id: str, body: WeatherRequest):
-    hub_of().set_site_weather(site_id, body.wbgt, body.future_wbgt)
+    hub_of().set_site_weather(site_id, body.wbgt, body.future_wbgt, body.temp_c, body.rh_pct)
     return {"ok": True}
 
 

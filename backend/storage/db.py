@@ -12,6 +12,9 @@ Tables
     reports    crew photo reports (snake, standing water, downed line ...)
     offsets    each worker's personal offset twin (thermometer spot-check misses)
     spot_checks every thermometer spot check, kept or rejected
+    band_minutes one row per worker per minute from the band's fast sensors (backend/ingest/band_stream.py):
+               activity, movement, pulse-sensor heart rate + how often it was confident, falls, air.
+               The raw PPG / ACC lines (55 a second) are never stored one by one.
     estimates  one row per worker per minute: inputs (per heart rate device too), Kalman, model estimate,
                forecast at +10/+20/+30 min, model name, twin version.
                The twins learn from this table later.
@@ -59,6 +62,13 @@ CREATE TABLE IF NOT EXISTS spot_checks (
     id INTEGER PRIMARY KEY, worker_id TEXT, timestamp REAL, thermometer_c REAL, model_c REAL,
     accepted INTEGER, offset_c REAL
 );
+CREATE TABLE IF NOT EXISTS band_minutes (
+    worker_id TEXT, timestamp REAL, activity REAL, movement_g REAL, cadence_spm REAL,
+    hr_band_ppg REAL, hr_quality REAL, hr_windows INTEGER, hr_given INTEGER, falls INTEGER,
+    air_temp_c REAL, humidity_pct REAL, pressure_hpa REAL, air_sane INTEGER, wbgt_correction_c REAL,
+    payload TEXT,
+    PRIMARY KEY (worker_id, timestamp)
+);
 CREATE TABLE IF NOT EXISTS estimates (
     worker_id TEXT, timestamp REAL, minute INTEGER,
     hr REAL, skin_temp REAL, activity REAL, wbgt REAL,
@@ -78,7 +88,11 @@ ALERT_EVENTS = {
     "mandown_check": "reason", "mandown_cancelled": "by", "mandown_confirmed": "reason",
     "mandown_resolved": "by", "mandown_worker_responded": "by", "sos": None,
     "emergency_status": "status", "offset_update": "offset_c", "hr_link": "state",
+    "band_fall": "confirmed_by",
 }
+BAND_MINUTE_COLUMNS = ("activity", "movement_g", "cadence_spm", "hr_band_ppg", "hr_quality", "hr_windows",
+                       "hr_given", "falls", "air_temp_c", "humidity_pct", "pressure_hpa", "air_sane",
+                       "wbgt_correction_c")
 COMMIT_EVERY_S = 1.0
 
 # Columns added after the first version. Older database files get them added on open.
@@ -180,6 +194,11 @@ class Database:
         kind = ev["type"]
         if kind == "estimate":
             self._add_estimate(ev)
+        elif kind == "band_minute":
+            values = [ev.get(c) for c in BAND_MINUTE_COLUMNS]
+            self._write(f"INSERT OR REPLACE INTO band_minutes (worker_id, timestamp, {', '.join(BAND_MINUTE_COLUMNS)}, "
+                        f"payload) VALUES ({', '.join('?' * (len(BAND_MINUTE_COLUMNS) + 3))})",
+                        (ev["worker_id"], ev["timestamp"], *values, json.dumps(ev)))
         elif kind in ALERT_EVENTS:
             field = ALERT_EVENTS[kind]
             self._write("INSERT INTO alerts (worker_id, site_id, timestamp, type, detail, payload) "

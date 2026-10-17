@@ -70,7 +70,7 @@ Goal: the band measures heart rate itself, so no Apple Watch is needed. The band
 | Every 1 s | `HUM:58.2` | Relative humidity, % (BME280 only). |
 | Every 1 s | `BARO:1012.35` | Air pressure, hPa, 2 decimals (about 0.12 hPa per meter of height: helps confirm falls). |
 
-Keep sending `TEMP`, `TILT` and `BTN` exactly as before (the laptop keeps the tilt switch until the accelerometer is proven). The laptop ignores line types it doesn't know yet, so these can be sent before the laptop side is ready. If the band already computes heart rate, it can also send `HR:72`; the laptop uses both.
+Keep sending `TEMP`, `TILT` and `BTN` exactly as before (the laptop keeps the tilt switch as the fallback: it still catches a slow slump with no impact, and takes over again if `ACC` stops). The laptop side for these lines is built (`docs/sessions/band-sensors.md`): a `PPG` line with anything other than exactly 10 whole numbers 0-4095 is dropped whole. If the band already computes heart rate, it can also send `HR:72`; the laptop uses both.
 
 ## 3. WiFi (optional, later)
 

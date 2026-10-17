@@ -19,6 +19,7 @@ import { ReportForm } from "@/components/ReportForm";
 import { WhyLine } from "@/components/WhyLine";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
+import { airLine, airNote } from "@/lib/format";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
@@ -187,6 +188,12 @@ function WorkerPhone() {
             <WhyLine why={est[est.length - 1]?.why} tone="glass" />
           </Section>
           <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
+          {live.air[id]?.air_temp_c != null && (
+            <Section title="Air at my band">
+              <p className="font-semibold tabular">{airLine(live.air[id])}</p>
+              <p className="text-sm opacity-90">{airNote(live.air[id])}</p>
+            </Section>
+          )}
           <Section title="Report a hazard">
             <ReportForm workerId={id} siteId={w.site_id} />
           </Section>

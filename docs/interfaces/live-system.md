@@ -198,8 +198,19 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 
 Follows `docs/firmware-contract.md`. Band → laptop: `TEMP:34.62` (every 5 s), `TILT:1,ACT:7` (every 1 s; ACT = tilt switch changes in the last second), `ACC:0.98,0.02,0.11` (later), `BTN:1` (short press) and `BTN:SOS` (held 3 s), both parsed into `ButtonPress` with `kind` `press` / `sos`. Lines starting with `#` are firmware debug prints and are ignored. Accepted extras: `HR:<bpm>` (the band's pulse sensor, tagged `band`, fused with the watch), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`, sent on change plus the 20 s keep-alive.
 
+**Band sensors (firmware contract 2b, `docs/sessions/band-sensors.md`).** `PPG:` (exactly 10 whole numbers 0-4095, else the line is dropped), `ACC:x,y,z`, `AIRT:` (-30..60 °C), `HUM:` (0..100 %), `BARO:` (300..1100 hPa) become a `BandSample`, not a `Reading`. The hub hands those to `backend/ingest/band_stream.py` (one `BandStream` per worker), so the 55 lines a second are never stored or broadcast one by one. What comes back into the hub:
+
+| Output | How often | Shape |
+| --- | --- | --- |
+| `Reading` `source: "band_ppg"` | every ~5 s, only when confident | `hr`, `hr_quality` (0-1). Counts as the band device in the Kalman (`KALMAN_SIGMA_BAND_PPG`) |
+| `Reading` `source: "band_acc"` | 1/s while ACC streams | `tilt` (1 = accelerometer fall OR tilt switch tipped), `activity` (ACT-equivalent from the accelerometer) |
+| event `band_fall` | when a possible fall is decided | `accepted, reason, confirmed_by (pressure / accelerometer / hard impact), impact_g, angle_deg, baro_rise_hpa, impact_at` |
+| event `band_minute` | 1/min | `activity, movement_g, cadence_spm, hr_band_ppg, hr_quality, hr_windows, hr_given, hr_reasons, falls, down, air_temp_c, humidity_pct, pressure_hpa, air_sane, air_note, wbgt_correction_c, site_air_temp_c, site_humidity_pct`. Stored in SQLite `band_minutes` |
+
+While ACC streams, the band's own `TILT:..,ACT:..` lines lose their tilt/activity fields (the `band_acc` reading replaces them); when ACC stops for `BAND_ACC_LIVE_S`, the tilt switch lines pass through again. `/ws/live` gets `{type: "band_air", air: {worker_id, timestamp, air_temp_c, humidity_pct, pressure_hpa, air_sane, air_note, wbgt_correction_c, site_air_temp_c, site_humidity_pct}}` once a minute (weather at the worker, no body data) and the snapshot has `air: {worker_id: ...}`. `POST /api/sites/{id}/weather` takes optional `temp_c` and `rh_pct` (the site's air) so the band's air sensor can correct that worker's WBGT input; estimates carry `wbgt_local_correction`.
+
 Every line is timestamped on the laptop when it arrives. Impossible values are dropped field by field (NaN, infinity, skin temp outside 20-45 °C, HR outside 25-240, ACT outside 0-200, TILT not 0/1, any ACC axis beyond ±16 g). UDP listener on `UDP_PORT` (5005) replies BUZZ lines to the band's address from the same port.
 
 ## 6. Storage (SQLite, `data/planit.db`)
 
-Tables: `workers`, `sites`, `readings` (with `source`), `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `offsets` (personal offset per worker), `spot_checks`, `estimates` (one row per worker per minute: inputs, `hr_watch`/`hr_band`/`hr_sources`, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.
+Tables: `workers`, `sites`, `readings` (with `source`), `band_minutes` (per-minute band sensor summary; raw PPG/ACC lines are never stored), `alerts` (every alert-type event, JSON payload), `plans`, `reports`, `offsets` (personal offset per worker), `spot_checks`, `estimates` (one row per worker per minute: inputs, `hr_watch`/`hr_band`/`hr_sources`, Kalman, estimate, forecast at +10/+20/+30 p10/p50/p90, heat level, model, twin version). Live inputs can also be recorded to `data/recordings/*.jsonl` (`--record`) and replayed with `--replay-file`.

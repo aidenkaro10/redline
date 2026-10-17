@@ -16,7 +16,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { usePathname } from "next/navigation";
 
 import type {
-  Alert, BandCommand, DemoState, EmergencyCall, Estimate, LiveEvent, LogEntry, ManDown, PhotoReport,
+  Alert, BandAir, BandCommand, DemoState, EmergencyCall, Estimate, LiveEvent, LogEntry, ManDown, PhotoReport,
   SiteStatus, ViewFilter, Vitals, WorkerStatus, OffsetUpdate,
 } from "./contract";
 import { canSee } from "./contract";
@@ -61,11 +61,12 @@ export interface LiveState {
   history: Record<string, { vitals: Vitals[]; estimates: Estimate[] }>;
   band: BandCommand[];
   offsets: Record<string, OffsetUpdate>;
+  air: Record<string, BandAir>;          // latest air at each band (not body data)
 }
 
 export const EMPTY: LiveState = {
   connected: false, ready: false, clock: { sim: 0, wall: 0, speed: 1 }, workers: {}, sites: {}, alerts: [],
-  mandown: null, emergency: null, demo: null, reports: [], log: [], history: {}, band: [], offsets: {},
+  mandown: null, emergency: null, demo: null, reports: [], log: [], history: {}, band: [], offsets: {}, air: {},
 };
 
 const MAX_VITALS = 240;      // 20 min at 5 s
@@ -86,6 +87,7 @@ export function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
           alerts: ev.alerts, mandown: ev.mandown, emergency: ev.emergency, demo: ev.demo,
           reports: ev.reports, log: ev.log, history: ev.history, band: ev.band, offsets: Object.fromEntries(Object.entries(ev.offsets ?? {})
             .map(([id, o]) => [id, toOffsetUpdate(o)] as const).filter((x): x is readonly [string, OffsetUpdate] => x[1] !== null)),
+          air: ev.air ?? {},
         });
         break;
       case "clock":
@@ -137,6 +139,9 @@ export function applyEvents(prev: LiveState, events: LiveEvent[]): LiveState {
         break;
       case "log":
         s.log = [...s.log, ev.entry].slice(-120);
+        break;
+      case "band_air":
+        s.air = { ...s.air, [ev.air.worker_id]: ev.air };
         break;
       case "offset_update": {
         // Accepts this contract's shape and session A's flat one (lib/offset.ts).

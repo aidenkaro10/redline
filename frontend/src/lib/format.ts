@@ -1,5 +1,7 @@
 /** Small text helpers shared by the screens (plain TS so tests can run them). */
 
+import type { BandAir } from "./contract";
+
 /** Minutes until predicted danger, as the crew lead sees it: null "--", 0 "now", else "in N min". */
 export function dangerText(minutes: number | null | undefined): string {
   if (minutes === null || minutes === undefined || !Number.isFinite(minutes)) return "--";
@@ -15,4 +17,17 @@ export function parseThermometer(input: string): { ok: true; value: number } | {
   const value = Number(text);
   if (value < 34 || value > 42) return { ok: false, message: "Body temperature readings are between 34.0 and 42.0 °C. Check the thermometer and try again." };
   return { ok: true, value };
+}
+
+/** "31.4 °C · 58% humidity" from the band's air sensor. */
+export function airLine(a: BandAir): string {
+  return `${a.air_temp_c?.toFixed(1)} °C` + (a.humidity_pct != null ? ` · ${Math.round(a.humidity_pct)}% humidity` : "");
+}
+
+/** What the air reading did to this worker's heat forecast, in plain words. */
+export function airNote(a: BandAir): string {
+  const c = a.wbgt_correction_c;
+  if (c != null && Math.abs(c) >= 0.05) return `Heat index for your forecast ${c > 0 ? "raised" : "lowered"} ${Math.abs(c).toFixed(1)} °C from the site's.`;
+  if (c != null) return "Same as the site's weather.";
+  return a.air_note && a.air_note !== "ok" ? `Not used for your forecast: ${a.air_note}.` : "Not used for your forecast.";
 }
