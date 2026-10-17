@@ -14,21 +14,68 @@ Branch `claude/agent-learning-d87832` (started from B's `claude/planner-e28a9e`)
 | 3. Evolution (GEPA + DGM, Loop 3) | `gepa.py` | Reflective mutation (Claude or code) on training traces, minibatch check, Pareto archive over 5 metrics, novelty + few-children parent selection, final pick on validation only. |
 | 4. Demo artifacts | `demo.py`, `report.py` | JSON in `backend/learning/demo/`, shapes in the interface doc. Report next to B's baselines. |
 
-## Results so far
+## Results (round 1)
 
-**Curriculum (Loop 4), real Claude proposer:** 27 of 93 valid days kept (solved sometimes, not always), all 5 families: heat dome 6, 2 pm storm 7, new hire 6, call-out 5, dead watch 3. Split: 17 home-crew train, 5 home val, 4 random train, 1 random val. Cost **$0.34** (7 calls, $0.50 cap; the cap blocked the 8th call and the code proposer took over). An earlier run that required 100% of priority-1 work kept only 9 of 82 ($0.31, archived in `data/learning/old/`), so "solved" now = no heat alert and at least 75% of priority-1 work done, and the proposer is told why each day failed.
+All numbers are from **simulated** days. "Simulated score" = share of priority-weighted work done, minus 0.25 per worker who would have hit a heat alert, minus 0.5 per °C the hottest worker ran above 37.5 (`settings.py`; a learning score, not a safety limit). Safety violations come from B's rule checker.
 
-**Calibration check (before the loops):** with the lesson "new hires: moderate/heavy work before 11:00", hot days gained +0.05 to +0.22 outcome score and lost Kofi's alerts; mild days moved -0.02 to +0.01. So the gate has a real signal to find.
+### Next to B's baselines, on B's 12 held-out test scenarios (never learned from)
 
-**Not run yet:** ACE 14 days, GEPA, report next to B's baselines, demo JSON. B's baseline numbers don't exist yet either (B's `benchmark.json` hasn't been generated).
+| Planner | Passes rule checker | Safety violations | Throughput | Peak p90 (°C) | Simulated score | Workers alerted / day | Simulated peak (°C) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| fixed (today's practice) | 0% | 107 | 0.86 | 40.48 | -0.091 | 1.94 | 38.43 |
+| optimizer only | 100% | 0 | 0.68 | 37.99 | 0.437 | 0.19 | 37.90 |
+| LLM only, no checker (B's cached Claude answers) | 8% | 38 | 0.86 | 38.66 | 0.138 | 1.67 | 38.11 |
+| agent, day 1 | 100% | 0 | 0.67 | 37.99 | 0.445 | 0.17 | 37.86 |
+| **agent, day 14 (learned playbook)** | 100% | **0** | 0.67 | 37.99 | **0.477** | **0.11** | 37.83 |
+| **agent, evolved (GEPA) + playbook** | 100% | **0** | 0.61 | 37.94 | 0.467 | **0.03** | 37.77 |
 
-## Next (in order)
+B's own run on the same set: optimizer and full agent 0 safety violations; LLM only had violations in 92% of runs. Our table re-scores B's run-0 LLM answers from B's cache (no new calls).
 
-1. `python -m backend.learning.ace --llm` (14 days, 4 gate days, cap $1.50). Needs 14 home train + 4 home val days: the bank has 17 + 5.
-2. `python -m backend.learning.gepa --llm` (Claude mutator, planner without LLM, cap $3; expect well under $1).
-3. `python -m backend.learning.report` then `python -m backend.learning.demo`.
-4. Fill in this file with the numbers next to B's baselines.
+Home-crew validation days (5): day 1 0.333 → day 14 0.349 → evolved 0.478, alerts 0.80 → 0.67 → 0.13 per day. Caveat: these days were also the ACE gate and the GEPA selection set, so B's test set above is the clean number.
 
+Trade-off to say out loud: the evolved agent does less work (0.61 vs 0.67) to cut alerts by 80%. The day-14 playbook keeps the same throughput and still cuts alerts by a third.
+
+### Loop by loop
+
+| Loop | Result | Claude cost |
+| --- | --- | --- |
+| Curriculum (Loop 4) | 27 of 93 valid days kept (sometimes solved), all 5 families. Bank: 17 home train, 5 home val, 4 random train, 1 random val | $0.34 (final run); $0.76 incl. a first run that kept 9 of 82 under a stricter "solved" |
+| ACE playbook (Loop 2), 14 days | Gate days 0.273 → 0.318, alerts 1.0 → 0.75 per day, 3 of 18 updates kept, 0 violations. 2 lessons (one by Claude, one by the facts-based code curator), each used 5 times | $0.14 (final run); $0.56 incl. 3 earlier runs |
+| GEPA + DGM (Loop 3), 8 rounds | Validation 0.378 → 0.452 (best = a5, generation 2), 4 of 8 children accepted, Pareto front a0, a1, a5, a7, a8, 0 violations | $0.32 (final run); $0.63 incl. 1 earlier run |
+| **Total, all of session F** | | **$1.95** (`data/learning/cost_log.jsonl`) |
+
+The 2 learned lessons:
+- L1 (Claude, day 2): "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker."
+- L2 (code curator day 2, sharpened by Claude day 8): "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00."
+
+GEPA's best agent (a5): ranks plans with much more weight on predicted peak heat (`w_peak` 0.5 → 2.5) and on confirmed critic complaints (0.03 → 0.1), 4 s solves, plus an evolved strategy note ("Give unacclimatized new hires light or moderate tasks; heavy ones only in the earliest slots..."). The note only matters when the planner runs with Claude. This run evolved with the planner in no-LLM mode (Claude was the mutator only), which keeps a run under $0.50. Evolving with Claude inside the planner too (`--llm-planner`) would cost roughly $0.15 per plan, about $15 for the same 8 rounds.
+
+### Demo artifacts (`backend/learning/demo/`, shapes in the interface doc)
+
+- `playbook_growth.json`: 14 days, 18 gated updates (3 kept), safety-filter rejections, versions v0 → v3.
+- `family_tree.json`: 9 agent versions (a0-a8), 4 accepted children, Pareto front, every edit's reason in Claude's words.
+- `day1_vs_day14.json`: held-out heat-wave day `cur-7927950f` (WBGT up to 32.9 °C). Day 14 cites L1 and L2 (learned day 2), moves Kofi's 11:30 moderate work away, and his simulated peak drops **0.18 °C** (37.92 → 37.74). Score 0.302 → 0.355, same throughput, 0 violations both.
+- **Read this before pitching it:** that's the clearest of 8 extra-hot held-out heat-wave days we tried. Across all 8, day 14 was better on 1, worse on 3 (one with a new alert), and the same on 4: mean 0.314 → 0.266. The evolved agent wasn't better there either (0.261). The gains on B's test set and the home validation days do **not** carry over to extreme heat waves yet. All 8 are in the JSON (`candidates`, `candidates_summary`). Next step: put extreme heat-wave days into the gate set and learn over more than 14 days.
+- `summary.json`: zero safety violations in every version (ACE days, ACE gates, GEPA versions, demo days).
+
+### What I learned building it (honest notes)
+
+1. **Solver noise fooled the first gates.** B's CP-SAT stops on a wall-clock limit, so under a busy laptop the same day gave slightly different plans. My first ACE run "kept" updates that a deterministic rerun showed were noise (+0.026 → +0.000). Fix: inside the loops, the solver uses a deterministic work limit and 1 thread (`parallel.py`, no change to B's code). Every number above is from deterministic runs. The wall-clock runs are archived in `data/learning/old/wallclock/`.
+2. **Gate each update alone.** Claude proposed 2-3 lessons per day; gated as a batch, a weak one sank a good one. Each update is now gated on its own.
+3. **Claude + code curator.** Claude's lessons were often well worded but aimed at the wrong work (heavy only, when the measured problem was moderate work too). The curator now adds one lesson written in code from the measured facts. Both compete at the gate, and the kept lessons are a mix.
+4. **The filter was too strict at first.** `\bharder\b` rejected harmless lessons like "the job gets harder once it ramps up". It now only rejects "work/push/go harder".
+5. **"Solved" = no heat alert + at least 75% of priority-1 work.** Requiring 100% made most hot days unsolvable for reasons no lesson can fix (not enough hours).
+
+### How to run each loop
+
+```bash
+python -m backend.learning.curriculum --llm --rounds 8 --per-round 12 --home-share 75   # ~15 min, ~$0.35
+python -m backend.learning.ace --llm                                                   # ~55 min, ~$0.15
+python -m backend.learning.gepa --llm --iterations 8 --n-train 21 --n-val 6           # ~30 min, ~$0.30
+PLANNER_LLM_CACHE=<B's data/planner/llm_cache> python -m backend.learning.report      # ~25 min, $0
+python -m backend.learning.demo                                                        # ~15 min, $0
+```
+Without `--llm` (or without a key) every loop still runs, with its plain-code fallback, for $0. `LEARNING_WORKERS=4` (default) uses 4 processes × 1 solver thread. Test: `python -m pytest backend/learning -q` (offline, fake Claude).
 
 ## Requests for B (planner)
 

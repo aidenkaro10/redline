@@ -170,9 +170,23 @@ def day1_vs_day14(bank_ids: set) -> dict:
                           "workers_alerted": r[k]["outcome"]["workers_alerted"], "focus_peak_c": r[k]["focus_worker"]["peak_c"],
                           "safety_violations": r[k]["safety_violations"]} for k in ("day1", "day14", "day14_evolved")}}
                          for r in runs]
+    out["candidates_summary"] = summarize_candidates(out["candidates"])
     out["pick_rule"] = (f"Shown: the clearest of {len(runs)} held-out heat-wave days (largest day-14 score gain among days where the day-14 plan used a lesson). "
                         "All candidates are listed in 'candidates'.")
     return out
+
+
+def summarize_candidates(cands: list[dict]) -> dict:
+    """How day 14 did on ALL candidate days, not just the one shown (so nobody oversells the demo)."""
+    import numpy as np
+    d = [c["day14"]["score"] - c["day1"]["score"] for c in cands]
+    return {"n": len(cands), "day14_better": sum(x > 0.005 for x in d), "day14_worse": sum(x < -0.005 for x in d),
+            "same": sum(abs(x) <= 0.005 for x in d),
+            "mean_score_day1": round(float(np.mean([c["day1"]["score"] for c in cands])), 4),
+            "mean_score_day14": round(float(np.mean([c["day14"]["score"] for c in cands])), 4),
+            "mean_score_day14_evolved": round(float(np.mean([c["day14_evolved"]["score"] for c in cands])), 4),
+            "alerts_day1": sum(c["day1"]["workers_alerted"] for c in cands),
+            "alerts_day14": sum(c["day14"]["workers_alerted"] for c in cands)}
 
 
 def build_all() -> dict:
@@ -194,6 +208,7 @@ def build_all() -> dict:
                              for k in ("day1", "day14", "day14_evolved"))}
     written["summary"] = {
         "safety_violations": viol, "all_zero": all(v == 0 for v in viol.values()),
+        "demo_days": written["day1_vs_day14"]["candidates_summary"],
         "curriculum": {"kept": bank["n_kept"], "tried": bank["n_tried"], "llm": bank["llm"]},
         "ace": None if not ace_run else {"days": len(ace_run["timeline"]), "final_version": ace_run["versions"][-1]["version"],
                                          "gate_score_start": ace_run["versions"][0]["gate"]["score"],

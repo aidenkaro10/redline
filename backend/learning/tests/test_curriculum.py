@@ -22,10 +22,10 @@ def test_reward_is_zero_when_always_or_never_solved(monkeypatch):
     sc = build({"seed": 2, "dead_watch": True})
     rest = solve_rate(sc, planner=lambda s, r: all_rest_plan(s), runs=2)
     assert rest["solve_rate"] == 0 and rest["reward"] == 0          # never solved: no reward
-    fake = [{"solved": True, "score": 1, "workers_alerted": 0, "priority1_done": True},
-            {"solved": False, "score": 0, "workers_alerted": 1, "priority1_done": True},
-            {"solved": False, "score": 0, "workers_alerted": 1, "priority1_done": True},
-            {"solved": False, "score": 0, "workers_alerted": 1, "priority1_done": True}]
+    fake = [{"solved": True, "score": 1, "workers_alerted": 0, "priority1_done": True, "priority1_share": 1.0},
+            {"solved": False, "score": 0, "workers_alerted": 1, "priority1_done": True, "priority1_share": 1.0},
+            {"solved": False, "score": 0, "workers_alerted": 1, "priority1_done": True, "priority1_share": 1.0},
+            {"solved": False, "score": 0, "workers_alerted": 1, "priority1_done": True, "priority1_share": 1.0}]
     monkeypatch.setattr(curriculum, "outcomes", lambda s, p, r: fake)
     res = solve_rate(sc, planner=lambda s, r: all_rest_plan(s), runs=4)
     assert res["solve_rate"] == 0.25 and res["reward"] == 0.75      # Absolute Zero: 1 - solve rate
