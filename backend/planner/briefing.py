@@ -216,6 +216,9 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
     picture = c1_picture() if live else None
     if picture is None:
         stubs.add("live site hazards (session C1 not available): planner scenario hazards")
+    c1_label = "C1 (fake demo data)" if (picture or {}).get("mode") == "fake" else "C1"
+    if c1_label != "C1":
+        stubs.add("C1 is in HAZARD_MODE=fake: weather and hazards are its built-in demo day, not real feeds")
     out_sites, crew_entry = [], None
     for site in resolve_sites(site_ids, picture, crew_site, max_sites):
         is_crew = site["id"] == crew_site["id"]
@@ -225,13 +228,13 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
         hourly = c1_hourly(site["id"]) if live else None
         wx = slot_weather_from_hourly(hourly, for_date, sc.shift_start, sc.n_slots, sc.slot_min) if hourly else None
         if wx:
-            sc.weather, sources["weather"] = wx, "C1"
+            sc.weather, sources["weather"] = wx, c1_label
         else:
             stubs.add("tomorrow's hourly weather (C1 forecast not available): simulated Gainesville summer day")
         if entry is not None:
             sc.hazards = hazard_windows_from_events(entry.get("events", []), for_date, sc.shift_start,
                                                     sc.n_slots, sc.slot_min)
-            sources["hazards"] = "C1"
+            sources["hazards"] = c1_label
         index = c2_index(site["id"], for_date) if live else None
         if index is None:
             index = stub_index(site, sc, for_date)
@@ -328,11 +331,13 @@ if __name__ == "__main__":
     ap.add_argument("--no-llm", action="store_true")
     ap.add_argument("--offline", action="store_true", help="never call C1/C2 (stubs only)")
     ap.add_argument("--sites", default=None, help="comma-separated site ids, e.g. eia-663,eia-628")
+    ap.add_argument("--max-sites", type=int, default=6, help="without --sites: crew site + the worst-ranked others")
     ap.add_argument("--text-out", type=Path, default=None, help="also save the readable text version here")
     ap.add_argument("--out", type=Path, default=OUT_PATH)
     args = ap.parse_args()
     b = make_briefing(for_date=args.date, playbook=Playbook.load_learned(), use_llm=not args.no_llm,
-                      live=not args.offline, site_ids=args.sites.split(",") if args.sites else None)
+                      live=not args.offline, site_ids=args.sites.split(",") if args.sites else None,
+                      max_sites=args.max_sites)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(b, indent=1))
     text = render_text(b)
