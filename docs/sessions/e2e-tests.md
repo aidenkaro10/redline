@@ -18,7 +18,7 @@ test), C1 in fake mode, planner with `PLANNER_LLM=off`, the database and hazard 
    ```bash
    /Users/Annabelle/Documents/projects/planit-control/.venv/bin/python -m pytest tests/e2e -q
    ```
-3. You should see about `142 passed, 19 xfailed`. That takes 2-3 minutes on a quiet laptop (7 min while the ML training runs; the no-LLM briefing alone is ~30-60 s). "xfailed" = a known bug or gap, listed below.
+3. You should see about `142 passed, 1 skipped, 19 xfailed`. About 2-3 minutes (more while the ML training uses the CPU). One slow test (the no-LLM 6 PM briefing, 30 s to 7 min) is skipped unless you set `E2E_SLOW=1`. "xfailed" = a known bug or gap, listed below.
 4. The real-demo test needs `data/sim/sim.npz` and `ml/checkpoints/ens5.pt`. They're gitignored; the tests find them in the main checkout on their own, and skip that one test if they're missing.
 5. To see why one known bug fails, run it with `--runxfail`, for example:
    ```bash
@@ -75,7 +75,7 @@ All in `tests/e2e/fixtures/`, recorded from the real merged backend (sim shift +
 | 10 | None in the UI (it sends numbers) | `POST /api/demo/replay {speed: "fast"}` -> 500 (unguarded `float()`). | `test_A30_demo_replay_bad_speed_is_4xx` | A | Validate with a pydantic model. |
 | 11 | None visible | Spot checks outside 34-42 °C return 200 (contract: 400); they're only rejected as bad readings. | `test_A30_out_of_range_spot_check_is_4xx` | A | `Field(ge=34, le=42)` on `thermometer_c`. |
 | 12 | None visible (privacy) | `GET /api/workers/{id}/history?view=worker&worker_id=me` ignores `worker_id`: any worker view reads anyone's vitals. | `test_A29_worker_view_cannot_read_another_workers_history` | A | 403 unless `worker_id` matches. |
-| 13 | None visible | `/api/briefing` and `/api/schedule` don't say they were made without the LLM (only chat has `llm: false`). | `test_e2e_planner.py::test_A27_no_key_briefing_is_labeled_no_llm` | B | Add `llm: false` (or a "no-LLM" note) to both. |
+| 13 | None visible | `/api/briefing` and `/api/schedule` don't say they were made without the LLM (only chat has `llm: false`). | `test_e2e_planner.py::test_A27_no_key_schedule_is_labeled_no_llm` | B | Add `llm: false` (or a "no-LLM" note) to both. |
 | 14 | Bare chart page only | Raw `/ws` gets D's `emergency_status` before the `mandown_confirmed` that caused it. | `test_e2e_full_chain.py::test_raw_stream_sends_mandown_confirmed_before_its_escalation` | A | Broadcast before calling listeners. |
 
 Contract drift, no demo impact (the UI copes today): `POST /api/workers/{id}/button` returns `{ok}` not `{ok, action}` (A); `POST /api/emergency/cancel` returns `{cancelled}` not `{ok}` (A); `GET /api/results` not served, UI uses its bundled copy (A + ML); C1 site `tech` has `hydro`, `battery`, `biomass_waste` (C1 + E). Tests: `test_e2e_contract.py::test_rest_replies_match_contract[...]`, `test_results_endpoint_is_served`, `test_site_tech_values_are_in_the_contract`.
@@ -112,7 +112,7 @@ Tests are named after the items they cover (`test_A12_...`). All 36 items have t
 | A24 offline feeds | pass (live mode offline: all 9 feeds stale, no crash; last good copy served marked stale) | `test_A24_*` |
 | A25 hazard index range | pass | `test_A25_*` |
 | A26 rule checker gate | pass | `test_A26_*` |
-| A27 no-key mode | pass + xfail (#13) | `test_A26_A27_*`, `test_A27_*` |
+| A27 no-key mode | pass (schedule, chat; briefing with `E2E_SLOW=1`, passed in 7 min here) + xfail (#13) | `test_A26_A27_*`, `test_A27_*` |
 | A28 what-ifs | pass | `test_A28_*` |
 | A29 privacy | pass + 2 xfail (#2, #12) | `test_A29_*` |
 | A30 bad requests | pass + 2 xfail (#10, #11) | `test_A30_*` |
@@ -137,4 +137,4 @@ Tests are named after the items they cover (`test_A12_...`). All 36 items have t
 - The real Next.js app in a browser (would need Playwright and a browser download: ask Aiden first). The contract tests and fixtures stand in for it.
 - Real hardware, real Pulsoid, live hazard feeds, the LLM planner, live phone calls (all by design).
 - `ml/` tests weren't rerun here (the ML session is training on the CPU).
-- `rest/get_api_briefing.json` is written only with `E2E_WRITE_FIXTURES=1` (the briefing takes ~30-60 s).
+- `rest/get_api_briefing.json` is written only with `E2E_SLOW=1 E2E_WRITE_FIXTURES=1` (the briefing is slow).

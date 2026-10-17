@@ -149,45 +149,44 @@ def test_A26_the_check_endpoint_rejects_an_unsafe_plan(planner_app):
     assert not check_plan(sc, Plan.from_dict(unsafe)).ok
 
 
-@pytest.fixture(scope="module")
-def no_key_briefing(tmp_path_factory):
-    """GET /api/briefing once with NO API key (slow: ~30 s offline), shared by the A27 tests."""
-    from e2e_support import AppFactory
-    mp = pytest.MonkeyPatch()
-    mp.delenv("ANTHROPIC_API_KEY", raising=False)
-    saved = dict(planner_api._state)
-    planner_api._state.update(scenario=None, result=None, briefings={}, chats={})
-    factory = AppFactory(tmp_path_factory.mktemp("briefing"), mp)
-    app = factory.start()
-    try:
-        r = app.client.get("/api/briefing")
-        chat = app.client.post("/api/planner/chat", json={"message": "Plan tomorrow"})
-        yield r, chat
-    finally:
-        factory.close()
-        planner_api._state.clear()
-        planner_api._state.update(saved)
-        mp.undo()
+SLOW = os.getenv("E2E_SLOW") == "1"
 
 
-def test_A27_no_key_briefing_and_chat_still_work(no_key_briefing):
-    r, chat = no_key_briefing
+@pytest.fixture
+def no_key(planner_app, monkeypatch):
+    """The planner app with NO Anthropic key at all (and PLANNER_LLM=off from e2e_support)."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    return planner_app
+
+
+def test_A27_no_key_schedule_and_chat_still_work(no_key):
+    sc = small_scenario()
+    out = plan_via_http(no_key, sc)
+    assert out["plan"]["verified"] is True and out["cost_usd"] == 0
+    assert no_key.client.get("/api/schedule").status_code == 200
+    chat = no_key.client.post("/api/planner/chat", json={"message": "Plan the shift"})
+    assert chat.status_code == 200 and chat.json()["llm"] is False      # chat says it ran without the LLM
+
+
+@pytest.mark.xfail(strict=True, reason="gap -> session B: /api/schedule (and /api/briefing) don't say they were "
+                   "made without the LLM; only chat has an 'llm' flag. Add e.g. llm: false or a 'no-LLM' note.")
+def test_A27_no_key_schedule_is_labeled_no_llm(no_key):
+    plan_via_http(no_key, small_scenario())
+    sched = no_key.client.get("/api/schedule").json()
+    text = json.dumps(sched).lower()
+    assert sched.get("llm") is False or "no-llm" in text or "no llm" in text or "without the llm" in text
+
+
+@pytest.mark.skipif(not SLOW, reason="slow (30 s to 7 min while ML trains): run with E2E_SLOW=1")
+def test_A27_no_key_briefing_still_works(no_key):
+    r = no_key.client.get("/api/briefing")
     assert r.status_code == 200
     b = r.json()
     assert not C.check(b, C.BRIEFING, "briefing")
     assert b["cost_usd"] == 0 and b["sites"]
-    assert chat.status_code == 200 and chat.json()["llm"] is False      # chat says it ran without the LLM
     if os.getenv("E2E_WRITE_FIXTURES") == "1":
         (FIXTURES / "rest" / "get_api_briefing.json").write_text(
             json.dumps({"request": "GET /api/briefing", "status": 200, "body": b}, indent=1) + "\n")
-
-
-@pytest.mark.xfail(strict=True, reason="gap -> session B: /api/briefing (and /api/schedule) don't say they were "
-                   "made without the LLM; only chat has an 'llm' flag. Add e.g. llm: false or a 'no-LLM' note.")
-def test_A27_no_key_briefing_is_labeled_no_llm(no_key_briefing):
-    b = no_key_briefing[0].json()
-    text = json.dumps({k: b.get(k) for k in ("summary", "stubs", "notes", "llm", "plan")}).lower()
-    assert b.get("llm") is False or "no-llm" in text or "without the llm" in text or "no llm" in text
 
 
 def test_A28_what_ifs_never_change_the_live_scenario(planner_app):
