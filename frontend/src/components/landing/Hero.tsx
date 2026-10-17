@@ -61,9 +61,7 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
   // ---- 1. Intro: iris open, play the pull-back, fade into the page --------------------------
   useEffect(() => {
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let seen = false;
-    try { seen = sessionStorage.getItem("planit-intro") === "1"; } catch {}
-    if (reduce || seen) { finish(true); return; }
+    if (reduce) { finish(true); return; }      // plays on every load; people who turned off motion skip it
 
     const v = videoRef.current!;
     const tl = gsap.timeline();
@@ -78,7 +76,6 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
   function finish(instant = false) {
     if (finished.current) return;
     finished.current = true;
-    try { sessionStorage.setItem("planit-intro", "1"); } catch {}
     const done = () => { setIntro(false); onIntroDone(); }
     if (instant) done();
     else gsap.to(introRef.current, { opacity: 0, duration: 0.9, ease: "power2.inOut", onComplete: done });
