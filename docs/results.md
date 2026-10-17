@@ -76,3 +76,16 @@ Fix in progress: (1) CAVIA-style meta-training in the simulator so HR-based adap
 Meta-learning removed the harm from twins v1 (0.30 -> 0.42), but there is no gain yet: the twin stays near the average person. Twins stay OFF live. Next ideas: more inner steps or a larger LR_INNER, adapt on more than one session, and a twin targeted at the personal HR offset.
 
 Other sessions (their branches, not merged): G curriculum loop works but hasn't improved real-people scores yet; H Weaver weights gave no gain over equal weights, explain() and 5 figures done; F agent loops built (29 tests), curriculum bank made for $0.34, ACE/GEPA runs not done yet.
+
+## Personalization diagnosis + the twin that works: personal offset from thermometer spot checks (2026-10-17)
+
+Diagnosis on 19 unseen real people (ens5): per-session mean error SD 0.276 °C (most error is a per-person offset); a person's offset repeats across sessions (corr +0.57); resting heart rate cannot predict it (corr -0.02). So heart-rate twins learn from the wrong signal. Fix: learn the offset from quick thermometer spot checks (aligned verifier).
+
+| Real people, apply 3 spot checks from one session to the other | NOW RMSE | +20 min RMSE |
+| --- | --- | --- |
+| no correction | 0.306 | 0.308 |
+| person offset from spot checks | **0.285** | **0.270** |
+| start-of-shift check only (decays) | 0.291 | 0.287 |
+| start check fading to person offset | 0.278 | 0.267 |
+
+Implemented as backend/models/personal_offset.py (Bayesian shrinkage toward the average person, more confident with every check, capped at 0.6 °C, bad readings ignored). Needs a cheap ear/oral thermometer and a spot-check step at shift start and on breaks.
