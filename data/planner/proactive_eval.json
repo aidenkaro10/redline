@@ -1,0 +1,2542 @@
+{
+ "rows": [
+  {
+   "scenario": "test-1000",
+   "tags": [
+    "normal"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 181,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.128,
+    "throughput": 0.7976,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 181,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.128,
+    "throughput": 0.7976,
+    "changes": 2,
+    "auto_changes": 2,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w6",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 15,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 119,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.176,
+    "throughput": 0.6548,
+    "changes": 19,
+    "auto_changes": 5,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w6",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 15,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 45,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 75,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 90,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 90,
+      "worker": "w6",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 120,
+      "worker": "w6",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 150,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 150,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 150,
+      "worker": "w6",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 180,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 210,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     },
+     {
+      "minute": 210,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 240,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0119
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1001",
+   "tags": [
+    "normal",
+    "callout"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 354,
+    "minutes_above_red": 8,
+    "true_peak_c": 38.537,
+    "throughput": 0.6454,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 227,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.487,
+    "throughput": 0.6454,
+    "changes": 6,
+    "auto_changes": 6,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 405,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 261,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.488,
+    "throughput": 0.6099,
+    "changes": 14,
+    "auto_changes": 8,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 15,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w5",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 75,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0177
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 405,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 420,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 450,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0177
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1002",
+   "tags": [
+    "new_hire"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.977,
+    "throughput": 0.8014,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.97,
+    "throughput": 0.8014,
+    "changes": 9,
+    "auto_changes": 9,
+    "change_log": [
+     {
+      "minute": 90,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 105,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w5",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.966,
+    "throughput": 0.5776,
+    "changes": 27,
+    "auto_changes": 7,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0181
+     },
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0181
+     },
+     {
+      "minute": 30,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0181
+     },
+     {
+      "minute": 30,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0181
+     },
+     {
+      "minute": 75,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w1",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0361
+     },
+     {
+      "minute": 90,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0361
+     },
+     {
+      "minute": 150,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0181
+     },
+     {
+      "minute": 165,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0361
+     },
+     {
+      "minute": 180,
+      "worker": "w3",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w5",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0181
+     },
+     {
+      "minute": 210,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0072
+     },
+     {
+      "minute": 240,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 270,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 300,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1003",
+   "tags": [
+    "storm_2pm"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 40,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.188,
+    "throughput": 0.6437,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 18,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.085,
+    "throughput": 0.6437,
+    "changes": 8,
+    "auto_changes": 8,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w3",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 270,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 5,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.039,
+    "throughput": 0.6194,
+    "changes": 17,
+    "auto_changes": 11,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0081
+     },
+     {
+      "minute": 0,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0081
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0081
+     },
+     {
+      "minute": 150,
+      "worker": "w1",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 255,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 255,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 285,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1004",
+   "tags": [
+    "warning"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 64,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.037,
+    "throughput": 0.637,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 64,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.037,
+    "throughput": 0.637,
+    "changes": 4,
+    "auto_changes": 4,
+    "change_log": [
+     {
+      "minute": 45,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 75,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 79,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.048,
+    "throughput": 0.4889,
+    "changes": 24,
+    "auto_changes": 3,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 15,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0148
+     },
+     {
+      "minute": 30,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0148
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 75,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0148
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0148
+     },
+     {
+      "minute": 150,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w4",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": -0.0593
+     },
+     {
+      "minute": 165,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0148
+     },
+     {
+      "minute": 180,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0148
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1005",
+   "tags": [
+    "heat_dome"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 109,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.096,
+    "throughput": 0.7649,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 109,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.096,
+    "throughput": 0.7649,
+    "changes": 3,
+    "auto_changes": 3,
+    "change_log": [
+     {
+      "minute": 210,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 405,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 435,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.945,
+    "throughput": 0.5807,
+    "changes": 23,
+    "auto_changes": 5,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 0,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 15,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 30,
+      "worker": "w4",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 75,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 105,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 120,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 135,
+      "worker": "w3",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 135,
+      "worker": "w6",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 150,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 165,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 180,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 210,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 270,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     },
+     {
+      "minute": 315,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0142
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1006",
+   "tags": [
+    "heat_dome",
+    "new_hire"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 65,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.155,
+    "throughput": 0.6923,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 55,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.196,
+    "throughput": 0.6923,
+    "changes": 5,
+    "auto_changes": 5,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 315,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 315,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 375,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 63,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.264,
+    "throughput": 0.5962,
+    "changes": 24,
+    "auto_changes": 2,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 15,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0192
+     },
+     {
+      "minute": 75,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 75,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 105,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 105,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0385
+     },
+     {
+      "minute": 135,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0192
+     },
+     {
+      "minute": 135,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 165,
+      "worker": "w2",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": -0.0192
+     },
+     {
+      "minute": 165,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 165,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 255,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 285,
+      "worker": "w4",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1007",
+   "tags": [
+    "heat_dome",
+    "storm_2pm"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.977,
+    "throughput": 0.5513,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.977,
+    "throughput": 0.5513,
+    "changes": 9,
+    "auto_changes": 9,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w6",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w3",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w6",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 240,
+      "worker": "w3",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 255,
+      "worker": "w6",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 270,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.977,
+    "throughput": 0.4135,
+    "changes": 29,
+    "auto_changes": 9,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w6",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 15,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 15,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w3",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.016
+     },
+     {
+      "minute": 30,
+      "worker": "w6",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 45,
+      "worker": "w5",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 75,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 75,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.016
+     },
+     {
+      "minute": 90,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 120,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 120,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.016
+     },
+     {
+      "minute": 135,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 150,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.016
+     },
+     {
+      "minute": 165,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 165,
+      "worker": "w6",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.016
+     },
+     {
+      "minute": 195,
+      "worker": "w6",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 210,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0064
+     },
+     {
+      "minute": 240,
+      "worker": "w3",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 255,
+      "worker": "w6",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 330,
+      "worker": "w3",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 330,
+      "worker": "w6",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1008",
+   "tags": [
+    "heat_dome",
+    "warning",
+    "new_hire"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.856,
+    "throughput": 0.9381,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.856,
+    "throughput": 0.9381,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.853,
+    "throughput": 0.8053,
+    "changes": 12,
+    "auto_changes": 1,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 105,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0221
+     },
+     {
+      "minute": 120,
+      "worker": "w2",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w2",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 210,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0221
+     },
+     {
+      "minute": 285,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0221
+     },
+     {
+      "minute": 330,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0221
+     },
+     {
+      "minute": 360,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0221
+     },
+     {
+      "minute": 375,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0221
+     },
+     {
+      "minute": 375,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1009",
+   "tags": [
+    "replan"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 32,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.069,
+    "throughput": 0.4545,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 19,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.038,
+    "throughput": 0.4545,
+    "changes": 1,
+    "auto_changes": 1,
+    "change_log": [
+     {
+      "minute": 120,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 14,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.054,
+    "throughput": 0.2727,
+    "changes": 10,
+    "auto_changes": 1,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0303
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0303
+     },
+     {
+      "minute": 60,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0303
+     },
+     {
+      "minute": 90,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0303
+     },
+     {
+      "minute": 150,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0303
+     },
+     {
+      "minute": 180,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0303
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1010",
+   "tags": [
+    "heat_dome",
+    "replan"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.828,
+    "throughput": 0.3797,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.854,
+    "throughput": 0.3797,
+    "changes": 2,
+    "auto_changes": 2,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "true_peak_c": 37.685,
+    "throughput": 0.2911,
+    "changes": 14,
+    "auto_changes": 3,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w3",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0316
+     },
+     {
+      "minute": 90,
+      "worker": "w3",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0316
+     },
+     {
+      "minute": 105,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w5",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 165,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0127
+     },
+     {
+      "minute": 225,
+      "worker": "w5",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0127
+     }
+    ]
+   }
+  },
+  {
+   "scenario": "test-1011",
+   "tags": [
+    "storm_2pm",
+    "new_hire",
+    "callout"
+   ],
+   "plan_only": {
+    "minutes_above_yellow": 324,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.205,
+    "throughput": 0.9048,
+    "changes": 0,
+    "auto_changes": 0,
+    "change_log": []
+   },
+   "auto": {
+    "minutes_above_yellow": 238,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.205,
+    "throughput": 0.9048,
+    "changes": 10,
+    "auto_changes": 10,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     }
+    ]
+   },
+   "auto+approve": {
+    "minutes_above_yellow": 233,
+    "minutes_above_red": 0,
+    "true_peak_c": 38.205,
+    "throughput": 0.7905,
+    "changes": 24,
+    "auto_changes": 11,
+    "change_log": [
+     {
+      "minute": 0,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w2",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 0,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 30,
+      "worker": "w4",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0095
+     },
+     {
+      "minute": 60,
+      "worker": "w1",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 60,
+      "worker": "w2",
+      "kind": "lighter_task",
+      "auto": false,
+      "throughput_delta": -0.0143
+     },
+     {
+      "minute": 60,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 75,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 90,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0476
+     },
+     {
+      "minute": 90,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 105,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0238
+     },
+     {
+      "minute": 120,
+      "worker": "w2",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 120,
+      "worker": "w4",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 135,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w1",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 150,
+      "worker": "w4",
+      "kind": "swap",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 165,
+      "worker": "w2",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0095
+     },
+     {
+      "minute": 165,
+      "worker": "w5",
+      "kind": "break",
+      "auto": true,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 180,
+      "worker": "w1",
+      "kind": "break",
+      "auto": false,
+      "throughput_delta": -0.0095
+     },
+     {
+      "minute": 195,
+      "worker": "w2",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 195,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     },
+     {
+      "minute": 225,
+      "worker": "w5",
+      "kind": "defer_heavy",
+      "auto": false,
+      "throughput_delta": 0.0
+     }
+    ]
+   }
+  }
+ ],
+ "summary": {
+  "plan_only": {
+   "minutes_above_yellow": 1169,
+   "minutes_above_red": 8,
+   "scenarios_with_time_above_yellow": 8,
+   "throughput_mean": 0.6842,
+   "changes_total": 0,
+   "auto_changes_total": 0
+  },
+  "auto": {
+   "minutes_above_yellow": 911,
+   "minutes_above_red": 0,
+   "scenarios_with_time_above_yellow": 8,
+   "throughput_mean": 0.6842,
+   "changes_total": 59,
+   "auto_changes_total": 59
+  },
+  "auto+approve": {
+   "minutes_above_yellow": 774,
+   "minutes_above_red": 0,
+   "scenarios_with_time_above_yellow": 7,
+   "throughput_mean": 0.5584,
+   "changes_total": 237,
+   "auto_changes_total": 66
+  }
+ },
+ "setup": {
+  "true_offset_mean_sd": [
+   0.15,
+   0.2
+  ],
+  "weather_error_mean_sd": [
+   0.5,
+   0.8
+  ],
+  "forecast_margin_c": 0.13,
+  "check_every_min": 15,
+  "early_line_c": 37.7
+ }
+}

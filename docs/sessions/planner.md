@@ -54,7 +54,17 @@ Merged `main` first (clean). New files: `proactive.py`, `proactive_eval.py`, `st
 - Rate limit: 1 change per worker per 20 min, 6 per shift. It never touches alerts, man-down or emergency, and never sends band commands.
 - Session A must add one line: `attach(hub)` (see the interface doc), and drop the three body-number fields for the crew view.
 
-PROACTIVE_RESULTS
+Results (`python -m backend.planner.proactive_eval`, 12 held-out test scenarios, SIMULATION: true crew runs hotter than the plan's model by a hidden amount, hotter day than forecast, forecaster stand-in = true temp 20 min ahead + 0.13 °C):
+
+| Arm | Worker-min ≥ 38.0 °C | vs plan only | Worker-min ≥ 38.5 °C | Scenarios with any | Work done | Changes (auto) |
+| --- | --- | --- | --- | --- | --- | --- |
+| plan_only | 1169 | 0% | 8 | 8/12 | 68.4% | 0 (0) |
+| auto (safer-only) | 911 | -22% | 0 | 8/12 | 68.4% | 59 (59) |
+| auto + approve every proposal | 774 | -34% | 0 | 7/12 | 55.8% | 237 (66) |
+
+- Safer-only changes cut time over the yellow line by 22% and removed all time over the red line, at **zero** cost in work.
+- Approving every proposal cuts more (-34%) but costs 12.6 points of work, and made 2 of 12 scenarios slightly worse (test-1001, test-1004): the crew lead should approve selectively, not everything.
+- Honest limits: simulated truth and an idealized forecaster. The 37.7 °C early line and the approval policy are now `PlannerWeights` knobs session F can search.
 
 **2. Storm chances** (`storm_risk.py`, optimizer `storm` weight). Open-Meteo hourly precipitation chance + thunderstorm weather codes, NWS thunderstorm/tornado watches from C1 raise a slot to 70%, fake mode for demos. Soft cost in CP-SAT, double for elevated / hard-to-stop tasks; the lightning rule stays hard. Plans say why: "60% storms 1 PM-3 PM: Transformer maintenance at 7:30 AM-12:30 PM."
 - On the 5 test scenarios with a ≥40% storm chance: outdoor work units planned in likely-storm slots **29 → 9 (−69%)**, work done unchanged (73.5%), 5/5 verified (`python -m backend.planner.storm_eval`).
