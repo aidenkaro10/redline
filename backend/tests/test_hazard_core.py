@@ -6,7 +6,7 @@ import pytest
 
 from backend.hazards.cache import FeedCache
 from backend.hazards.events import HazardEvent, band_pattern, parse_time
-from backend.hazards.inject import inject_test_event, injected_events
+from backend.hazards.inject import clear_injected, inject_test_event, injected_events
 from backend.hazards.report_log import HazardLog, get_log
 from backend.hazards.testing import hazard_tmp_store  # noqa: F401  (autouse fixture)
 
@@ -79,3 +79,4 @@ def test_inject_test_event_shows_up_and_expires():
     assert len(injected_events(now=T0 + timedelta(minutes=5))) == 1
     assert injected_events(now=T0 + timedelta(minutes=11)) == []
     assert get_log().read()[-1]["kind"] == "injected"
+    clear_injected()

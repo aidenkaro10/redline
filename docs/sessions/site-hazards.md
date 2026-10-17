@@ -22,3 +22,11 @@ Owns `backend/sites/` and `backend/hazards/`. Interface for other sessions: [doc
 - `backend/hazards/wbgt.py` is a line-by-line numpy port of Liljegren's `wbgt.c` (Argonne v1.1, read from github.com/mdljts/wbgt; constants copied from `wbgt.h`). Vectorized, so C2 can run years of hourly data at once.
 - No published table of Liljegren outputs was available as data (the HeatStress R package's reference set is an R binary and we have no R), so the tests check against published formulas instead: Stull 2011's worked example (20 °C, 50% -> 13.7 °C; ours 13.63), the WMO aspirated-psychrometer equation (within 0.45 °C from 20 to 35 °C), Buck's saturation vapor pressure, sun position at the solstice, and physical behavior (sun raises WBGT, wind cools the globe, no-sun globe ≈ air temp).
 - Florida noon check: 33 °C, 55% RH, 2 m/s, 850 W/m² -> WBGT 32.1 °C (black flag), globe 48 °C.
+
+## Lightning (GOES-19 GLM)
+
+- Bucket listing works over plain HTTPS, no boto3: `https://noaa-goes19.s3.amazonaws.com/?list-type=2&prefix=GLM-L2-LCFA/2026/290/11/`. Files land ~17 s after their 20 s window ends, ~250 KB each (~45 MB an hour if we keep up). netCDF4 (approved) applies `scale_factor`/`add_offset` itself; flash times are offsets from the `units` string.
+- First live run: 103 files (35 min backfill) in 10.7 s, then incremental. 135 Florida-box flashes, 133 with `flash_quality_flag == 0`, nearest 40 mi from any site (offshore storms).
+- Rule: 2 good flashes within 10 mi within 30 min -> stop work; all-clear 30 min after the last flash within 10 mi, reset by every new one.
+- **Safety choice I added (tell Aiden):** if the GLM feed has had no fresh data for 5 min (`LIGHTNING_FEED_STALE_MIN`), the all-clear is never given, because we can't know there were no new strikes. The site stays in stop-work with "can't confirm all-clear".
+- The first call takes ~10 s (backfill). Session A should run `refresh_all()` in a background task, not inside a request.

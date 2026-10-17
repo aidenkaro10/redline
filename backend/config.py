@@ -108,6 +108,7 @@ LIGHTNING_MIN_FLASHES = 2            # need this many flashes before stopping (G
 LIGHTNING_CONFIRM_WINDOW_MIN = 30    # ...within this many minutes of each other
 LIGHTNING_GOOD_QUALITY_FLAG = 0      # only keep flashes with flash_quality_flag == this
 LIGHTNING_WATCH_RADIUS_MI = 30       # flashes this close show "lightning nearby" (no stop)
+LIGHTNING_FEED_STALE_MIN = 5         # no fresh GLM data this long -> never give the all-clear
 
 # WBGT heat flags (°C), from the standard 80/85/88/90 °F flag system
 WBGT_GREEN_C = 26.7                  # 80 °F: heat is a factor, watch new workers

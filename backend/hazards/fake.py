@@ -84,8 +84,8 @@ def heatrisk(sites, now):
 def storm_flashes(sites, now):
     """Fake GLM flashes: a storm near Crystal River for minutes 0-20 of each hour.
 
-    Returns flashes in the same shape as lightning.fetch_recent_flashes:
-    [{"time": ISO, "lat":, "lon":, "quality": 0, "energy": ...}, ...]
+    Returns flashes in the same shape as lightning.parse_glm:
+    [{"t": epoch seconds, "lat":, "lon":, "q": 0, "e": energy}, ...]
     """
     site = _site(sites, STORM_SITE)
     if site is None:
@@ -100,8 +100,8 @@ def storm_flashes(sites, now):
         miles_east = -14 + 18 * frac
         lon = site.lon + miles_east / (69.0 * math.cos(math.radians(site.lat)))
         lat = site.lat + 0.03 * math.sin(i)
-        out.append({"time": iso(t), "lat": round(lat, 4), "lon": round(lon, 4),
-                    "quality": 0, "energy": 1e-13})
+        out.append({"t": t.timestamp(), "lat": round(lat, 4), "lon": round(lon, 4),
+                    "q": 0, "e": 1e-13})
         t += timedelta(seconds=40)
         i += 1
     return out
