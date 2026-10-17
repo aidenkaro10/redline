@@ -57,3 +57,8 @@ def test_planner_bridge_plans_for_our_crew(monkeypatch):
     seen = bridge.result_seen
     asyncio.run(bridge.step())
     assert bridge.result_seen is seen
+
+
+def test_no_background_briefing_build_inside_tests():
+    from backend.app.planner_bridge import warm_briefing_enabled
+    assert warm_briefing_enabled() is False
