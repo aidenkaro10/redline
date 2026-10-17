@@ -1,0 +1,35 @@
+{
+ "id": "a7",
+ "genome": {
+  "settings": {
+   "objectives": [
+    "margin",
+    "balanced",
+    "throughput",
+    "fairness"
+   ],
+   "use_playbook": true,
+   "n_llm_ideas": 3,
+   "llm_direct_plan": true,
+   "fuse": true,
+   "w_peak": 2.5,
+   "w_fair": 0.002,
+   "w_complaint": 0.03,
+   "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+   "time_limit_s": 3.0
+  },
+  "strategy_note": "Front-load heavy and very heavy tasks into the earliest hours and move moderate or light tasks to midday and afternoon. Interleave each person's heavy work with light tasks rather than stacking consecutive heavy slots, and spread heavy tasks across more crew members."
+ },
+ "val": {
+  "score": 0.4506,
+  "strain_margin_c": 0.1727,
+  "throughput": 0.6975,
+  "fairness": -44.43,
+  "latency": -22.73,
+  "cost": -0.0,
+  "workers_alerted": 0.333,
+  "solve_rate": 0.25,
+  "safety_violations": 0
+ },
+ "why": "Every day the ranking picked the max-throughput plan (fused copy of optimizer:throughput, predicted p90 peak about 37.9). With w_peak=0.5, a 0.4\u00b0C peak excess costs only about 0.2 rank points, so the lower-peak balanced and margin plans always lost. Forecast p90 underestimated actual core temperatur"
+}

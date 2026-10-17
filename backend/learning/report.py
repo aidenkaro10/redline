@@ -31,7 +31,8 @@ from backend.learning import settings
 from backend.learning.parallel import pmap
 from backend.learning.world import mean_outcome, outcomes
 from backend.planner.archon import plan_with_agent
-from backend.planner.baselines import fixed_schedule, llm_only, optimizer_only
+from backend.planner.baselines import LLM_SYSTEM, fixed_schedule, llm_only, llm_prompt, optimizer_only
+from backend.planner.llm import cached_text
 from backend.planner.benchmark import score_plans
 from backend.planner.generate import load_test_set
 from backend.planner.playbook import Lesson, Playbook
@@ -59,6 +60,9 @@ def plan_for(name: str, scenario):
     elif name == "optimizer":
         plan = optimizer_only(scenario)[0]
     elif name == "llm_only":
+        # Only B's CACHED answers (free). Anything not cached is skipped, never a new paid call.
+        if cached_text(llm_prompt(scenario), LLM_SYSTEM, f"llm_only|{scenario.id}|run0") is None:
+            return None, 0.0
         plan = llm_only(scenario, 0)[0]
     elif name == "agent_day1":
         plan = plan_with_agent(scenario, use_llm=False).plan
@@ -77,7 +81,8 @@ def _job(args):
     if plan is None:
         return {"scenario": sc.id, "skipped": True}
     bench = score_plans(sc, [plan])[0]
-    world = mean_outcome(outcomes(sc, plan, REALIZATIONS)) if bench["valid"] else None
+    # Plans that broke a safety rule are still "worked" in the simulator, to show what would have happened.
+    world = mean_outcome(outcomes(sc, plan, REALIZATIONS)) if plan.assignments else None
     return {"scenario": sc.id, "tags": sc.tags, "bench": bench, "world": world, "latency_s": round(latency, 1)}
 
 
