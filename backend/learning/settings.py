@@ -31,7 +31,7 @@ PEAK_PENALTY = 0.5
 PEAK_COMFORT_C = 37.5
 
 # --- Curriculum (Loop 4) ---
-SOLVE_RUNS = 4                 # how many simulated days we run each scenario to get a solve rate
+SOLVE_RUNS = 6                 # how many simulated days we run each scenario to get a solve rate
 
 # --- ACE (Loop 2) ---
 ACE_DAYS = 14                  # simulated days of learning

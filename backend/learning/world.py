@@ -4,9 +4,10 @@ The simulated "real world": what actually happens when the crew works a plan.
 The planner plans with its heat model (population-average people, forecast weather).
 Real days differ, and that difference is what the learning loops learn from:
 
-  1. Weather: the actual air temp drifts off the forecast (about ±0.8 °C).
+  1. Weather: the actual air temp drifts off the forecast (about ±1.2 °C).
   2. People: everyone runs a little hotter or cooler than average, and works a
-     little harder or easier (small random, fixed per person).
+     little harder or easier (small random, fixed per person), plus day-to-day
+     variation (sleep, hydration).
   3. Things the planning model doesn't know (the "hidden traits"):
        - Workers who aren't acclimatized tire faster late in the day: from 11:00, any
          work above light heats them like ~35% harder work (cumulative strain and
@@ -42,9 +43,11 @@ HIDDEN_FATIGUE = {
     "Marcus": [(NOT_LIGHT, 12.0, 1.25)],
 }
 DEAD_WATCH_EXTRA_C = 0.25        # the worker with the dead watch is really this much warmer than their last reading
-WEATHER_ERR_SD_C = 0.8
-PERSON_OFFSET_SD_C = 0.08
-PERSON_MET_SD = 0.04
+WEATHER_ERR_SD_C = 1.2          # next-day forecast error for air temp (°C), whole day
+PERSON_OFFSET_SD_C = 0.08       # how much hotter/cooler a person runs than average (fixed per person)
+PERSON_MET_SD = 0.04            # how much harder/easier they work than average (fixed per person)
+DAY_OFFSET_SD_C = 0.08          # day-to-day: sleep, hydration, a cold coming on (per person per day)
+DAY_MET_SD = 0.05
 
 
 def _rng(*parts) -> np.random.Generator:
@@ -69,8 +72,8 @@ def person_traits(scenario: Scenario, worker) -> dict:
 
 def actual_weather(scenario: Scenario, realization: int) -> list[SlotWeather]:
     r = _rng("weather", scenario.id, realization)
-    base = r.normal(0, WEATHER_ERR_SD_C * 0.8)
-    err = base + np.cumsum(r.normal(0, 0.15, scenario.n_slots))
+    base = r.normal(0, WEATHER_ERR_SD_C * 0.85)
+    err = base + np.cumsum(r.normal(0, 0.2, scenario.n_slots))
     return [replace(w, tdb=round(w.tdb + float(e), 2)) for w, e in zip(scenario.weather, err)]
 
 
@@ -89,6 +92,7 @@ def simulate_actual(scenario: Scenario, plans: list[Plan], realization: int = 0)
         if traits[w.id]["dead_watch"]:
             w.start_core_c = w.start_core_c + DEAD_WATCH_EXTRA_C
     day_r = _rng("effort", scenario.id, realization)
+    today = {w.id: (float(day_r.normal(1, DAY_MET_SD)), float(day_r.normal(0, DAY_OFFSET_SD_C))) for w in scenario.crew}
     rows = []
     for p_i, plan in enumerate(plans):
         for w in actual_sc.crew:
@@ -104,8 +108,9 @@ def simulate_actual(scenario: Scenario, plans: list[Plan], realization: int = 0)
                     if a[0] in intensities and _slot_hour(scenario, s) >= from_hour:
                         factor[s] *= f
             outdoor = np.array([a != REST and a[1] for a in acts], float)
-            rows.append({"plan": p_i, "worker": w, "met": ms[:, 0] * t["met_x"] * factor * float(day_r.normal(1, 0.02)),
-                         "shade": ms[:, 1], "indoor": 1 - outdoor, "dtdb": 0.0, "clo": w.clo, "offset": t["offset"]})
+            rows.append({"plan": p_i, "worker": w, "met": ms[:, 0] * t["met_x"] * factor * today[w.id][0],
+                         "shade": ms[:, 1], "indoor": 1 - outdoor, "dtdb": 0.0, "clo": w.clo,
+                         "offset": t["offset"] + today[w.id][1]})
     core = model._run(actual_sc, rows, scenario.n_slots * scenario.slot_min)
     out = [{} for _ in plans]
     for row, c in zip(rows, core):

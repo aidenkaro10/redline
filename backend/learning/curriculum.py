@@ -117,12 +117,12 @@ def llm_propose(llm, refs: list[dict], n: int, home_share: int = 60) -> list[dic
     return out
 
 
-def code_propose(rng, dials: dict, n: int, round_i: int) -> list[dict]:
+def code_propose(rng, dials: dict, n: int, round_i: int, home_share: int = 60) -> list[dict]:
     """Round-robin over families; each family's difficulty dial sets how hard its days are."""
     out = []
     for i in range(n):
         fam = FAMILIES[(round_i * n + i) % len(FAMILIES)]
-        crew = "home" if (i % 5) < 3 else "random"
+        crew = "home" if rng.uniform() * 100 < home_share else "random"
         out.append({**family_spec(fam, dials[fam] + rng.normal(0, 0.1), rng, crew), "family": fam})
     return out
 
@@ -132,18 +132,22 @@ def _solve_job(args):
 
 
 def run_curriculum(rounds: int = 4, per_round: int = 10, llm=None, seed: int = 0, planner=None,
-                   runs: int = settings.SOLVE_RUNS, verbose: bool = True, workers: int | None = None) -> dict:
-    """planner: a top-level function (scenario, run) -> Plan; default = current_agent."""
+                   runs: int = settings.SOLVE_RUNS, verbose: bool = True, workers: int | None = None,
+                   home_share: int = 60, previous: dict | None = None) -> dict:
+    """planner: a top-level function (scenario, run) -> Plan; default = current_agent.
+    previous: an earlier result (or saved bank) to continue from: its days are kept and not retried."""
     rng = np.random.default_rng(seed)
-    dials = {f: 0.5 for f in FAMILIES}
-    tried, bank, log = {}, [], []
+    dials = dict((previous or {}).get("dials") or {f: 0.5 for f in FAMILIES})
+    tried = {r["id"]: r for r in (previous or {}).get("tried", (previous or {}).get("bank", []))}
+    bank, log = [dict(r) for r in (previous or {}).get("bank", [])], list((previous or {}).get("log", []))
+    round0 = 1 + max([r.get("round", -1) for r in tried.values()], default=-1)
     t0 = time.time()
-    for r in range(rounds):
+    for r in range(round0, round0 + rounds):
         refs = list(tried.values())
-        specs = llm_propose(llm, refs, per_round) if llm is not None else []
+        specs = llm_propose(llm, refs, per_round, home_share) if llm is not None else []
         proposer = "llm" if specs else "code"
         if not specs:                       # no key, budget hit, or a bad answer: the code proposer steps in
-            specs = code_propose(rng, dials, per_round, r)
+            specs = code_propose(rng, dials, per_round, r, home_share)
         todo = []
         for raw in specs:
             fam = str(raw.get("family", "")) or "?"
@@ -171,19 +175,21 @@ def run_curriculum(rounds: int = 4, per_round: int = 10, llm=None, seed: int = 0
                         "reason": "learnable" if keep else ("always solved" if res["solve_rate"] == 1 else "never solved")})
             if verbose:
                 print(f"  round {r} {proposer:4s} {fam:10s} {sc.id} solve {res['solve_rate']:.2f} "
-                      f"reward {res['reward']:.2f} {'KEEP' if keep else '-'}")
+                      f"reward {res['reward']:.2f} alerts {res['alerts']} p1 done {res['priority1_done']} "
+                      f"{'KEEP' if keep else '-'}", flush=True)
     # Split, per crew type: every 4th kept day goes to "val" (only for gates and final picks, never for learning)
     seen = {}
     for row in bank:
         i = seen[row["spec"]["crew"]] = seen.get(row["spec"]["crew"], -1) + 1
         row["split"] = "val" if i % 4 == 3 else "train"
     return {"bank": bank, "log": log, "dials": dials, "llm": llm_summary(llm), "seconds": round(time.time() - t0, 1),
-            "n_tried": len(tried), "n_kept": len(bank)}
+            "n_tried": len(tried), "n_kept": len(bank), "tried": list(tried.values())}
 
 
 def save_bank(result: dict, path=settings.BANK_PATH) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    keep = {k: result[k] for k in ("bank", "dials", "llm", "seconds", "n_tried", "n_kept")}
+    keep = {k: result[k] for k in ("bank", "dials", "llm", "seconds", "n_tried", "n_kept", "tried")}
+    keep["llm_runs"] = result.get("llm_runs", [result["llm"]])          # cost of every run that built this bank
     path.write_text(json.dumps(keep, indent=1))
     settings.DATA_DIR.mkdir(parents=True, exist_ok=True)
     (settings.DATA_DIR / "curriculum_log.json").write_text(json.dumps(result["log"], indent=1, default=str))
@@ -206,11 +212,19 @@ if __name__ == "__main__":
     ap.add_argument("--llm", action="store_true", help="use Claude as the proposer (needs ANTHROPIC_API_KEY)")
     ap.add_argument("--fake", action="store_true", help="use the fake LLM (offline dry run)")
     ap.add_argument("--budget", type=float, default=settings.BUDGET_CURRICULUM_USD)
+    ap.add_argument("--home-share", type=int, default=60, help="percent of proposed days with the home crew")
+    ap.add_argument("--append", action="store_true", help="continue from the saved bank instead of starting over")
     args = ap.parse_args()
     llm = FakeLLM() if args.fake else (get_budget_llm(args.budget, "curriculum") if args.llm else None)
     if args.llm and llm is None:
         print("No ANTHROPIC_API_KEY: using the code proposer.")
-    res = run_curriculum(args.rounds, args.per_round, llm=llm)
+    prev = None
+    if args.append and settings.BANK_PATH.exists():
+        prev = json.loads(settings.BANK_PATH.read_text())
+        log_path = settings.DATA_DIR / "curriculum_log.json"
+        prev["log"] = json.loads(log_path.read_text()) if log_path.exists() else []
+    res = run_curriculum(args.rounds, args.per_round, llm=llm, home_share=args.home_share, previous=prev)
+    res["llm_runs"] = ((prev.get("llm_runs") or [prev["llm"]]) if prev else []) + [res["llm"]]
     save_bank(res)
     fams = {}
     for r in res["bank"]:
