@@ -166,7 +166,12 @@ def rank_key(r: dict, ref: dict):
 
 def pareto(results: list[dict]) -> list[dict]:
     """Safe settings that no other safe setting beats on all three: more tasks, fewer heat minutes, fairer."""
-    safe = [r for r in results if r["safety_violations"] == 0 and r["invalid"] == 0]
+    seen, safe = set(), []
+    for r in results:                                  # one point per distinct outcome
+        key = (r["tasks_per_shift"], r["minutes_above_yellow"], r["fairness_spread"])
+        if r["safety_violations"] == 0 and r["invalid"] == 0 and key not in seen:
+            seen.add(key)
+            safe.append(r)
     better = lambda a, b: (a["tasks_per_shift"] >= b["tasks_per_shift"] and a["minutes_above_yellow"] <= b["minutes_above_yellow"]
                            and a["fairness_spread"] <= b["fairness_spread"]) and (
         a["tasks_per_shift"] > b["tasks_per_shift"] or a["minutes_above_yellow"] < b["minutes_above_yellow"]

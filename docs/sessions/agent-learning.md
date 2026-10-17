@@ -58,6 +58,23 @@ GEPA's best agent (a5): ranks plans with much more weight on predicted peak heat
 - **Read this before pitching it:** that's the clearest of 8 extra-hot held-out heat-wave days we tried. Across all 8, day 14 was better on 1, worse on 3 (one with a new alert), and the same on 4: mean 0.314 → 0.266. The evolved agent wasn't better there either (0.261). The gains on B's test set and the home validation days do **not** carry over to extreme heat waves yet. All 8 are in the JSON (`candidates`, `candidates_summary`). Next step: put extreme heat-wave days into the gate set and learn over more than 14 days.
 - `summary.json`: zero safety violations in every version (ACE days, ACE gates, GEPA versions, demo days).
 
+### Weight search: the most productive safe workday (`weights_search.py`)
+
+B's `PlannerWeights` (merged from main) tuned by random search (21 settings + defaults on 6 training days), successive halving (best 6 on all 21 training days), then 4 local nudges. Hard constraint: zero rule-checker violations. Soft constraint: no more worker-minutes above the yellow line than the defaults. Goal: most tasks finished per shift. Scoring = B's `score()` pieces (optimizer, rule checker, B's simulated true shift, plan only), with a heat-model cache (weights don't change the heat tables) and 2 s deterministic solves. **$0 Claude** (no API calls), 28 min on 3 processes × 1 thread.
+
+| | Tasks per shift | Priority-weighted work | Worker-min above yellow | Min above red | Fairness spread | Safety violations |
+| --- | --- | --- | --- | --- | --- | --- |
+| Training days (21), defaults | 3.76 | 0.737 | 56.6 | | 28.7 | 0 |
+| Training days (21), tuned | 3.81 | 0.720 | 47.4 | | 37.0 | 0 |
+| **Held-out (B's 12, scored once), defaults = optimizer-only baseline** | **4.08** | 0.683 | 97.4 | 0.67 | 35.4 | 0 |
+| **Held-out, tuned** | **3.83** | 0.649 | **89.3** | 0.75 | 41.4 | 0 |
+
+Tuned vs default: `margin` 0 → 4, `budget_margin_c` 0.05 → 0.075, priority values {10, 5, 2} → {16, 6, 1}, `storm` 15 → 22, `rain` 0 → 10, `hot_break_bonus` 0 → 4.
+
+**Honest read:** on training days the tuned weights looked like a free win (slightly more tasks, 16% fewer heat minutes). On the held-out days they are a **safer, less productive** trade: 8% fewer heat minutes, 6% fewer tasks, slightly less fair. So we did NOT find a more productive safe day that holds up on held-out data. What holds up is the heat reduction. The training Pareto front (8 safe points, in `weights_tuning.json`) shows the real trade-off: the most productive safe setting (4.05 tasks) costs 21% more heat minutes than the defaults, and the coolest (32.9 min) gives up 11% of the tasks. Pick by what the site lead values; the defaults sit in the middle. Next step: a bigger search on more training days (each day takes ~25 s, so 4 settings × 21 days is about 6 minutes on 3 threads).
+
+**In the self-improving story:** GEPA's genome now includes `PlannerWeights` (validated by `PlannerWeights.validate()`, clamped, mutated by Claude or the code mutator, gated on held-out days like every other knob), and `python -m backend.learning.gepa --start-weights` starts evolution from the tuned weights. `python -m backend.learning.ace --weights` runs the 14-day playbook loop on top of them. Neither has been rerun with weights yet. The weights can never move a safety limit: `validate()` refuses a negative budget margin or an early line above the yellow line, and the rule checker still gates every plan.
+
 ### What I learned building it (honest notes)
 
 1. **Solver noise fooled the first gates.** B's CP-SAT stops on a wall-clock limit, so under a busy laptop the same day gave slightly different plans. My first ACE run "kept" updates that a deterministic rerun showed were noise (+0.026 → +0.000). Fix: inside the loops, the solver uses a deterministic work limit and 1 thread (`parallel.py`, no change to B's code). Every number above is from deterministic runs. The wall-clock runs are archived in `data/learning/old/wallclock/`.
@@ -73,7 +90,8 @@ python -m backend.learning.curriculum --llm --rounds 8 --per-round 12 --home-sha
 python -m backend.learning.ace --llm                                                   # ~55 min, ~$0.15
 python -m backend.learning.gepa --llm --iterations 8 --n-train 21 --n-val 6           # ~30 min, ~$0.30
 PLANNER_LLM_CACHE=<B's data/planner/llm_cache> python -m backend.learning.report      # ~25 min, $0
-python -m backend.learning.demo                                                        # ~15 min, $0
+python -m backend.learning.weights_search                                             # ~30 min, $0 (search + held-out once)
+python -m backend.learning.demo                                                        # ~15 min, $0 (DEMO_REUSE_DAY=1: 1 min)
 ```
 Without `--llm` (or without a key) every loop still runs, with its plain-code fallback, for $0. `LEARNING_WORKERS=4` (default) uses 4 processes × 1 solver thread. Test: `python -m pytest backend/learning -q` (offline, fake Claude).
 

@@ -8,7 +8,8 @@ Three offline loops make the planning agent better without ever touching safety:
 | --- | --- | --- | --- |
 | 4. Curriculum | The training scenarios | Where the current agent sometimes fails | `backend/learning/bank/train_bank.json` |
 | 2. Playbook (ACE) | Lessons the planner reads | Plan vs simulated outcome, day by day | `backend/learning/playbook.json` |
-| 3. Evolution (GEPA + DGM) | The agent's strategy settings + prompt note | Traces on training scenarios | `backend/learning/best_agent.json` |
+| 3. Evolution (GEPA + DGM) | The agent's strategy settings + prompt note (+ PlannerWeights) | Traces on training scenarios | `backend/learning/best_agent.json` |
+| Weight search | B's PlannerWeights (soft optimizer weights) | Training scenarios, B's simulated shift | `backend/learning/best_weights.json` |
 
 Hard lines: limits live in `backend/config.py` and nothing here reads-and-changes them. Every plan from every version goes through B's rule checker. Lessons and evolved prompt notes pass a code safety filter (`safety.py`). Every playbook version is saved and can be restored. The 14 days are **simulated**, and every artifact says so.
 
@@ -99,10 +100,23 @@ Suggested view: a line of `n_lessons` (or `playbook_version`) by `day`, a dot pe
 We tried 8 held-out heat-wave days and show the clearest one where the day-14 plan used a lesson. Show `pick_rule` in small print, and if there's room, a small table of `candidates` (honesty: most days change little).
 `schedule[].slots[].task` uses the same words as B's `Schedule` (`heavy` includes very heavy). Chart idea: Kofi's `simulated_core_c_every_10_min` for day 1 vs day 14 with a line at 38.0 °C; under it, both schedules; on the day-14 side the cited lesson and the day it was learned.
 
+### `weights_tuning.json`: default vs tuned planner weights
+
+```json
+{"label": "Simulated shifts. Weights picked on training days only; held-out days scored once.",
+ "changed_weights": {"margin": {"default": 0, "tuned": 4}, "storm": {"default": 15, "tuned": 22}},
+ "tuned_is_default": false,
+ "train": {"n_days": 21, "default": {<metrics>}, "tuned": {<metrics>}},
+ "held_out": {"n_days": 12, "default_optimizer_only": {<metrics>}, "tuned": {<metrics>}},
+ "pareto_train": [{<metrics>, "weights": {...}}], "all_train": [{<metrics>}], "claude_cost_usd": 0.0}
+```
+`<metrics>` = `tasks_per_shift, throughput, minutes_above_yellow, minutes_above_red, peak_p90_c, fairness_spread, safety_violations, invalid`. Suggested view: a scatter of `pareto_train` (tasks per shift vs minutes above yellow, dot size = fairness spread) with default and tuned highlighted, and a small held-out table under it.
+
 ### `summary.json`
 
 ```json
-{"safety_violations": {"ace_days": 0, "ace_gates": 0, "gepa_versions": 0, "demo_days": 0}, "all_zero": true,
+{"safety_violations": {"ace_days": 0, "ace_gates": 0, "gepa_versions": 0, "demo_days": 0, "weight_search": 0}, "all_zero": true,
+ "weights": {"n_days": 12, "default_optimizer_only": {...}, "tuned": {...}},
  "curriculum": {"kept": 20, "tried": 84, "llm": {...}},
  "ace": {"days": 14, "final_version": 3, "gate_score_start": 0.40, "gate_score_end": 0.46, "llm": {...}},
  "gepa": {"versions": 7, "best": "a3", "gain_val": 0.02, "llm": {...}},

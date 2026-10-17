@@ -3,9 +3,44 @@
   "ace_days": 0,
   "ace_gates": 0,
   "gepa_versions": 0,
-  "demo_days": 0
+  "demo_days": 0,
+  "weight_search": 0
  },
  "all_zero": true,
+ "demo_days": {
+  "n": 8,
+  "day14_better": 1,
+  "day14_worse": 3,
+  "same": 4,
+  "mean_score_day1": 0.3137,
+  "mean_score_day14": 0.2657,
+  "mean_score_day14_evolved": 0.2614,
+  "alerts_day1": 0,
+  "alerts_day14": 1
+ },
+ "weights": {
+  "n_days": 12,
+  "default_optimizer_only": {
+   "tasks_per_shift": 4.083,
+   "throughput": 0.6827,
+   "minutes_above_yellow": 97.42,
+   "minutes_above_red": 0.67,
+   "peak_p90_c": 37.954,
+   "fairness_spread": 35.4,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  "tuned": {
+   "tasks_per_shift": 3.833,
+   "throughput": 0.6492,
+   "minutes_above_yellow": 89.25,
+   "minutes_above_red": 0.75,
+   "peak_p90_c": 37.913,
+   "fairness_spread": 41.4,
+   "safety_violations": 0,
+   "invalid": 0
+  }
+ },
  "curriculum": {
   "kept": 27,
   "tried": 93,
@@ -127,16 +162,5 @@
     "world_alerted_per_day": 0.133
    }
   }
- },
- "demo_days": {
-  "n": 8,
-  "day14_better": 1,
-  "day14_worse": 3,
-  "same": 4,
-  "mean_score_day1": 0.3137,
-  "mean_score_day14": 0.2657,
-  "mean_score_day14_evolved": 0.2614,
-  "alerts_day1": 0,
-  "alerts_day14": 1
  }
 }

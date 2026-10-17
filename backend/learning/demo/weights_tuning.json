@@ -1,0 +1,397 @@
+{
+ "label": "Simulated shifts. Weights picked on training days only; held-out days scored once.",
+ "changed_weights": {
+  "margin": {
+   "default": 0,
+   "tuned": 4
+  },
+  "budget_margin_c": {
+   "default": 0.05,
+   "tuned": 0.075
+  },
+  "priority_values": {
+   "default": {
+    "1": 10,
+    "2": 5,
+    "3": 2
+   },
+   "tuned": {
+    "1": 16,
+    "2": 6,
+    "3": 1
+   }
+  },
+  "storm": {
+   "default": 15,
+   "tuned": 22
+  },
+  "rain": {
+   "default": 0,
+   "tuned": 10
+  },
+  "hot_break_bonus": {
+   "default": 0,
+   "tuned": 4
+  }
+ },
+ "tuned_is_default": false,
+ "train": {
+  "n_days": 21,
+  "default": {
+   "tasks_per_shift": 3.762,
+   "throughput": 0.7373,
+   "minutes_above_yellow": 56.62,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.94,
+   "fairness_spread": 28.7,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  "tuned": {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7199,
+   "minutes_above_yellow": 47.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.938,
+   "fairness_spread": 37.0,
+   "safety_violations": 0,
+   "invalid": 0
+  }
+ },
+ "held_out": {
+  "n_days": 12,
+  "default_optimizer_only": {
+   "tasks_per_shift": 4.083,
+   "throughput": 0.6827,
+   "minutes_above_yellow": 97.42,
+   "minutes_above_red": 0.67,
+   "peak_p90_c": 37.954,
+   "fairness_spread": 35.4,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  "tuned": {
+   "tasks_per_shift": 3.833,
+   "throughput": 0.6492,
+   "minutes_above_yellow": 89.25,
+   "minutes_above_red": 0.75,
+   "peak_p90_c": 37.913,
+   "fairness_spread": 41.4,
+   "safety_violations": 0,
+   "invalid": 0
+  }
+ },
+ "pareto_train": [
+  {
+   "tasks_per_shift": 3.762,
+   "throughput": 0.7373,
+   "minutes_above_yellow": 56.62,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.94,
+   "fairness_spread": 28.7,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 0,
+    "fairness": 0,
+    "budget_margin_c": 0.05,
+    "priority_values": {
+     "1": 10,
+     "2": 5,
+     "3": 2
+    },
+    "storm": 15,
+    "rain": 0,
+    "hot_break_bonus": 0,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 4.048,
+   "throughput": 0.7586,
+   "minutes_above_yellow": 68.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.952,
+   "fairness_spread": 29.9,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 3,
+    "fairness": 4,
+    "budget_margin_c": 0.029,
+    "priority_values": {
+     "1": 10,
+     "2": 7,
+     "3": 6
+    },
+    "storm": 38,
+    "rain": 2,
+    "hot_break_bonus": 8,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 3.667,
+   "throughput": 0.7074,
+   "minutes_above_yellow": 44.76,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.946,
+   "fairness_spread": 24.9,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 0,
+    "fairness": 3,
+    "budget_margin_c": 0.091,
+    "priority_values": {
+     "1": 19,
+     "2": 13,
+     "3": 12
+    },
+    "storm": 38,
+    "rain": 13,
+    "hot_break_bonus": 1,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7182,
+   "minutes_above_yellow": 54.14,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.934,
+   "fairness_spread": 34.1,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 4,
+    "fairness": 0,
+    "budget_margin_c": 0.075,
+    "priority_values": {
+     "1": 18,
+     "2": 4,
+     "3": 1
+    },
+    "storm": 22,
+    "rain": 10,
+    "hot_break_bonus": 4,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 3.333,
+   "throughput": 0.6425,
+   "minutes_above_yellow": 32.86,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.876,
+   "fairness_spread": 25.6,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 3,
+    "fairness": 4,
+    "budget_margin_c": 0.136,
+    "priority_values": {
+     "1": 15,
+     "2": 13,
+     "3": 7
+    },
+    "storm": 29,
+    "rain": 11,
+    "hot_break_bonus": 10,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 3.238,
+   "throughput": 0.6369,
+   "minutes_above_yellow": 37.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.889,
+   "fairness_spread": 23.0,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 0,
+    "fairness": 4,
+    "budget_margin_c": 0.145,
+    "priority_values": {
+     "1": 14,
+     "2": 6,
+     "3": 6
+    },
+    "storm": 3,
+    "rain": 18,
+    "hot_break_bonus": 3,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 3.524,
+   "throughput": 0.6764,
+   "minutes_above_yellow": 42.29,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.915,
+   "fairness_spread": 35.6,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 4,
+    "fairness": 0,
+    "budget_margin_c": 0.11,
+    "priority_values": {
+     "1": 18,
+     "2": 4,
+     "3": 1
+    },
+    "storm": 22,
+    "rain": 10,
+    "hot_break_bonus": 4,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  },
+  {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7199,
+   "minutes_above_yellow": 47.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.938,
+   "fairness_spread": 37.0,
+   "safety_violations": 0,
+   "invalid": 0,
+   "weights": {
+    "throughput": 10,
+    "margin": 4,
+    "fairness": 0,
+    "budget_margin_c": 0.075,
+    "priority_values": {
+     "1": 16,
+     "2": 6,
+     "3": 1
+    },
+    "storm": 22,
+    "rain": 10,
+    "hot_break_bonus": 4,
+    "early_line_c": 37.7,
+    "early_horizon_min": 20
+   }
+  }
+ ],
+ "all_train": [
+  {
+   "tasks_per_shift": 3.762,
+   "throughput": 0.7373,
+   "minutes_above_yellow": 56.62,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.94,
+   "fairness_spread": 28.7,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 4.048,
+   "throughput": 0.7586,
+   "minutes_above_yellow": 68.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.952,
+   "fairness_spread": 29.9,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.667,
+   "throughput": 0.7074,
+   "minutes_above_yellow": 44.76,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.946,
+   "fairness_spread": 24.9,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7182,
+   "minutes_above_yellow": 54.14,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.934,
+   "fairness_spread": 34.1,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.333,
+   "throughput": 0.6425,
+   "minutes_above_yellow": 32.86,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.876,
+   "fairness_spread": 25.6,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.238,
+   "throughput": 0.6369,
+   "minutes_above_yellow": 37.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.889,
+   "fairness_spread": 23.0,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.524,
+   "throughput": 0.6764,
+   "minutes_above_yellow": 42.29,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.915,
+   "fairness_spread": 35.6,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7199,
+   "minutes_above_yellow": 47.43,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.938,
+   "fairness_spread": 37.0,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7182,
+   "minutes_above_yellow": 54.14,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.934,
+   "fairness_spread": 34.1,
+   "safety_violations": 0,
+   "invalid": 0
+  },
+  {
+   "tasks_per_shift": 3.81,
+   "throughput": 0.7182,
+   "minutes_above_yellow": 54.14,
+   "minutes_above_red": 0.0,
+   "peak_p90_c": 37.934,
+   "fairness_spread": 34.1,
+   "safety_violations": 0,
+   "invalid": 0
+  }
+ ],
+ "claude_cost_usd": 0.0
+}
