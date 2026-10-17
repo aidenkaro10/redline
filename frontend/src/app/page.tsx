@@ -43,7 +43,7 @@ export default function CrewDashboard() {
   // Risk ranking: sites with a worker flag first, then by tomorrow's index.
   const ranked = useMemo(() => {
     if (!sites) return [];
-    const flagRank = { mandown: 0, heat: 1, none: 2 };
+    const flagRank = { mandown: 0, sos: 0, heat: 1, none: 2 };
     return [...sites].filter((s) => live.sites[s.id]).sort((a, b) => {
       const A = live.sites[a.id], B = live.sites[b.id];
       return flagRank[A.worker_flag] - flagRank[B.worker_flag] || B.index_tomorrow - A.index_tomorrow;
@@ -51,7 +51,7 @@ export default function CrewDashboard() {
   }, [sites, live.sites]);
 
   // When lightning or a man-down hits a crew site, zoom the map there so the judge sees it.
-  const crewAlarm = ["fl-deerhaven", "fl-kelly"].find((id) => live.sites[id]?.worker_flag === "mandown" || live.sites[id]?.hazards.some((h) => h.stop_work)) ?? null;
+  const crewAlarm = ["fl-deerhaven", "fl-kelly"].find((id) => (live.sites[id]?.worker_flag === "mandown" || live.sites[id]?.worker_flag === "sos") || live.sites[id]?.hazards.some((h) => h.stop_work)) ?? null;
   useEffect(() => {
     if (crewAlarm) { setSelected(crewAlarm); setFocus(crewAlarm); }
   }, [crewAlarm]);
@@ -83,7 +83,7 @@ export default function CrewDashboard() {
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
         {!live.ready && Array.from({ length: 6 }, (_, i) => <div key={i} className="h-44 animate-pulse rounded-xl bg-surface-2" />)}
         {workers.map((w) => (
-          <WorkerCard key={w.worker_id} w={w} now={now} down={live.mandown?.worker_id === w.worker_id && (live.mandown.stage === "checking" || live.mandown.stage === "confirmed")} />
+          <WorkerCard key={w.worker_id} w={w} now={now} down={live.mandown?.worker_id === w.worker_id && (live.mandown.stage === "checking" || live.mandown.stage === "confirmed") ? (live.mandown.reason === "sos" ? "sos" : "mandown") : null} />
         ))}
       </section>
 
@@ -109,6 +109,7 @@ export default function CrewDashboard() {
                         <span className="block truncate font-medium">{s.name}</span>
                         <span className="flex gap-2 text-[11px]">
                           {st.worker_flag === "mandown" && <b className="text-danger-ink">MAN DOWN</b>}
+                          {st.worker_flag === "sos" && <b className="text-sos">SOS</b>}
                           {st.worker_flag === "heat" && <b className="text-danger-ink">Worker heat alert</b>}
                           {stop && <b className="text-lightning">Stop work</b>}
                           {st.worker_flag === "none" && !stop && <span className="text-muted">{s.county} Co. · {s.tech}</span>}

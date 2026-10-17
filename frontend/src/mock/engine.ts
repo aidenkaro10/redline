@@ -17,11 +17,11 @@
 import type {
   Alert, AlertKind, BandCommand, Briefing, DemoState, EmergencyCall, EmergencyStage, Estimate, Hazard,
   HazardKind, HazardLevel, LiveEvent, LogEntry, ManDown, PhotoReport, ReportKind, Schedule, SiteStatus,
-  Snapshot, Status, TaskKind, ViewFilter, Vitals, WorkerStatus,
+  Snapshot, SosPress, Status, TaskKind, ViewFilter, Vitals, WorkerStatus,
 } from "../lib/contract.ts";
 import { canSee, HAZARD_ORDER } from "../lib/contract.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
-import { SCENARIO, SCENARIO_END_MIN } from "./scenario.ts";
+import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
 
 // ---------------------------------------------------------------------------
 // Numbers mirrored from backend/config.py (the backend is the source of truth;
@@ -45,7 +45,7 @@ export const DEMO_TIMINGS = {
   MANDOWN_STILL_S: 10,       // no movement this long -> man-down check (band buzzes)
   MANDOWN_ESCALATE_S: 15,    // not cancelled this long -> confirmed, crew lead alerted
   NOTIFY_S: 3,               // crew lead + safety officer notified, then the cancel window opens
-  CANCEL_WINDOW_S: 15,       // crew lead can press "cancel, false alarm"
+  CANCEL_WINDOW_S: 10,       // crew lead can press "cancel, false alarm" (= EMERGENCY_DEMO_CANCEL_WINDOW_S, session D)
   RING_S: 4,                 // phone rings before the dispatcher picks up
 };
 
@@ -585,7 +585,8 @@ export class MockEngine {
       if (onBreak ? !isBreak : isBreak) { breakAt = t; break; }
     }
     let reason = "Normal. No danger predicted in the next 30 min.";
-    if (w.collapsed && this.mandown) reason = "Man-down check in progress.";
+    if (this.mandown?.worker_id === id && this.mandown.reason === "sos") reason = "SOS pressed. Emergency escalation in progress.";
+    else if (w.collapsed && this.mandown) reason = "Man-down check in progress.";
     else if (w.status === "red") reason = mtd === 0 ? "In the danger zone now. Cool down." : "Forecast to reach danger within 10 min.";
     else if (w.status === "yellow") reason = mtd !== null ? `Forecast to reach danger in ~${mtd} min.` : "Forecast near the warning line.";
     return {
@@ -624,16 +625,17 @@ export class MockEngine {
     return this.alerts.filter((a) => !a.cleared_at && (a.worker_id === workerId || (a.worker_id === null && a.site_id === w.def.site_id)));
   }
 
-  /** Priority from PLAN.md: MANDOWN > HEAT_RED > LIGHTNING > HEAT_YELLOW > FLOOD_FIRE. */
+  /** Priority from PLAN.md: MANDOWN > HEAT_RED > LIGHTNING > HEAT_YELLOW > FLOOD_FIRE (SOS sits with MANDOWN). */
   topAlert(list: Alert[]): Alert | null {
-    const rank: Record<AlertKind, number> = { MANDOWN: 5, HEAT_RED: 4, LIGHTNING: 3, HEAT_YELLOW: 2, FLOOD_FIRE: 1 };
+    const rank: Record<AlertKind, number> = { SOS: 6, MANDOWN: 5, HEAT_RED: 4, LIGHTNING: 3, HEAT_YELLOW: 2, FLOOD_FIRE: 1 };
     return list.reduce<Alert | null>((best, a) => (!best || rank[a.kind] > rank[best.kind] ? a : best), null);
   }
 
   /** Send a band command only when it changes (no flicker). */
   routeAllBands() {
     for (const w of this.workers.values()) {
-      const top = this.topAlert(this.activeAlertsFor(w.def.worker_id));
+      // SOS is not a band command: the band blinks purple on its own when the button is held.
+      const top = this.topAlert(this.activeAlertsFor(w.def.worker_id).filter((a) => a.kind !== "SOS"));
       let cmd = `BUZZ:${top ? top.kind : "OFF"}`;
       if (this.mandown && this.mandown.worker_id === w.def.worker_id && this.mandown.stage === "checking") cmd = "BUZZ:MANDOWN";
       if (cmd === w.lastBand) continue;
@@ -754,6 +756,48 @@ export class MockEngine {
     }
   }
 
+  /**
+   * SOS: the band sent BTN:SOS (button held 3 s). No stillness wait, no "checking":
+   * it goes straight to confirmed and starts the emergency chain (same as session D).
+   * Ignored if this worker already has an active incident, so nobody gets called twice.
+   */
+  sos(workerId: string, source: SosPress["source"]) {
+    const w = this.workers.get(workerId);
+    if (!w) return { ok: false, error: "unknown worker" };
+    const site = SITE_BY_ID[w.def.site_id];
+    const busy = !!this.mandown;
+    const press: SosPress = {
+      worker_id: workerId, worker_name: w.def.name, site_id: site.id, site_name: site.name,
+      lat: site.lat + 0.0012, lon: site.lon - 0.0008, pressed_at: this.sim, source, escalated: !busy,
+    };
+    this.emit({ type: "sos", sos: press });
+    if (busy) {
+      this.addLog(`SOS from ${w.def.name} ignored: an incident is already active`, "band button");
+      return { ok: true, action: "ignored_active_incident" };
+    }
+    if (this.demo.speed !== 1) {
+      this.demo.speed = 1;
+      this.emitDemo();
+      this.addLog("Replay slowed to 1x so the SOS runs in real time", "demo");
+    }
+    const last = w.estimates[w.estimates.length - 1];
+    this.mandown = {
+      id: `sos-${this.nextId++}`, worker_id: workerId, worker_name: w.def.name,
+      site_id: site.id, site_name: site.name, lat: press.lat, lon: press.lon,
+      fell_at: this.sim, check_started_at: this.sim, confirm_at: this.sim, confirmed_at: this.sim,
+      stage: "confirmed", reason: "sos",
+      last_vitals: { core_temp: last ? last.core.mean : null, hr: Math.round(w.hr), at: this.sim },
+    };
+    this.addLog(`SOS from ${w.def.name}: band button held 3 s. Escalating right away.`, source === "band" ? "band button" : source === "phone" ? "phone" : "demo button");
+    this.openAlert("SOS", workerId, site.id, `SOS from ${w.def.name} at ${site.name}.`, source === "band" ? "band button (BTN:SOS)" : `${source} SOS`);
+    this.emit({ type: "mandown", mandown: this.mandown });
+    this.startEmergency(this.mandown);
+    this.routeAllBands();
+    this.emitWorker(w);
+    this.refreshSiteFlags();
+    return { ok: true, action: "escalated" };
+  }
+
   startEmergency(md: ManDown) {
     const crewmates = [...this.workers.values()]
       .filter((x) => x.def.site_id === md.site_id && x.def.worker_id !== md.worker_id)
@@ -761,10 +805,10 @@ export class MockEngine {
     this.emergency = {
       id: `em-${this.nextId++}`, mandown_id: md.id, worker_id: md.worker_id, stage: "notifying",
       started_at: this.sim, cancel_deadline: null, demo: true, target_label: "Demo: would call 911",
-      steps: [{ at: this.sim, stage: "notifying", text: `Notifying crew lead ${CREW_LEAD} and the site safety officer (dashboard + phone). Crewmates alerted: ${crewmates.join(", ") || "none"}.` }],
+      steps: [{ at: this.sim, stage: "notifying", text: `${md.reason === "sos" ? `SOS from ${md.worker_name}. ` : ""}Notifying crew lead ${CREW_LEAD} and the site safety officer (dashboard + phone). Crewmates alerted: ${crewmates.join(", ") || "none"}.` }],
       transcript: [], outcome: null,
     };
-    this.addLog("Emergency escalation started (fixed rule: confirmed man-down → call)", "escalation");
+    this.addLog(`Emergency escalation started (fixed rule: ${md.reason === "sos" ? "SOS" : "confirmed man-down"} → call)`, "escalation");
     this.emit({ type: "emergency", emergency: this.emergency });
   }
 
@@ -797,7 +841,7 @@ export class MockEngine {
       const stillFor = md ? Math.round(this.sim - md.fell_at) : 0;
       em.transcript.push({
         at: this.sim, speaker: "agent",
-        text: `This is an automated emergency report from PlanIT Control. Worker ${md?.worker_name} at ${md?.site_name}, GPS ${loc}, collapsed, no movement for ${stillFor} seconds. Last estimated core temperature ${v?.core_temp?.toFixed(1) ?? "unknown"} degrees Celsius, heart rate ${v?.hr ?? "unknown"}. It started at ${md ? clockText(md.fell_at) : "unknown"}.`,
+        text: `This is an automated emergency report from PlanIT Control. Worker ${md?.worker_name} at ${md?.site_name}, GPS ${loc}, ${md?.reason === "sos" ? `pressed SOS on their band ${stillFor} seconds ago` : `collapsed, no movement for ${stillFor} seconds`}. Last estimated core temperature ${v?.core_temp?.toFixed(1) ?? "unknown"} degrees Celsius, heart rate ${v?.hr ?? "unknown"}. It started at ${md ? clockText(md.fell_at) : "unknown"}.`,
       });
       changed = true;
     }
@@ -844,11 +888,11 @@ export class MockEngine {
     md.stage = falseAlarm ? "cancelled" : "resolved";
     const w = this.workers.get(md.worker_id);
     if (w) { w.collapsed = false; w.stillSince = null; w.scriptedIntensity = this.demo.scenario.running ? 0.1 : null; }
-    for (const a of this.alerts) if (a.kind === "MANDOWN" && !a.cleared_at && a.worker_id === md.worker_id) this.clearAlert(a.id);
+    for (const a of this.alerts) if ((a.kind === "MANDOWN" || a.kind === "SOS") && !a.cleared_at && a.worker_id === md.worker_id) this.clearAlert(a.id);
     this.emit({ type: "mandown", mandown: md });
     this.mandown = null;
     this.emit({ type: "mandown", mandown: null });
-    this.addLog(`Man-down for ${md.worker_name} closed${falseAlarm ? " (false alarm)" : ""}`, "crew lead");
+    this.addLog(`${md.reason === "sos" ? "SOS" : "Man-down"} for ${md.worker_name} closed${falseAlarm ? " (false alarm)" : ""}`, "crew lead");
     this.routeAllBands();
     if (w) this.emitWorker(w);
     this.refreshSiteFlags();
@@ -947,7 +991,7 @@ export class MockEngine {
     const s = this.sites.get(siteId)!;
     const here = [...this.workers.values()].filter((w) => w.def.site_id === siteId);
     let flag: SiteStatus["worker_flag"] = "none";
-    if (this.mandown && this.mandown.site_id === siteId) flag = "mandown";
+    if (this.mandown && this.mandown.site_id === siteId) flag = this.mandown.reason === "sos" ? "sos" : "mandown";
     else if (here.some((w) => w.status !== "green")) flag = "heat";
     return {
       site_id: siteId, hazards: HAZARD_ORDER.map((k) => s.hazards[k]), index_tomorrow: s.index,
@@ -1009,12 +1053,11 @@ export class MockEngine {
       step.run(this);
       this.emitDemo();
     });
-    // The wearer presses the band button ~20 s after a red alert starts (shows the ack flow).
-    const red = this.activeAlertsFor(DEMO_WORKER).find((a) => a.kind === "HEAT_RED" && !a.acknowledged_at && a.worker_id);
-    if (red && this.sim - red.started_at >= 20) this.buttonPress(DEMO_WORKER);
+    // Scripted reactions (button press after a red alert, crew lead cancelling the SOS).
+    scenarioReactions(this);
     // End once the emergency call is finished (or after the last step if nothing is pending).
     const done = this.emergency?.stage === "done" || this.emergency?.stage === "cancelled";
-    if (minutes >= SCENARIO_END_MIN && (done || !this.mandown)) {
+    if (minutes >= SCENARIO_END_MIN && (done || !this.mandown) && this.scenarioDone.size === SCENARIO.length) {
       this.demo.scenario = { running: false, step: "Finished", started_at: this.demo.scenario.started_at };
       this.scenarioStart = null;
       this.addLog("Scripted demo finished", "demo");
@@ -1160,6 +1203,7 @@ export class MockEngine {
         return ok({ ok: true });
       }
       if (a === "workers" && c === "button") return ok(this.buttonPress(b));
+      if (a === "workers" && c === "sos") return ok(this.sos(b, "phone"));
       if (a === "mandown" && c === "resolve") return ok(this.resolveManDown(false));
       if (a === "emergency" && c === "cancel") return ok(this.cancelEmergency(b));
       if (a === "reports") return ok(this.addReport(body as Partial<PhotoReport>));
@@ -1194,6 +1238,7 @@ export class MockEngine {
           this.collapse(String(body.worker_id ?? DEMO_WORKER), "demo");
           return ok({ ok: true });
         }
+        if (b === "sos") return ok(this.sos(String(body.worker_id ?? DEMO_WORKER), "demo"));
       }
       return bad("not found", 404);
     }

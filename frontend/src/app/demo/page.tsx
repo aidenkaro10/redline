@@ -94,7 +94,8 @@ function DemoView() {
             <Sparkline vitals={hist.vitals} field="skin_temp" now={now} unit="°C" height={110} digits={1} pad={0.3} />
           </Card>
           <Card title="Band" right={lastV ? `tilt ${lastV.tilt} · activity ${lastV.activity}/s` : ""}>
-            <BandPanel cmds={band} />
+            <BandPanel cmds={band} connected={w?.band_connected ?? true}
+              sosActive={live.mandown?.worker_id === id && live.mandown.reason === "sos" && now - live.mandown.fell_at < 10} />
           </Card>
         </div>
       </section>
@@ -124,30 +125,34 @@ function Stat({ label, value, unit, sub, children }: { label: string; value?: Re
   );
 }
 
-/** What the laptop last told the band, with the LED color it means (PROJECT.md Alerts table). */
-const LED: Record<string, { color: string; text: string; flash?: boolean }> = {
-  "BUZZ:OFF": { color: "#3a3a38", text: "Off" },
-  "BUZZ:HEAT_YELLOW": { color: "#fab219", text: "Solid yellow · one long buzz" },
-  "BUZZ:HEAT_RED": { color: "#d03b3b", text: "Flashing red · long buzz every 10 s", flash: true },
-  "BUZZ:LIGHTNING": { color: "#ffffff", text: "Rapid white flashes · rapid pulses", flash: true },
-  "BUZZ:FLOOD_FIRE": { color: "#2a78d6", text: "Blue · two short buzzes" },
-  "BUZZ:MANDOWN": { color: "#d03b3b", text: "Whole strip pulsing red · continuous buzz", flash: true },
+/**
+ * The band has ONE status light. What it shows for each command (docs/firmware-contract.md).
+ * `anim` is a CSS class from globals.css that mimics the real blink pattern.
+ */
+const LED: Record<string, { color: string; anim: string; light: string; sound: string }> = {
+  "BUZZ:OFF": { color: "#22c55e", anim: "", light: "Solid green: all clear", sound: "Silent" },
+  "BUZZ:HEAT_YELLOW": { color: "#facc15", anim: "", light: "Solid yellow: heat warning", sound: "One long beep" },
+  "BUZZ:HEAT_RED": { color: "#ef4444", anim: "led-flash-2", light: "Flashing red: heat danger", sound: "Long beep every 10 s until a short press" },
+  "BUZZ:LIGHTNING": { color: "#ffffff", anim: "led-flash-5", light: "Rapid white flashes: lightning", sound: "Rapid short beeps every 10 s" },
+  "BUZZ:FLOOD_FIRE": { color: "#3b82f6", anim: "", light: "Solid blue: flood or fire weather", sound: "Two short beeps" },
+  "BUZZ:MANDOWN": { color: "#ef4444", anim: "led-breathe", light: "Red breathing pulse: man-down check", sound: "Continuous beeping until a short press" },
+  SOS: { color: "#a855f7", anim: "led-blink", light: "Blinking purple: SOS sent (band does this itself)", sound: "3 beeps" },
+  NO_LINK: { color: "#22d3ee", anim: "led-blink-slow", light: "Slow cyan blink: no command for 60 s (check the cable)", sound: "Silent" },
 };
 
-function BandPanel({ cmds }: { cmds: BandCommand[] }) {
+function BandPanel({ cmds, sosActive, connected }: { cmds: BandCommand[]; sosActive: boolean; connected: boolean }) {
   const cur = cmds[0];
-  const led = LED[cur?.command ?? "BUZZ:OFF"] ?? LED["BUZZ:OFF"];
+  const key = !connected ? "NO_LINK" : sosActive ? "SOS" : cur?.command ?? "BUZZ:OFF";
+  const led = LED[key] ?? LED["BUZZ:OFF"];
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-3">
-        <div className="flex gap-1 rounded-lg bg-black p-1.5">
-          {Array.from({ length: 5 }, (_, i) => (
-            <span key={i} className={`h-4 w-4 rounded-full ${led.flash ? "animate-pulse" : ""}`} style={{ background: led.color, boxShadow: cur && cur.command !== "BUZZ:OFF" ? `0 0 8px ${led.color}` : "none" }} />
-          ))}
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-black" title="The band's single status light">
+          <span className={`h-6 w-6 rounded-full ${led.anim}`} style={{ background: led.color, boxShadow: `0 0 14px 3px ${led.color}` }} />
         </div>
-        <div>
-          <p className="font-mono text-sm font-semibold">{cur?.command ?? "BUZZ:OFF"}</p>
-          <p className="text-xs text-ink-2">{led.text}</p>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold">{led.light}</p>
+          <p className="text-xs text-ink-2">{led.sound} · last command <span className="font-mono">{cur?.command ?? "BUZZ:OFF"}</span></p>
         </div>
       </div>
       <ul className="max-h-28 space-y-0.5 overflow-y-auto font-mono text-[11px] text-ink-2">

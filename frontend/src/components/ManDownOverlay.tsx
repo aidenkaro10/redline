@@ -42,12 +42,14 @@ export function ManDownOverlay() {
 
   const call = em && em.mandown_id === md.id ? em : null;
   const downFor = now - md.fell_at;
+  const sos = md.reason === "sos";
+  const pulse = sos ? "pulse-sos" : "pulse-red";
 
   if (minimized === md.id) {
     return (
       <button onClick={() => setMinimized(null)}
-        className="pulse-red fixed inset-x-0 top-0 z-[2000] flex items-center justify-center gap-3 px-4 py-2 text-sm font-bold text-white">
-        MAN DOWN: {md.worker_name} · {md.site_name} · down {fmtCountdown(downFor)}
+        className={`${pulse} fixed inset-x-0 top-0 z-[2000] flex items-center justify-center gap-3 px-4 py-2 text-sm font-bold text-white`}>
+        {sos ? "SOS" : "MAN DOWN"}: {md.worker_name} · {md.site_name} · {sos ? "pressed" : "down"} {fmtCountdown(downFor)}{sos ? " ago" : ""}
         {call && <span className="rounded bg-white/20 px-2 py-0.5">{stageText(call, now)}</span>}
         <span className="underline">Open</span>
       </button>
@@ -55,23 +57,23 @@ export function ManDownOverlay() {
   }
 
   return (
-    <div className="fixed inset-0 z-[2000] overflow-y-auto bg-black/50 backdrop-blur-sm" role="alertdialog" aria-label="Man down alert">
+    <div className="fixed inset-0 z-[2000] overflow-y-auto bg-black/50 backdrop-blur-sm" role="alertdialog" aria-label={sos ? "SOS alert" : "Man down alert"}>
       <div className="mx-auto flex min-h-full max-w-4xl flex-col gap-4 p-3 sm:p-6">
         {/* Header */}
-        <div className="pulse-red rounded-2xl p-5 text-white shadow-2xl sm:p-7">
+        <div className={`${pulse} rounded-2xl p-5 text-white shadow-2xl sm:p-7`}>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.2em] opacity-90">
-                {md.stage === "checking" ? "Possible man down: checking" : "Man down: confirmed"}
+                {sos ? "SOS from" : md.stage === "checking" ? "Possible man down: checking" : "Man down: confirmed"}
               </p>
               <h1 className="mt-1 text-4xl font-black tracking-tight sm:text-6xl">{md.worker_name}</h1>
               <p className="mt-2 text-lg font-semibold">{md.site_name}</p>
               <p className="text-sm opacity-90 tabular">GPS {md.lat.toFixed(5)}, {md.lon.toFixed(5)}</p>
             </div>
             <div className="text-right">
-              <p className="text-xs font-bold uppercase tracking-widest opacity-80">Down for</p>
+              <p className="text-xs font-bold uppercase tracking-widest opacity-80">{sos ? "SOS pressed" : "Down for"}</p>
               <p className="text-5xl font-black tabular sm:text-6xl">{fmtCountdown(downFor)}</p>
-              <p className="text-xs opacity-80">since {fmtClockSec(md.fell_at)}</p>
+              <p className="text-xs opacity-80">{sos ? "ago, at" : "since"} {fmtClockSec(md.fell_at)}</p>
             </div>
           </div>
           <div className="mt-5 grid grid-cols-3 gap-2 text-center">
@@ -80,7 +82,9 @@ export function ManDownOverlay() {
             <Vital label="Last reading" value={fmtClock(md.last_vitals.at)} />
           </div>
           <p className="mt-4 rounded-lg bg-black/25 px-3 py-2 text-sm font-medium">
-            {md.stage === "checking"
+            {sos
+              ? `${md.worker_name.split(" ")[0]} held the band button for 3 seconds. Escalating right away: crew lead and nearby crewmates alerted with the location.`
+              : md.stage === "checking"
               ? `Band is buzzing. Waiting for ${md.worker_name.split(" ")[0]} to press the button or move. Escalates in ${fmtCountdown(md.confirm_at - now)}.`
               : `No response. Crew lead and nearby crewmates alerted with the location${md.reason === "no_response_to_red" ? " (red heat alert was never acknowledged)" : ""}.`}
           </p>
@@ -96,7 +100,7 @@ export function ManDownOverlay() {
             </button>
           )}
           {md.stage === "confirmed" && (
-            <button onClick={() => apiPost(`/mandown/${md.id}/resolve`)} className="rounded-lg bg-white px-4 py-2 text-sm font-bold text-red-800 hover:bg-red-50">
+            <button onClick={() => apiPost(`/mandown/${md.id}/resolve`)} className={`rounded-lg bg-white px-4 py-2 text-sm font-bold hover:bg-red-50 ${sos ? "text-violet-800" : "text-red-800"}`}>
               Worker reached, close alert
             </button>
           )}
@@ -137,7 +141,7 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-bold">Emergency call</h2>
-          <p className="text-sm text-ink-2">The decision to call is a fixed rule in code (confirmed man-down → call). The voice agent only reads the report.</p>
+          <p className="text-sm text-ink-2">The decision to call is a fixed rule in code (confirmed man-down or SOS → call). The voice agent only reads the report.</p>
         </div>
         {call.demo && (
           <span className="rounded-lg border-2 border-danger px-3 py-1.5 text-sm font-black uppercase tracking-wide text-danger-ink">

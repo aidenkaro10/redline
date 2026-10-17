@@ -1,4 +1,4 @@
-# Frontend data contract (draft v1)
+# Frontend data contract (draft v2: adds SOS)
 
 Owner: session E (frontend). Status: **draft**, built against the frontend's mock server. Session A (live system) should follow it or tell E what to change.
 
@@ -32,7 +32,7 @@ The server filters events by `view`. The UI never receives what it shouldn't.
 | `worker` + `worker_id` | That worker's phone | Only their own |
 | `demo` | Labeled demo view for judges (wearer consents) | Yes, all workers |
 
-Exception: the man-down event carries `last_vitals` (core temp, HR) for everyone, because responders need them.
+Exception: the man-down / SOS incident carries `last_vitals` (core temp, HR) for everyone, because responders need them.
 
 `GET /api/workers/{id}/history?view=crew` must return **403**.
 
@@ -46,7 +46,8 @@ Exception: the man-down event carries `last_vitals` (core temp, HR) for everyone
 | `vitals` | Each reading (~5 s) | `vitals`: worker_id, timestamp, hr, skin_temp, activity, tilt |
 | `estimate` | Each minute per worker | `estimate`: Estimate (core now + 30-min forecast) |
 | `alert` | Opened, acknowledged, updated or cleared | `alert`: Alert (same `id` = same alert, upsert) |
-| `mandown` | Check starts, confirmed, cancelled, resolved | `mandown`: ManDown, or `null` when closed |
+| `mandown` | Check starts, confirmed, cancelled, resolved (also used for SOS incidents) | `mandown`: ManDown, or `null` when closed |
+| `sos` | The band sent `BTN:SOS` (button held 3 s), or the phone's SOS button | `sos`: SosPress |
 | `emergency` | Every stage change and transcript line | `emergency`: EmergencyCall, or `null` |
 | `site_status` | Hazard change at a site, worker flag change | `site`: SiteStatus |
 | `demo` | Any demo control change, scenario step | `demo`: DemoState |
@@ -96,15 +97,25 @@ Exception: the man-down event carries `last_vitals` (core temp, HR) for everyone
 
 ### Alert
 
-`id, kind, worker_id (null for site-wide), site_id, started_at, message, source, acknowledged_at, cleared_at`. `kind` is one of `HEAT_YELLOW, HEAT_RED, LIGHTNING, FLOOD_FIRE, MANDOWN` (same names as the BUZZ patterns). Every hazard event keeps its `source` and times, so the log is the site's record.
+`id, kind, worker_id (null for site-wide), site_id, started_at, message, source, acknowledged_at, cleared_at`. `kind` is one of `HEAT_YELLOW, HEAT_RED, LIGHTNING, FLOOD_FIRE, MANDOWN` (same names as the BUZZ patterns) or `SOS`. **SOS is never sent to the band as a command**: the band blinks purple by itself when the button is held. Every hazard event keeps its `source` and times, so the log is the site's record.
 
-### ManDown
+Priority (for `WorkerStatus.hazard` and the band router): `SOS`, `MANDOWN` > `HEAT_RED` > `LIGHTNING` > `HEAT_YELLOW` > `FLOOD_FIRE`. The band router skips `SOS`.
+
+### ManDown (one emergency incident: man-down or SOS)
 
 `id, worker_id, worker_name, site_id, site_name, lat, lon, fell_at, check_started_at, confirm_at, confirmed_at, stage, reason, last_vitals {core_temp, hr, at}`.
 
 - `stage`: `checking` (band buzzing, worker can cancel) → `confirmed` (crew lead + crewmates alerted) → `resolved` / `cancelled`.
 - `confirm_at`: when it escalates if nobody cancels. The UI counts down to it.
-- `reason`: `fall`, `no_response_to_red`, `demo`.
+- `reason`: `fall`, `no_response_to_red`, `demo`, or `sos`.
+- **SOS** (`reason: "sos"`): skips `checking`. It starts at `confirmed` with `fell_at = check_started_at = confirm_at = confirmed_at = pressed_at`, and the emergency call starts right away (same chain as man-down, session D). The UI shows a full-screen purple "SOS from <worker>" instead of "Man down".
+- One incident per worker at a time. An SOS while an incident is already active is ignored (no double calls; matches session D).
+
+### SosPress (session A, from `BTN:SOS`)
+
+`worker_id, worker_name, site_id, site_name, lat, lon, pressed_at, source ("band" | "phone" | "demo"), escalated`.
+
+Sent once per press. `escalated: false` means it was ignored because an incident was already active. The incident itself arrives as a `mandown` event with `reason: "sos"`, and the call as `emergency` events.
 
 ### EmergencyCall (session D)
 
@@ -123,7 +134,7 @@ Exception: the man-down event carries `last_vitals` (core temp, HR) for everyone
   "hazards": [ "... one per kind, always 6, in order heat, lightning, flood, fire, soil, wildlife ..." ],
   "index_tomorrow": 7.4,
   "index_drivers": ["Heat index 111 °F tomorrow", "Thunderstorms 50% after 3 PM"],
-  "worker_flag": "heat",
+  "worker_flag": "heat",               // none | heat | mandown | sos
   "workers_on_site": 4,
   "updated_at": 1792256640
 }
@@ -153,6 +164,7 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 | POST | `/api/reports` | `{site_id, worker_id?, kind, note, photo?, lat?, lon?}` | `{ok, report}`. `photo` is a JPEG data URL, already shrunk to ≤1024 px in the browser. `kind`: snake, alligator, fire_ants, standing_water, downed_line, other |
 | POST | `/api/alerts/{id}/ack` | | `{ok}` |
 | POST | `/api/workers/{id}/button` | | Same as the band's `BTN:1`: cancels a man-down check, else acknowledges a red alert. `{ok, action}` |
+| POST | `/api/workers/{id}/sos` | | Same as the band's `BTN:SOS` (the phone view has a hold-3-s SOS button). `{ok, action: "escalated" \| "ignored_active_incident"}` |
 | POST | `/api/mandown/{id}/resolve` | | Crew lead closes the man-down screen |
 | POST | `/api/emergency/{id}/cancel` | | Crew lead's "Cancel, false alarm" (only in `notifying` / `cancel_window`) |
 
@@ -168,10 +180,11 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 | POST | `/api/demo/replay` | `{on?: bool, speed?: number}` | Replay on/off and speed (1, 5, 10, 30) |
 | POST | `/api/demo/threshold` | `{on: bool}` | Demo thresholds (37.3 / 37.5 °C from `config.py`) |
 | POST | `/api/demo/mandown` | `{worker_id}` | Fakes a fall for that worker |
+| POST | `/api/demo/sos` | `{worker_id}` | Fakes an SOS (button held 3 s) for that worker |
 
 ## The scripted demo (what the mock plays)
 
-At 10x replay (1 replay minute = 6 real seconds). About 3 minutes total. Heat alerts come from the alert rules, not the script.
+At 10x replay (1 replay minute = 6 real seconds). About 2 min 55 s total. Heat alerts come from the alert rules, not the script.
 
 | Replay min | What happens | Screens |
 | --- | --- | --- |
@@ -180,15 +193,32 @@ At 10x replay (1 replay minute = 6 real seconds). About 3 minutes total. Heat al
 | ~4 | Yellow (20-min 90th pct ≥ 38.0) | Card turns yellow, "danger in ~13 min", band `BUZZ:HEAT_YELLOW` |
 | ~8 | Red. ~20 s later she presses the band button (ack) | `BUZZ:HEAT_RED`, "✓ Acknowledged" |
 | 13–15.5 | Lightning at 8.6, 6.2, 4.8 mi | Stop-work banner, 10-mile ring, 30:00 countdown, `BUZZ:LIGHTNING` |
+| 14 | Jake holds his band button 3 s: SOS. Replay drops to 1x | Full-screen purple "SOS from Jake Turner", escalation starts at once |
+| 14 +8 s | 5 s into the cancel window, the crew lead cancels: false alarm (script does it if the presenter doesn't). Replay back to 10x | Shows the cancel button working |
 | 17 | She collapses. Replay drops to 1x | |
 | +10 s | Man-down check (band buzzes) | Full-screen alert on every page |
 | +25 s | Confirmed. Crew lead + crewmates alerted | `MANDOWN` alert, map flag |
-| +28 s | Cancel window (15 s) | "Cancel, false alarm" button |
-| +43 s | Calling. "Demo: would call 911" | |
-| +47 s | Connected, report read, follow-up Q&A | Live transcript |
-| +68 s | Done, call logged | |
+| +28 s | Cancel window (10 s) | "Cancel, false alarm" button |
+| +38 s | Calling. "Demo: would call 911" | |
+| +42 s | Connected, report read, follow-up Q&A | Live transcript |
+| +63 s | Done, call logged | |
 
-The man-down and call timings above are **shortened demo timings** in the mock. The real ones belong to sessions A (`MANDOWN_STILL_S`, `MANDOWN_ESCALATE_S` in `config.py`) and D (cancel window).
+The man-down and call timings above are **shortened demo timings** in the mock. The real ones belong to sessions A (`MANDOWN_STILL_S`, `MANDOWN_ESCALATE_S` in `config.py`) and D (`EMERGENCY_CANCEL_WINDOW_S` 30 s, `EMERGENCY_DEMO_CANCEL_WINDOW_S` 10 s, which the mock uses).
+
+## Band light (one LED)
+
+Where the UI shows the band's state (demo view), it follows the firmware contract (`docs/firmware-contract.md`):
+
+| State | Light |
+| --- | --- |
+| `BUZZ:OFF` | Solid green (all clear) |
+| `BUZZ:HEAT_YELLOW` | Solid yellow |
+| `BUZZ:HEAT_RED` | Flashing red, 2 per second |
+| `BUZZ:LIGHTNING` | Rapid white flashes, 5 per second |
+| `BUZZ:FLOOD_FIRE` | Solid blue |
+| `BUZZ:MANDOWN` | Red breathing pulse |
+| SOS (band's own feedback, not a command) | Blinking purple |
+| No command for 60 s (`band_connected: false`) | Slow cyan blink |
 
 ## Who fills what
 
@@ -201,6 +231,10 @@ The man-down and call timings above are **shortened demo timings** in the mock. 
 | `index_tomorrow`, `index_drivers` | C2 (hazard index) |
 | EmergencyCall | D (emergency escalation) |
 | PhotoReport storage | A |
+
+## Known gap: session D's `emergency_status`
+
+Session D's interface (`docs/interfaces/emergency.md` on their branch) sends one flat `emergency_status` event per step (`stage: notify | cancel_window | emergency_call | done`, `status`, `target`, `demo_label`, `cancel_deadline`, `message`). The UI currently reads the aggregated `EmergencyCall` above. Plan: the frontend folds `emergency_status` events into `EmergencyCall` itself, so session A can pass D's events straight through. Not built yet. Also: show D's `done/failed` ("Emergency call FAILED. Call 911 yourself now.") big.
 
 ## Open questions for session A
 

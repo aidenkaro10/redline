@@ -34,6 +34,7 @@
   --soil: #9a6b2f;
   --wildlife: #1baf7a;
   --heat: #d03b3b;
+  --sos: #7e3ac8;
 
   --series-1: #2a78d6;      /* core temp */
   --grid: #e1e0d9;
@@ -64,6 +65,7 @@
   --soil: #c49455;
   --wildlife: #199e70;
   --heat: #e66767;
+  --sos: #b98af0;
 
   --series-1: #3987e5;
   --grid: #2c2c2a;
@@ -96,6 +98,7 @@
   --color-soil: var(--soil);
   --color-wildlife: var(--wildlife);
   --color-heat: var(--heat);
+  --color-sos: var(--sos);
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
@@ -118,6 +121,22 @@ body {
 }
 .pulse-red { animation: pulse-red 1.2s ease-in-out infinite; }
 
+/* SOS uses purple, the same color the band blinks when the button is held 3 s. */
+@keyframes pulse-sos {
+  0%, 100% { background-color: #6d28d9; }
+  50% { background-color: #3b0f7a; }
+}
+.pulse-sos { animation: pulse-sos 1.2s ease-in-out infinite; }
+
+/* The band's single status light (docs/firmware-contract.md). */
+@keyframes led-on-off { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0.08; } }
+@keyframes led-breathe { 0%, 100% { opacity: 0.15; } 50% { opacity: 1; } }
+.led-flash-2 { animation: led-on-off 0.5s steps(1) infinite; }    /* 2 per second */
+.led-flash-5 { animation: led-on-off 0.2s steps(1) infinite; }    /* 5 per second */
+.led-breathe { animation: led-breathe 2.4s ease-in-out infinite; }
+.led-blink { animation: led-on-off 0.7s steps(1) infinite; }
+.led-blink-slow { animation: led-on-off 2s steps(1) infinite; }
+
 @keyframes ring {
   0% { transform: scale(0.8); opacity: 0.9; }
   100% { transform: scale(2.2); opacity: 0; }
@@ -132,7 +151,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .pulse-red, .ring-pulse::after { animation: none; }
+  .pulse-red, .pulse-sos, .ring-pulse::after { animation: none; }
 }
 
 /* Leaflet: match our surfaces. In dark mode, darken the OpenStreetMap tiles (not the markers). */

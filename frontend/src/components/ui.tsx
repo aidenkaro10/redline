@@ -120,12 +120,15 @@ export function HazardIcon({ kind, className = "h-4 w-4" }: { kind: HazardKind; 
 export function AlertIcon({ kind, className }: { kind: AlertKind; className?: string }) {
   if (kind === "LIGHTNING") return <HazardIcon kind="lightning" className={className} />;
   if (kind === "FLOOD_FIRE") return <HazardIcon kind="flood" className={className} />;
+  if (kind === "SOS")
+    return <svg viewBox="0 0 24 24" className={className ?? "h-4 w-4"} aria-hidden><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" /><text x="12" y="15.2" textAnchor="middle" fontSize="7.5" fontWeight="800" fill="currentColor">SOS</text></svg>;
   if (kind === "MANDOWN")
     return <svg viewBox="0 0 24 24" className={className ?? "h-4 w-4"} aria-hidden><circle cx="6" cy="16" r="2" fill="none" stroke="currentColor" strokeWidth="1.8" /><path d="M9 16h11M13 16l2-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
   return <HazardIcon kind="heat" className={className} />;
 }
 
 export function alertTone(kind: AlertKind) {
+  if (kind === "SOS") return "text-sos";
   if (kind === "HEAT_RED" || kind === "MANDOWN") return "text-danger-ink";
   if (kind === "HEAT_YELLOW") return "text-warn-ink";
   if (kind === "LIGHTNING") return "text-lightning";

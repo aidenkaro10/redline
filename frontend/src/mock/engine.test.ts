@@ -59,6 +59,13 @@ test("the scripted demo plays end to end: yellow, red, lightning, man-down, emer
   const cmds = events.flatMap((e) => (e.type === "band_command" && e.band.worker_id === "worker-1" ? [e.band.command] : []));
   for (const c of ["BUZZ:HEAT_YELLOW", "BUZZ:HEAT_RED", "BUZZ:MANDOWN"]) assert.ok(cmds.includes(c), c);
 
+  // Jake's SOS: announced, escalated straight away (no "checking"), then cancelled as a false alarm.
+  const sos = events.flatMap((e) => (e.type === "sos" ? [e.sos] : []));
+  assert.equal(sos.length, 1);
+  assert.equal(sos[0].worker_id, "worker-2");
+  assert.ok(alerts.some((a) => a.kind === "SOS" && a.worker_id === "worker-2"), "SOS alert");
+  assert.ok(calls.some((c) => c.worker_id === "worker-2" && c.stage === "cancelled"), "SOS call cancelled by crew lead");
+
   // And the scenario says it's finished.
   assert.equal(engine.demo.scenario.running, false);
 });
@@ -135,4 +142,24 @@ test("starting the scripted demo keeps the real timer running", () => {
   engine.handle("POST", ["demo", "scenario"], new URLSearchParams(), { action: "start" });
   assert.notEqual(engine.timer, null);
   engine.stop();
+});
+
+test("SOS escalates right away, never reaches the band as a command, and isn't doubled", () => {
+  const { engine, run } = fakeEngine();
+  const events: LiveEvent[] = [];
+  engine.subscribe({ view: "demo" }, (ev) => events.push(structuredClone(ev)));
+  const res = engine.handle("POST", ["workers", "worker-5", "sos"], new URLSearchParams(), {});
+  assert.deepEqual(res.json, { ok: true, action: "escalated" });
+  assert.equal(engine.mandown?.reason, "sos");
+  assert.equal(engine.mandown?.stage, "confirmed");          // no "checking" stage
+  assert.equal(engine.emergency?.stage, "notifying");        // escalation already started
+  // A second SOS (or a man-down) for someone while an incident is active is ignored.
+  const again = engine.handle("POST", ["demo", "sos"], new URLSearchParams(), { worker_id: "worker-6" });
+  assert.deepEqual(again.json, { ok: true, action: "ignored_active_incident" });
+  run(60);
+  assert.equal(engine.emergency?.stage, "done");
+  const cmds = events.flatMap((e) => (e.type === "band_command" ? [e.band.command] : []));
+  assert.ok(!cmds.includes("BUZZ:SOS"), "SOS is not a band command");
+  const calls = events.flatMap((e) => (e.type === "emergency" && e.emergency ? [e.emergency] : []));
+  assert.match(calls[calls.length - 1].transcript[0].text, /pressed SOS/);
 });

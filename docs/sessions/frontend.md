@@ -21,3 +21,13 @@ Next:
 - Align with session A's API once `docs/interfaces/` has their version (open questions at the bottom of the contract doc).
 - Read C1/C2/D interface docs as they appear and adjust the hazard, index and call shapes.
 - Results page (harness report next to Kalman), twin learning panel, agent chat panel (PLAN.md Phase 9 items 3, 4, 8).
+
+## Round 2 (2026-10-17): SOS + one-LED band (decided by Aiden)
+
+- SOS (band `BTN:SOS`, button held 3 s): new `sos` event + `SOS` alert kind; the incident is a `ManDown` with `reason: "sos"` that skips "checking" and escalates right away (matches session D's `sos` input). Full-screen purple "SOS from <worker>" on every page.
+- Phone view: hold-3-s SOS button (same as the band). Demo controls: "Trigger SOS". REST: `POST /api/workers/{id}/sos`, `POST /api/demo/sos`.
+- Scripted demo: Jake holds SOS at replay min 14; the crew lead cancels it as a false alarm 5 s into the cancel window. Maria's man-down call still completes. About 2 min 55 s total.
+- Band light in the demo view now shows the single LED from docs/firmware-contract.md (green, yellow, flashing red, white flashes, blue, red breathing, purple blink for SOS, slow cyan for no link).
+- Mock cancel window is now 10 s (= session D's `EMERGENCY_DEMO_CANCEL_WINDOW_S`).
+
+Next: fold session D's `emergency_status` events into the UI's `EmergencyCall` (see "Known gap" in the contract doc).

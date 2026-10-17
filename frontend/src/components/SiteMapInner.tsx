@@ -109,7 +109,7 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
           interactive: false,
           icon: L.divIcon({
             className: "", iconSize: [34, 34],
-            html: `<span class="ring-pulse" style="position:absolute;inset:0;border-radius:9999px;color:${st.worker_flag === "mandown" ? "#d03b3b" : "#ec835a"}"></span>`,
+            html: `<span class="ring-pulse" style="position:absolute;inset:0;border-radius:9999px;color:${st.worker_flag === "mandown" ? "#d03b3b" : st.worker_flag === "sos" ? "#7e3ac8" : "#ec835a"}"></span>`,
           }),
         }).addTo(g);
       }
@@ -124,7 +124,7 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
       dot.bindTooltip(
         `<b>${s.name}</b><br/>Tomorrow's index: <b>${st.index_tomorrow.toFixed(1)}</b>/10` +
         (st.workers_on_site ? `<br/>${st.workers_on_site} crew on site` : "") +
-        (flagged ? `<br/><b style="color:#d03b3b">${st.worker_flag === "mandown" ? "MAN DOWN" : "Worker heat alert"}</b>` : "") +
+        (flagged ? `<br/><b style="color:${st.worker_flag === "sos" ? "#7e3ac8" : "#d03b3b"}">${st.worker_flag === "mandown" ? "MAN DOWN" : st.worker_flag === "sos" ? "SOS" : "Worker heat alert"}</b>` : "") +
         (stop ? `<br/><b>Stop work: lightning</b>` : ""),
         { direction: "top", offset: [0, -6] },
       );

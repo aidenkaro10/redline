@@ -21,11 +21,14 @@
 /** Worker heat status. Crew leads see this, never the raw numbers behind it. */
 export type Status = "green" | "yellow" | "red";
 
-/** Alert types. Same names as the band's BUZZ patterns (backend/config.py). */
-export type AlertKind = "HEAT_YELLOW" | "HEAT_RED" | "LIGHTNING" | "FLOOD_FIRE" | "MANDOWN";
+/**
+ * Alert types. Same names as the band's BUZZ patterns (backend/config.py), plus SOS.
+ * SOS is never sent to the band: the band shows its own purple blink when the button is held 3 s.
+ */
+export type AlertKind = "HEAT_YELLOW" | "HEAT_RED" | "LIGHTNING" | "FLOOD_FIRE" | "MANDOWN" | "SOS";
 
-/** What the laptop last told the band to do, e.g. "BUZZ:HEAT_RED". */
-export type BuzzPattern = AlertKind | "OFF";
+/** What the laptop can tell the band to do, e.g. "BUZZ:HEAT_RED" (docs/firmware-contract.md). */
+export type BuzzPattern = "HEAT_YELLOW" | "HEAT_RED" | "LIGHTNING" | "FLOOD_FIRE" | "MANDOWN" | "OFF";
 
 /** Site hazards from the track brief. */
 export type HazardKind = "heat" | "lightning" | "flood" | "fire" | "soil" | "wildlife";
@@ -87,7 +90,7 @@ export interface SiteStatus {
   hazards: Hazard[];              // one per HazardKind, always 6
   index_tomorrow: number;         // 0-10 hazard index for tomorrow (session C2)
   index_drivers: string[];        // top reasons, e.g. ["Heat index 108 °F", "Storms 60%"]
-  worker_flag: "none" | "heat" | "mandown";  // a worker on site has a heat alert or man-down
+  worker_flag: "none" | "heat" | "mandown" | "sos";  // a worker on site has a heat alert, man-down or SOS
   workers_on_site: number;
   updated_at: number;
 }
@@ -162,6 +165,10 @@ export interface Alert {
 
 export type ManDownStage = "checking" | "confirmed" | "cancelled" | "resolved";
 
+/**
+ * One emergency incident for one worker: a man-down, or an SOS (band button held 3 s).
+ * An SOS skips the "checking" stage: it starts at "confirmed" and escalates right away.
+ */
 export interface ManDown {
   id: string;
   worker_id: string;
@@ -175,12 +182,26 @@ export interface ManDown {
   confirm_at: number;             // when it escalates if nobody cancels
   confirmed_at: number | null;
   stage: ManDownStage;
-  reason: "fall" | "no_response_to_red" | "demo";
+  reason: "fall" | "no_response_to_red" | "demo" | "sos";
   /** Shown on the man-down screen to everyone, including crew leads (emergency exception to the privacy rule). */
   last_vitals: { core_temp: number | null; hr: number | null; at: number };
 }
 
 export type EmergencyStage = "notifying" | "cancel_window" | "calling" | "connected" | "done" | "cancelled";
+
+/** The band sent BTN:SOS (button held 3 s), or the worker held SOS on their phone. */
+export interface SosPress {
+  worker_id: string;
+  worker_name: string;
+  site_id: string;
+  site_name: string;
+  lat: number;
+  lon: number;
+  pressed_at: number;
+  source: "band" | "phone" | "demo";
+  /** false if it was ignored because this worker already has an active incident (no double calls). */
+  escalated: boolean;
+}
 
 export interface EmergencyCall {
   id: string;
@@ -290,6 +311,7 @@ export type LiveEvent =
   | { type: "estimate"; estimate: Estimate }
   | { type: "alert"; alert: Alert }
   | { type: "mandown"; mandown: ManDown | null }
+  | { type: "sos"; sos: SosPress }
   | { type: "emergency"; emergency: EmergencyCall | null }
   | { type: "site_status"; site: SiteStatus }
   | { type: "demo"; demo: DemoState }
@@ -339,6 +361,7 @@ export const ALERT_LABEL: Record<AlertKind, string> = {
   LIGHTNING: "Lightning",
   FLOOD_FIRE: "Flood / fire weather",
   MANDOWN: "Man down",
+  SOS: "SOS",
 };
 
 export const LEVEL_RANK: Record<HazardLevel, number> = { none: 0, low: 1, moderate: 2, high: 3, extreme: 4 };

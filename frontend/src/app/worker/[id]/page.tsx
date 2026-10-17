@@ -10,7 +10,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { CoreChart } from "@/components/Charts";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
@@ -50,10 +50,28 @@ export default function WorkerPhone() {
     return <Frame bg="var(--surface)" fg="var(--ink)"><p className="m-auto text-sm opacity-70">{live.ready ? `No worker "${id}"` : "Connecting…"}</p></Frame>;
   }
 
+  // This worker pressed SOS (band button held 3 s, or the phone's SOS button).
+  if (meDown && md.reason === "sos") {
+    return (
+      <Frame bg="#4c1d95" fg="#fff" pulse="sos">
+        <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+          <p className="text-sm font-bold uppercase tracking-[0.25em]">SOS sent</p>
+          <h1 className="text-5xl font-black leading-tight">Help is coming</h1>
+          <p className="text-lg">Your crew lead and crewmates have your location.<br />Stay where you are if you can.</p>
+          {live.emergency?.mandown_id === md.id && (
+            <p className="rounded-xl bg-black/30 px-4 py-2 text-sm font-semibold">
+              {live.emergency.stage === "cancelled" ? "Cancelled by your crew lead" : live.emergency.stage === "done" ? "Emergency report delivered" : "Contacting your crew lead…"}
+            </p>
+          )}
+        </div>
+      </Frame>
+    );
+  }
+
   // Man-down check on this worker's own phone.
   if (meDown) {
     return (
-      <Frame bg="#7f1d1d" fg="#fff" pulse>
+      <Frame bg="#7f1d1d" fg="#fff" pulse="red">
         <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
           <p className="text-sm font-bold uppercase tracking-[0.25em]">{md.stage === "checking" ? "Man-down check" : "Help is coming"}</p>
           <h1 className="text-5xl font-black leading-tight">Are you OK?</h1>
@@ -77,7 +95,7 @@ export default function WorkerPhone() {
   const breakIn = w.break_at ? w.break_at - now : null;
 
   return (
-    <Frame bg={look.bg} fg={look.fg} pulse={redUnacked}>
+    <Frame bg={look.bg} fg={look.fg} pulse={redUnacked ? "red" : undefined}>
       <div className="flex items-center justify-between text-sm font-semibold opacity-90">
         <span>{w.name}</span>
         <span>{site?.name.replace(" Generating Station", "")}</span>
@@ -143,19 +161,62 @@ export default function WorkerPhone() {
         </div>
       )}
 
-      <div className="mt-4 flex items-center justify-between text-sm font-semibold">
+      <div className="mt-4 flex items-center justify-between gap-2 text-sm font-semibold">
         <Link href={`/report?worker=${id}`} className="rounded-xl bg-black/25 px-3 py-2">Report a hazard</Link>
-        <Link href="/" className="opacity-80 underline">Crew dashboard</Link>
+        <SosButton onFire={() => apiPost(`/workers/${id}/sos`)} />
       </div>
+      <Link href="/" className="mt-3 self-center text-xs opacity-80 underline">Crew dashboard</Link>
     </Frame>
   );
 }
 
+/**
+ * SOS on the phone, same as holding the band button: hold for 3 seconds.
+ * A ring fills while you hold; letting go early cancels.
+ */
+function SosButton({ onFire }: { onFire: () => void }) {
+  const HOLD_MS = 3000;
+  const [progress, setProgress] = useState(0);
+  const start = useRef<number | null>(null);
+  const raf = useRef<number | null>(null);
+  const stop = () => {
+    start.current = null;
+    if (raf.current) cancelAnimationFrame(raf.current);
+    setProgress(0);
+  };
+  const step = () => {
+    if (start.current === null) return;
+    const p = Math.min(1, (performance.now() - start.current) / HOLD_MS);
+    setProgress(p);
+    if (p >= 1) { stop(); onFire(); return; }
+    raf.current = requestAnimationFrame(step);
+  };
+  useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
+  return (
+    <button
+      onPointerDown={(e) => {
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* keep going without capture */ }
+        start.current = performance.now();
+        step();
+      }}
+      onPointerUp={stop} onPointerCancel={stop} onContextMenu={(e) => e.preventDefault()}
+      className="relative flex select-none items-center gap-2 rounded-xl bg-[#6d28d9] px-3 py-2 text-white touch-none"
+      aria-label="Hold 3 seconds to send SOS"
+    >
+      <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90" aria-hidden>
+        <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="4" />
+        <circle cx="18" cy="18" r="15" fill="none" stroke="#fff" strokeWidth="4" strokeDasharray={`${progress * 94.2} 94.2`} />
+      </svg>
+      <span className="text-left leading-tight"><b className="block">SOS</b><span className="text-[11px] font-medium opacity-90">{progress > 0 ? "keep holding…" : "hold 3 s"}</span></span>
+    </button>
+  );
+}
+
 /** Full screen on a phone; a phone-sized card on a laptop. */
-function Frame({ bg, fg, pulse, children }: { bg: string; fg: string; pulse?: boolean; children: React.ReactNode }) {
+function Frame({ bg, fg, pulse, children }: { bg: string; fg: string; pulse?: "red" | "sos"; children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-page sm:grid sm:place-items-center sm:py-6">
-      <div className={`flex min-h-screen w-full flex-col p-5 transition-colors duration-500 sm:min-h-[780px] sm:max-w-[400px] sm:rounded-[2.5rem] sm:border-[10px] sm:border-black sm:shadow-2xl ${pulse ? "pulse-red" : ""}`}
+      <div className={`flex min-h-screen w-full flex-col p-5 transition-colors duration-500 sm:min-h-[780px] sm:max-w-[400px] sm:rounded-[2.5rem] sm:border-[10px] sm:border-black sm:shadow-2xl ${pulse ? `pulse-${pulse}` : ""}`}
         style={{ background: pulse ? undefined : bg, color: fg }}>
         {children}
       </div>

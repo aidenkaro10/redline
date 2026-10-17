@@ -33,6 +33,7 @@ export function DemoControls() {
         <Btn onClick={() => call("lightning", "/demo/test-alert", { kind: "LIGHTNING" })} busy={busy === "lightning"}>Test lightning</Btn>
         <Btn onClick={() => call("flood", "/demo/test-alert", { kind: "FLOOD_FIRE" })} busy={busy === "flood"}>Test flood alert</Btn>
         <Btn onClick={() => call("mandown", "/demo/mandown", { worker_id: "worker-1" })} busy={busy === "mandown"}>Trigger man-down</Btn>
+        <Btn onClick={() => call("sos", "/demo/sos", { worker_id: "worker-1" })} busy={busy === "sos"}>Trigger SOS</Btn>
         <Btn onClick={() => call("clear", "/demo/clear-hazards")} busy={busy === "clear"}>Clear hazards</Btn>
 
         <span className="mx-1 hidden h-5 w-px bg-line sm:inline-block" />
