@@ -25,6 +25,7 @@ from backend.planner.agent import PlannerSession
 from backend.planner.archon import plan_view, plan_with_agent
 from backend.planner.briefing import frontend_schedule, make_briefing
 from backend.planner.generate import demo_scenario
+from backend.planner.personal import apply_offsets, load_offsets
 from backend.planner.playbook import Playbook
 from backend.planner.rules import check_plan
 from backend.planner.scenario import Plan, Scenario
@@ -39,12 +40,17 @@ def current_scenario() -> Scenario:
         from backend.planner.briefing import CREW_SITE
         sc = demo_scenario()
         sc.site = CREW_SITE
+        apply_offsets(sc, load_offsets())
         _state["scenario"] = sc
     return _state["scenario"]
 
 
-def set_scenario(scenario: Scenario) -> None:
-    """Session A calls this when the crew, tasks or forecast change (e.g. live core temps for a mid-shift replan)."""
+def set_scenario(scenario: Scenario, offsets: dict | None = None) -> None:
+    """
+    Session A calls this when the crew, tasks or forecast change (e.g. live core temps for a mid-shift replan).
+    offsets = {worker_id: PersonalOffset or its to_dict()}; default: load_offsets() (data/personal_offsets.json).
+    """
+    apply_offsets(scenario, load_offsets() if offsets is None else offsets)
     with _lock:
         _state["scenario"], _state["result"] = scenario, None
 

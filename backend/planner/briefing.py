@@ -5,11 +5,13 @@ Per site:
   index           tomorrow's 0-10 hazard index            (session C2: ml.hazard_index.predict.predict_index)
   top_hazards     live + forecast hazards                  (session C1: backend.hazards.picture.hazard_picture)
   windows         forecast hazard windows (heat, storms)   (C1's tomorrow block / our scenario)
-  past_incidents  past incidents nearby                    (STUB until C1/C2 expose OSHA + Storm Events by site)
+  past_incidents  past incidents nearby                    (session C2: ml.hazard_index.predict.past_incidents)
 For the crew site: the planner's suggested schedule (archon.py), verified by the rule checker.
 
-Until C1 and C2 are merged, their data comes from clearly marked STUBS: every stubbed field
-is listed in briefing["stubs"] and each site says where its numbers came from (data_sources).
+Real data comes through backend/planner/sources.py (C1 weather + events, C2 index + incidents).
+When any of it isn't available (not merged, feed down, nothing cached), clearly marked STUBS
+fill in: every stubbed piece is listed in briefing["stubs"] and each site says where its numbers
+came from (data_sources). Workers' personal offsets (thermometer spot checks) shape the schedule.
 The JSON matches the frontend's Briefing and Schedule types (frontend/src/lib/contract.ts).
 
 Run:  python -m backend.planner.briefing            (prints it, writes data/planner/briefing.json)
@@ -27,9 +29,12 @@ import numpy as np
 from backend import config
 from backend.planner.archon import plan_view, plan_with_agent
 from backend.planner.generate import SITES, demo_scenario, weather_slots
+from backend.planner.personal import apply_offsets, describe, load_offsets
 from backend.planner.playbook import Playbook
 from backend.planner.rules import CheckResult
 from backend.planner.scenario import REST, Plan, Scenario
+from backend.planner.sources import (c1_entry, c1_hourly, c1_picture, c1_site, c2_incidents, c2_index,
+                                     hazard_windows_from_events, slot_weather_from_hourly)
 
 TZ = ZoneInfo("America/New_York")
 OUT_PATH = Path("data/planner/briefing.json")
@@ -43,30 +48,8 @@ KIND_MAP = {"lightning": "lightning", "severe_thunderstorm": "lightning", "torna
 
 
 # ---------------------------------------------------------------------------
-# Data providers: real ones when the other sessions' code is merged, stubs otherwise
+# Stubs: used only when C1 / C2 data isn't available (see sources.py for the real adapters)
 # ---------------------------------------------------------------------------
-def c2_index(site_id: str, date: str) -> dict | None:
-    """Session C2's hazard index, or None if it isn't available (not merged, not cached)."""
-    try:
-        from ml.hazard_index.predict import predict_index
-        return predict_index(site_id, date, offline=True)
-    except Exception:                       # not merged yet / nothing cached / no network: use the stub
-        return None
-
-
-def c1_picture() -> dict | None:
-    """Session C1's site hazard picture, or None if it isn't available."""
-    try:
-        from backend.hazards.picture import latest_picture
-        return latest_picture()
-    except Exception:
-        try:
-            from backend.hazards.picture import hazard_picture
-            return hazard_picture()
-        except Exception:
-            return None
-
-
 def stub_index(site: dict, scenario: Scenario | None, date: str) -> dict:
     """STUB 0-10 index from tomorrow's max WBGT and stop-work hazards. Replaced by C2's model."""
     wbgt = max(w.wbgt for w in scenario.weather) if scenario else 28.0
@@ -100,6 +83,8 @@ def site_scenario(site: dict, date: str) -> Scenario:
     sc.weather = weather_slots(rng, hotter=float(rng.uniform(-1, 3)), storm_slot=storm)
     from backend.planner.scenario import HazardWindow
     sc.hazards = [HazardWindow("lightning", storm, storm + 2, "STUB forecast")] if storm is not None else []
+    for w in sc.crew:                 # stub sites have no crew data of their own
+        w.core_offset_c, w.core_sd_c = 0.0, config.PLAN_PERSON_SD_C
     return sc
 
 
@@ -174,53 +159,106 @@ def frontend_schedule(scenario: Scenario, plan: Plan, check: CheckResult, date: 
 # ---------------------------------------------------------------------------
 # The briefing
 # ---------------------------------------------------------------------------
+def resolve_sites(site_ids: list[str] | None, picture: dict | None, crew_site: dict, max_sites: int) -> list[dict]:
+    """Which sites go in the briefing: the ones asked for, else the crew site + C1's worst-ranked, else stubs."""
+    if site_ids:
+        out = []
+        for sid in site_ids:
+            site = (crew_site if sid == crew_site["id"] else None) or c1_site(sid) \
+                or next((x for x in SITES if x["id"] == sid), None)
+            if site:
+                out.append(site)
+        return out
+    if picture:
+        ranked = [{"id": e["site"]["site_id"], "name": e["site"].get("name", ""), "lat": e["site"].get("lat"),
+                   "lon": e["site"].get("lon")} for e in picture.get("sites", []) if e.get("site")]
+        return [crew_site] + [x for x in ranked if x["id"] != crew_site["id"]][:max_sites - 1]
+    return [crew_site] + [x for x in SITES if x["name"] != crew_site["name"]][:max_sites - 1]
+
+
+def top_hazards_from_events(entry: dict) -> list[dict]:
+    """C1's events (worst first) + tomorrow's HeatRisk, in the frontend's top_hazards shape."""
+    levels = {1: "low", 2: "moderate", 3: "high", 4: "extreme"}
+    kinds = ("heat", "lightning", "flood", "fire", "soil", "wildlife")
+    out = [{"kind": e["hazard"] if e.get("hazard") in kinds else "lightning",
+            "level": levels.get(e.get("level", 2), "moderate"), "text": e.get("title", "")}
+           for e in entry.get("events", [])[:3]]
+    hr = (entry.get("tomorrow") or {}).get("heat_risk") or {}
+    if hr.get("label") and len(out) < 3:
+        out.append({"kind": "heat", "level": levels.get(int(hr.get("value", 0)), "low") if hr.get("value") else "low",
+                    "text": f"NWS HeatRisk tomorrow: {hr['label']}"})
+    return out
+
+
 def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = None,
-                  playbook: Playbook | None = None, sites: list[dict] | None = None, use_llm: bool = True) -> dict:
-    """Build tomorrow's briefing. crew_scenario = the crew's site and day (default: the demo day)."""
+                  playbook: Playbook | None = None, site_ids: list[str] | None = None, use_llm: bool = True,
+                  live: bool = True, max_sites: int = 6, offsets: dict | None = None) -> dict:
+    """
+    Build tomorrow's briefing.
+      crew_scenario  the crew's site, crew and tasks (default: the demo crew at Deerhaven)
+      site_ids       which sites to brief (default: crew site + C1's worst-ranked, up to max_sites)
+      live           False = never call C1/C2 (stubs only, for tests and offline demos)
+      offsets        {worker_id: personal offset} (default: load_offsets())
+    """
     for_date = for_date or (dt.datetime.now(TZ).date() + dt.timedelta(days=1)).isoformat()
     day = dt.date.fromisoformat(for_date)
     generated_at = int(dt.datetime.combine(day - dt.timedelta(days=1), dt.time(18, 0), TZ).timestamp())
-    crew_sc = crew_scenario or demo_scenario()
+    if crew_scenario is None:
+        crew_sc = demo_scenario()
+        crew_sc.site = c1_site(CREW_SITE["id"]) or CREW_SITE
+    else:
+        crew_sc = Scenario.from_dict(crew_scenario.to_dict())     # never change the caller's copy
     crew_sc.date = for_date
-    crew_site = CREW_SITE if crew_scenario is None else crew_sc.site
-    crew_sc.site = crew_site
+    crew_site = crew_sc.site
+    personalized = apply_offsets(crew_sc, load_offsets() if offsets is None else offsets)
+
     stubs = set()
-    picture = c1_picture()
-    if sites is None and picture:
-        # C1's real site list (79 Florida plants), crew site first
-        c1_sites = [{"id": e["site"].get("site_id"), "name": e["site"].get("name", ""), "lat": e["site"].get("lat"),
-                     "lon": e["site"].get("lon")} for e in picture.get("sites", []) if e.get("site")]
-        sites = [crew_site] + [x for x in c1_sites if x["id"] != crew_site["id"]]
-    sites = sites or [crew_site] + [s for s in SITES if s["name"] != crew_site["name"]]
+    picture = c1_picture() if live else None
     if picture is None:
-        stubs.add("site hazards + forecast windows (session C1 not merged): from planner scenarios")
-    out_sites = []
-    for site in sites:
-        sc = crew_sc if site["id"] == crew_site["id"] else site_scenario(site, for_date)
-        index = c2_index(site["id"], for_date)
-        sources = {"index": "C2", "hazards": "C1" if picture else "stub", "incidents": "stub"}
+        stubs.add("live site hazards (session C1 not available): planner scenario hazards")
+    out_sites, crew_entry = [], None
+    for site in resolve_sites(site_ids, picture, crew_site, max_sites):
+        is_crew = site["id"] == crew_site["id"]
+        sc = crew_sc if is_crew else site_scenario(site, for_date)
+        sources = {"index": "stub", "hazards": "stub", "weather": "stub", "incidents": "stub"}
+        entry = c1_entry(picture, site["id"])
+        hourly = c1_hourly(site["id"]) if live else None
+        wx = slot_weather_from_hourly(hourly, for_date, sc.shift_start, sc.n_slots, sc.slot_min) if hourly else None
+        if wx:
+            sc.weather, sources["weather"] = wx, "C1"
+        else:
+            stubs.add("tomorrow's hourly weather (C1 forecast not available): simulated Gainesville summer day")
+        if entry is not None:
+            sc.hazards = hazard_windows_from_events(entry.get("events", []), for_date, sc.shift_start,
+                                                    sc.n_slots, sc.slot_min)
+            sources["hazards"] = "C1"
+        index = c2_index(site["id"], for_date) if live else None
         if index is None:
             index = stub_index(site, sc, for_date)
-            sources["index"] = "stub"
-            stubs.add("0-10 hazard index (session C2 not merged): rough WBGT/storm formula")
-        top = top_hazards_from(index, sc)
-        windows = windows_from(sc)
-        if picture:
-            entry = next((e for e in picture.get("sites", []) if e.get("site", {}).get("site_id") == site["id"]), None)
-            if entry:
-                top = [{"kind": e["hazard"] if e["hazard"] in ("heat", "lightning", "flood", "fire", "soil", "wildlife") else "lightning",
-                        "level": {1: "low", 2: "moderate", 3: "high", 4: "extreme"}.get(e.get("level", 2), "moderate"),
-                        "text": e.get("title", "")} for e in entry.get("events", [])[:3]] or top
-        stubs.add("past incidents near each site: examples, not real records")
+            stubs.add("0-10 hazard index (session C2 not available): rough WBGT/storm formula")
+        else:
+            sources["index"] = "C2"
+        incidents = c2_incidents(site["id"]) if live else None
+        if incidents is None:
+            incidents = stub_incidents(site)
+            stubs.add("past incidents (C2 records not available): examples, not real records")
+        else:
+            sources["incidents"] = "C2"
+        top = (top_hazards_from_events(entry) if entry else []) or top_hazards_from(index, sc)
         out_sites.append({"site_id": site["id"], "name": site["name"], "index": index["index"],
-                          "band": index.get("band"), "top_hazards": top, "windows": windows,
-                          "past_incidents": stub_incidents(site), "index_reasons": index.get("top_reasons", []),
-                          "data_sources": sources})
+                          "band": index.get("band"), "top_hazards": top, "windows": windows_from(sc),
+                          "past_incidents": incidents, "index_reasons": index.get("top_reasons", []),
+                          "index_notes": index.get("notes", []), "data_sources": sources})
+        if is_crew:
+            crew_entry = out_sites[-1]
     out_sites.sort(key=lambda s: -s["index"])
 
-    # The crew's suggested schedule: full agent pipeline, verified by the rule checker.
+    # The crew's suggested schedule: full agent pipeline on tomorrow's forecast, verified by the rule checker.
     r = plan_with_agent(crew_sc, playbook=playbook, use_llm=use_llm)
     suggestions = schedule_suggestions(crew_sc, r.plan)
+    if personalized:
+        suggestions.append("Personalized from thermometer spot checks: " + "; ".join(
+            f"{crew_sc.worker(w).name} {describe(crew_sc.worker(w))}" for w in personalized) + ".")
     worst = out_sites[0]
     summary = (f"Tomorrow ({for_date}): highest hazard index is {worst['name']} at {worst['index']:.1f}/10. "
                f"Crew site {crew_site['name']}: {r.summary.replace('Recommended: ', 'plan ')}")
@@ -231,6 +269,8 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
         "schedule": frontend_schedule(crew_sc, r.plan, r.check, for_date, [r.summary] + suggestions),
         "plan": plan_view(crew_sc, r.plan, r.check),
         "crew_site_id": crew_site["id"],
+        "crew_data_sources": crew_entry["data_sources"] if crew_entry else None,
+        "personalized_workers": personalized,
         "stubs": sorted(stubs),
         "cost_usd": round(r.cost_usd, 4),
     }
@@ -286,10 +326,18 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--date", default=None, help="the day being briefed, YYYY-MM-DD (default: tomorrow)")
     ap.add_argument("--no-llm", action="store_true")
+    ap.add_argument("--offline", action="store_true", help="never call C1/C2 (stubs only)")
+    ap.add_argument("--sites", default=None, help="comma-separated site ids, e.g. eia-663,eia-628")
+    ap.add_argument("--text-out", type=Path, default=None, help="also save the readable text version here")
     ap.add_argument("--out", type=Path, default=OUT_PATH)
     args = ap.parse_args()
-    b = make_briefing(for_date=args.date, playbook=Playbook.load_learned(), use_llm=not args.no_llm)
+    b = make_briefing(for_date=args.date, playbook=Playbook.load_learned(), use_llm=not args.no_llm,
+                      live=not args.offline, site_ids=args.sites.split(",") if args.sites else None)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(b, indent=1))
-    print(render_text(b))
+    text = render_text(b)
+    if args.text_out:
+        args.text_out.parent.mkdir(parents=True, exist_ok=True)
+        args.text_out.write_text(text + "\n")
+    print(text)
     print(f"\nSaved {args.out}")

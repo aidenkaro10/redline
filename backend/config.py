@@ -113,3 +113,7 @@ PLAN_UNACCLIM_NO_VERY_HEAVY_WBGT_C = 28.0 # no very heavy work for unacclimatize
 # NWS hazard kinds that stop ALL outdoor work during their window.
 PLAN_STOP_WORK_HAZARDS = ("lightning", "severe_thunderstorm", "tornado", "flash_flood", "flood",
                           "hurricane", "tropical_storm")
+# Personal offsets (thermometer spot checks, backend/models/personal_offset.py) in planning:
+PLAN_MAX_COOLER_OFFSET_C = 0.3   # a worker can count as at most this much COOLER than the model (hotter: no cap here)
+PLAN_PERSON_SD_C = 0.15          # how unsure we are about a person with no spot checks yet (°C)
+PLAN_MIN_PERSON_SD_C = 0.05      # never more certain than this, however many checks

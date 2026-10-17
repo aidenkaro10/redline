@@ -44,9 +44,9 @@ class Worker:
     skills: list[str] = field(default_factory=list)
     start_core_c: float | None = None   # current core temp estimate (mid-shift replans); None = rested
     available: list[int] | None = None  # slots they're on site; None = the whole shift
-    # Personal twin hooks (ML session fills these in later). 0 / default = population average.
+    # Personal offset (thermometer spot checks, see personal.py). 0 / default = population average.
     core_offset_c: float = 0.0    # this person runs hotter (+) or cooler (-) than the model
-    core_sd_c: float = 0.15       # how unsure we are about this person (smaller once the twin learns)
+    core_sd_c: float = config.PLAN_PERSON_SD_C   # how unsure we are about this person (smaller with spot checks)
 
     def is_available(self, slot: int) -> bool:
         return self.available is None or slot in self.available
