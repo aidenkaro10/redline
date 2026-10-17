@@ -1,0 +1,12 @@
+{
+ "runs:agent_final": 37,
+ "tokens": 309031,
+ "train:plan": 37,
+ "train:ideas": 37,
+ "train:explain": 37,
+ "valid:plan": 2,
+ "valid:ideas": 2,
+ "valid:explain": 2,
+ "runs:dropped: final plan not good enough": 3,
+ "runs:claude_direct": 2
+}
