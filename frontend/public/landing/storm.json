@@ -1,0 +1,17 @@
+{
+ "id": "M4Z6me2gTmjxeoX2gZov",
+ "kind": "image",
+ "status": "completed",
+ "body": {
+  "model_id": "gemini-3-pro-image",
+  "prompt": "Exactly the same miniature diorama, same camera angle, same framing, same composition and same objects as the reference image, but during a violent Florida summer thunderstorm. Dark slate-blue storm clouds fill the top of the frame, heavy rain streaks, wet glossy ground with puddles, a bright forked lightning bolt striking in the distance behind the stacks, cool blue-grey light, the cream background turned stormy dark grey-blue. The tiny workers are walking toward the turbine hall door for shelter. Windows glow warm. Same tilt-shift miniature photography style. No text, no logos.",
+  "aspect_ratio": "16:9",
+  "resolution": "2K",
+  "images": [
+   {
+    "type": "generation",
+    "generation_id": "zNFvm1yEovfTpHft26rM"
+   }
+  ]
+ }
+}

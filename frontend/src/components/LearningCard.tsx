@@ -15,8 +15,9 @@
 import { useState } from "react";
 import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
-import type { OffsetUpdate, SpotCheckResult } from "@/lib/contract";
+import type { OffsetUpdate } from "@/lib/contract";
 import { apiPost, USING_MOCK } from "@/lib/live";
+import { sendSpotCheck } from "@/lib/spotcheck";
 import { useIsDark } from "./Nav";
 
 /** "+0.12 °C hotter than average" / "0.08 °C cooler than average" / "same as average". */
@@ -109,21 +110,12 @@ export function SpotCheckForm({ workerId, glass }: { workerId: string; glass?: b
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const t = Number(value.replace(",", "."));
-    if (!Number.isFinite(t)) return;
+    if (busy) return;                       // a double tap sends it once
     setBusy(true);
     try {
-      // Our mock answers with SpotCheckResult; session A answers with its flat offset_update event.
-      const r = await apiPost<Partial<SpotCheckResult> & { offset_c?: number; reason?: string; detail?: unknown }>("/spot-check", { worker_id: workerId, thermometer_c: t });
-      const accepted = r.accepted === true;
-      const text = r.message
-        ?? (accepted && typeof r.offset_c === "number" ? `Learned: ${bodyText(r.offset_c)}.` : null)
-        ?? (typeof r.reason === "string" ? r.reason : null)
-        ?? (r.detail ? "The backend refused that reading." : accepted ? "Reading added." : "Reading ignored (too far from the model, probably a bad reading).");
-      setMsg({ ok: accepted, text });
-      if (accepted) setValue("");
-    } catch {
-      setMsg({ ok: false, text: "Couldn't send the reading. Is the backend running?" });
+      const r = await sendSpotCheck(workerId, value, apiPost, bodyText);
+      setMsg({ ok: r.accepted, text: r.text });
+      if (r.accepted) setValue("");
     } finally {
       setBusy(false);
     }
@@ -140,15 +132,15 @@ export function SpotCheckForm({ workerId, glass }: { workerId: string; glass?: b
       <div className="mt-1 flex gap-2">
         <div className="relative flex-1">
           <input id={`spot-${workerId}`} inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="37.2"
-            className={`w-full rounded-lg border px-3 py-2 pr-9 text-base tabular ${glass ? "border-white/40 bg-white/15 text-inherit placeholder:text-white/50" : "border-line bg-surface"}`} />
+            className={`min-h-11 w-full rounded-lg border px-3 py-2 pr-9 text-base tabular ${glass ? "border-white/40 bg-white/15 text-inherit placeholder:text-white/50" : "border-line bg-surface"}`} />
           <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm opacity-60">°C</span>
         </div>
-        <button disabled={busy || !value.trim()} className={`rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-50 ${glass ? "bg-white text-black" : "bg-accent text-accent-ink"}`}>
+        <button disabled={busy || !value.trim()} className={`min-h-11 rounded-lg px-4 py-2 text-sm font-bold disabled:opacity-50 ${glass ? "bg-white text-black" : "bg-accent text-accent-ink"}`}>
           {busy ? "…" : "Add"}
         </button>
       </div>
       {USING_MOCK && (
-        <button type="button" onClick={sample} className={`mt-1 text-xs underline ${glass ? "opacity-80" : "text-accent"}`}>
+        <button type="button" onClick={sample} className={`mt-1 inline-flex min-h-11 items-center text-xs underline ${glass ? "opacity-80" : "text-accent"}`}>
           Mock: fill in a sample reading
         </button>
       )}

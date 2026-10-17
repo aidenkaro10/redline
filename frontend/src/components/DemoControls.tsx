@@ -8,9 +8,8 @@
 import { useState } from "react";
 
 import { useCrew } from "@/lib/crew";
+import { demoActions, SPEEDS, type Request } from "@/lib/demo-actions";
 import { apiPost, useLive } from "@/lib/live";
-
-const SPEEDS = [1, 5, 10, 30];
 
 /** `target`: who the man-down / SOS buttons act on (defaults to the first worker). */
 export function DemoControls({ target }: { target?: string }) {
@@ -21,7 +20,7 @@ export function DemoControls({ target }: { target?: string }) {
   const who = target && workers[target] ? target : firstWorkerId;
   const whoName = who ? workers[who]?.name.split(" ")[0] : "";
 
-  const call = async (key: string, path: string, body: unknown = {}) => {
+  const call = async (key: string, [path, body]: Request) => {
     setBusy(key);
     try { await apiPost(path, body); } finally { setBusy(null); }
   };
@@ -32,14 +31,14 @@ export function DemoControls({ target }: { target?: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <span className="mr-1 text-xs font-bold uppercase tracking-wider text-muted">Demo</span>
 
-        <Btn primary onClick={() => call("scenario", "/demo/scenario", { action: running ? "stop" : "start" })} busy={busy === "scenario"}>
+        <Btn primary onClick={() => call("scenario", demoActions.scenario(demo))} busy={busy === "scenario"}>
           {running ? "■ Stop scripted demo" : "▶ Play scripted demo"}
         </Btn>
-        <Btn onClick={() => call("lightning", "/demo/test-alert", { kind: "LIGHTNING" })} busy={busy === "lightning"}>Test lightning</Btn>
-        <Btn onClick={() => call("flood", "/demo/test-alert", { kind: "FLOOD_FIRE" })} busy={busy === "flood"}>Test flood alert</Btn>
-        <Btn onClick={() => call("mandown", "/demo/mandown", { worker_id: who })} busy={busy === "mandown"}>Man-down: {whoName}</Btn>
-        <Btn onClick={() => call("sos", "/demo/sos", { worker_id: who })} busy={busy === "sos"}>SOS: {whoName}</Btn>
-        <Btn onClick={() => call("clear", "/demo/clear-hazards")} busy={busy === "clear"}>Clear hazards</Btn>
+        <Btn onClick={() => call("lightning", demoActions.testLightning())} busy={busy === "lightning"}>Test lightning</Btn>
+        <Btn onClick={() => call("flood", demoActions.testFloodFire())} busy={busy === "flood"}>Test flood alert</Btn>
+        <Btn onClick={() => call("mandown", demoActions.manDown(who))} busy={busy === "mandown"}>Man-down: {whoName}</Btn>
+        <Btn onClick={() => call("sos", demoActions.sos(who))} busy={busy === "sos"}>SOS: {whoName}</Btn>
+        <Btn onClick={() => call("clear", demoActions.clearHazards())} busy={busy === "clear"}>Clear hazards</Btn>
 
         <span className="mx-1 hidden h-5 w-px bg-line sm:inline-block" />
 
@@ -47,17 +46,17 @@ export function DemoControls({ target }: { target?: string }) {
           label="Data"
           options={[{ v: "live", t: "Live" }, { v: "replay", t: "Replay" }]}
           value={demo.source}
-          onChange={(v) => call("replay", "/demo/replay", { on: v === "replay", speed: v === "replay" ? 10 : 1 })}
+          onChange={(v) => call("replay", demoActions.replay(v === "replay"))}
         />
         <Segmented
           label="Speed"
           options={SPEEDS.map((s) => ({ v: String(s), t: `${s}x` }))}
           value={String(demo.speed)}
           disabled={demo.source !== "replay"}
-          onChange={(v) => call("speed", "/demo/replay", { speed: Number(v) })}
+          onChange={(v) => call("speed", demoActions.speed(Number(v)))}
         />
         <button
-          onClick={() => call("thr", "/demo/threshold", { on: !demo.demo_threshold })}
+          onClick={() => call("thr", demoActions.threshold(demo))}
           className={`rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${demo.demo_threshold ? "border-warn bg-warn-bg text-warn-ink" : "border-line text-ink-2 hover:bg-surface-2"}`}
           title="Lowers the heat lines so a judge doesn't wait 20 minutes. Clearly labeled while on."
         >
@@ -95,6 +94,7 @@ function Segmented({ label, options, value, onChange, disabled }: {
       <div className="flex rounded-lg border border-line p-0.5">
         {options.map((o) => (
           <button key={o.v} disabled={disabled} onClick={() => onChange(o.v)}
+            aria-pressed={o.v === value}
             className={`rounded-md px-2 py-1 text-xs font-semibold ${o.v === value ? "bg-surface-2 text-ink shadow-sm" : "text-ink-2"}`}>
             {o.t}
           </button>

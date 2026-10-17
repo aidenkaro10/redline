@@ -10,17 +10,19 @@
  * person's own numbers and nobody else's.
  */
 
-import { useParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
 
 import { CoreChart } from "@/components/Charts";
 import { LearningCard } from "@/components/LearningCard";
 import { ReportForm } from "@/components/ReportForm";
+import { WhyLine } from "@/components/WhyLine";
 import { HazardIcon, fmtCountdown } from "@/components/ui";
 import type { Hazard, Status } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
+import { createHold } from "@/lib/hold";
 import { secondsUntil } from "@/lib/normalize";
 import { shortSiteName, useSites } from "@/lib/crew";
 
@@ -32,11 +34,16 @@ const LOOK: Record<Status, { bg: string; fg: string; title: string; tip: string 
 
 const STOP_LOOK = { bg: "#4b3fb0", fg: "#ffffff", title: "Stop work. Shelter now.", tip: "Lightning within 10 miles. Wait for the all clear." };
 
-export default function WorkerPhone() {
+export default function WorkerPhonePage() {
+  return <Suspense><WorkerPhone /></Suspense>;
+}
+
+function WorkerPhone() {
   const { id } = useParams<{ id: string }>();
+  const search = useSearchParams();
   const live = useLive();
   const now = useSimNow(500);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails] = useState(search.get("details") === "1");   // ?details=1 opens it
   const w = live.workers[id];
   const { byId } = useSites();
   const site = w ? byId[w.site_id] : null;
@@ -112,6 +119,7 @@ export default function WorkerPhone() {
   const look = stopWork ? STOP_LOOK : LOOK[w.status];
   const redUnacked = w.status === "red" && w.alert_acknowledged === false;
   const breakIn = w.break_at ? w.break_at - now : null;
+  const hasBreaks = w.on_break || w.break_at !== null;    // no planner schedule yet = no break tile
 
   return (
     <Frame bg={look.bg} fg={look.fg} pulse={redUnacked ? "red" : undefined}>
@@ -140,7 +148,7 @@ export default function WorkerPhone() {
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className={`grid gap-2 ${hasBreaks ? "grid-cols-2" : "grid-cols-1"}`}>
         <Tile label={hazard?.stop_work ? "Stop work" : "Hazard"}>
           {hazard ? (
             <>
@@ -149,11 +157,11 @@ export default function WorkerPhone() {
             </>
           ) : "None"}
         </Tile>
-        <Tile label={w.on_break ? "On break" : "Next break"}>
+        {hasBreaks && <Tile label={w.on_break ? "On break" : "Next break"}>
           <span className="tabular">
             {breakIn === null ? "--" : w.on_break ? `${Math.max(1, Math.ceil(breakIn / 60))} min left` : `in ${Math.max(0, Math.round(breakIn / 60))} min`}
           </span>
-        </Tile>
+        </Tile>}
       </div>
 
       <div className="mt-3 flex items-center gap-2">
@@ -176,7 +184,7 @@ export default function WorkerPhone() {
             <div className="rounded-xl bg-surface p-1 text-ink">
               <CoreChart estimates={est} now={now} height={190} />
             </div>
-            {est[est.length - 1]?.why && <p className="mt-2 text-sm opacity-90">{est[est.length - 1]?.why}</p>}
+            <WhyLine why={est[est.length - 1]?.why} tone="glass" />
           </Section>
           <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} tone="dark-glass" />
           <Section title="Report a hazard">
@@ -225,39 +233,41 @@ function Section({ title, children }: { title: string; children: React.ReactNode
  * A ring fills while you hold; letting go early cancels.
  */
 function SosButton({ onFire }: { onFire: () => void }) {
-  const HOLD_MS = 3000;
   const [progress, setProgress] = useState(0);
-  const start = useRef<number | null>(null);
+  const [hint, setHint] = useState(false);
+  const fire = useRef(onFire);
+  fire.current = onFire;
+  const hold = useRef(createHold(3000, () => fire.current(), () => performance.now()));
   const raf = useRef<number | null>(null);
-  const stop = () => {
-    start.current = null;
-    if (raf.current) cancelAnimationFrame(raf.current);
-    setProgress(0);
-  };
   const step = () => {
-    if (start.current === null) return;
-    const p = Math.min(1, (performance.now() - start.current) / HOLD_MS);
+    const p = hold.current.tick();
     setProgress(p);
-    if (p >= 1) { stop(); onFire(); return; }
-    raf.current = requestAnimationFrame(step);
+    if (p < 1) raf.current = requestAnimationFrame(step);
+  };
+  const stop = () => {
+    if (raf.current) cancelAnimationFrame(raf.current);
+    const fired = hold.current.release();
+    if (!fired) setHint(true);              // let go early: nothing sent, just a reminder
+    setProgress(0);
   };
   useEffect(() => () => { if (raf.current) cancelAnimationFrame(raf.current); }, []);
   return (
     <button
       onPointerDown={(e) => {
         try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* keep going without capture */ }
-        start.current = performance.now();
+        setHint(false);
+        hold.current.start();
         step();
       }}
       onPointerUp={stop} onPointerCancel={stop} onContextMenu={(e) => e.preventDefault()}
-      className="relative flex select-none items-center gap-2 rounded-xl bg-[#6d28d9] px-3 py-2 text-white touch-none"
+      className="relative flex min-h-11 select-none items-center gap-2 rounded-xl bg-[#6d28d9] px-3 py-2 text-white touch-none"
       aria-label="Hold 3 seconds to send SOS"
     >
       <svg viewBox="0 0 36 36" className="h-7 w-7 -rotate-90" aria-hidden>
         <circle cx="18" cy="18" r="15" fill="none" stroke="rgba(255,255,255,.3)" strokeWidth="4" />
         <circle cx="18" cy="18" r="15" fill="none" stroke="#fff" strokeWidth="4" strokeDasharray={`${progress * 94.2} 94.2`} />
       </svg>
-      <span className="text-left leading-tight"><b className="block">SOS</b><span className="text-[11px] font-medium opacity-90">{progress > 0 ? "keep holding…" : "hold 3 s"}</span></span>
+      <span className="text-left leading-tight"><b className="block">SOS</b><span className="text-[11px] font-medium opacity-90">{progress > 0 ? "keep holding…" : hint ? "hold for 3 seconds" : "hold 3 s"}</span></span>
     </button>
   );
 }

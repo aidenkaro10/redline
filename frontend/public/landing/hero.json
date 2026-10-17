@@ -1,0 +1,11 @@
+{
+ "id": "zNFvm1yEovfTpHft26rM",
+ "kind": "image",
+ "status": "completed",
+ "body": {
+  "model_id": "gemini-3-pro-image",
+  "prompt": "Photorealistic tilt-shift miniature diorama of a Florida natural-gas power plant job site, seen from a three-quarter angle slightly above. The diorama sits in the right two-thirds of the frame. The left third of the frame is empty, plain warm cream studio background (#F4EDE2) with soft even light, reserved for text. The diorama: a square base of sandy ground with tufts of grass and three palm trees, a white turbine hall with a corrugated metal roof, two tall exhaust stacks with faint heat shimmer above them, a steel pipe rack, a yellow mobile crane, a white pickup truck, stacked pallets, orange cones, and a small blue shade tent with an orange water cooler. Five tiny construction workers in orange hi-vis vests and white hard hats: two on the pipe rack, one next to the crane, one carrying a pipe, one drinking water under the tent. Each worker wears a small black wristband. Harsh midday Florida summer sun, short crisp shadows, warm hazy air, rich natural colors, shallow depth of field, macro lens, very high detail, like a premium architectural scale model photographed in a studio. No text, no logos, no labels, no watermark.",
+  "aspect_ratio": "16:9",
+  "resolution": "2K"
+ }
+}

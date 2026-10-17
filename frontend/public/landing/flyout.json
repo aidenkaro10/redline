@@ -1,0 +1,21 @@
+{
+ "id": "DdwlFzaxDKokgmhSuOuW",
+ "kind": "video",
+ "status": "completed",
+ "body": {
+  "model_id": "veo-3.1-generate-001",
+  "prompt": "Smooth continuous cinematic camera pull-back. Start on the extreme macro close-up of a tiny worker's wristband with its glowing amber LED. The camera smoothly pulls back and rises up, the focus racks out, revealing the whole miniature Florida power plant job site diorama on its wooden base, ending on a wide three-quarter view of the diorama sitting on a plain warm cream studio background. Tilt-shift miniature photography, harsh midday sun, gentle heat shimmer. The tiny workers move subtly. Steady, elegant, no cuts.",
+  "aspect_ratio": "16:9",
+  "duration_secs": 6,
+  "resolution": "1080p",
+  "generate_audio": false,
+  "start_frame": {
+   "type": "generation",
+   "generation_id": "r3W8VP41iI4UBAHAUjpM"
+  },
+  "end_frame": {
+   "type": "generation",
+   "generation_id": "zNFvm1yEovfTpHft26rM"
+  }
+ }
+}

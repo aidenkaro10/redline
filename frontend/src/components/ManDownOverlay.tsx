@@ -13,10 +13,11 @@
  */
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { EmergencyCall, EmergencyStage, ManDown } from "@/lib/contract";
-import { CALL_FAILED_TEXT, callForIncident } from "@/lib/emergency";
+import { CALL_FAILED_TEXT, callForIncident, cancelCallRequest } from "@/lib/emergency";
+import { singleFlight } from "@/lib/once";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
 import { secondsUntil } from "@/lib/normalize";
 import { fmtClock, fmtClockSec, fmtCountdown } from "./ui";
@@ -166,6 +167,13 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
   // A failed call stopped at the "Calling" step, so that's the one we mark.
   const idx = STEPS.findIndex((s) => s.stage === (call.stage === "failed" ? "calling" : call.stage));
   const canCancel = call.stage === "notifying" || call.stage === "cancel_window";
+  // A double tap must send the cancel once: ignore taps while the first one is in flight, then lock it.
+  const [sent, setSent] = useState(false);
+  const cancel = useMemo(() => singleFlight(async () => {
+    const [path, body] = cancelCallRequest(call);
+    await apiPost(path, body);
+    setSent(true);
+  }), [call.id, call.worker_id]);   // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="rounded-2xl border border-line bg-surface p-4 text-ink shadow-2xl sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -189,16 +197,22 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
           const done = call.stage !== "cancelled" && i < idx;
           const current = i === idx;
           const broke = current && call.stage === "failed";
+          // Notify step done, but a phone call didn't go through: a "!" instead of a check mark.
+          const partial = done && s.stage === "notifying" && (call.unreached?.length ?? 0) > 0;
           return (
             <li key={s.stage} className="flex flex-col gap-1.5">
-              <span className={`h-1.5 rounded-full ${done ? "bg-ok" : current ? "bg-danger" : "bg-surface-2"}`} />
-              <span className={`text-[11px] leading-tight sm:text-xs ${broke ? "font-black text-danger-ink" : current ? "font-bold text-ink" : done ? "text-ink-2" : "text-muted"}`}>
-                {done ? "✓ " : ""}{broke ? "✗ Call failed" : s.label}
+              <span className={`h-1.5 rounded-full ${partial ? "bg-warn" : done || (current && call.stage === "done") ? "bg-ok" : current ? "bg-danger" : "bg-surface-2"}`} />
+              <span className={`text-[11px] leading-tight sm:text-xs ${broke ? "font-black text-danger-ink" : partial ? "font-bold text-warn-ink" : current ? "font-bold text-ink" : done ? "text-ink-2" : "text-muted"}`}>
+                {partial ? "! " : done ? "✓ " : ""}{broke ? "✗ Call failed" : s.label}
               </span>
             </li>
           );
         })}
       </ol>
+
+      {(call.unreached?.length ?? 0) > 0 && (
+        <p className="mt-3 text-sm font-semibold text-warn-ink">Phone alert didn&apos;t go through to: {call.unreached!.join(", ")}. Tell them yourself.</p>
+      )}
 
       {call.stage === "cancelled" && <p className="mt-3 font-semibold text-ok-ink">{call.outcome}</p>}
 
@@ -208,8 +222,9 @@ function CallPanel({ call, now }: { call: EmergencyCall; now: number }) {
             {call.stage === "notifying" ? "Crew lead and safety officer are being notified." : `Calling in ${fmtCountdown(call.cancel_deadline ? secondsUntil(call.cancel_deadline, now) : 0)} unless cancelled.`}
           </p>
           {/* Same route as session D suggests: cancel by worker, not by call id. */}
-          <button onClick={() => apiPost("/emergency/cancel", { worker_id: call.worker_id })} className="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-page hover:opacity-90">
-            Cancel, false alarm
+          <button onClick={() => { if (!sent) void cancel(); }} disabled={sent}
+            className="min-h-11 rounded-lg bg-ink px-4 py-2 text-sm font-bold text-page hover:opacity-90 disabled:opacity-60">
+            {sent ? "Cancelling…" : "Cancel, false alarm"}
           </button>
         </div>
       )}

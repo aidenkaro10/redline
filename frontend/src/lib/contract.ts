@@ -227,6 +227,8 @@ export interface EmergencyCall {
   outcome: string | null;
   /** Only when built from session D's events: dry_run = nothing dialed, fake = pretend phone, live = a real phone rang. */
   mode?: EmergencyMode;
+  /** Who the notify step couldn't reach by phone (e.g. "Crew lead"), so the screen never shows a false check mark. */
+  unreached?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -424,7 +426,10 @@ export interface ViewFilter {
  */
 export function canSee(filter: ViewFilter, ev: LiveEvent): boolean {
   if (ev.type === "vitals" || ev.type === "estimate" || ev.type === "offset_update") {
-    const id = ev.type === "vitals" ? ev.vitals.worker_id : ev.type === "estimate" ? ev.estimate.worker_id : ev.offset.worker_id;
+    // offset_update comes wrapped ({offset: {...}}) from our mock, flat ({worker_id, offset_c, ...}) from session A.
+    const flat = ev as unknown as { worker_id?: string; offset?: { worker_id?: string } };
+    const id = ev.type === "vitals" ? ev.vitals?.worker_id : ev.type === "estimate" ? ev.estimate?.worker_id
+      : flat.offset?.worker_id ?? flat.worker_id;
     if (filter.view === "demo") return true;
     if (filter.view === "worker") return filter.worker_id === id;
     return false;

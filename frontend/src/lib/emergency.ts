@@ -101,6 +101,11 @@ export function foldEmergencyStatus(prev: EmergencyCall | null, ev: EmergencySta
   if (ev.cancel_deadline != null) call.cancel_deadline = ev.cancel_deadline;
   if (ev.demo_label) call.target_label = ev.demo_label;
   if (ev.mode) call.mode = ev.mode;
+  // A crew lead / safety officer call that didn't go through: remember who, so the screen says so.
+  if (ev.stage === "notify" && ev.status === "failed" && ev.target && ev.target !== "emergency") {
+    const who = WHO[ev.target];
+    if (!call.unreached?.includes(who)) call.unreached = [...(call.unreached ?? []), who];
+  }
 
   // Move the stage forward (never back, never out of an ending).
   const next = stageFor(ev);
@@ -124,4 +129,9 @@ export function callForIncident(em: EmergencyCall | null, md: ManDown): Emergenc
   if (em.mandown_id === md.id) return em;
   if (em.worker_id === md.worker_id && em.started_at >= md.fell_at - 1) return em;
   return null;
+}
+
+/** The crew lead's "Cancel, false alarm": same route session D suggests (cancel by worker, not by call id). */
+export function cancelCallRequest(call: Pick<EmergencyCall, "worker_id">): [string, { worker_id: string }] {
+  return ["/emergency/cancel", { worker_id: call.worker_id }];
 }

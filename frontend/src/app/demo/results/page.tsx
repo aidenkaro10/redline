@@ -15,12 +15,12 @@ import { Nav, useIsDark } from "@/components/Nav";
 import { Card } from "@/components/ui";
 import type { MetricRow, ModelResults } from "@/lib/contract-extra";
 import { useFetch } from "@/lib/live";
-import { RESULTS as BUNDLED } from "@/mock/extras";
+import { RESULTS as BUNDLED } from "@/lib/results-data";
 
 export default function ResultsPage() {
   const { data, error } = useFetch<ModelResults>("/results");
-  const r = data ?? (error ? BUNDLED : null);
-  if (!r) return <><Nav /><main className="p-6 text-muted">Loading results…</main></>;
+  // Show the bundled numbers right away; if the backend serves /api/results, use those instead.
+  const r = data ?? BUNDLED;
 
   const groups = [...new Set(r.rows.map((x) => x.group))];
   return (
@@ -30,7 +30,7 @@ export default function ResultsPage() {
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-accent">Results</p>
         <h1 className="text-3xl font-bold tracking-tight">Our model vs. the Army&apos;s Kalman filter</h1>
-        <p className="mt-1 text-sm text-ink-2">{r.split} Updated {r.updated}.{!data && " (Bundled copy of docs/results.md: this backend doesn't serve /api/results yet.)"}</p>
+        <p className="mt-1 text-sm text-ink-2">{r.split} Updated {r.updated}.{!data && error && " (Bundled copy of docs/results.md: this backend doesn't serve /api/results yet.)"}</p>
       </div>
 
       <section className="grid gap-4 lg:grid-cols-3">
