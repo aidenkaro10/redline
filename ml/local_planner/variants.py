@@ -29,6 +29,7 @@ from ml.local_planner.evaluate import parse_plan
 from ml.local_planner.self_train import GRADE_WORKERS, WORK_TOL, load_days
 
 VAR_DIR = DATA_DIR / "variants"
+PCT_RE = __import__("re").compile(r"(\d{1,3})\s?%")      # "about 93%" in the notes
 VAL_K = 4
 TEMPERATURE = 0.7
 MAX_TRIES = 3
@@ -77,6 +78,10 @@ def summarize(graded: list[dict]) -> dict:
            "opt_work": float(np.mean([g["opt_throughput"] for g in graded])),
            "safety_violations_per_sample": float(np.mean([x["n_safety"] for x in s])),
            "seconds_per_sample": float(np.mean([x.get("seconds", 0.0) for x in s]))}
+    claims = [(c, x["throughput"]) for x in s for c in PCT_RE.findall(x.get("notes") or "")]
+    if claims:
+        out["notes_pct_claims"] = len(claims)
+        out["notes_pct_wrong"] = float(np.mean([abs(float(c) - 100 * tp) > 2.5 for c, tp in claims]))
     if any("tries" in x for x in s):
         out["tries_mean"] = float(np.mean([x.get("tries", 1) for x in s]))
     ranks = [(x["rank"], g["opt_rank"]) for g in graded for x in g["samples"] if x["success"] and g.get("opt_rank") is not None]
@@ -163,16 +168,25 @@ def repair_loop(model, tok, sc: Scenario, mode: str) -> tuple[dict | None, dict]
 
 
 def main():
+    global VAL_K
     ap = argparse.ArgumentParser()
     ap.add_argument("--modes", default="free,format,rules")
     ap.add_argument("--adapter", default="adapter")
-    ap.add_argument("--days", type=int, default=0, help="only the first N validation days (0 = all)")
+    ap.add_argument("--days", type=int, default=0, help="only the first N days (0 = all)")
+    ap.add_argument("--split", default="val", choices=["val", "test"],
+                    help="val for choosing; test = B's 12 held-out days, for the ONE final scoring")
+    ap.add_argument("--k", type=int, default=4, help="samples per day")
     args = ap.parse_args()
+    VAL_K = args.k
     adapter = CKPT_DIR / args.adapter if args.adapter != "none" else None
-    days = load_days("val")
+    if args.split == "test":
+        from backend.planner.generate import load_test_set
+        days = [{"scenario": sc.to_dict()} for sc in load_test_set()]     # scored only, never learned from
+    else:
+        days = load_days("val")
     if args.days:
         days = days[:args.days]
-    out = out_dir(VAR_DIR / args.adapter)
+    out = out_dir(VAR_DIR / (args.adapter + ("_TEST" if args.split == "test" else "")))
     from ml.local_planner.edits import add_optimizer_plans
     days = add_optimizer_plans(days)     # every mode is compared with the same optimizer plan (work and score)
     rows = {}
