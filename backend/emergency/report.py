@@ -113,7 +113,6 @@ def emergency_script(r: Report) -> str:
         f"Emergency. This is an automated call from Redline, a worker safety system. "
         f"A worker needs help at {r.site}, GPS {r.gps}. "
         f"Worker: {r.worker}. They {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "
-        f"Last vitals: {r.core_temp}, {r.heart_rate}. "
         f"Again, the location is {r.site}, GPS {r.gps}."
     )
 

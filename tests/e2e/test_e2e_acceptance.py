@@ -370,7 +370,8 @@ def test_A21_call_script_has_facts_only_and_says_unknown():
                             lat=29.76, lon=-82.39, started_at=1_792_000_000.0, confirmed_at=1_792_000_090.0,
                             core_temp_c=38.6, hr_bpm=151, skin_temp_c=35.2)
     s = emergency_script(build_report(full, 1_792_000_100.0))
-    assert "Maria" in s and "Deerhaven" in s and "38.6" in s and "151" in s
+    assert "Maria" in s and "Deerhaven" in s
+    assert "38.6" not in s and "151" not in s      # Aiden's call: the spoken report leaves out vitals
 
 
 def test_A20_manager_ignores_a_repeated_event():
