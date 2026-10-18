@@ -32,7 +32,7 @@ import numpy as np
 from backend import config
 from backend.app.schemas import BandSample, Reading
 from backend.ingest.band_air import AirTracker
-from backend.ingest.band_motion import ActivityTracker, FallDetector
+from backend.ingest.band_motion import ActivityTracker, FallDetector, TipDetector
 from backend.ingest.band_pulse import PulseEstimator
 
 MIN_SAMPLES_PER_SECOND = 10        # fewer ACC samples than this in a second: don't judge movement from it
@@ -44,6 +44,7 @@ class BandStream:
         self.pulse = PulseEstimator(use_nlms=use_nlms)
         self.activity = ActivityTracker()
         self.falls = FallDetector()
+        self.tips = TipDetector()
         self.air = AirTracker()
         self.last_acc_t: float | None = None
         self.switch_tilt: int | None = None          # the tilt switch's last value (TILT line)
@@ -75,7 +76,10 @@ class BandStream:
             self.pulse.add_acc(t, s.accel)
             sec = self.activity.add(t, s.accel)
             if sec is not None and sec.n >= MIN_SAMPLES_PER_SECOND:
-                self.falls.on_second(sec)
+                for ev in (self.falls.on_second(sec), self._tip(sec)):
+                    if ev is not None:
+                        self.m_falls += int(ev["type"] == "band_fall")
+                        events.append({**ev, "worker_id": self.worker_id})
                 self.m_activity.append(sec.activity)
                 self.m_movement.append(sec.movement_g)
                 readings.append(Reading(worker_id=self.worker_id, timestamp=sec.t, tilt=self._tilt(sec.t),
@@ -101,10 +105,19 @@ class BandStream:
                 self.falls.add_baro(t, s.pressure)
         return readings, events
 
+    def _tip(self, sec):
+        """Tipped-and-still check, unless a fall is being decided or already has the worker down."""
+        if not self.tips.tipped and (self.falls.down or self.falls.pending is not None):
+            return None
+        return self.tips.on_second(sec)
+
     def _tilt(self, t: float) -> int:
-        """1 = down: the accelerometer saw a fall, or the tilt switch says tipped (recently heard)."""
+        """
+        1 = down: the accelerometer saw a fall, or the wrist tipped over and went still, or the
+        tilt switch (older bands) says tipped (recently heard).
+        """
         switch_fresh = self.switch_tilt_t is not None and t - self.switch_tilt_t <= config.BAND_ACC_LIVE_S
-        return int(self.falls.down or (switch_fresh and self.switch_tilt == 1))
+        return int(self.falls.down or self.tips.tipped or (switch_fresh and self.switch_tilt == 1))
 
     def filter_reading(self, r: Reading) -> Reading | None:
         """
@@ -143,7 +156,7 @@ class BandStream:
             "cadence_spm": round(float(np.median(self.m_cadence)), 1) if self.m_cadence else None,
             "hr_band_ppg": mean(self.m_hr, 1), "hr_quality": mean(self.m_quality, 2),
             "hr_windows": windows, "hr_given": len(self.m_hr), "hr_reasons": dict(self.m_reasons),
-            "falls": self.m_falls, "down": self.falls.down,
+            "falls": self.m_falls, "down": self.falls.down or self.tips.tipped,
             "air_temp_c": air.get("air_temp_c"), "humidity_pct": air.get("humidity_pct"),
             "pressure_hpa": air.get("pressure_hpa"), "air_sane": air.get("air_sane"),
             "air_note": air.get("air_note"), "wbgt_correction_c": air.get("wbgt_correction_c"),

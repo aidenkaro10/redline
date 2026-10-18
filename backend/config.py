@@ -266,12 +266,22 @@ BAND_ACT_PER_G = 18.0
 BAND_STILL_G = 0.03              # movement below this (g) counts as perfectly still (activity 0)
 BAND_ACC_LIVE_S = 3.0            # ACC heard this recently -> it replaces the tilt switch for man-down/activity
 # Falls: impact spike, then the wrist ends up at a new angle, then stillness.
-BAND_FALL_IMPACT_G = 2.5         # impact spike (total acceleration, g)
+BAND_FALL_IMPACT_G = 2.0         # impact spike (total acceleration, g). Was 2.5: a real cushion slam peaked ~2.1 g
 BAND_FALL_HARD_IMPACT_G = 4.0    # an impact this hard counts even if the pressure sensor saw no height drop
 BAND_FALL_ANGLE_DEG = 45         # wrist angle change from before the fall to after
 BAND_FALL_STILL_S = 2.0          # mostly still for this long right after the impact
 BAND_FALL_BARO_MIN_HPA = 0.05    # pressure RISE after a fall (~0.4 m lower; 0.12 hPa per meter)
 BAND_FALL_BARO_NOISE_HPA = 0.05  # pressure noisier than this before the fall -> don't trust it either way
+# Drop / fast fall: a moment of free fall, then a smaller impact than BAND_FALL_IMPACT_G is enough.
+BAND_FREEFALL_G = 0.4            # total acceleration below this = falling freely
+BAND_FREEFALL_MIN_SAMPLES = 3    # ...for at least 3 samples in a row (~60 ms at 50 Hz)
+BAND_FREEFALL_IMPACT_G = 1.8     # then an impact over this within BAND_FREEFALL_WINDOW_S
+BAND_FREEFALL_WINDOW_S = 1.0
+# Tipped over and still, no jolt (the old tilt-switch rule, done with the accelerometer): wrist angle
+# this far from the median of the previous BAND_TIPPED_BASELINE_S, while still -> "down" (tilt = 1).
+# The man-down detector then needs MANDOWN_STILL_S of stillness before its check, as before.
+BAND_TIPPED_ANGLE_DEG = 60
+BAND_TIPPED_BASELINE_S = 60
 BAND_GOT_UP_S = 5.0              # moving this long (or wrist back at its old angle) = got back up
 # Air sensor (AIRT/HUM) -> local WBGT correction for that worker's forecaster input.
 BAND_AIR_MIN_SAMPLES = 20        # readings needed in a minute to use that minute

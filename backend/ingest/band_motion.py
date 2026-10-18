@@ -9,7 +9,10 @@ Activity (every second)
     per second), which is what the forecaster was trained on.
 
 Falls (FallDetector)
-    1. Impact: total acceleration spikes above BAND_FALL_IMPACT_G (2.5 g).
+    1. Impact: total acceleration spikes above BAND_FALL_IMPACT_G (2.0 g), OR a drop: free fall
+       (under BAND_FREEFALL_G for BAND_FREEFALL_MIN_SAMPLES samples in a row) followed within
+       BAND_FREEFALL_WINDOW_S by an impact over BAND_FREEFALL_IMPACT_G (1.8 g).
+       (The firmware sends the peak of each 20 ms window when there's a jolt, so short impacts arrive.)
     2. New angle: the wrist's "which way is down" before vs after differs by BAND_FALL_ANGLE_DEG.
     3. Stillness: mostly still for BAND_FALL_STILL_S right after.
     4. Pressure check (only when the air sensor sends BARO and it's steady): falling to the
@@ -17,7 +20,13 @@ Falls (FallDetector)
        Rise >= BAND_FALL_BARO_MIN_HPA -> confirmed. No rise -> only a very hard impact
        (BAND_FALL_HARD_IMPACT_G) still counts. Noisy or missing pressure -> steps 1-3 decide.
     An accepted fall puts the worker "down" (tilt = 1 for the man-down detector) until they
-    move for BAND_GOT_UP_S in a row. The man-down timers themselves (MANDOWN_STILL_S,
+    move for BAND_GOT_UP_S in a row.
+
+Tipped over and still, no jolt (TipDetector): the wrist ends up BAND_TIPPED_ANGLE_DEG (60°) from
+its usual angle (median of the last BAND_TIPPED_BASELINE_S) while perfectly still. That's the old
+tilt-switch rule with the accelerometer: it puts the worker "down" too, and the man-down detector
+still waits MANDOWN_STILL_S of stillness before its check. Moving (or the wrist back near its old
+angle) clears it. The man-down timers themselves (MANDOWN_STILL_S,
     MANDOWN_ESCALATE_S) are untouched: this only decides what "tipped over" means.
 """
 
@@ -36,6 +45,7 @@ SETTLE_S = 1.0                     # ignore the first second after the impact (b
 BARO_PRE_S = 10.0                  # pressure "before" = the 10 s before the impact
 BARO_POST_S = (3.0, 8.0)           # pressure "after" = 3-8 s after the impact
 BARO_FRESH_S = 3.0                 # pressure counts as streaming if heard this recently
+TIP_MIN_HISTORY_S = 10             # need this many seconds of "usual angle" before judging a tip
 
 
 def activity_from_motion(movement_g: float) -> float:
@@ -67,6 +77,7 @@ class Second:
     movement_g: float
     activity: float          # tilt-switch-style count
     n: int                   # samples heard (50 when nothing was lost)
+    mean: tuple = (0.0, 0.0, 1.0)   # average x, y, z (g): which way is down for the wrist
 
 
 class ActivityTracker:
@@ -81,7 +92,8 @@ class ActivityTracker:
         done = None
         if self.second is not None and sec != self.second and self.samples:
             m = movement(self.samples)
-            done = Second(float(self.second + 1), m, activity_from_motion(m), len(self.samples))
+            done = Second(float(self.second + 1), m, activity_from_motion(m), len(self.samples),
+                          tuple(np.mean(np.asarray(self.samples, dtype=float), axis=0)))
             self.samples = []
         self.second = sec
         self.samples.append(xyz)
@@ -102,26 +114,46 @@ class FallDetector:
         self.down = False
         self.down_since: float | None = None
         self.moving_since: float | None = None
+        self.ff_run = 0                                      # samples in a row below BAND_FREEFALL_G
+        self.ff_start: float | None = None                   # when that run started
+        self.ff_until: float | None = None                   # a real free fall seen: impact window ends then
 
     def add_baro(self, t: float, hpa: float) -> None:
         self.baro.append((t, hpa))
 
-    def on_second(self, sec: Second) -> None:
+    def on_second(self, sec: Second) -> dict | None:
         """Once a second: a worker who's down and keeps moving for BAND_GOT_UP_S got back up."""
         if not self.down:
-            return
+            return None
         if sec.activity > 0:
             self.moving_since = self.moving_since if self.moving_since is not None else sec.t - 1
             if sec.t - self.moving_since >= config.BAND_GOT_UP_S:
                 self.down, self.down_since, self.moving_since = False, None, None
+                return {"type": "band_up", "timestamp": sec.t, "after": "fall", "reason": "moving again"}
         else:
             self.moving_since = None
+        return None
 
     def add_acc(self, t: float, xyz) -> dict | None:
         self.acc.append((t, *xyz))
         g = math.sqrt(xyz[0] ** 2 + xyz[1] ** 2 + xyz[2] ** 2)
-        if self.pending is None and not self.down and g >= config.BAND_FALL_IMPACT_G:
-            self.pending = {"t": t, "impact_g": g}
+        # Free fall: a few samples in a row with almost no acceleration (the band is dropping).
+        if g < config.BAND_FREEFALL_G:
+            self.ff_run += 1
+            if self.ff_run == 1:
+                self.ff_start = t
+            if self.ff_run >= config.BAND_FREEFALL_MIN_SAMPLES:
+                self.ff_until = t + config.BAND_FREEFALL_WINDOW_S
+        else:
+            self.ff_run = 0
+        if self.ff_until is not None and t > self.ff_until:
+            self.ff_until = None                             # no impact in time: just a wobble
+        if self.pending is None and not self.down:
+            if self.ff_until is not None and g > config.BAND_FREEFALL_IMPACT_G:
+                self.pending = {"t": t, "impact_g": g, "trigger": "free fall + impact", "start": self.ff_start}
+                self.ff_until = None
+            elif g >= config.BAND_FALL_IMPACT_G:
+                self.pending = {"t": t, "impact_g": g, "trigger": "impact", "start": t}
         elif self.pending is not None and t - self.pending["t"] < 0.5:
             self.pending["impact_g"] = max(self.pending["impact_g"], g)     # keep the biggest spike
         return self._decide(t) if self.pending is not None else None
@@ -138,7 +170,8 @@ class FallDetector:
         if t < accel_done:
             return None
         if "angle_deg" not in p:
-            before = self._window(t0 - PRE_S[0], t0 - PRE_S[1])
+            start = p.get("start", t0)                         # before the free fall, if there was one
+            before = self._window(start - PRE_S[0], start - PRE_S[1])
             after = self._window(t0 + SETTLE_S, accel_done)
             if len(before) < 5 or len(after) < 5:
                 return self._finish(t, False, "not_enough_data")
@@ -173,6 +206,53 @@ class FallDetector:
         if accepted:
             self.down, self.down_since, self.moving_since = True, t, None
         return {"type": "band_fall", "timestamp": t, "impact_at": p["t"], "accepted": accepted,
+                "trigger": p.get("trigger", "impact"),
                 "reason": reason, "confirmed_by": confirmed_by, "impact_g": round(p["impact_g"], 2),
                 "angle_deg": p.get("angle_deg"), "after_movement_g": p.get("after_movement_g"),
                 "baro_rise_hpa": p.get("baro_rise_hpa")}
+
+
+class TipDetector:
+    """
+    Tipped over and still, no jolt needed (the old tilt-switch rule, done with the accelerometer).
+    Feed one Second at a time. Returns a "band_fall" event (trigger "tipped") when the worker goes
+    down, a "band_up" event when they're back, else None. `tipped` = down right now.
+    """
+
+    def __init__(self):
+        self.history: deque = deque(maxlen=int(config.BAND_TIPPED_BASELINE_S))   # wrist angle each second
+        self.tipped = False
+        self.ref: np.ndarray | None = None          # the usual angle, frozen while tipped
+        self.moving_since: float | None = None
+
+    def on_second(self, sec: Second) -> dict | None:
+        v = np.asarray(sec.mean, dtype=float)
+        if not np.all(np.isfinite(v)) or np.linalg.norm(v) < 0.3:
+            return None                              # in free fall or junk: no angle this second
+        v = v / np.linalg.norm(v)
+        if not self.tipped:
+            event = None
+            if len(self.history) >= TIP_MIN_HISTORY_S and sec.activity == 0:
+                ref = np.median(np.array(self.history), axis=0)
+                angle = _angle_deg(ref, v)
+                if angle >= config.BAND_TIPPED_ANGLE_DEG:
+                    self.tipped, self.ref, self.moving_since = True, ref, None
+                    return {"type": "band_fall", "timestamp": sec.t, "impact_at": None, "accepted": True,
+                            "trigger": "tipped", "reason": None, "confirmed_by": "tipped over and still",
+                            "impact_g": None, "angle_deg": round(angle, 1), "after_movement_g": round(sec.movement_g, 3),
+                            "baro_rise_hpa": None}
+            self.history.append(v)
+            return event
+        # Down: back up once moving for BAND_GOT_UP_S, or the wrist is back near its usual angle.
+        back = _angle_deg(self.ref, v) < config.BAND_TIPPED_ANGLE_DEG / 2
+        if sec.activity > 0:
+            self.moving_since = self.moving_since if self.moving_since is not None else sec.t - 1
+        else:
+            self.moving_since = None
+        moved = self.moving_since is not None and sec.t - self.moving_since >= config.BAND_GOT_UP_S
+        if back or moved:
+            self.tipped, self.ref, self.moving_since = False, None, None
+            self.history.append(v)
+            return {"type": "band_up", "timestamp": sec.t, "after": "tipped",
+                    "reason": "wrist back at its usual angle" if back else "moving again"}
+        return None
