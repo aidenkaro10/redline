@@ -14,8 +14,8 @@
 // Oct 18 build (Noah's hardware rundown): Prop-Maker Wing accelerometer (LIS3DH, 0x18) on I2C,
 // photoresistor on pin 10 for sunlight, diode on A5, button 6, buzzer 5. No tilt switch, no pulse sensor.
 #define ENABLE_TILT     0     // 1 only if the tilt switch is wired to PIN_TILT (an empty pin reads "tipped")
-#define ENABLE_LIGHT    1     // photoresistor on PIN_LIGHT: sends LIGHT:<0-4095> every second
-#define ENABLE_PPG      0     // light sensor + LED pulse on PIN_PPG (not on this build; can't share pin 10 with LIGHT)
+#define ENABLE_LIGHT    0     // photoresistor on PIN_LIGHT: sends LIGHT:<0-4095> every second
+#define ENABLE_PPG      1     // light sensor + LED pulse on PIN_PPG (not on this build; can't share pin 10 with LIGHT)
 #define ENABLE_I2C      1     // accelerometer and/or air sensor on SDA/SCL (auto-detected)
 
 // ---------- Skin temperature calibration (two-point) ----------
