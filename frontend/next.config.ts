@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
   // next to the mock one without the two fighting over the same .next folder.
   distDir: process.env.NEXT_DIST_DIR || ".next",
   allowedDevOrigins: lanAddresses,
+  // On the hosted site (Render sets RENDER=true), the bare address opens the selling page.
+  // Locally "/" stays the phone crew app, so tests and other sessions are unaffected.
+  async redirects() {
+    return process.env.RENDER ? [{ source: "/", destination: "/preview", permanent: false }] : [];
+  },
   // Tailwind CSS is compiled by Turbopack (the dev server's bundler).
   turbopack: {
     rules: {
