@@ -2,6 +2,15 @@
 
 One line per technique: what we did in plain words, then the standard name and where it comes from. Use the names in parentheses in the write-up and pitch. "Our design" means we made it up for this project, on top of standard pieces.
 
+## Pitch must-mentions (Aiden's picks)
+
+1. **Combinatorics + constraint programming.** A crew's day has about 10^107 possible schedules (6 workers x 16 half-hour slots x ~13 choices each), more than the atoms in the universe (~10^80). The solver never lists them: it prunes with propagation, branch and bound, and clause learning (combinatorial optimization, constraint programming, CP-SAT).
+2. **A points system the solver maximizes.** +points for work done (important tasks worth more), minus points for predicted heat, storm-risk outdoor work and unfair heavy-work spreads (weighted linear objective with soft constraints). We then tried tuning the point values with a search (random search + successive halving); it didn't beat the defaults on held-out days, and we say so.
+3. **AI proposes, code approves.** Claude alone broke a safety rule in 92% of plans; with the code rule checker, 0% (generator-verifier pattern).
+4. **Acting before the alert.** The planner reacts to the forecast, not the current temp, so it uses where a worker is AND how fast they're heating (the forecaster reads the trend), and adds breaks or swaps tasks before anyone crosses the line (closed-loop replanning, model predictive control style).
+5. **New workers are the highest risk.** Most heat deaths at work happen in a worker's first days, and new hires are the most likely to push through. The planner treats workers not yet used to heat more carefully.
+6. **Breaks backed by research.** Shorter work/rest cycles (20 work / 10 rest) let core temp level off where longer ones (40/20) kept it climbing (IJERPH 2024, 21(3):371). Only claim this once session B's held-out test confirms it in our planner.
+
 ## Core temp right now
 
 | What we did | Standard name | Source |
