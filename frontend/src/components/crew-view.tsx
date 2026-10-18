@@ -174,7 +174,8 @@ function WorkerCard({ w, onOpen, down }: { w: WorkerStatus; onOpen: () => void; 
         label={down === "sos" ? "SOS" : down ? "Man down" : STATUS_TEXT[w.status]}
         meta={w.hazard ? <span className={`h-4 w-4 ${alertTone(w.hazard)}`} title={ALERT_LABEL[w.hazard]}>{w.hazard === "LIGHTNING" ? <Icon.bolt /> : <Icon.thermo />}</span> : undefined}
         viz={<Ring color={hue} value={hasCountdown ? Math.min(1, mins! / 30) : 1}
-          label={hasCountdown ? (mins === 0 ? "!" : mins) : <span className="block h-3.5 w-3.5" style={{ color: hue }}><Icon.check /></span>} />}>
+          label={hasCountdown ? (mins === 0 ? "!" : mins)
+            : <span className="block h-3.5 w-3.5" style={{ color: hue }}>{w.status === "green" && !down ? <Icon.check /> : <Icon.alert />}</span>} />}>
         <span className="block truncate text-[22px] font-semibold leading-tight tracking-[-0.025em]">{w.name}</span>
         {hasCountdown
           ? <span data-testid="danger" className={`mt-1 block text-[15px] font-semibold tabular ${tone}`}>Danger {dangerText(mins)}</span>

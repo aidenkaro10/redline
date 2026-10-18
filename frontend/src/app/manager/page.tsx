@@ -42,31 +42,31 @@ export default function ManagerPage() {
   return (
     <div className="font-app min-h-screen bg-page text-ink">
       <Wash tone={tone}>
-        <header className="mx-auto flex max-w-[1280px] items-center gap-4 px-8 pt-6">
+        <header className="mx-auto flex max-w-[1280px] items-center gap-3 whitespace-nowrap px-5 pt-5 md:gap-4 md:px-8 md:pt-6">
           <Link href="/preview" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight"><Logo /> Redline</Link>
-          <span className="ml-2 flex items-center gap-2 text-[13px] font-medium text-ink/60">
+          <span className="ml-1 flex items-center gap-2 text-[13px] font-medium text-ink/60" title={live.connected ? (USING_MOCK ? "Demo data" : "Live") : "Reconnecting…"}>
             <span className={`h-1.5 w-1.5 rounded-full ${live.connected ? "bg-ok" : "bg-danger"}`} />
-            {live.connected ? (USING_MOCK ? "Demo data" : "Live") : "Reconnecting…"}
+            <span className="hidden sm:inline">{live.connected ? (USING_MOCK ? "Demo data" : "Live") : "Reconnecting…"}</span>
           </span>
-          <nav className="ml-auto flex items-center gap-2 text-[14px]">
-            <Link href="/demo" className="rounded-full px-3 py-1.5 font-medium text-ink-2 hover:bg-black/5 dark:hover:bg-white/10">Demo controls</Link>
+          <nav className="ml-auto flex items-center gap-1 text-[14px] md:gap-2">
+            <Link href="/demo" className="rounded-full px-3 py-1.5 font-medium text-ink-2 hover:bg-black/5 dark:hover:bg-white/10">Demo<span className="hidden sm:inline"> controls</span></Link>
             {who && (
               <button onClick={() => { signOut(); router.push("/signin"); }} title={`Signed in as ${who}. Click to sign out.`}
-                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-3 font-medium text-ink-2 hover:bg-black/5 dark:hover:bg-white/10">
-                <Avatar name={who.split("@")[0].replace(/[._-]/g, " ")} /> Sign out
+                className="flex items-center gap-2 rounded-full py-1 pl-1 pr-1 font-medium sm:pr-3 text-ink-2 hover:bg-black/5 dark:hover:bg-white/10">
+                <Avatar name={who.split("@")[0].replace(/[._-]/g, " ")} /> <span className="hidden sm:inline">Sign out</span>
               </button>
             )}
           </nav>
         </header>
-        <div className="mx-auto max-w-[1280px] px-8 pb-2 pt-14">
-          <h1 className="text-[40px] font-semibold leading-[1.05] tracking-[-0.035em]">{site ? `${shortSiteName(site.name)} crew` : "Your crew"}</h1>
+        <div className="mx-auto max-w-[1280px] px-5 pb-2 pt-10 md:px-8 md:pt-14">
+          <h1 className="text-[34px] font-semibold md:text-[40px] leading-[1.05] tracking-[-0.035em]">{site ? `${shortSiteName(site.name)} crew` : "Your crew"}</h1>
           <p className="mt-1 text-[17px] text-ink-2">
             {workers.length ? `${attention ? `${attention} need${attention === 1 ? "s" : ""} attention` : "Everyone OK"} · ${workers.length} on shift` : "Connecting…"}
           </p>
         </div>
       </Wash>
 
-      <main className="relative mx-auto grid max-w-[1280px] gap-x-10 px-8 pb-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+      <main className="relative mx-auto grid max-w-[1280px] gap-x-10 px-4 pb-16 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <section className="min-w-0"><CrewPanel /></section>
         <section className="min-w-0"><SitesPanel layout="laptop" /></section>
       </main>
