@@ -60,7 +60,7 @@ OUT_DIR = settings.DATA_DIR / "nightly"
 N_VARIATIONS = 30           # Monte Carlo variations of tomorrow (risk number)
 N_PRACTICE = 6              # variations the agent actually plans and practices on each night
 N_GEPA_VAL = 3              # extra variations GEPA must win on (never practiced)
-PRACTICE_DRAWS = 3          # residual luck draws per practice variation -> solve rate
+PRACTICE_DRAWS = 4          # residual luck draws per practice variation -> solve rate
 EARLY_STORM_P = 0.15        # chance a variation gets a storm 1-2 h earlier than forecast (or a surprise one)
 THERMOMETER_SD_C = 0.1      # spot-check thermometer noise
 PRIOR_WEATHER_SD_C = 1.2    # before we've seen any forecast misses
@@ -247,9 +247,9 @@ def practice_outcomes(vsc, plan, var: dict, draws: int, seed: int) -> list[dict]
     for _ in range(draws):
         v = copy.deepcopy(var)
         v["early_storm"] = None                     # already in vsc's hazards
-        v["weather_err"] = float(rng.normal(0, 0.3))
+        v["weather_err"] = float(rng.normal(0, 0.6))          # same-day forecast update error
         for p in v["people"].values():
-            p["offset"] += float(rng.normal(0, 0.05))
+            p["offset"] += float(rng.normal(0, 0.1))           # how each person feels that day
         sims, _ = belief_simulate(vsc, plan, [v])
         out.append(score_outcome(vsc, plan, sims[0]))
     return out
