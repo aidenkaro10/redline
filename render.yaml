@@ -4,7 +4,7 @@
 # share one live demo.
 services:
   - type: web
-    name: planit-control
+    name: redline
     runtime: node
     plan: free
     branch: live                 # published by tools/publish_live.sh (scrubs a phone number first)

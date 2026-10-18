@@ -43,7 +43,7 @@ export default function ManagerPage() {
     <div className="font-app min-h-screen bg-page text-ink">
       <Wash tone={tone}>
         <header className="mx-auto flex max-w-[1280px] items-center gap-4 px-8 pt-6">
-          <Link href="/preview" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight"><Logo /> PlanIT Control</Link>
+          <Link href="/preview" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight"><Logo /> Redline</Link>
           <span className="ml-2 flex items-center gap-2 text-[13px] font-medium text-ink/60">
             <span className={`h-1.5 w-1.5 rounded-full ${live.connected ? "bg-ok" : "bg-danger"}`} />
             {live.connected ? (USING_MOCK ? "Demo data" : "Live") : "Reconnecting…"}

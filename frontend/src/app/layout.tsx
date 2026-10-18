@@ -10,7 +10,7 @@ import { Shell } from "@/components/Shell";
 const mona = Mona_Sans({ subsets: ["latin"], variable: "--font-mona", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "PlanIT Control",
+  title: "Redline",
   description: "Heat strain forecasting for outdoor crews",
 };
 

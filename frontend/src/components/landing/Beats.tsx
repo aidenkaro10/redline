@@ -201,7 +201,7 @@ export function CrewBeat() {
               ))}
             </div>
             <div data-note className="absolute inset-x-3 top-10 rounded-2xl bg-white/95 p-3 opacity-0 shadow-xl backdrop-blur">
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8a8174]">PlanIT · now</p>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[#8a8174]">Redline · now</p>
               <p className="text-[13px] font-semibold">Jake needs a break in 14 min</p>
               <p className="text-[11px] text-[#6b6358]">His band already buzzed. Shade tent is open.</p>
             </div>
@@ -288,7 +288,7 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
       </div>
 
       <footer className="mx-auto mt-24 flex max-w-[1300px] items-center justify-between px-8 text-xs text-white/40">
-        <span>PlanIT Control · Built at SwampHacks XII</span>
+        <span>Redline · Built at SwampHacks XII</span>
         <span>Pictures and film made with ElevenLabs</span>
       </footer>
     </section>

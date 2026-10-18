@@ -22,7 +22,7 @@ export default function SignInPage() {
     <main className="grid min-h-screen place-items-center bg-[#f4ede2] px-6 py-12 text-[#1d1b19]">
       <div className="w-full max-w-[400px]">
         <Link href="/preview" className="mb-12 flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
-          <Logo /> PlanIT Control
+          <Logo /> Redline
         </Link>
         <h1 className="text-[40px] leading-[1.02] tracking-[-0.025em]" style={SERIF}>Sign in to your crew.</h1>
         <p className="mt-3 text-[15px] leading-relaxed text-[#5d564d]">See who&apos;s fine, who needs a break, and every site&apos;s risk for tomorrow.</p>
