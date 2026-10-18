@@ -77,6 +77,32 @@ Decisions made this round (small):
 - **"Safer" is measured as time over the line, not the next minute.** Core temp keeps rising a few minutes after work stops, so a break never lowers the very next reading.
 - **Deterministic solver option** (`optimize(..., deterministic=True)`): one thread, fixed work budget. Tests and the evaluations use it. Live planning keeps 8 threads.
 
+## Round 4: hot-hour 20/10 work/rest cycles (research-backed), evaluated, NOT made the default
+
+Evidence: "Plateau in Core Temperature during Shorter but Not Longer Work/Rest Cycles in Heat", IJERPH 2024 21(3):371 (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10970706/). 14 people walking at ~36 °C, 2:1 schedules: 20/10 plateaued in hour 2, 40/20 kept rising.
+
+Built: `PLAN_HOT_CYCLE_WORK_MIN = 20`, `PLAN_HOT_CYCLE_REST_MIN = 10`, `PLAN_HOT_WORK_PATTERN` ("blocks" | "cycles") in config with the citation; `Scenario.hot_pattern` overrides per scenario. In "cycles", a work slot with WBGT ≥ 30 °C is 20 min work + 10 min shade:
+- the heat model simulates the shade break minute by minute;
+- the work counts 2/3 of the slot;
+- the rule checker treats the slot as containing its break;
+- the optimizer also caps the minute-20 temperature (the slot's hottest moment).
+
+No other safety constant changed.
+
+Held-out comparison (`python -m backend.planner.hot_cycles_eval --set test`, run once, 12 test scenarios, simulated truth: workers hotter than planned, hotter day; deterministic optimizer, no act-on-forecast loop):
+
+| Hot-hour pattern | Worker-min ≥ 38.0 °C | Worker-min ≥ 38.5 °C | Planned peak p90 (mean / max) | True peak (mean) | Tasks per shift | Work done | Safety violations | Verified |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| blocks (current) | 1169 | 8 | 37.96 / 37.99 | 38.09 | 4.08 | 68.4% | 0 | 12/12 |
+| cycles (20/10) | 1133 | 34 | 37.97 / 38.00* | 38.10 | 3.92 | 69.4% | 0 | 12/12 |
+
+\*rounded; every plan stays below 38.0 and passed the rule checker.
+
+- **Not clearly better on held-out:** -3% time over the yellow line, but more time over the red line (34 vs 8 worker-min) and slightly fewer tasks finished. So the default stays **"blocks"**, as agreed.
+- Training scenarios (12, sanity check before the test run) looked much better: 766 → 342 worker-min over yellow, but 75.3% → 70.1% work done. The gain didn't hold on held-out.
+- Likely reasons for the gap from the study (not measured): the study is continuous treadmill walking, while our crews already get a 30-min break every 60 min in heat and the planner already keeps the planned 90th pct under 38.0, so there's less left to gain. With cycles the optimizer also packs more hot work slots back to back, which may explain the extra red minutes in the simulated truth.
+- One mistake on my side: before the formal run I looked at one held-out scenario (test-1005) while debugging. I didn't tune anything on it; the fix that followed (capping the minute-20 peak) was found and checked on training scenarios.
+
 ## Decisions made (small, told after)
 
 - **Plan limit = the yellow line.** Planned 90th pct must stay below `HEAT_WARNING_C` (38.0 °C), so a good plan never triggers a heat warning. `PLAN_*` constants appended to `config.py`.

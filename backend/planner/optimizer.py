@@ -124,21 +124,24 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
                     options.append(x[w.id, s, t.id])
             m.AddExactlyOne(options)
 
-    # Tasks can't be over-worked.
+    # Tasks can't be over-worked. Work is counted in minutes: a cycled hot slot gives 20, others 30.
+    cycled = scenario.cycled_slots()
+    wmin = [scenario.work_minutes(s) for s in range(S)]
     done = {}
     for t in tasks:
-        vs = [v for (wid, s, tid), v in x.items() if tid == t.id]
-        done[t.id] = sum(vs) if vs else 0
-        if vs:
-            m.Add(done[t.id] <= t.units)
+        terms = [(v, wmin[s]) for (wid, s, tid), v in x.items() if tid == t.id]
+        done[t.id] = terms
+        if terms:
+            m.Add(sum(v * mins for v, mins in terms) <= int(round(t.units * scenario.slot_min)))
 
-    # Breaks: in any (limit + 1) slots in a row, at least one rest.
+    # Breaks: in any (limit + 1) slots in a row, at least one rest. A cycled hot slot has its own
+    # 10-min shade break built in, so a window containing one already has its break.
     n, nh = config.PLAN_MAX_CONSECUTIVE_WORK_SLOTS, config.PLAN_MAX_CONSECUTIVE_WORK_SLOTS_HOT
     for w in crew:
         for s in range(S):
-            if s + n + 1 <= S:
+            if s + n + 1 <= S and not cycled & set(range(s, s + n + 1)):
                 m.Add(sum(rest[w.id, k] for k in range(s, s + n + 1)) >= 1)
-            if s + nh + 1 <= S and any(hot[s:s + nh + 1]):
+            if s + nh + 1 <= S and any(hot[s:s + nh + 1]) and not cycled & set(range(s, s + nh + 1)):
                 m.Add(sum(rest[w.id, k] for k in range(s, s + nh + 1)) >= 1)
 
     # Heat: T[s+1] >= (1 - alpha) T[s] + alpha Teq, for whichever activity is chosen.
@@ -166,10 +169,16 @@ def solve(scenario: Scenario, costs, objective: Objective, budgets: dict[str, fl
                 m.Add(sum(vs) == 1).OnlyEnforceIf(on)
                 m.Add(sum(vs) == 0).OnlyEnforceIf(on.Not())
                 m.Add(Q * nxt >= keep * T[w.id, s] + (Q - keep) * teq).OnlyEnforceIf(on)
+                if (w.id, s, act) in costs.alpha_peak:
+                    # cycled hot slot: the end of the 20-min work part must also stay under the budget
+                    kp = int(round((1 - costs.alpha_peak[w.id, s, act]) * Q))
+                    tp = int(round(costs.teq_peak[w.id, s, act] * SCALE))
+                    m.Add(kp * T[w.id, s] + (Q - kp) * tp <= Q * budget).OnlyEnforceIf(on)
 
     # Objective.
-    value = sum(objective.priority_values.get(t.priority, 1) * done[t.id] for t in tasks if not isinstance(done[t.id], int))
-    obj = objective.throughput * SCALE * value
+    obj = sum(int(round(objective.throughput * SCALE * objective.priority_values.get(t.priority, 1)
+                        * mins / scenario.slot_min)) * v
+              for t in tasks for v, mins in done[t.id])
     if objective.margin:
         obj -= objective.margin * sum(peak.values())
     if objective.fairness and len(crew) > 1:

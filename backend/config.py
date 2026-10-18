@@ -214,6 +214,16 @@ PLAN_PROPOSAL_EXPIRE_MIN = 15             # a change waiting for the crew lead e
 # One-way SMS to the crew lead (backend/planner/notify.py). Dry run unless PLANNER_SMS_MODE=twilio.
 PLAN_SMS_MIN_GAP_S = 300                  # at least 5 min between texts
 PLAN_SMS_MAX_PER_HOUR = 6
+# Short work/rest cycles in hot slots (WBGT >= PLAN_HOT_WBGT_C). Evidence: "Plateau in Core Temperature
+# during Shorter but Not Longer Work/Rest Cycles in Heat", IJERPH 2024 21(3):371,
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10970706/ . 14 people walking at ~36 °C on 2:1 schedules:
+# 20 min work / 10 min rest made core temp plateau in hour 2, 40/20 kept rising (same ~38.0 peak);
+# the authors recommend shorter cycles for work over 2 h.
+# "cycles": a hot work slot = 20 min work + 10 min shade inside the 30-min slot (counts 2/3 of the work).
+# "blocks": the older rule only (2 hot work slots max, then a 30-min break).
+PLAN_HOT_CYCLE_WORK_MIN = 20
+PLAN_HOT_CYCLE_REST_MIN = 10
+PLAN_HOT_WORK_PATTERN = "blocks"          # set after the held-out comparison (docs/sessions/planner.md)
 
 # ---------------------------------------------------------------------------
 # LIVE SYSTEM (session A). Band link timing, from docs/firmware-contract.md.

@@ -102,7 +102,9 @@ def check_rules(scenario: Scenario, plan: Plan) -> list[Violation]:
         slots = plan.assignments.get(w.id)
         if slots is None or len(slots) != scenario.n_slots:
             continue                     # reported by check_structure
-        work = [a != REST and a in task_ids and w.is_available(s) for s, a in enumerate(slots)]
+        # a cycled hot slot (20 min work + 10 min shade) has its break built in: it doesn't count as continuous work
+        cycled = scenario.cycled_slots()
+        work = [a != REST and a in task_ids and w.is_available(s) and s not in cycled for s, a in enumerate(slots)]
 
         for s, a in enumerate(slots):
             if not work[s]:

@@ -34,7 +34,7 @@ def test_test_set_is_fixed_and_guarded():
     # regenerating from the seeds gives the same files (the set can't silently drift)
     from backend.planner.generate import TEST_SEEDS, TEST_TAGS
     # (fields added after the test set was frozen are left out of the comparison)
-    newer = {"storm_prob", "rain_prob", "elevated", "hard_to_stop"}
+    newer = {"storm_prob", "rain_prob", "elevated", "hard_to_stop", "hot_pattern"}
     strip = lambda d: {k: ([strip(x) if isinstance(x, dict) else x for x in v] if isinstance(v, list) else v)
                        for k, v in d.items() if k not in newer}
     assert strip(make_scenario(TEST_SEEDS[0], "test", TEST_TAGS[0]).to_dict()) == strip(tests[0].to_dict())
