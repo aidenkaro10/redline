@@ -6,17 +6,18 @@
  * 1. Intro: a lens irises open on a close-up of a worker's glowing wristband, and the camera
  *    pulls back to the whole job site (a 6 s ElevenLabs Veo clip). It lands on the hero picture.
  * 2. Hero: the miniature job site (ElevenLabs picture) fills the screen. Each worker has a
- *    floating status pill. Hover one to see their 30-minute forecast (and hear the band buzz).
- * 3. Click anywhere on the scene: a storm rolls in. Lightning flash, thunder, a 10-mile ring,
+ *    floating status pill. Hover one to see their 30-minute forecast.
+ * 3. Click anywhere on the scene: a storm rolls in. Lightning flash, a 10-mile ring,
  *    and every pill flips to STOP WORK while the workers move inside. Click again to clear.
+ *
+ * Motion style (same as Aiden's other sites): fast start, long soft landing (expo out),
+ * no bounce, no blur. Only transform and opacity animate, so it stays at 60 fps.
  *
  * The day, storm and night pictures share one camera angle, so crossfading between them is seamless.
  */
 
 import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
-
-import { duckLoop, play, setSound } from "./sound";
 
 export const SERIF = { fontFamily: '"Iowan Old Style", "New York", ui-serif, Georgia, serif' };
 const RATIO = 2752 / 1536;                     // the pictures' width / height
@@ -45,7 +46,6 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
   const [intro, setIntro] = useState(true);
   const [storm, setStorm] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
-  const [sound, setSoundOn] = useState(false);
   const [left, setLeft] = useState(1800);       // storm countdown, seconds
 
   const introRef = useRef<HTMLDivElement>(null);
@@ -66,7 +66,7 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
     const v = videoRef.current!;
     const tl = gsap.timeline();
     tl.fromTo(lensRef.current, { scale: 0.15, opacity: 0 }, { scale: 0.3, opacity: 1, duration: 0.6, ease: "power2.out" })
-      .call(() => { v.play().catch(() => finish()); play("whoosh", 0.5); })
+      .call(() => { v.play().catch(() => finish()); })
       .fromTo(v, { clipPath: "circle(6% at 50% 50%)", scale: 1.12 }, { clipPath: "circle(80% at 50% 50%)", scale: 1, duration: 1.6, ease: "expo.inOut" }, "<")
       .to(lensRef.current, { scale: 3.2, opacity: 0, duration: 1.6, ease: "expo.inOut" }, "<");
     const bail = setTimeout(() => finish(), 9000);   // if the video never plays, don't trap anyone
@@ -82,36 +82,31 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
     revealText(instant ? 0 : 0.35);
   }
 
-  // Headline words rise out of a blur, one after another
+  // Headline words slide up from behind an invisible line, one after another (no blur: it stutters)
   function revealText(delay: number) {
     const root = textRef.current;
     if (!root) return;
     gsap.set(root, { opacity: 1 });
-    gsap.fromTo(root.querySelectorAll("[data-word]"), { yPercent: 110, opacity: 0, filter: "blur(10px)" },
-      { yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 1, stagger: 0.07, ease: "expo.out", delay });
-    gsap.fromTo(root.querySelectorAll("[data-fade]"), { y: 18, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.9, stagger: 0.1, ease: "power3.out", delay: delay + 0.6 });
-    gsap.fromTo("[data-pin]", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.7, stagger: 0.12, ease: "back.out(2)", delay: delay + 0.9 });
+    gsap.fromTo(root.querySelectorAll("[data-word]"), { yPercent: 105 },
+      { yPercent: 0, duration: 1.2, stagger: 0.06, ease: "expo.out", delay, force3D: true });
+    gsap.fromTo(root.querySelectorAll("[data-fade]"), { y: 24, opacity: 0 },
+      { y: 0, opacity: 1, duration: 1.1, stagger: 0.09, ease: "expo.out", delay: delay + 0.45 });
+    gsap.fromTo("[data-pin]", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: "expo.out", delay: delay + 0.8 });
   }
 
-  // ---- 3. Storm: flash, thunder, a little camera shake ------------------------------------
+  // ---- 3. Storm: two soft lightning flashes ----------------------------------------------
   function toggleStorm(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest("a,button,input,select,[data-pin]")) return;
     const next = !storm;
     setStorm(next);
     setOpen(null);
-    duckLoop(next);
     if (next) {
       setLeft(1800);
       gsap.timeline({ delay: 0.75 })
-        .call(() => play("thunder", 0.9))
-        .to(flashRef.current, { opacity: 0.9, duration: 0.05 })
-        .to(flashRef.current, { opacity: 0, duration: 0.1 })
-        .to(flashRef.current, { opacity: 0.65, duration: 0.05 })
-        .to(flashRef.current, { opacity: 0, duration: 0.6, ease: "power2.out" })
-        .fromTo(sceneRef.current, { x: -6 }, { x: 0, duration: 0.5, ease: "elastic.out(1.2, 0.3)" }, 0.05);
-    } else {
-      play("clear", 0.7);
+        .to(flashRef.current, { opacity: 0.55, duration: 0.06, ease: "power1.out" })
+        .to(flashRef.current, { opacity: 0, duration: 0.18, ease: "power2.out" })
+        .to(flashRef.current, { opacity: 0.35, duration: 0.06, ease: "power1.out" })
+        .to(flashRef.current, { opacity: 0, duration: 0.9, ease: "expo.out" });
     }
   }
 
@@ -121,8 +116,6 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
     const t = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(t);
   }, [storm]);
-
-  const toggleSound = () => { setSound(!sound); setSoundOn(!sound); };
 
   return (
     <section onClick={intro ? undefined : toggleStorm}
@@ -135,9 +128,6 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
         <img src="/landing/hero.jpg" alt="A miniature Florida power plant job site with five workers" className="absolute inset-0 h-full w-full" />
         <img src="/landing/night.jpg" alt="" className={`absolute inset-0 h-full w-full transition-opacity duration-[1400ms] ${night && !storm ? "opacity-100" : "opacity-0"}`} />
         <img src="/landing/storm.jpg" alt="" className={`absolute inset-0 h-full w-full transition-opacity duration-[1200ms] ${storm ? "opacity-100" : "opacity-0"}`} />
-
-        {/* Heat haze over the stacks: a wobble filter on a small crop of the same picture */}
-        {!storm && <Haze night={night} />}
 
         {/* Steam puffs drifting off the two stacks */}
         {!storm && [[74.5, 8.6], [83.6, 11.4]].map(([x, y], i) => (
@@ -160,12 +150,13 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
         {/* Worker pins */}
         {WORKERS.map((w, i) => (
           <Pin key={w.name} w={w} i={i} storm={storm} open={open === i}
-            onOpen={() => { if (open !== i) play("buzz", 0.45); setOpen(i); }} onClose={() => setOpen(null)} />
+            onOpen={() => setOpen(i)} onClose={() => setOpen(null)} />
         ))}
       </div>
 
-      {/* Moving rain + lightning flash on top of everything in the scene */}
-      <div className={`rain-layer pointer-events-none absolute inset-0 transition-opacity duration-1000 ${storm ? "opacity-100" : "opacity-0"}`} />
+      {/* Moving rain + lightning flash on top of everything in the scene.
+          The rain layer is taller than the screen and slides down (cheap), instead of repainting its background. */}
+      {storm && <div className="rain-layer fade-in pointer-events-none absolute inset-x-0 bottom-0 top-[-480px]" />}
       <div ref={flashRef} className="pointer-events-none absolute inset-0 bg-white opacity-0" />
       {/* Soft wash on the left so the headline always reads */}
       <div className={`pointer-events-none absolute inset-y-0 left-0 w-[55%] transition-opacity duration-1000 ${dark ? "bg-gradient-to-r from-[#0d1220]/85 via-[#0d1220]/40 to-transparent" : "bg-gradient-to-r from-[#f4ede2]/80 via-[#f4ede2]/30 to-transparent"}`} />
@@ -198,11 +189,8 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
           The crew lead sees who needs a break.
         </p>
         <div data-fade className="pointer-events-auto mt-8 flex items-center gap-3">
-          <button onClick={onSignup} className={`rounded-full px-6 py-3 text-sm font-semibold shadow-lg transition-transform hover:scale-[1.03] ${dark ? "bg-[#f4ede2] text-[#1d1b19]" : "bg-[#1d1b19] text-white"}`}>
+          <button onClick={onSignup} className={`rounded-full px-6 py-3 text-sm font-semibold shadow-lg transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.97] ${dark ? "bg-[#f4ede2] text-[#1d1b19]" : "bg-[#1d1b19] text-white"}`}>
             Get your crew on it →
-          </button>
-          <button onClick={toggleSound} className={`flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold backdrop-blur transition-colors ${dark ? "border-white/25 bg-white/10" : "border-black/10 bg-white/60"}`}>
-            <SoundBars on={sound} /> {sound ? "Sound on" : "Play with sound"}
           </button>
         </div>
       </div>
@@ -264,7 +252,7 @@ function Pin({ w, i, storm, open, onOpen, onClose }: {
       {/* the worker's wristband LED */}
       <span className="led absolute left-0 top-[18px] h-2.5 w-2.5 rounded-full" style={{ background: t.dot, boxShadow: `0 0 12px 3px ${t.dot}` }} />
       <div className="bob absolute left-0 top-0" style={{ animationDelay: `${i * 0.4}s` }}>
-        <div key={tone} className={`flip-in flex cursor-default items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-lg backdrop-blur ${t.pill}`}
+        <div key={tone} className={`flip-in flex cursor-default items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-lg ${t.pill}`}
           style={{ animationDelay: storm ? `${0.6 + i * 0.22}s` : "0s", marginTop: storm ? -w.lift : 0 }}>
           <span className="h-1.5 w-1.5 rounded-full" style={{ background: tone === "stop" ? "white" : t.dot }} />
           {w.name.split(" ")[0]} · {storm ? "STOP WORK" : w.label}
@@ -283,7 +271,7 @@ function ForecastCard({ w, storm }: { w: (typeof WORKERS)[number]; storm: boolea
   const past = `M4 ${y(w.now - (up ? 0.5 : -0.4))} C 40 ${y(w.now - (up ? 0.35 : -0.3))}, 60 ${y(w.now - 0.1)}, 80 ${y(w.now)}`;
   const next = `M80 ${y(w.now)} C 110 ${y((w.now + w.ahead) / 2)}, 140 ${y(w.ahead - 0.05)}, 196 ${y(w.ahead)}`;
   return (
-    <div className="flip-in absolute left-1/2 top-[-8px] w-[232px] -translate-x-1/2 -translate-y-full rounded-2xl border border-white/60 bg-white/90 p-3.5 text-[#1d1b19] shadow-2xl backdrop-blur-xl">
+    <div className="card-in absolute left-1/2 top-[-8px] w-[232px] -translate-x-1/2 -translate-y-full rounded-2xl border border-white/60 bg-white/95 p-3.5 text-[#1d1b19] shadow-2xl">
       <div className="flex items-baseline justify-between">
         <p className="text-sm font-semibold">{w.name}</p>
         <p className="text-[11px] text-[#8a8174]">{storm ? "Sheltering" : w.job}</p>
@@ -303,40 +291,6 @@ function ForecastCard({ w, storm }: { w: (typeof WORKERS)[number]; storm: boolea
         {storm ? "Band says: stop work, get inside." : w.tone === "warn" ? "Band buzzed: take a break in the shade." : w.tone === "cool" ? "On break. Cooling off nicely." : "No action needed."}
       </p>
     </div>
-  );
-}
-
-/** Heat haze above the stacks: a cropped copy of the picture run through a wobbly SVG filter. */
-function Haze({ night }: { night: boolean }) {
-  return (
-    <>
-      <svg className="absolute h-0 w-0" aria-hidden>
-        <filter id="haze">
-          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.07" numOctaves="2" seed="3">
-            <animate attributeName="baseFrequency" dur="7s" values="0.012 0.07;0.016 0.1;0.012 0.07" repeatCount="indefinite" />
-          </feTurbulence>
-          <feDisplacementMap in="SourceGraphic" scale="9" />
-        </filter>
-      </svg>
-      <div className="pointer-events-none absolute overflow-hidden" style={{
-        left: "68%", top: 0, width: "22%", height: "24%", filter: "url(#haze)",
-        maskImage: "radial-gradient(closest-side, black 55%, transparent)", WebkitMaskImage: "radial-gradient(closest-side, black 55%, transparent)",
-      }}>
-        <img src={night ? "/landing/night.jpg" : "/landing/hero.jpg"} alt="" className="absolute max-w-none"
-          style={{ width: `${100 / 0.22}%`, height: `${100 / 0.24}%`, left: `${-68 / 0.22}%`, top: 0 }} />
-      </div>
-    </>
-  );
-}
-
-function SoundBars({ on }: { on: boolean }) {
-  return (
-    <span className="flex h-3.5 items-end gap-[2px]" aria-hidden>
-      {[0.5, 1, 0.7, 0.9].map((h, i) => (
-        <span key={i} className="w-[2.5px] rounded-full bg-current transition-all duration-300"
-          style={{ height: on ? `${h * 100}%` : "25%", animation: on ? `bars ${0.6 + i * 0.15}s ease-in-out infinite` : "none", transformOrigin: "bottom" }} />
-      ))}
-    </span>
   );
 }
 

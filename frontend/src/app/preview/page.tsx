@@ -9,7 +9,7 @@
  *   FloridaBeat  79 plant sites drop onto Florida + the organization sign-up
  *
  * Motion: GSAP timelines + ScrollTrigger, Lenis for smooth scrolling.
- * All pictures, the intro film and the sounds were made with ElevenLabs (scripts/landing/eleven.py).
+ * All pictures and the intro film were made with ElevenLabs (scripts/landing/eleven.py). No sound.
  * PREVIEW: the sign-up form doesn't send anything yet.
  */
 
@@ -34,7 +34,8 @@ export default function SellingPage() {
     gsap.registerPlugin(ScrollTrigger);
     history.scrollRestoration = "manual";        // a reload starts at the top, where the story starts
     window.scrollTo(0, 0);
-    const l = new Lenis({ lerp: 0.09 });
+    // Same buttery scroll as Aiden's other sites: 1.15 s glide with Lenis's soft expo ease
+    const l = new Lenis({ duration: 1.15, smoothWheel: true, wheelMultiplier: 0.95 });
     if (!introDone.current) l.stop();             // no scrolling while the intro film plays
     l.on("scroll", ScrollTrigger.update);
     const tick = (time: number) => l.raf(time * 1000);

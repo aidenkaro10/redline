@@ -16,7 +16,6 @@ import { forwardRef, useEffect, useRef, useState } from "react";
 
 import { OUTLINE, PLANTS } from "./florida";
 import { SERIF } from "./Hero";
-import { play } from "./sound";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -54,11 +53,11 @@ export function BandBeat() {
       gsap.set(next, { strokeDasharray: len(next), strokeDashoffset: len(next) });
 
       // Words and the chart card rise as the section comes into view...
-      gsap.from([...q("[data-copy] > *"), ...q("[data-chart]")], { y: 40, opacity: 0, stagger: 0.1, duration: 0.9, ease: "power3.out",
+      gsap.from([...q("[data-copy] > *"), ...q("[data-chart]")], { y: 36, opacity: 0, stagger: 0.08, duration: 1.2, ease: "expo.out",
         scrollTrigger: { trigger: root.current, start: "top 65%" } });
       // ...then the section pins and the scroll wheel plays the chart like a film
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: root.current, start: "top top", end: "+=1800", scrub: 0.8, pin: true },
+        scrollTrigger: { trigger: root.current, start: "top top", end: "+=1800", scrub: 1.2, pin: true, anticipatePin: 1 },
       });
       tl.fromTo(q("[data-photo]"), { scale: 1.35, clipPath: "inset(18% 22% 18% 22% round 40px)" }, { scale: 1, clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1.2, ease: "power2.inOut" })
         .to(past, { strokeDashoffset: 0, duration: 1.2, ease: "none" })
@@ -66,9 +65,8 @@ export function BandBeat() {
         .fromTo(q("[data-band-clip]"), { attr: { width: 0 } }, { attr: { width: 270 }, duration: 1.2, ease: "none" })
         .to(next, { strokeDashoffset: 0, duration: 1.2, ease: "none" }, "<")
         .fromTo(q("[data-warn]"), { opacity: 0.25 }, { opacity: 1, duration: 0.3 })
-        .from(q("[data-cross]"), { scale: 0, transformOrigin: "center", duration: 0.3, ease: "back.out(3)" })
-        .call(() => play("buzz", 0.6))
-        .from(q("[data-callout]"), { y: 16, opacity: 0, duration: 0.4 }, "<")
+        .from(q("[data-cross]"), { scale: 0, transformOrigin: "center", duration: 0.4, ease: "expo.out" })
+        .from(q("[data-callout]"), { y: 16, opacity: 0, duration: 0.5, ease: "expo.out" }, "<")
         .to(q("[data-led]"), { opacity: 1, scale: 1, duration: 0.3 }, "<")
         .to({}, { duration: 0.8 });            // hold the finished frame for a moment
     }, root);
@@ -144,18 +142,18 @@ export function CrewBeat() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const q = gsap.utils.selector(root);
-      gsap.from(q("[data-copy] > *"), { y: 40, opacity: 0, stagger: 0.1, duration: 0.9, ease: "power3.out",
+      gsap.from(q("[data-copy] > *"), { y: 36, opacity: 0, stagger: 0.08, duration: 1.2, ease: "expo.out",
         scrollTrigger: { trigger: root.current, start: "top 65%" } });
-      const tl = gsap.timeline({ scrollTrigger: { trigger: root.current, start: "top 40%", end: "+=2000", scrub: 0.8 } });
-      ScrollTrigger.create({ trigger: root.current, start: "top top", end: "+=1600", pin: true });
-      tl.fromTo(q("[data-phone]"), { y: 260, rotate: 8, opacity: 0 }, { y: 0, rotate: 0, opacity: 1, duration: 1.2, ease: "power3.out" })
-        .to(q("[data-ok='Jake Rivera']"), { opacity: 0, duration: 0.3 }, "+=0.3")
-        .from(q("[data-bad='Jake Rivera']"), { opacity: 0, rotateX: -90, duration: 0.4 }, "<")
-        .to(q("[data-ok='Tasha Webb']"), { opacity: 0, duration: 0.3 }, "<0.15")
-        .from(q("[data-bad='Tasha Webb']"), { opacity: 0, rotateX: -90, duration: 0.4 }, "<");
+      const tl = gsap.timeline({ scrollTrigger: { trigger: root.current, start: "top 40%", end: "+=2000", scrub: 1.2 } });
+      ScrollTrigger.create({ trigger: root.current, start: "top top", end: "+=1600", pin: true, anticipatePin: 1 });
+      tl.fromTo(q("[data-phone]"), { y: 220, rotate: 3, opacity: 0 }, { y: 0, rotate: 0, opacity: 1, duration: 1.2, ease: "expo.out" })
+        .to(q("[data-ok='Jake Rivera']"), { opacity: 0, y: -6, duration: 0.35 }, "+=0.3")
+        .from(q("[data-bad='Jake Rivera']"), { opacity: 0, y: 6, duration: 0.45, ease: "expo.out" }, "<")
+        .to(q("[data-ok='Tasha Webb']"), { opacity: 0, y: -6, duration: 0.35 }, "<0.15")
+        .from(q("[data-bad='Tasha Webb']"), { opacity: 0, y: 6, duration: 0.45, ease: "expo.out" }, "<");
       // Re-sort: worst first. Each row slides from its old slot to its new one.
-      CREW.forEach((c, i) => tl.to(q(`[data-row='${c.name}']`), { y: (c.rank - i) * ROW, duration: 0.8, ease: "power2.inOut" }, i ? "<" : "+=0.2"));
-      tl.fromTo(q("[data-note]"), { y: -90, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "back.out(1.6)" }, "+=0.15")
+      CREW.forEach((c, i) => tl.to(q(`[data-row='${c.name}']`), { y: (c.rank - i) * ROW, duration: 0.9, ease: "expo.inOut" }, i ? "<" : "+=0.2"));
+      tl.fromTo(q("[data-note]"), { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, "+=0.15")
         .to({}, { duration: 0.8 });
     }, root);
     return () => ctx.revert();
@@ -235,10 +233,10 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from("[data-site]", {
-        y: -26, opacity: 0, duration: 0.6, stagger: 0.025, ease: "back.out(2)",
+        y: -14, opacity: 0, duration: 1, stagger: 0.018, ease: "expo.out",
         scrollTrigger: { trigger: mapRef.current, start: "top 75%" },
       });
-      gsap.from("[data-coast]", { opacity: 0, duration: 1.2, scrollTrigger: { trigger: mapRef.current, start: "top 80%" } });
+      gsap.from("[data-coast]", { opacity: 0, duration: 1.6, ease: "power2.out", scrollTrigger: { trigger: mapRef.current, start: "top 80%" } });
     }, mapRef);
     return () => ctx.revert();
   }, []);
@@ -291,7 +289,7 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
 
       <footer className="mx-auto mt-24 flex max-w-[1300px] items-center justify-between px-8 text-xs text-white/40">
         <span>PlanIT Control · Built at SwampHacks XII</span>
-        <span>Pictures, film and sound made with ElevenLabs</span>
+        <span>Pictures and film made with ElevenLabs</span>
       </footer>
     </section>
   );
@@ -315,7 +313,7 @@ function SignupCard({ onDone }: { onDone: (company: string | null) => void }) {
           </div>
         ) : (
           <form key="form" className="flex flex-col gap-3"
-            onSubmit={(e) => { e.preventDefault(); setDone(form.name.split(" ")[0] || form.company); onDone(form.company); play("whoosh", 0.5); }}>
+            onSubmit={(e) => { e.preventDefault(); setDone(form.name.split(" ")[0] || form.company); onDone(form.company); }}>
             <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/50">Get your crew on it</p>
             <div className="grid grid-cols-2 gap-2.5">
               <input required value={form.company} onChange={set("company")} placeholder="Company" className={input} />
