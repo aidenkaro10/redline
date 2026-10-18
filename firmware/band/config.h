@@ -17,6 +17,10 @@
 #define ENABLE_LIGHT    0     // photoresistor on PIN_LIGHT: sends LIGHT:<0-4095> every second
 #define ENABLE_PPG      1     // light sensor + LED pulse on PIN_PPG (not on this build; can't share pin 10 with LIGHT)
 #define ENABLE_I2C      1     // accelerometer and/or air sensor on SDA/SCL (auto-detected)
+#define ENABLE_BLE      1     // wireless link to the laptop over Bluetooth LE (works with no WiFi/internet)
+
+// ---------- Bluetooth ----------
+#define BLE_NAME        "Redline Band"   // what the laptop looks for. Give each band its own name if you have several
 
 // ---------- Skin temperature calibration (two-point) ----------
 // How to calibrate:
