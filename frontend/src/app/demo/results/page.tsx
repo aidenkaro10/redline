@@ -23,6 +23,9 @@ export default function ResultsPage() {
   const r = data ?? BUNDLED;
 
   const groups = [...new Set(r.rows.map((x) => x.group))];
+  const lead = findRow(r, "Yellow warning lead time");
+  const trendAt = r.models.findIndex((m) => /trend/i.test(m));
+  const flatAt = r.models.findIndex((m) => /flat/i.test(m));
   return (
     <>
     <Nav />
@@ -35,11 +38,12 @@ export default function ResultsPage() {
 
       <section className="grid gap-4 lg:grid-cols-3">
         <Headline label="Forecast error 20 min ahead" base={findRow(r, "+20 min RMSE")?.values[0]} ours={findRow(r, "+20 min RMSE")?.values[r.best]} unit="°C" />
-        {/* The net's own win is warning earlier than the best simple baseline (catch rate ties at 88%).
-            Not red: on the test people our red alerts didn't beat that baseline (9/10 vs 10/10). */}
-        <Headline label="Heat warning, minutes ahead" unit="min" higherIsBetter
-          base={findRow(r, "Yellow warning lead time")?.values[1]} ours={findRow(r, "Yellow warning lead time")?.values[r.best]} baseLabel="Simple trend"
-          note={`${findRow(r, "Yellow warnings caught")?.values[r.best] ?? "--"}% caught, fewer false alarms: ${findRow(r, "Yellow false alarms")?.values[r.best]?.toFixed(2) ?? "--"} vs ${findRow(r, "Yellow false alarms")?.values[1]?.toFixed(2) ?? "--"}/hr`} />
+        {/* Warning lead time next to both simple baselines, so it doesn't read as the network alone:
+            a flat forecast with an honest 90% range warns nearly as early. Not red: on the test people
+            our red alerts didn't beat the trend baseline (9/10 vs 10/10). */}
+        <Headline label={`Heat warnings · ${findRow(r, "Yellow warnings caught")?.values[r.best] ?? "--"}% caught`} unit="min"
+          ours={lead?.values[r.best]} base={trendAt >= 0 ? lead?.values[trendAt] : null} baseLabel="Simple trend" hideChange
+          note={flatAt >= 0 && lead?.values[flatAt] != null ? `Flat with a 90% range: ${lead.values[flatAt]!.toFixed(1)} min` : undefined} />
         {r.planner
           ? <Headline label="Plans that broke a safety rule" base={r.planner.rows.find((x) => x.name.startsWith("AI alone"))?.runs_with_violations_pct} ours={r.planner.rows.find((x) => x.name.startsWith("Our agent"))?.runs_with_violations_pct} unit="%" baseLabel="Same AI without our rule checker" hideChange />
           : <Headline label="Core temp error now" base={r.rows[0].values[0]} ours={r.rows[0].values[r.best]} unit="°C" />}
@@ -115,14 +119,15 @@ function findRow(r: ModelResults, name: string) {
 function Headline({ label, base, ours, unit, higherIsBetter, baseLabel = "Kalman", hideChange, note }: { label: string; base?: number | null; ours?: number | null; unit: string; higherIsBetter?: boolean; baseLabel?: string; hideChange?: boolean; note?: string }) {
   // Percent metrics (catch rates) compare in points (88% vs 12% = +76 pts); the rest as a relative change.
   const pts = unit === "%";
+  const show = (v?: number | null) => (v == null ? "--" : unit === "min" ? v.toFixed(1) : v);
   const change = !hideChange && base && ours !== null && ours !== undefined ? (pts ? ours - base : ((ours - base) / base) * 100) : null;
   const good = change !== null && (higherIsBetter ? change > 0 : change < 0);
   return (
     <div className="rounded-xl border border-line bg-surface p-4">
       <p className="text-sm text-ink-2">{label}</p>
-      <p className="mt-1 text-4xl font-bold">{ours ?? "--"}<span className="ml-1 text-base font-medium text-ink-2">{unit}</span></p>
+      <p className="mt-1 text-4xl font-bold">{show(ours)}<span className="ml-1 text-base font-medium text-ink-2">{unit}</span></p>
       <p className="mt-1 text-sm">
-        <span className="text-muted">{baseLabel}: {base ?? "--"} {unit}</span>
+        <span className="text-muted">{baseLabel}: {show(base)} {unit}</span>
         {change !== null && <span className={`ml-2 font-semibold ${good ? "text-ok-ink" : "text-danger-ink"}`}>{change > 0 ? "+" : ""}{Math.round(change)}{pts ? " pts" : "%"}</span>}
       </p>
       {note && <p className="mt-1 text-xs text-ink-2">{note}</p>}
