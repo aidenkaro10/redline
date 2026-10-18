@@ -167,8 +167,8 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
           <Logo /> PlanIT Control
         </a>
         <nav className="ml-auto flex items-center gap-6 text-sm">
-          <a href="/worker" className="opacity-70 hover:opacity-100">Worker app</a>
-          <a href="/" className="opacity-70 hover:opacity-100">Crew lead app</a>
+          <a href="/worker" className="opacity-70 transition-opacity hover:opacity-100">Worker app</a>
+          <a href="/signin" className="opacity-70 transition-opacity hover:opacity-100">Sign in</a>
           <button onClick={() => setNight(!night)} aria-label={night ? "Day" : "Night"}
             className={`grid h-9 w-9 place-items-center rounded-full border backdrop-blur ${dark ? "border-white/20 bg-white/10" : "border-black/10 bg-white/50"}`}>
             {night ? "☀" : "☾"}

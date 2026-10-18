@@ -1,0 +1,20 @@
+# Render deploy (free plan). Render reads this file when you create a "Blueprint" from the repo.
+# One Node web service runs the whole website: selling page, sign-in, manager view, worker app,
+# and the built-in demo data (the mock backend inside Next.js), so phones and the laptop
+# share one live demo.
+services:
+  - type: web
+    name: planit-control
+    runtime: node
+    plan: free
+    branch: claude/frontend-simple
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /preview
+    autoDeploy: true            # every push to the branch redeploys
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"

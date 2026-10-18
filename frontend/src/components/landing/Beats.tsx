@@ -309,7 +309,10 @@ function SignupCard({ onDone }: { onDone: (company: string | null) => void }) {
           <div key="done" className="flip-in py-3">
             <p className="text-3xl tracking-tight" style={SERIF}>You&apos;re on the list.</p>
             <p className="mt-2 text-sm text-white/65">Thanks, {done}. We&apos;ll reach out to set up your first crew. Your pin is on the map.</p>
-            <button onClick={() => { setDone(null); onDone(null); }} className="mt-4 text-xs font-semibold text-[#ff9a5a]">Sign up another team</button>
+            <div className="mt-5 flex items-center gap-4">
+              <a href="/signin" className="rounded-full bg-[#f4ede2] px-5 py-2.5 text-sm font-semibold text-[#1d1b19] transition-transform hover:scale-[1.02]">Open the dashboard →</a>
+              <button onClick={() => { setDone(null); onDone(null); }} className="text-xs font-semibold text-[#ff9a5a]">Sign up another team</button>
+            </div>
           </div>
         ) : (
           <form key="form" className="flex flex-col gap-3"
