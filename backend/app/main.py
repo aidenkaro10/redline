@@ -278,6 +278,10 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     from backend.ingest import pulsoid_client, serial_reader, udp_listener
 
     tasks = []
+    # Tie the band to a real crew member, so alerts, the dashboards and the emergency call use their name.
+    if config.WORKER_NAME and config.WORKER_ID not in hub.workers:
+        hub.register_worker(config.WORKER_ID, name=config.WORKER_NAME, source="live")
+        log.info("Band belongs to %s (%s)", config.WORKER_NAME, config.WORKER_ID)
     udp_band = UDPBand()
     band.add(udp_band)
     await udp_listener.start(hub, udp_band, port=s.udp_port, worker_id=config.WORKER_ID)

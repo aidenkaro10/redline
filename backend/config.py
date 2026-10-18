@@ -92,6 +92,7 @@ SERVER_PORT = int(os.getenv("SERVER_PORT", "8000"))
 PULSOID_TOKEN = os.getenv("PULSOID_TOKEN", "")
 SERIAL_PORT = os.getenv("SERIAL_PORT", "")
 WORKER_ID = os.getenv("WORKER_ID", "worker-1")
+WORKER_NAME = os.getenv("WORKER_NAME", "")      # the crew member wearing the band (shown on every screen and the emergency call)
 JOB_SITE_LAT = float(os.getenv("JOB_SITE_LAT", "29.6516"))   # Gainesville, FL
 JOB_SITE_LON = float(os.getenv("JOB_SITE_LON", "-82.3248"))
 NWS_USER_AGENT = os.getenv("NWS_USER_AGENT", "planit-control (contact@example.com)")
