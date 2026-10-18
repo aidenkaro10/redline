@@ -1,7 +1,8 @@
 // Redline band firmware (Adafruit Feather ESP32-S3).
 //
 // The band REPORTS and OBEYS. The laptop decides everything (heat, man-down, lightning).
-// It sends sensor lines over USB serial at 115200 and follows BUZZ: commands.
+// It sends sensor lines over Bluetooth LE ("Redline Band", Nordic UART Service) AND USB serial
+// at 115200, and follows BUZZ: commands from either. No WiFi or internet needed.
 // Full line list: docs/firmware-contract.md. Settings and pins: config.h.
 //
 // Needs one library: "Adafruit NeoPixel" (Arduino IDE > Tools > Manage Libraries).
@@ -13,6 +14,46 @@
 #include <Wire.h>
 #include <Adafruit_NeoPixel.h>
 #include "config.h"
+#include <stdarg.h>
+#if ENABLE_BLE
+#include <BLEDevice.h>
+#include <BLEServer.h>
+#include <BLE2902.h>
+#endif
+
+// ============================================================ output: every line goes to USB and Bluetooth
+#if ENABLE_BLE
+// Nordic UART Service: a standard "serial port over Bluetooth". The laptop subscribes to TX
+// (band -> laptop) and writes BUZZ: commands to RX (laptop -> band).
+#define NUS_SERVICE "6E400001-B5A3-F393-E0A9-E50E24DCCA9E"
+#define NUS_RX      "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+#define NUS_TX      "6E400003-B5A3-F393-E0A9-E50E24DCCA9E"
+BLEServer* bleServer = nullptr;
+BLECharacteristic* bleTx = nullptr;
+volatile bool bleConnected = false;
+char bleOut[1024];                // lines waiting to go out over Bluetooth
+size_t bleOutLen = 0;
+char bleIn[256];                  // bytes the laptop wrote, waiting for loop() to read
+volatile size_t bleInLen = 0;
+portMUX_TYPE bleInLock = portMUX_INITIALIZER_UNLOCKED;
+#endif
+
+void bleQueue(const char* s, size_t n);
+
+// printf-style: send one formatted chunk (normally a whole line ending in \n) everywhere.
+void out(const char* fmt, ...) {
+  char buf[200];
+  va_list ap;
+  va_start(ap, fmt);
+  int n = vsnprintf(buf, sizeof buf, fmt, ap);
+  va_end(ap);
+  if (n <= 0) return;
+  if (n >= (int)sizeof buf) n = sizeof buf - 1;
+  // Only write to USB when a computer is actually listening. On a power bank or charger there's
+  // no computer, and waiting on USB writes would freeze the band.
+  if (Serial && Serial.availableForWrite() >= n) Serial.write((const uint8_t*)buf, n);
+  bleQueue(buf, n);
+}
 
 // ============================================================ status light
 Adafruit_NeoPixel pixel(1, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
@@ -121,7 +162,8 @@ void updatePatternSound(uint32_t now) {
 }
 
 // ============================================================ commands from the laptop
-String inbox;
+String inbox;        // USB serial bytes until a newline
+String bleLine;      // Bluetooth bytes until a newline
 
 void applyCommand(const String& name, uint32_t now) {
   Pattern p;
@@ -131,7 +173,7 @@ void applyCommand(const String& name, uint32_t now) {
   else if (name == "LIGHTNING")   p = P_LIGHTNING;
   else if (name == "FLOOD_FIRE")  p = P_FLOOD_FIRE;
   else if (name == "MANDOWN")     p = P_MANDOWN;
-  else { Serial.print("#unknown command: "); Serial.println(name); return; }
+  else { out("#unknown command: %s\n", name.c_str()); return; }
 
   lastCommandMs = now;
   if (p == pattern) return;      // the 20 s re-send: keep going, don't restart the sounds
@@ -145,17 +187,31 @@ void applyCommand(const String& name, uint32_t now) {
   if (p == P_FLOOD_FIRE)  playSequence(TWO_SHORT, 4);
 }
 
+void handleLine(String line, uint32_t now) {
+  line.trim();
+  if (line.startsWith("BUZZ:")) applyCommand(line.substring(5), now);
+}
+
 void readCommands(uint32_t now) {
   while (Serial.available()) {
     char c = (char)Serial.read();
-    if (c == '\n' || c == '\r') {
-      inbox.trim();
-      if (inbox.startsWith("BUZZ:")) applyCommand(inbox.substring(5), now);
-      inbox = "";
-    } else if (inbox.length() < 64) {
-      inbox += c;
-    }
+    if (c == '\n' || c == '\r') { handleLine(inbox, now); inbox = ""; }
+    else if (inbox.length() < 64) inbox += c;
   }
+#if ENABLE_BLE
+  char tmp[256];
+  size_t n = 0;
+  portENTER_CRITICAL(&bleInLock);            // copy what the Bluetooth task wrote, then clear it
+  n = bleInLen;
+  memcpy(tmp, bleIn, n);
+  bleInLen = 0;
+  portEXIT_CRITICAL(&bleInLock);
+  for (size_t i = 0; i < n; i++) {
+    char c = tmp[i];
+    if (c == '\n' || c == '\r') { handleLine(bleLine, now); bleLine = ""; }
+    else if (bleLine.length() < 64) bleLine += c;
+  }
+#endif
 }
 
 // ============================================================ button
@@ -166,7 +222,7 @@ uint32_t pressStartMs = 0;
 bool sosSent = false;
 
 void onShortPress(uint32_t now) {
-  Serial.println("BTN:1");
+  out("BTN:1\n");
   whiteBlinkUntil = now + 150;
   if (pattern == P_HEAT_RED || pattern == P_MANDOWN) {
     acknowledged = true;         // stop beeping; the light keeps showing the alert
@@ -175,7 +231,7 @@ void onShortPress(uint32_t now) {
 }
 
 void onSos(uint32_t now) {
-  Serial.println("BTN:SOS");
+  out("BTN:SOS\n");
   sosFeedbackUntil = now + 1500;
   stopSound();
   playSequence(THREE_BEEPS, 6);
@@ -210,7 +266,7 @@ void updateTilt(uint32_t now) {
   tiltLast = t;
   if (now >= nextTiltMs) {
     nextTiltMs = now + TILT_EVERY_MS;
-    Serial.printf("TILT:%d,ACT:%u\n", t, tiltChanges);
+    out("TILT:%d,ACT:%u\n", t, tiltChanges);
     tiltChanges = 0;
   }
 }
@@ -223,7 +279,7 @@ void updateSunlight(uint32_t now) {
   nextLightMs = now + LIGHT_EVERY_MS;
   uint32_t sum = 0;
   for (int i = 0; i < 16; i++) sum += analogRead(PIN_LIGHT);   // average 16 readings
-  Serial.printf("LIGHT:%u\n", (unsigned)(sum / 16));           // 0 = dark, 4095 = very bright
+  out("LIGHT:%u\n", (unsigned)(sum / 16));           // 0 = dark, 4095 = very bright
 }
 
 // ============================================================ skin temperature (diode)
@@ -237,8 +293,8 @@ void updateTemp(uint32_t now) {
   float mv = sum / 64.0f;
   float slope = (CAL_T2_C - CAL_T1_C) / (CAL_MV2 - CAL_MV1);              // °C per mV (negative)
   float tempC = CAL_T1_C + (mv - CAL_MV1) * slope;
-  Serial.printf("TEMP:%.2f\n", tempC);
-  Serial.printf("#DIODE_MV:%.0f\n", mv);                                  // for calibration
+  out("TEMP:%.2f\n", tempC);
+  out("#DIODE_MV:%.0f\n", mv);                                  // for calibration
 }
 
 // ============================================================ I2C sensors (auto-detected)
@@ -270,7 +326,7 @@ void setupAccelerometer() {
     writeReg(accAddr, 0x2C, 0x0A);   // 100 samples/s
     writeReg(accAddr, 0x31, 0x0B);   // full resolution, ±16 g (falls don't max out)
     writeReg(accAddr, 0x2D, 0x08);   // measure
-    Serial.println("#accelerometer: ADXL345 at 0x53");
+    out("#accelerometer: ADXL345 at 0x53\n");
     return;
   }
   for (uint8_t a : {0x19, 0x18}) {                                     // LIS3DH / LIS3DHTR
@@ -278,7 +334,7 @@ void setupAccelerometer() {
       accType = ACC_LIS3DH; accAddr = a;
       writeReg(accAddr, 0x20, 0x57); // 100 samples/s, x/y/z on
       writeReg(accAddr, 0x23, 0xA8); // block update, ±8 g, high resolution
-      Serial.printf("#accelerometer: LIS3DH at 0x%02X\n", a);
+      out("#accelerometer: LIS3DH at 0x%02X\n", a);
       return;
     }
   }
@@ -287,10 +343,10 @@ void setupAccelerometer() {
     writeReg(accAddr, 0x07, 0x00);   // standby to configure
     writeReg(accAddr, 0x08, 0x00);   // 120 samples/s
     writeReg(accAddr, 0x07, 0x01);   // active
-    Serial.println("#accelerometer: MMA7660 at 0x4C (max 1.5 g)");
+    out("#accelerometer: MMA7660 at 0x4C (max 1.5 g)\n");
     return;
   }
-  Serial.println("#accelerometer: none found");
+  out("#accelerometer: none found\n");
 }
 
 bool readAccel(float& x, float& y, float& z) {
@@ -351,10 +407,10 @@ void setupAirSensor() {
     }
     writeReg(a, 0xF5, 0x08);       // filter x4 (steadier pressure for fall detection)
     writeReg(a, 0xF4, 0x4F);       // temp x2, pressure x4, normal mode
-    Serial.printf("#air sensor: %s at 0x%02X\n", airHasHumidity ? "BME280" : "BMP280", a);
+    out("#air sensor: %s at 0x%02X\n", airHasHumidity ? "BME280" : "BMP280", a);
     return;
   }
-  Serial.println("#air sensor: none found");
+  out("#air sensor: none found\n");
 }
 
 void updateAir(uint32_t now) {
@@ -383,7 +439,7 @@ void updateAir(uint32_t now) {
   v2 = p * dig_P8 / 32768.0;
   p = p + (v1 + v2 + dig_P7) / 16.0;                    // pascals
 
-  Serial.printf("AIRT:%.2f\n", tempC);
+  out("AIRT:%.2f\n", tempC);
   if (airHasHumidity) {
     int32_t adcH = (int32_t)d[6] << 8 | d[7];
     double h = tFine - 76800.0;
@@ -391,9 +447,9 @@ void updateAir(uint32_t now) {
         (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * h * (1.0 + dig_H3 / 67108864.0 * h)));
     h = h * (1.0 - dig_H1 * h / 524288.0);
     h = constrain(h, 0.0, 100.0);
-    Serial.printf("HUM:%.1f\n", h);
+    out("HUM:%.1f\n", h);
   }
-  Serial.printf("BARO:%.2f\n", p / 100.0);          // hPa
+  out("BARO:%.2f\n", p / 100.0);          // hPa
 }
 
 // ============================================================ pulse + motion, 50 per second
@@ -425,20 +481,84 @@ void updateSamples() {
   ppg[ppgCount++] = (uint16_t)(ppgSum / ppgReads);   // average of all reads in the last 20 ms
   ppgSum = 0; ppgReads = 0;
   if (ppgCount == 10) {                              // one PPG line per 10 samples (200 ms)
-    Serial.print("PPG:");
-    for (int i = 0; i < 10; i++) { if (i) Serial.print(','); Serial.print(ppg[i]); }
-    Serial.println();
+    out("PPG:%u,%u,%u,%u,%u,%u,%u,%u,%u,%u\n", ppg[0], ppg[1], ppg[2], ppg[3], ppg[4],
+        ppg[5], ppg[6], ppg[7], ppg[8], ppg[9]);
     ppgCount = 0;
   }
 #endif
 
   float x, y, z;
-  if (accType != ACC_NONE && readAccel(x, y, z)) Serial.printf("ACC:%.2f,%.2f,%.2f\n", x, y, z);
+  if (accType != ACC_NONE && readAccel(x, y, z)) out("ACC:%.2f,%.2f,%.2f\n", x, y, z);
 }
+
+// ============================================================ Bluetooth LE link
+#if ENABLE_BLE
+class ServerEvents : public BLEServerCallbacks {
+  void onConnect(BLEServer* server) override { bleConnected = true; }
+  void onDisconnect(BLEServer* server) override {
+    bleConnected = false;
+    server->startAdvertising();              // let the laptop reconnect right away
+  }
+};
+
+class RxEvents : public BLECharacteristicCallbacks {
+  void onWrite(BLECharacteristic* c) override {   // runs in the Bluetooth task, so just copy the bytes
+    String v = c->getValue();
+    portENTER_CRITICAL(&bleInLock);
+    for (size_t i = 0; i < v.length() && bleInLen < sizeof bleIn; i++) bleIn[bleInLen++] = v[i];
+    portEXIT_CRITICAL(&bleInLock);
+  }
+};
+
+void setupBle() {
+  BLEDevice::init(BLE_NAME);
+  BLEDevice::setMTU(185);                    // bigger packets: fewer notifications per second
+  bleServer = BLEDevice::createServer();
+  bleServer->setCallbacks(new ServerEvents());
+  BLEService* svc = bleServer->createService(NUS_SERVICE);
+  bleTx = svc->createCharacteristic(NUS_TX, BLECharacteristic::PROPERTY_NOTIFY);
+  bleTx->addDescriptor(new BLE2902());
+  BLECharacteristic* rx = svc->createCharacteristic(
+      NUS_RX, BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
+  rx->setCallbacks(new RxEvents());
+  svc->start();
+  BLEAdvertising* adv = BLEDevice::getAdvertising();
+  adv->addServiceUUID(NUS_SERVICE);
+  adv->setScanResponse(true);
+  BLEDevice::startAdvertising();
+  out("#bluetooth: advertising as \"%s\"\n", BLE_NAME);
+}
+
+void bleQueue(const char* s, size_t n) {
+  if (!bleConnected) return;                 // nobody listening: don't pile up old lines
+  if (bleOutLen + n > sizeof bleOut) bleOutLen = 0;   // laptop fell far behind: drop and carry on
+  memcpy(bleOut + bleOutLen, s, n);
+  bleOutLen += n;
+}
+
+uint32_t nextBleFlushMs = 0;
+
+// Every 40 ms send what's queued, in chunks that fit one Bluetooth packet.
+void updateBle(uint32_t now) {
+  if (!bleConnected || bleOutLen == 0 || now < nextBleFlushMs) return;
+  nextBleFlushMs = now + 40;
+  uint16_t mtu = bleServer->getPeerMTU(bleServer->getConnId());
+  size_t chunk = (mtu > 23 ? mtu : 23) - 3;  // a notification carries MTU - 3 bytes
+  for (size_t i = 0; i < bleOutLen; i += chunk) {
+    size_t n = min(chunk, bleOutLen - i);
+    bleTx->setValue((uint8_t*)bleOut + i, n);
+    bleTx->notify();
+  }
+  bleOutLen = 0;
+}
+#else
+void bleQueue(const char*, size_t) {}
+#endif
 
 // ============================================================ setup + loop
 void setup() {
   Serial.begin(115200);
+  Serial.setTxTimeoutMs(0);          // never wait on USB: the band must keep running with no computer attached
 
 #if defined(NEOPIXEL_POWER)
   pinMode(NEOPIXEL_POWER, OUTPUT);
@@ -476,7 +596,10 @@ void setup() {
   lastCommandMs = now;          // don't blink cyan right at boot
   patternStartMs = now;
   nextSampleUs = micros();
-  Serial.println("#Redline band ready");
+#if ENABLE_BLE
+  setupBle();
+#endif
+  out("#Redline band ready\n");
 }
 
 void loop() {
@@ -498,4 +621,7 @@ void loop() {
   updatePatternSound(now);
   updateSound(now);
   updateLight(now);
+#if ENABLE_BLE
+  updateBle(now);
+#endif
 }
