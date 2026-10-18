@@ -54,6 +54,7 @@ GRADE_WORKERS = 3        # CPU processes for the rule checker (session F also us
 REPLAY_IDEAS = 100       # how many of Claude's ideas / explain examples to replay each round
 REPLAY_EXPLAIN = 100
 LR = 5e-5
+SELF_COPIES = 3          # self-samples are few (~1 per 3 days): count each 3x so they aren't drowned by replay
 DECODE = "free"          # "free", or "format"/"rules" = constrained decoding (constrained.py)
 REPLAY_DIR = None        # where the replay examples come from (default: the original Claude-taught set)
 
@@ -194,12 +195,12 @@ def build_round_dataset(kept: list[dict], days: dict, round_dir: Path, seed: int
         mine.append({"messages": [{"role": "system", "content": LLM_SYSTEM},
                                   {"role": "user", "content": llm_prompt(sc)},
                                   {"role": "assistant", "content": compact(answer)}]})
-    rows = replay + mine
+    rows = replay + mine * SELF_COPIES
     rng.shuffle(rows)
     sft = out_dir(round_dir / "sft")
     (sft / "train.jsonl").write_text("".join(json.dumps(r) + "\n" for r in rows))
     (sft / "valid.jsonl").write_text((SFT_DIR / "valid.jsonl").read_text())   # same valid set as before
-    return {"self_samples": len(mine), "claude_replay": len(replay), "total": len(rows)}
+    return {"self_samples": len(mine), "self_copies": SELF_COPIES, "claude_replay": len(replay), "total": len(rows)}
 
 
 def retrain(start_adapter: Path, new_adapter: Path, data_dir: Path, n_examples: int) -> None:
@@ -237,8 +238,13 @@ def run_round(r: int, start: Path) -> None:
     rng = random.Random(1000 + r)
     days = rng.sample(train_days, min(DAYS_PER_ROUND, len(train_days)))
     print(f"Round {r}: start adapter {start.name}, {len(days)} training days x {K} samples", flush=True)
-    graded = sample_and_grade(start, days, K, TEMPERATURE)
-    (round_dir / "graded.json").write_text(json.dumps(graded))
+    saved = round_dir / "graded.json"
+    if saved.exists():                         # resume: never re-sample a round that's already graded
+        graded = json.loads(saved.read_text())
+        print("  reusing saved samples", flush=True)
+    else:
+        graded = sample_and_grade(start, days, K, TEMPERATURE)
+        saved.write_text(json.dumps(graded))
     st = stats(graded)
     print(f"  TRAIN-DAY samples from {start.name}: {json.dumps(st)}  ({time.time() - t0:.0f}s)", flush=True)
     kept = keep_best(graded)
