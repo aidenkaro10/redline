@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 
 import { useCrew } from "@/lib/crew";
 import { USING_MOCK, useLive, useSimNow } from "@/lib/live";
+import { RedlineLogo } from "./RedlineLogo";
 import { fmtClockSec } from "./ui";
 
 const LINKS = [
@@ -29,8 +30,7 @@ export function Nav() {
     <header className="sticky top-0 z-[500] border-b border-line bg-surface/90 backdrop-blur">
       <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
         <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-          <Logo />
-          <span>Redline</span>
+          <RedlineLogo size={16} />
         </Link>
         <nav className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
           {LINKS.map((l) => {
@@ -62,15 +62,6 @@ export function Nav() {
   );
 }
 
-function Logo() {
-  return (
-    <svg viewBox="0 0 28 28" className="h-7 w-7" aria-hidden>
-      <rect width="28" height="28" rx="7" fill="var(--accent)" />
-      <path d="M8 18c2-6 4-9 6-9s3 5 6 5" stroke="var(--accent-ink)" strokeWidth="2.4" fill="none" strokeLinecap="round" />
-      <circle cx="20" cy="14" r="2" fill="var(--accent-ink)" />
-    </svg>
-  );
-}
 
 /** Light / dark / system. Remembered in this browser only. */
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {

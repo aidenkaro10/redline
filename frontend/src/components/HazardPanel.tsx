@@ -54,6 +54,11 @@ export function HazardPanel({ site, status }: { site: Site; status: SiteStatus }
               </div>
               <p className="text-sm text-ink">{h.headline}</p>
               {h.detail && <p className="text-xs text-ink-2">{h.detail}</p>}
+              {h.sighting && (
+                <a href={h.sighting.url} target="_blank" rel="noopener noreferrer" className="mt-0.5 inline-block text-xs font-semibold text-accent">
+                  See the sighting on iNaturalist
+                </a>
+              )}
               <p className="mt-0.5 text-[11px] text-muted">
                 {[h.source, h.stale ? `feed down, last updated ${fmtClock(h.updated_at)}` : fmtClock(h.updated_at), h.band_pattern ? `band: ${h.band_pattern}` : ""].filter(Boolean).join(" · ")}
               </p>

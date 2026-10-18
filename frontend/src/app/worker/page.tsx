@@ -6,7 +6,7 @@
  */
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { AppHeader } from "@/components/AppHeader";
@@ -14,12 +14,16 @@ import { Chevron } from "@/components/Sheet";
 import { StatusDot } from "@/components/ui";
 import { useCrew, useTeams } from "@/lib/crew";
 import { useLive } from "@/lib/live";
+import { signedIn } from "@/lib/session";
 
 export default function WorkerPicker() {
   const { ready } = useLive();
   const { workers, team } = useCrew();
   const teamName = useTeams().find((t) => t.id === team)?.name;
   const router = useRouter();
+  // Back goes to the manager dashboard if this browser is signed in as a manager, else the home page.
+  const [back, setBack] = useState({ href: "/preview", label: "Home" });
+  useEffect(() => { if (signedIn()) setBack({ href: "/manager", label: "Dashboard" }); }, []);
 
   // Same phone as last time: go straight to that worker, but only once per browser tab, and never
   // when they came back here on purpose (the back button / "switch" link adds ?switch=1).
@@ -36,7 +40,7 @@ export default function WorkerPicker() {
 
   return (
     <div className="font-app mx-auto min-h-screen max-w-xl">
-      <AppHeader title="Who are you?" subtitle={teamName ? `Joining ${teamName}. Tap your name.` : undefined} who="Worker" />
+      <AppHeader title="Who are you?" subtitle={teamName ? `Joining ${teamName}. Tap your name.` : undefined} who="Worker" back={back} />
       <main className="px-4 pb-6 pt-2">
         {!ready && <p className="py-10 text-center text-sm text-muted">Connecting…</p>}
         <ul className="divide-y divide-line overflow-hidden rounded-2xl bg-surface">

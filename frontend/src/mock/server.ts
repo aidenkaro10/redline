@@ -24,6 +24,8 @@ export function getEngine(): MockEngine {
     const format = process.env.MOCK_EMERGENCY_EVENTS === "status" ? "status" : "call";
     g.__planitMock = new MockEngine({ emergencyFormat: format });
     g.__planitMock.start();
+    // Real weather (Open-Meteo) and wildlife (iNaturalist). REDLINE_LIVE_DATA=0 turns it off (offline demos).
+    if (process.env.REDLINE_LIVE_DATA !== "0") g.__planitMock.startLiveData();
   }
   return g.__planitMock;
 }

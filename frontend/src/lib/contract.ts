@@ -84,6 +84,12 @@ export interface Hazard {
   };
   /** Only for kind === "heat": the numbers behind the heat level. */
   heat?: { wbgt_c: number; heat_index_f: number };
+  /** Only for kind === "wildlife": the real sighting behind it (iNaturalist), shown as a map pin. */
+  sighting?: {
+    name: string; common: string; lat: number; lon: number; miles: number;
+    observed_on: string; url: string;
+    approximate: boolean;          // iNaturalist blurred the location
+  };
 }
 
 /** Live status of one site: hazards now, tomorrow's index, worker flags. */

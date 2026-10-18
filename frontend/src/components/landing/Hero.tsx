@@ -18,6 +18,8 @@
  */
 
 import gsap from "gsap";
+
+import { RedlineLogo } from "../RedlineLogo";
 import { useEffect, useRef, useState } from "react";
 
 export const SERIF = { fontFamily: '"Iowan Old Style", "New York", ui-serif, Georgia, serif' };
@@ -180,7 +182,7 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
       {/* Header */}
       <header className="relative z-20 mx-auto flex max-w-[1400px] items-center gap-4 px-5 py-4 md:gap-6 md:px-8 md:py-6">
         <a href="/preview" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
-          <Logo /> Redline
+          <Logo />
         </a>
         <nav className="ml-auto flex items-center gap-4 whitespace-nowrap text-sm md:gap-6">
           <a href="/worker" className="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">Worker app</a>
@@ -311,10 +313,7 @@ function ForecastCard({ w, storm }: { w: (typeof WORKERS)[number]; storm: boolea
   );
 }
 
-export function Logo() {
-  return (
-    <span className="grid h-8 w-8 place-items-center rounded-lg bg-[#1d1b19]">
-      <svg viewBox="0 0 28 28" className="h-5 w-5" aria-hidden><path d="M7 18c2-6 4-9 6-9s3 5 6 5" stroke="#ffb054" strokeWidth="2.6" fill="none" strokeLinecap="round" /><circle cx="19" cy="14" r="2.2" fill="#ffb054" /></svg>
-    </span>
-  );
+/** The Redline logo (tile + RED LINE wordmark). Kept under this name so every page imports it the same way. */
+export function Logo({ size }: { size?: number }) {
+  return <RedlineLogo size={size} />;
 }

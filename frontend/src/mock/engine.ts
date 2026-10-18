@@ -24,6 +24,7 @@ import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
 import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
 import { DEMO_TEAM, FRIENDS_TEAM, friendNames, ownerName } from "./teams.ts";
+import { fetchSighting, fetchWeather, type Sighting, type SiteWeather } from "./realdata.ts";
 
 // ---------------------------------------------------------------------------
 // Numbers mirrored from backend/config.py (the backend is the source of truth;
@@ -214,6 +215,16 @@ function noneHazard(kind: HazardKind, t: number, headline: string, source: strin
   return { kind, level: "none", headline, detail: "", source, updated_at: t, stop_work: false, band_pattern: null };
 }
 
+/** One hazard's slice of tomorrow's 0-10 index (same shape as session C2's predict_index). */
+function indexPart(x: number) {
+  return {
+    index: round(x, 1), p_advisory: round(clamp(x / 5, 0, 1), 2), p_warning: round(clamp((x - 3) / 6, 0, 1), 2),
+    p_damage: round(clamp((x - 6) / 10, 0, 1), 2), climatology_index: round(x * 0.55, 1),
+  };
+}
+
+const CREW_SITES = new Set(WORKERS.map((w) => w.site_id).concat("fl-deerhaven"));
+
 function baselineSite(siteId: string, t: number): SiteSim {
   const s = SITE_BY_ID[siteId];
   const rng = makeRng(hashString(siteId));
@@ -236,32 +247,31 @@ function baselineSite(siteId: string, t: number): SiteSim {
 
   const floodRoll = rng();
   hazards.flood = floodRoll > 0.88
-    ? { kind: "flood", level: "moderate", headline: "River at minor flood stage", detail: "Nearest gauge is above minor flood stage. Avoid low access roads.", source: "NWS river gauges (NWPS)", updated_at: t, stop_work: false, band_pattern: null }
+    ? { kind: "flood", level: "moderate", headline: "River at minor flood stage", detail: "Nearest gauge is above minor flood stage. Avoid low access roads.", source: "NWS river gauges (sample)", updated_at: t, stop_work: false, band_pattern: null }
     : s.coastal && floodRoll > 0.6
-      ? { kind: "flood", level: "low", headline: "High tide this evening", detail: "Water level 0.4 ft below minor flood.", source: "NOAA Tides & Currents", updated_at: t, stop_work: false, band_pattern: null }
-      : noneHazard("flood", t, "No flood alerts", "NWS alerts");
+      ? { kind: "flood", level: "low", headline: "High tide this evening", detail: "Water level 0.4 ft below minor flood.", source: "NOAA Tides & Currents (sample)", updated_at: t, stop_work: false, band_pattern: null }
+      : noneHazard("flood", t, "No flood alerts", "NWS alerts (sample)");
 
   const fireRoll = rng();
   hazards.fire = siteId === "fl-crist" || siteId === "fl-hopkins"
-    ? { kind: "fire", level: "high", headline: "Red Flag Warning", detail: "Low humidity and gusty wind. No hot work outdoors.", source: "NWS alerts", updated_at: t, stop_work: false, band_pattern: "FLOOD_FIRE" }
+    ? { kind: "fire", level: "high", headline: "Red Flag Warning", detail: "Low humidity and gusty wind. No hot work outdoors.", source: "NWS alerts (sample)", updated_at: t, stop_work: false, band_pattern: "FLOOD_FIRE" }
     : fireRoll > 0.85
-      ? { kind: "fire", level: "low", headline: "Satellite hotspot 14 mi away", detail: "One VIIRS detection today, likely a prescribed burn.", source: "NASA FIRMS", updated_at: t, stop_work: false, band_pattern: null }
-      : noneHazard("fire", t, "No fires nearby", "NASA FIRMS + NIFC");
+      ? { kind: "fire", level: "low", headline: "Satellite hotspot 14 mi away", detail: "One VIIRS detection today, likely a prescribed burn.", source: "NASA FIRMS (sample)", updated_at: t, stop_work: false, band_pattern: null }
+      : noneHazard("fire", t, "No fires nearby", "NASA FIRMS + NIFC (sample)");
 
   const soil = Math.round(35 + rng() * 55);
   hazards.soil = {
     kind: "soil", level: soil >= 80 ? "moderate" : soil >= 65 ? "low" : "none",
     headline: `Soil moisture ${soil}% of saturation`,
     detail: soil >= 80 ? "Soft ground. Check footing for bucket trucks and outriggers." : "Ground is firm enough for heavy equipment.",
-    source: "Open-Meteo soil moisture", updated_at: t, stop_work: false, band_pattern: null,
+    source: "Open-Meteo soil moisture (sample)", updated_at: t, stop_work: false, band_pattern: null,
   };
 
-  const wildRoll = rng();
+  rng();   // (keeps the random sequence the same for everything below)
+  // Real sightings replace this once iNaturalist answers (see MockEngine.applyLive). Checked at crew sites only.
   hazards.wildlife = siteId === "fl-deerhaven"
-    ? { kind: "wildlife", level: "low", headline: "Alligator seen 0.4 mi away", detail: "iNaturalist sighting this week near the retention pond.", source: "iNaturalist", updated_at: t, stop_work: false, band_pattern: null }
-    : wildRoll > 0.7
-      ? { kind: "wildlife", level: "low", headline: "Pygmy rattlesnake sighting", detail: "One sighting within 2 mi this month.", source: "iNaturalist", updated_at: t, stop_work: false, band_pattern: null }
-      : noneHazard("wildlife", t, "No recent sightings", "iNaturalist + crew reports");
+    ? { kind: "wildlife", level: "low", headline: "Alligator seen 0.4 mi away", detail: "Sample sighting near the retention pond.", source: "iNaturalist (sample)", updated_at: t, stop_work: false, band_pattern: null }
+    : noneHazard("wildlife", t, "Checked at crew sites only", "iNaturalist");
 
   // Tomorrow's 0-10 index: heat drives most of it, plus some weather luck.
   const storms = rng();
@@ -363,6 +373,10 @@ export class MockEngine {
   emergencyFormat: EmergencyFormat;
   /** Demo switch: the next emergency call fails instead of connecting (tests the "Call 911 yourself" screen). */
   failNextCall = false;
+  /** Real outside data (Open-Meteo weather for every site, iNaturalist wildlife at crew sites). */
+  live: { weather: Record<string, SiteWeather>; sightings: Record<string, Sighting | null>; weatherAt: number; wildlifeAt: number } =
+    { weather: {}, sightings: {}, weatherAt: 0, wildlifeAt: 0 };
+  liveTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(opts: EngineOptions = {}) {
     this.wallNow = opts.wallNow ?? (() => Date.now() / 1000);
@@ -384,9 +398,111 @@ export class MockEngine {
     this.timer = setInterval(() => this.tick(), periodMs);
   }
 
+  /**
+   * Pull real weather and wildlife (the server calls this; tests don't, so they never touch the network).
+   * Checks every minute: weather when 15 min old, wildlife when 1 h old. Failures keep the last good data.
+   */
+  startLiveData() {
+    if (this.liveTimer) return;
+    const run = () => { void this.refreshLive(); };
+    run();
+    this.liveTimer = setInterval(run, 60_000);
+  }
+
+  async refreshLive(now = Date.now()) {
+    const jobs: Promise<unknown>[] = [];
+    if (now - this.live.weatherAt >= 15 * 60_000) {
+      this.live.weatherAt = now;
+      jobs.push(fetchWeather(SITES)
+        .then((w) => { Object.assign(this.live.weather, w); })
+        .catch((e) => { this.live.weatherAt = now - 13 * 60_000; console.warn("live weather failed, retrying in 2 min:", String(e)); }));
+    }
+    if (now - this.live.wildlifeAt >= 60 * 60_000) {
+      this.live.wildlifeAt = now;
+      jobs.push((async () => {
+        for (const id of CREW_SITES) {
+          const site = SITE_BY_ID[id];
+          if (!site) continue;
+          try { this.live.sightings[id] = await fetchSighting(site, now); }
+          catch (e) { console.warn(`live wildlife failed for ${id}:`, String(e)); }
+        }
+      })());
+    }
+    if (!jobs.length) return;
+    await Promise.all(jobs);
+    for (const s of SITES) { this.applyLive(s.id); this.emitSite(s.id); }
+  }
+
+  /** Put the real data into one site: heat now, tomorrow's heat and storm part of the index, wildlife. */
+  applyLive(siteId: string) {
+    const sim = this.sites.get(siteId);
+    if (!sim) return;
+    const w = this.live.weather[siteId];
+    if (w) {
+      const hi = w.hiNowF;
+      const level: HazardLevel = hi >= 103 ? "extreme" : hi >= 91 ? "high" : hi >= 80 ? "moderate" : "none";
+      sim.hazards.heat = {
+        kind: "heat", level,
+        // Heat index only means something from 80 °F up; below that, just the air temperature and humidity.
+        headline: hi >= 80 ? `Heat index ${hi} °F · ${Math.round(w.tempF)} °F, ${w.rh}% humidity` : `${Math.round(w.tempF)} °F, ${w.rh}% humidity`,
+        detail: hi >= 103 ? `Dangerous heat. Shade breaks every hour, water every 15 minutes. WBGT about ${w.wbgtC} °C in the shade.`
+          : hi >= 91 ? `Hot. Take shade breaks and drink water often. WBGT about ${w.wbgtC} °C in the shade.`
+            : hi >= 80 ? `Warm. Normal heat precautions. WBGT about ${w.wbgtC} °C in the shade.`
+              : `Comfortable right now. Today's peak heat index: ${w.hiMaxTodayF} °F.`,
+        source: "Open-Meteo (live) · WBGT shade estimate", updated_at: w.at, stop_work: false, band_pattern: null,
+        heat: { wbgt_c: w.wbgtC, heat_index_f: Math.max(hi, Math.round(w.tempF)) },
+      };
+      // The scripted replay keeps its recorded hot afternoon at the crew sites; live mode uses the real air.
+      if (!(this.demo.scenario.running && CREW_SITES.has(siteId))) sim.wbgt = w.wbgtC;
+
+      // Tomorrow's index: heat and storms from the real forecast; flood and fire parts stay as they were.
+      const old = sim.hazardIndex;
+      const heatIdx = clamp((w.hiMaxTomorrowF - 88) / 4, 0, 7);
+      const stormIdx = clamp((w.stormChanceTomorrow / 100) * 3 + (w.thunderTomorrow ? 2.5 : 0), 0, 7);
+      const flood = old.hazards.flood?.index ?? 0.2, fire = old.hazards.fire?.index ?? 0.1, trop = old.hazards.tropical?.index ?? 0.1;
+      const index = round(clamp(0.6 + heatIdx * 0.85 + stormIdx * 0.5 + flood * 0.6 + fire * 0.6 + trop * 0.3, 0.3, 9.8), 1);
+      const heatText = `Heat index up to ${w.hiMaxTomorrowF}°F tomorrow`;
+      const stormText = w.thunderTomorrow ? `Thunderstorms possible tomorrow (${w.stormChanceTomorrow}% rain chance)` : `${w.stormChanceTomorrow}% chance of rain tomorrow`;
+      const reasons: HazardIndex["top_reasons"] = [
+        { hazard: "heat", feature: "hi_max_tomorrow", value: w.hiMaxTomorrowF, points: round(heatIdx * 0.85, 1), text: heatText },
+        ...(w.stormChanceTomorrow >= 30 || w.thunderTomorrow
+          ? [{ hazard: "storm" as const, feature: "rain_chance_tomorrow", value: w.stormChanceTomorrow, points: round(stormIdx * 0.5, 1), text: stormText }] : []),
+        ...old.top_reasons.filter((r) => r.hazard === "flood" || r.hazard === "fire"),
+      ];
+      sim.index = index;
+      sim.drivers = reasons.map((r) => r.text);
+      sim.hazardIndex = {
+        ...old, index, band: index < 2 ? "low" : index < 4 ? "moderate" : index < 6 ? "high" : "extreme",
+        climatology_index: round(index * 0.6, 1),
+        p_advisory: round(clamp(index / 5, 0, 1), 2), p_warning: round(clamp((index - 3) / 6, 0, 1), 2), p_damage: round(clamp((index - 6) / 10, 0, 1), 2),
+        hazards: { ...old.hazards, heat: indexPart(heatIdx), storm: indexPart(stormIdx) },
+        top_reasons: reasons.sort((a, b) => b.points - a.points).slice(0, 3),
+        data_mode: "live",
+      };
+    }
+    if (siteId in this.live.sightings) {
+      const t = Math.round(Date.now() / 1000);
+      const s = this.live.sightings[siteId];
+      const day = s ? new Date(s.observed_on + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+      sim.hazards.wildlife = s
+        ? {
+          kind: "wildlife", level: !s.approximate && s.miles <= 1 ? "moderate" : "low",
+          headline: s.approximate ? `${s.common} reported nearby` : `${s.common} seen ${s.miles} mi away`,
+          detail: s.approximate
+            ? `iNaturalist sighting on ${day}. iNaturalist hides the exact spot for this one, so the map pin is approximate.`
+            : `iNaturalist sighting on ${day}, ${s.miles} mi from the plant. The map shows where it was seen.`,
+          source: "iNaturalist (live, last 30 days)", updated_at: t, stop_work: false, band_pattern: null,
+          sighting: s,
+        }
+        : noneHazard("wildlife", t, "No dangerous wildlife reported within 6 mi", "iNaturalist (live, last 30 days)");
+    }
+  }
+
   /** Stop for good and hang up on every listener (their browsers reconnect to the new engine). */
   shutdown() {
     this.stop();
+    if (this.liveTimer) clearInterval(this.liveTimer);
+    this.liveTimer = null;
     for (const s of this.subs) { try { s.close?.(); } catch { /* already gone */ } }
     this.subs.clear();
   }
@@ -418,6 +534,7 @@ export class MockEngine {
       });
     }
     if (this.reports.length === 0) this.seedReports(t);
+    for (const s of SITES) this.applyLive(s.id);     // keep real weather/wildlife across resets
     // Warm up quietly (no events sent).
     const quiet = this.subs;
     this.subs = new Set();

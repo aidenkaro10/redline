@@ -7,6 +7,8 @@
  * - A red ring means a worker on that site has a heat alert or a man-down.
  * - Lightning: dashed 10-mile ring around the site plus the recent strikes.
  * - Crew photo reports: small camera pins.
+ * - Wildlife sightings (iNaturalist): an amber pin at the spot it was seen, with a line to the
+ *   site. Blurred (approximate) sightings get a dashed outline and say so.
  */
 
 import "leaflet/dist/leaflet.css";
@@ -144,6 +146,23 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
           html: `<div style="width:22px;height:22px;border-radius:6px;background:#1baf7a;border:2px solid ${dark ? "#1a1a19" : "#fff"};display:grid;place-items:center"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></div>`,
         }),
       }).bindTooltip(`<b>Crew report: ${r.kind.replace("_", " ")}</b><br/>${escapeHtml(r.note)}`, { direction: "top" }).addTo(g);
+    }
+
+    // Wildlife sightings, at the point they were actually seen
+    for (const s of sites) {
+      const seen = statuses[s.id]?.hazards.find((h) => h.kind === "wildlife")?.sighting;
+      if (!seen) continue;
+      L.polyline([[s.lat, s.lon], [seen.lat, seen.lon]], { color: "#ff9500", weight: 1.5, opacity: 0.7, dashArray: "4 4", interactive: false }).addTo(g);
+      L.marker([seen.lat, seen.lon], {
+        icon: L.divIcon({
+          className: "", iconSize: [24, 24], iconAnchor: [12, 12],
+          html: `<div style="width:24px;height:24px;border-radius:50%;background:#ff9500;border:2px ${seen.approximate ? "dashed" : "solid"} ${dark ? "#1a1a19" : "#fff"};display:grid;place-items:center;box-shadow:0 1px 4px rgba(0,0,0,.3)"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M4 17c3 0 3-4 6-4s3 4 6 4 3-3 4-5"/><circle cx="19.5" cy="10.5" r="1.5"/></svg></div>`,
+        }),
+      }).bindTooltip(
+        `<b>${escapeHtml(seen.common)}</b><br/>${seen.approximate ? "Near" : `${seen.miles} mi from`} ${escapeHtml(s.name)}` +
+        `<br/>Seen ${escapeHtml(seen.observed_on)} · iNaturalist${seen.approximate ? "<br/><i>Approximate spot (iNaturalist hides the exact one)</i>" : ""}`,
+        { direction: "top", offset: [0, -8] },
+      ).addTo(g);
     }
   }, [sites, statuses, reports, selected, dark]);
 

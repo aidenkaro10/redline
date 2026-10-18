@@ -20,7 +20,7 @@ import { Group, Row, Sheet } from "@/components/Sheet";
 import { SiteMap } from "@/components/SiteMap";
 import { Card, Chev, HUE, Icon, Ring, SectionHeader, Value } from "@/components/health";
 import { ALERT_LABEL, HAZARD_LABEL } from "@/lib/contract";
-import type { HazardKind, SiteStatus, Status, WorkerStatus } from "@/lib/contract";
+import type { HazardKind, Site, SiteStatus, Status, WorkerStatus } from "@/lib/contract";
 import { STATUS_TEXT, StatusBadge, alertTone, fmtClock, fmtCountdown, indexColor } from "@/components/ui";
 import { shortSiteName, siteMeta, useCrew, useSites } from "@/lib/crew";
 import { dangerText } from "@/lib/format";
@@ -244,6 +244,7 @@ export function SitesPanel({ layout = "phone" }: { layout?: "phone" | "laptop" }
   useEffect(() => { if (alarm) { setSelected(alarm); setFocus(alarm); } }, [alarm]);
 
   const pick = (id: string) => { setSelected(id); setFocus(id); };
+  const mySites = ranked.filter((x) => crew.siteIds.includes(x.id));
   const sel = sites?.find((s) => s.id === selected);
   const selStatus = selected ? live.sites[selected] : undefined;
 
@@ -267,36 +268,20 @@ export function SitesPanel({ layout = "phone" }: { layout?: "phone" | "laptop" }
       )}
       {(laptop || view === "list") && (
         <div>
+          {/* The crew's own site(s) first, so they're one tap away even on a mild day */}
+          {mySites.length > 0 && (
+            <>
+              <SectionHeader title={mySites.length === 1 ? "Your site" : "Your sites"} />
+              <ul className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface">
+                {mySites.map((s) => <SiteRow key={s.id} site={s} status={live.sites[s.id]} rank={ranked.indexOf(s) + 1} mine onPick={pick} />)}
+              </ul>
+            </>
+          )}
           <SectionHeader title="Riskiest tomorrow" />
           <ol className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface">
-            {(showAll ? ranked : ranked.slice(0, 10)).map((s, i) => {
-              const st = live.sites[s.id];
-              const stop = st.hazards.some((h) => h.stop_work);
-              const mine = crew.siteIds.includes(s.id);
-              const idx = st.index_tomorrow;
-              const has = idx !== null && Number.isFinite(idx);
-              return (
-                <li key={s.id}>
-                  <button onClick={() => pick(s.id)} className="flex min-h-[64px] w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-2">
-                    <span className="w-5 shrink-0 text-[15px] font-semibold text-muted tabular">{i + 1}</span>
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-1.5">
-                        <span className="truncate text-[17px] font-semibold">{s.name}</span>
-                        {mine && <span className="shrink-0 h-3.5 w-3.5 text-accent" title="Your crew"><Icon.people /></span>}
-                      </span>
-                      <span className="block truncate text-[15px]">
-                        {st.worker_flag === "mandown" ? <b className="font-semibold text-danger-ink">Man down</b>
-                          : st.worker_flag === "sos" ? <b className="font-semibold text-sos">SOS</b>
-                            : st.worker_flag === "heat" ? <b className="font-semibold text-danger-ink">Worker heat alert</b>
-                              : stop ? <b className="font-semibold text-lightning">Stop work</b>
-                                : <span className="text-muted">{st.hazard_index?.top_reasons[0]?.text ?? siteMeta(s, false)}</span>}
-                      </span>
-                    </span>
-                    <Ring size={42} value={has ? idx! / 10 : 0} color={indexColor(has ? idx : null)} label={has ? idx!.toFixed(1) : "--"} />
-                  </button>
-                </li>
-              );
-            })}
+            {(showAll ? ranked : ranked.slice(0, 10)).map((s, i) => (
+              <SiteRow key={s.id} site={s} status={live.sites[s.id]} rank={i + 1} mine={crew.siteIds.includes(s.id)} onPick={pick} />
+            ))}
           </ol>
           {ranked.length > 10 && (
             <button onClick={() => setShowAll(!showAll)} className="mt-1 min-h-11 px-1 py-2 text-[17px] text-accent">
@@ -313,5 +298,33 @@ export function SitesPanel({ layout = "phone" }: { layout?: "phone" | "laptop" }
         {sel && selStatus && <div className="rounded-[16px] bg-surface p-4"><HazardPanel site={sel} status={selStatus} /></div>}
       </Sheet>
     </div>
+  );
+}
+
+/** One site in a list: rank, name, the top reason (or a live flag), and tomorrow's 0-10 risk ring. */
+function SiteRow({ site: s, status: st, rank, mine, onPick }: { site: Site; status: SiteStatus; rank: number; mine: boolean; onPick: (id: string) => void }) {
+  const stop = st.hazards.some((h) => h.stop_work);
+  const idx = st.index_tomorrow;
+  const has = idx !== null && Number.isFinite(idx);
+  return (
+    <li>
+      <button onClick={() => onPick(s.id)} className="flex min-h-[64px] w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-2">
+        <span className="w-6 shrink-0 text-[15px] font-semibold text-muted tabular" title={`#${rank} riskiest tomorrow`}>{rank > 0 ? rank : ""}</span>
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center gap-1.5">
+            <span className="truncate text-[17px] font-semibold">{s.name}</span>
+            {mine && <span className="h-3.5 w-3.5 shrink-0 text-accent" title="Your crew"><Icon.people /></span>}
+          </span>
+          <span className="block truncate text-[15px]">
+            {st.worker_flag === "mandown" ? <b className="font-semibold text-danger-ink">Man down</b>
+              : st.worker_flag === "sos" ? <b className="font-semibold text-sos">SOS</b>
+                : st.worker_flag === "heat" ? <b className="font-semibold text-danger-ink">Worker heat alert</b>
+                  : stop ? <b className="font-semibold text-lightning">Stop work</b>
+                    : <span className="text-muted">{st.hazard_index?.top_reasons[0]?.text ?? siteMeta(s, false)}</span>}
+          </span>
+        </span>
+        <Ring size={42} value={has ? idx! / 10 : 0} color={indexColor(has ? idx : null)} label={has ? idx!.toFixed(1) : "--"} />
+      </button>
+    </li>
   );
 }
