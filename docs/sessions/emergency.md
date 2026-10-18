@@ -65,3 +65,8 @@ Unverified: the trial message ("press any key") might clip the start of the call
 - Live calls return once the call is placed (so the cancel window isn't held up). Transcript comes later via `fetch_transcript(conversation_id)`; not yet written back to the log.
 - `data/emergency_log.jsonl` holds phone numbers and isn't in `.gitignore` yet (shared file, Aiden's call).
 - Crew lead gets a call, not a text. Texting would need Twilio SMS.
+
+
+## Real test calls (Oct 18)
+
+Live calls placed from the main session to Aiden's phone through ElevenLabs + Twilio (toll-free number, agent "Redline emergency"). The first failed on HTTPS certificates (python.org Mac build); fixed by reusing the certifi context. Later calls connected. Live calls stay off by default (EMERGENCY_LIVE_CALLS=0).

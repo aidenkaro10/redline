@@ -11,14 +11,15 @@ Standard technique names are in parentheses. Full source list: [techniques.md](t
 ## 1. System architecture
 
 ```
-Band (ESP32-S3) --USB serial 115200 / UDP--> FastAPI backend --WebSocket--> Next.js dashboards
-BLE heart rate (optional) ------------------^      |  SQLite
+Band (ESP32-S3) --Bluetooth LE (Nordic UART) / USB--> FastAPI backend --WebSocket--> Next.js dashboards
+BLE heart rate or labeled demo HR input --------^      |  SQLite
 Weather / lightning / flood feeds ------------------^  |-- Kalman -> GRU ensemble -> alerts -> band commands
                                                        |-- CP-SAT planner + Claude agent + rule checker
                                                        |-- emergency escalation (ElevenLabs + Twilio, allowlisted)
 ```
 
-- **Line protocol:** text lines at 115200 baud (`TEMP:34.62`, `PPG:...`, `ACC:x,y,z`, `BTN:SOS`), commands back (`BUZZ:HEAT_RED`). Every reading is timestamped on the laptop at arrival. Unknown or malformed lines are dropped, never crash the parser (fuzz-tested with 10,000 random lines).
+- **Link:** Bluetooth Low Energy, Nordic UART Service, advertised as "Redline Band": no WiFi, internet or pairing. The laptop side (bleak) runs in a helper process, rebuilds lines split or merged across notifications, and reconnects with backoff. USB serial at 115200 carries the same lines as a backup. First wireless test: 498/500 accelerometer lines and 50/50 PPG lines in 10 s, 185-byte MTU.
+- **Line protocol:** plain text lines (`TEMP:34.62`, `LIGHT:950`, `ACC:x,y,z` at 50 Hz, `PPG:...`, `BTN:1`, `BTN:SOS`), commands back (`BUZZ:HEAT_RED`). Every reading is timestamped on the laptop at arrival. Unknown or malformed lines are dropped, never crash the parser (fuzz-tested with 10,000 random lines).
 - **Replay mode** streams a scripted simulated shift at up to 10× speed, so every module runs and is tested with no hardware.
 - **Privacy by view:** the crew-lead stream carries status only (green/yellow/red, minutes to danger), never heart rate, core temp or personal offsets. Enforced and tested on every WebSocket message and REST endpoint.
 
@@ -26,17 +27,23 @@ Weather / lightning / flood feeds ------------------^  |-- Kalman -> GRU ensembl
 
 ## 2. Band sensing
 
-**Hardware:** Adafruit ESP32-S3 Feather; Grove light sensor + LED (PPG); 3-axis accelerometer (I2C); BME280 air temp/humidity/pressure (I2C); 1N4148 diode skin-temperature sensor (about -2 mV/°C, two-point calibrated); passive buzzer; button; NeoPixel. The band only samples and reports; all processing is on the laptop.
+**Hardware (as built):** Adafruit ESP32-S3 Feather (4 MB flash / 2 MB PSRAM); Adafruit Prop-Maker FeatherWing for its LIS3DH accelerometer (I2C 0x18, ±8 g, 100 Hz, read at 50 Hz); photoresistor + 10 kΩ divider on pin 10 (sunlight, or pulse through a fingertip); 1N4148 diode + 10 kΩ on A5 for skin temperature (about -2 mV/°C, 64-sample average, two-point calibration); passive buzzer (pin 5, `tone()`); button (pin 6); built-in NeoPixel. Pins for analog reads are on ADC1 so they work with the radio on. Powered by a portable phone charger.
+
+**Firmware** (`firmware/band/band.ino`, about 630 lines plus `config.h`, Arduino C++): no `delay()` in the loop, every job on its own timer (motion and pulse at exactly 20 ms via `micros()`); auto-detects ADXL345 / LIS3DH / MMA7660 and BME280 / BMP280 by I2C address and chip ID; non-blocking beep queue and per-pattern light rendering; debounced button (short press = `BTN:1`, 3 s hold = `BTN:SOS`); USB writes never block, so it runs with no computer attached. Compiled and flashed from the Mac with arduino-cli (`tools/flash_band.sh`). The band only samples and reports; all processing is on the laptop.
 
 **Heart rate from light (photoplethysmography).** PPG sampled at 50 Hz on an ADC1 pin (works with WiFi on), sent in 10-sample batches. Accelerometer at 50 Hz on the same clock.
 1. Detrend + band-pass 0.7-3.5 Hz (42-210 bpm).
 2. Motion removal with an adaptive noise canceller (NLMS filter) using the 3 accelerometer axes + motion energy as the reference signal.
-3. Rate from the spectral peak, cross-checked by autocorrelation, over an 8-10 s window. Peaks at harmonics of the arm-swing frequency are excluded (cadence-lock rejection).
+3. Rate from the spectral peak, cross-checked by autocorrelation, over a 10 s window. Peaks at harmonics of the arm-swing frequency are excluded (cadence-lock rejection).
 4. A 0-1 quality score (peak clarity, beat-to-beat consistency, motion level, residual signal). Below 0.55, no value is emitted.
 
-Synthetic benchmark (30 sessions × 5 min per activity, unseen seeds), mean absolute error: rest 0.6 bpm (100% coverage), walking 1.5 bpm (68%), arm work 6.3 bpm (49%). A naive peak counter scored 22-47 bpm. Real recordings pending.
+Synthetic benchmark (30 sessions × 5 min per activity, unseen seeds), mean absolute error: rest 0.6 bpm (100% coverage), walking 1.5 bpm (68%), arm work 6.3 bpm (49%). A naive peak counter scored 22-47 bpm.
 
-**Fall detection:** impact over threshold + orientation change + stillness, confirmed by a barometric height drop (about 0.12 hPa per meter) when available (threshold detection with sensor confirmation). Falls on the tilt switch remain as a fallback.
+**Real fingertip test** (photoresistor, phone flashlight through the finger, counted reference 53 bpm): a 60 s recording's strongest rhythm was 52-57 bpm (18% of in-band power at 50-56 bpm). Two later 30 s recordings showed a steady 90 bpm carrying 41% of the power: flashlight PWM flicker aliased by 50 Hz sampling. Fix in firmware: box-average every ADC read between samples (anti-aliasing); the 90 bpm share fell to 5%, and the remaining estimates scattered 45-61 bpm with quality below the 0.55 cutoff, so none were shown. Conclusion: a real but weak signal; needs a steady red LED and a light-tight finger clip.
+
+**Demo heart rate:** with no reliable pulse sensor, the demo uses a labeled input (`POST /api/demo/heart_rate`, rest 65-75 or active 105-115 bpm, bounded random walk, 45 s ramps, source `demo_input`, other HR sources ignored while on). It's tagged "Heart rate: demo input" on screen; everything downstream runs for real.
+
+**Fall detection:** impact over threshold + orientation change + stillness, confirmed by a barometric height drop (about 0.12 hPa per meter) when available (threshold detection with sensor confirmation). Activity comes from the same accelerometer stream (it replaced the tilt switch).
 
 **Offline backup:** any device using the standard Bluetooth Heart Rate Profile (0x180D / 0x2A37), e.g. an Apple Watch through HeartCast, read with `bleak` in a separate process so a macOS permission failure can never take down the server.
 
@@ -106,7 +113,7 @@ Training with random sensor masking (input dropout), pretraining on simulation t
 | Yellow caught / lead / false alarms per h | 12% / 29 min / 0.03 | 88% / 13.0 / 0.23 | 88% / **16.9** / **0.20** |
 | Red caught / lead / false alarms per h | 70% / 18 / 0.26 | **100%** / 36 / 0.30 | 90% / 32 / 0.46 |
 
-23% lower +20 min error than the published method, with valid uncertainty. Against our own trend baseline the accuracy gain is small (3-7%) but warnings arrive 30% earlier with fewer false alarms. On red alerts the trend baseline caught 10/10 vs our 9/10 (one episode, n = 10). Validation-set error (0.230) was optimistic due to model selection; 0.370 is the number we report.
+23% lower +20 min error than the published method, with valid uncertainty. Against our own trend baseline the accuracy gain is small (3-7%) but warnings arrive 30% earlier (16.9 vs 13.0 min) with fewer false alarms (0.20 vs 0.23/h). The Kalman-flat baseline with a 90% range warned nearly as well (88%, 16.1 min, 0.20/h), so most of the warning benefit comes from forecasting with a calibrated range; the network adds accuracy and slightly earlier warnings. On red alerts the trend baseline caught 10/10 vs our 9/10 (one episode, n = 10). Validation-set error (0.230) was optimistic due to model selection; 0.370 is the number we report.
 
 Confidence intervals: cluster bootstrap by person. Agreement: Bland-Altman limits -0.71 to +0.65 °C (vs -0.77 to +0.79 for Kalman). Feature attributions for the "why" line on the dashboard: integrated gradients.
 
@@ -153,7 +160,7 @@ What the rest of the system consumes:
 | --- | --- | --- |
 | Any warning | 0.29 | **0.71** |
 | Heat advisory | 0.18 | **0.70** |
-| Flood warning | 0.24 | **0.80** |
+| Flood warning (lift mostly from NWS warnings already in effect) | 0.24 | **0.80** |
 | Storm warning | 0.16 | **0.35** |
 | Fire, heat injury | no clear gain | climatology ships |
 
@@ -173,14 +180,14 @@ What the rest of the system consumes:
 
 **Closed-loop replanning (model predictive control style):** each minute, if a worker's 20-min p90 reaches an early line (37.7 °C), candidate interventions (break now, swap with a cooler worker, defer heavy work) are simulated forward. The best is rule-checked, then applied automatically if it costs no work, or sent to the crew lead if it does.
 
-| 12 held-out scenarios | Safety violations | Work done | Heat alerts/day |
+| 12 held-out simulated scenarios | Safety violations | Work done | Heat alerts/day |
 | --- | --- | --- | --- |
 | Fixed schedule (current practice) | 107 | 86% | 1.94 |
 | Claude alone, no checker | in 92% of plans | 86% | 1.67 |
 | Optimizer + checker | 0 | 68% | 0.19 |
 | **Full agent** | **0** | 67% | **0.17** |
 
-Closed-loop replanning: worker-minutes above 38.0 °C -22%, above 38.5 °C to zero, no work lost. Storm-probability cost: outdoor work in ≥ 40% storm slots 29 → 9 units at equal throughput.
+Closed-loop replanning (simulated with the PHS model and an idealized forecast stand-in, not on people): worker-minutes above 38.0 °C -22%, above 38.5 °C to zero, no work lost. Storm-probability cost: outdoor work in ≥ 40% storm slots 29 → 9 units at equal throughput.
 
 Tested and rejected on held-out data: tuned objective weights (random search + successive halving: -6% tasks), and 20/10 work-rest micro-cycles in hot slots from a 2024 study (worker-minutes over 38.0 -3% but over 38.5 34 vs 8, fewer tasks). Both remain options; defaults unchanged.
 
@@ -203,7 +210,7 @@ Solver nondeterminism (wall-clock limits) initially produced false "improvements
 | After ACE playbook (day 14) | 0 | 67% | **0.11** |
 | After GEPA + playbook | 0 | 61% | **0.03** |
 
-Total Claude spend for all learning loops: $1.95.
+Total Claude spend for all learning loops (including the nightly loop): $2.49.
 
 ---
 
@@ -212,7 +219,7 @@ Total Claude spend for all learning loops: $1.95.
 **Purpose:** keep the agent working with no connectivity, at zero cost, with worker data staying on the laptop.
 
 - **Base:** Qwen3-1.7B, 4-bit (about 1 GB), run with Apple MLX.
-- **Knowledge distillation:** the Claude agent solved 263 training scenarios (leakage guard: a content hash refuses any held-out day). Cost $23.57.
+- **Knowledge distillation:** the Claude agent solved 263 training scenarios (leakage guard: a content hash refuses any held-out day). Cost $21.71 ($23.57 including a Claude re-run on test days for comparison).
 - **STaR filtering:** keep only plans that pass the rule checker, aren't the all-rest fallback, do ≥ 30% of the work, and rank at least as high as the optimizer-only plan. 224 days kept, 3 tasks per day (plan, ideas, explanation).
 - **QLoRA fine-tuning:** rank-16 adapters on all 28 layers (about 1% of weights trainable), answer-only loss, 2 epochs, LR 1e-4 cosine, 98 min on an M5 GPU. 70 MB adapter.
 
@@ -222,13 +229,28 @@ Total Claude spend for all learning loops: $1.95.
 | Qwen3-1.7B base | 0% | 0% | 0 / 0.425 / $0 |
 | **Qwen3-1.7B + LoRA** | 43% | 17% | 0 / **0.431** / **$0** |
 
-Inside the verified pipeline it matches Claude. Standalone, its passing plans are conservative (35% of the work vs 82% for Claude), which is why no model plans unverified. In progress: constrained decoding for format validity, an edit-the-optimizer's-plan action space, and a verifier-feedback repair loop.
+Round 2 (validation-selected, scored once on the same 12 held-out days):
+
+| Standalone, 5 samples/day | Valid | Pass every rule | Good pass (pass + work ≥ optimizer - 0.05) | Work when passing |
+| --- | --- | --- | --- | --- |
+| Claude Opus alone | 100% | 8% | 8.3% | 0.82 |
+| Original adapter, free | 43% | 17% | 0% | 0.35 |
+| Original adapter, constrained decoding + rules | 100% | 43% | 6.7% | 0.48 |
+| After 1 round of expert iteration, constrained | 100% | 57% | 5.0% | 0.50 |
+| + verifier-feedback repair (3 tries) | 100% | 68% | 8.3% | 0.50 |
+
+- **Constrained decoding** made every output valid. **Expert iteration** (sample 8 per training day, keep the best plan that passes and does real work, add Claude's examples, retrain one epoch) raised validation good-pass 7.1% → 11.6%. The **repair loop** feeds the rule checker's violations back; it raises passing mostly by resting people.
+- **Did not work:** an edit-the-optimizer's-plan format (76% empty edits; beat the optimizer once in 112), and naive self-training before constrained decoding (only 3.6% usable samples).
+- **Full pipeline:** agent + round-1 adapter 0 violations, plan score 0.429 vs Claude 0.435, 49 s vs 67 s per plan, $0.
+- **Explanations, code fact-check** (every number, time and name must be backed by the plan's facts): Claude 0/108 unsupported claims, local model 0/86 on validation days; 0/33 on held-out days.
+
+Standalone plans still do less work than the optimizer (0.50 vs 0.69), so no model plans unverified.
 
 ---
 
 ## 11. Emergency escalation
 
-Man-down (fall + no response) or SOS → crew lead and nearby crew notified → 30 s cancel window → an ElevenLabs conversational voice agent calls through Twilio. The agent receives the incident as dynamic variables (worker, site, GPS, event, time, last vitals) and is instructed to answer only from them, saying "Unknown" otherwise. One call per incident, keyed by incident ID. Allowlist-only dialing; 911, 112, 999, 988, 933 and short codes are blocked in every format; live calls are off unless `EMERGENCY_LIVE_CALLS=1`. In the demo it calls a teammate.
+Man-down (fall + no response) or SOS → crew lead and safety officer notified (an empty number is skipped) → 30 s cancel window → an ElevenLabs conversational voice agent calls through Twilio. The agent receives the incident as dynamic variables (worker, site, GPS, event, time, last vitals) and is instructed to answer only from them, saying "Sorry, I don't know the answer." otherwise. One call per incident, keyed by incident ID. Allowlist-only dialing; 911, 112, 999, 988, 933 and short codes are blocked in every format; live calls are off unless `EMERGENCY_LIVE_CALLS=1`. In the demo it calls a teammate.
 
 ---
 
@@ -236,7 +258,7 @@ Man-down (fall + no response) or SOS → crew lead and nearby crew notified → 
 
 **Stack:** Python, FastAPI + WebSockets, SQLite, PyTorch, scikit-learn, NumPy/SciPy, pythermalcomfort, OR-Tools, Anthropic API, MLX, bleak, pyserial; Next.js, Tailwind, Recharts, Leaflet; Arduino C++ on the band.
 
-**Tests:** 386 backend, 79 ML, 159 end-to-end, 50 frontend, all passing. End-to-end tests run the real app against 36 acceptance criteria: parser fuzzing, exact thresholds and hysteresis, alert priorities, man-down timing, privacy on every message, blocked numbers in 16 formats, one call per incident, lightning edge cases (9.9 vs 10.1 mi), offline behavior, restart recovery, 6 workers × 8 h load, and a check that no code path writes a safety constant.
+**Tests:** 421 backend, 93 ML, 162 end-to-end, 53 frontend (729), all passing. End-to-end tests run the real app against 36 acceptance criteria: parser fuzzing, exact thresholds and hysteresis, alert priorities, man-down timing, privacy on every message, blocked numbers in 16 formats, one call per incident, lightning edge cases (9.9 vs 10.1 mi), offline behavior, restart recovery, 6 workers × 8 h load, and a check that no code path writes a safety constant.
 
 ---
 
@@ -255,7 +277,7 @@ Man-down (fall + no response) or SOS → crew lead and nearby crew notified → 
 
 1. **Code makes every safety call; models only predict and suggest.**
 2. **Locked test set, scored once.** We report 0.370 °C, not the 0.230 validation figure.
-3. **Offline first:** Bluetooth HR, on-band PPG, a local LLM, cached feeds.
+3. **Offline first:** the band on Bluetooth LE (no WiFi), Bluetooth HR, a local LLM, cached feeds.
 4. **Thermometer checks over HR twins**, after the diagnosis showed HR carries no offset information.
 5. **AI coordinator, not AI manager:** automatic changes only when they can't cost work; humans approve the rest.
 6. **No automated 911 calls** in the demo; allowlisted teammate phone.

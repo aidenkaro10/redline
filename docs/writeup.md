@@ -25,7 +25,7 @@ A worker wears the band. Every minute, the laptop estimates their core body temp
 
 Behind that, a planner builds the crew's schedule around tomorrow's forecast, and adjusts it during the day when someone starts running hot. If a worker falls and doesn't get up, the system notifies the crew, waits 30 seconds for a cancel, then an AI voice calls and reads out who, where, and their last vitals.
 
-**The demo, in one line:** Jake goes yellow at minute 9 and red at minute 38 of a replayed shift. Maria falls at minute 40. 45 seconds later her band buzzes the man-down pattern, 60 seconds after that it's confirmed, and a phone on the table rings with the emergency report.
+**The demo, in one line:** Jake goes yellow within the first 15 minutes and red between minutes 30 and 40 of a replayed shift. Maria falls at minute 40. 45 seconds later her band buzzes the man-down pattern, 60 seconds after that it's confirmed, and a phone on the table rings with the emergency report.
 
 ---
 
@@ -37,14 +37,14 @@ Behind that, a planner builds the crew's schedule around tomorrow's forecast, an
 | Heat warnings caught early | **88%**, with **16.9 minutes** of warning on average |
 | "90% sure" forecast range held | **95%** of the time (the published method: 52%) |
 | Safety rule violations in AI-made schedules | **0%** with our rule checker, vs **92%** for Claude alone |
-| Time workers spent above 38.0 °C when the planner adjusts on the fly | **22% less**, with no work lost |
+| Time workers spent above 38.0 °C when the planner adjusts on the fly (simulated days) | **22% less**, with no work lost |
 | Tomorrow's hazard prediction vs. normal rates | **2-4×** better on held-out years |
 | Offline AI planner vs. Claude inside our system | **0.431 vs 0.435** plan score, at **$0** |
-| Real people in the training data | **65** (plus **9,000** simulated work shifts) |
+| Real people in the dataset | **65**: 55 trained on, 10 locked away for the final test (plus **9,000** simulated work shifts) |
 | Weather history behind the hazard model | **7 years, 202,003** site-days |
-| Automated tests | **674**, all passing |
-| Code | about **34,000** lines of Python, **7,600** of TypeScript, **269** commits |
-| Total API spend for all ML and agent training | about **$26** |
+| Automated tests | **729**, all passing |
+| Code | about **37,500** lines of Python, **7,800** of TypeScript, **680** of band firmware, **324** commits |
+| Claude API spend to train our agents and offline model | about **$26** (about $38 including planner benchmarking) |
 
 Every result in this write-up is measured on people, days or years the model never trained on.
 
@@ -54,7 +54,7 @@ Every result in this write-up is measured on people, days or years the model nev
 
 ### The band
 
-The band is an **Adafruit ESP32-S3 Feather** on a half-size breadboard strapped to the forearm. We picked the Feather because it has WiFi, Bluetooth and a built-in battery charger on one small board. An Arduino Uno was the backup.
+The band is an **Adafruit ESP32-S3 Feather** on a full-size breadboard strapped to the forearm. We picked the Feather because it has WiFi, Bluetooth and a built-in battery charger on one small board. An Arduino Uno was the backup.
 
 **What's on it now (Oct 18 build):**
 
@@ -84,15 +84,17 @@ All of it sits on a full-size breadboard: the Feather at the top, the Prop-Maker
 
 The band reports and the laptop decides. The band never decides whether someone is in danger. It just sends readings and obeys commands, which keeps the firmware simple and lets us improve everything on the laptop without reflashing.
 
-Text lines over USB at 115,200 baud (or UDP over WiFi):
+The band is **wireless**: it talks to the laptop over **Bluetooth Low Energy**, using the standard "serial port over Bluetooth" (the Nordic UART Service), and shows up as **"Redline Band"**. No WiFi, no internet, no pairing codes. It runs on a portable phone charger. The same lines also go out the USB cable, which is the backup and the way we upload new code. In our first wireless test, 498 of 500 motion readings arrived in 10 seconds.
+
+Everything is plain text lines:
 
 | Band → laptop | Every | Meaning |
 | --- | --- | --- |
 | `TEMP:34.62` | 5 s | Skin temperature, °C |
-| `TILT:0,ACT:7` | 1 s | Tilt state and activity |
-| `PPG:512,515,...` | 200 ms | 10 raw light readings, 20 ms apart |
+| `LIGHT:950` | 1 s | Sunlight on the photoresistor (0 dark to 4095 bright) |
+| `PPG:512,515,...` | 200 ms | Pulse mode only: 10 light readings, 20 ms apart |
 | `ACC:0.98,0.02,0.11` | 20 ms | Accelerometer, in g |
-| `AIRT:31.4` / `HUM:58.2` / `BARO:1012.35` | 1 s | Air temperature, humidity, pressure |
+| `AIRT:` / `HUM:` / `BARO:` | 1 s | Air temperature, humidity, pressure (if an air sensor is fitted) |
 | `BTN:1` / `BTN:SOS` | on press | "I'm OK" / help |
 
 | Laptop → band | Light | Sound |
@@ -104,7 +106,9 @@ Text lines over USB at 115,200 baud (or UDP over WiFi):
 | `BUZZ:MANDOWN` | Red "breathing" pulse | Continuous beeping until pressed |
 | `BUZZ:OFF` | Solid green | Silent |
 
-The laptop stamps every reading with its own clock the moment it arrives, so all signals line up. It re-sends the current status every 20 seconds, and if the band hears nothing for 60 seconds it blinks cyan, so a dead cable is obvious during a demo.
+The laptop stamps every reading with its own clock the moment it arrives, so all signals line up. It re-sends the current status every 20 seconds, and if the band hears nothing for 60 seconds it blinks cyan, so a dropped connection is obvious during a demo.
+
+**The band program** (`firmware/band/band.ino`, about 630 lines plus settings) has no `delay()` anywhere: every job runs on its own timer so the 50-per-second motion samples stay evenly spaced. It finds whichever accelerometer is plugged in by itself (ADXL345, LIS3DH or MMA7660) and skips parts that aren't wired. We compile and upload it from the Mac with one command (`tools/flash_band.sh`).
 
 ### Heart rate without the internet
 
@@ -112,7 +116,9 @@ Our first plan was an Apple Watch through the Pulsoid app. Then we realized Puls
 
 So we switched to **local Bluetooth**: the standard Bluetooth Heart Rate profile, which the HeartCast app can broadcast from an iPhone and Apple Watch, and which any chest strap or Garmin watch also speaks. No internet, no cost. It runs in its own process, so if macOS refuses Bluetooth permission, only the helper dies and the server keeps going.
 
-We also built the software for **a pulse sensor on the band itself**, so a future band needs nothing else. In this build the band has no pulse sensor (we couldn't get one in time, and the light sensor we had is used for sunlight), so heart rate comes from the watch over Bluetooth.
+We also built the software for **a pulse sensor on the band itself**, so a future band needs nothing else. This build has no proper pulse sensor (we couldn't get one in time), so we tried the photoresistor through a fingertip with a phone flashlight behind it. It **did pick up a real pulse**: in a 60-second test its strongest rhythm was 52-57 bpm against a counted 53. But in the next two tests a perfectly steady fake 90 bpm took over. That was the flashlight's invisible flicker folding down into a slow rhythm (aliasing), because the band only sampled 50 times a second. We fixed it in the band program by averaging every reading between samples, and the fake 90 dropped from 41% of the signal to 5%. What's left is real but too weak to trust without a proper LED and a finger clip.
+
+So for the live demo, heart rate is a **labeled demo input**: two buttons on the demo page, "Resting" (65-75 bpm, about 70) and "Running in place" (105-115 bpm, about 110), which ramp between each other over 45 seconds like a real heart. The screen tags it "Heart rate: demo input", and everything downstream (the Kalman filter, the forecast, alerts, planner, emergency call) runs for real on it. The watch over Bluetooth is the real-sensor path.
 
 ### Pulse from light
 
@@ -124,7 +130,7 @@ The hard part is arm movement, which makes dips far bigger than the heartbeat. T
 3. **Find the beat:** the strongest repeating rhythm that isn't the arm's rhythm (spectral peak + autocorrelation).
 4. **Score the quality.** Below a threshold, no number is given at all. Never a guess.
 
-On synthetic test data (30 sessions per activity, 5 minutes each, never used for tuning):
+On synthetic test data (30 sessions per activity, 5 minutes each, on seeds not used for tuning; the arm-work rule was adjusted after seeing errors, so that row is slightly optimistic):
 
 | Activity | Average error | Gives a reading |
 | --- | --- | --- |
@@ -133,11 +139,11 @@ On synthetic test data (30 sessions per activity, 5 minutes each, never used for
 | Arm work | 6.3 bpm | 49% |
 | (Simple peak counter, for comparison) | 22-47 bpm | |
 
-These are synthetic numbers. The pulse hardware isn't in this build, so real-world accuracy is still to be measured.
+These are synthetic numbers. Real-world accuracy needs the finger clip or a proper pulse sensor.
 
 ### Falls
 
-A fall is a sharp jolt, then lying flat, then no movement, from the Prop-Maker Wing's accelerometer at 50 readings a second. If a barometer is fitted, it confirms the band dropped about a meter (air pressure changes about 0.12 hPa per meter). The same readings give an activity level, which replaced the earlier tilt switch. Movement or a button press cancels the check, and a red heat alert nobody acknowledges also starts one.
+A fall is a sharp jolt, then lying flat, then no movement, from the Prop-Maker Wing's accelerometer at 50 readings a second. If a barometer is fitted, it confirms the band dropped at least about 0.4 m (air pressure changes about 0.12 hPa per meter). The same readings give an activity level, which replaced the earlier tilt switch. Movement or a button press cancels the check, and a red heat alert nobody acknowledges also starts one.
 
 ---
 
@@ -212,9 +218,9 @@ We randomly hid sensors during training so it copes when one drops out.
 
 **What this honestly says:**
 - **23% more accurate** than the published method at 20 minutes, with ranges that actually mean what they say.
-- Against a simple "keep going the direction it's heading" baseline, the accuracy gain is small (3-7%), but warnings come **30% earlier** with fewer false alarms.
+- Against a simple "keep going the direction it's heading" baseline, the accuracy gain is small (3-7%), but warnings come **30% earlier** (16.9 vs 13.0 min) with fewer false alarms (0.20 vs 0.23 per hour). A third baseline, "core temp stays flat, use a 90% range", warned almost as well as ours (88% caught, 16.1 min, 0.20 per hour), so most of the warning benefit comes from forecasting with an honest range at all; our model adds accuracy and slightly earlier warnings on top.
 - On red alerts, the simple trend caught 10 of 10 and we caught 9. With 10 cases, one miss is 10 points. We report it as is.
-- During development our best model scored 0.230 on the checking group. On the locked test it scored 0.370. The checking score was flattered by being used to pick the model, so **0.370 is the number we stand behind.**
+- During development our 5-model ensemble scored 0.230 on the checking group. On the locked test it scored 0.370. The checking score was flattered by being used to pick the model, so **0.370 is the number we stand behind.**
 
 The 95% error bars on "right now" are 0.21-0.40 °C, from resampling people. The network runs every minute for every worker, and it's frozen during a shift: it only gets updated after passing a test it's never seen.
 
@@ -280,7 +286,7 @@ A **0-10 danger score per site for tomorrow**, ready by 6 PM.
 | --- | --- | --- |
 | Any warning | 0.29 | **0.71** |
 | Heat advisory | 0.18 | **0.70** |
-| Flood warning | 0.24 | **0.80** |
+| Flood warning (mostly learns from NWS warnings already in effect) | 0.24 | **0.80** |
 | Storm warning | 0.16 | **0.35** |
 | Fire, heat injury | no clear gain | normal rate used |
 
@@ -309,7 +315,10 @@ But **a code rule checker re-checks every plan before anyone sees it.** When Cla
 ### Adjusting during the day
 Every minute, if someone's 20-minute forecast reaches 37.7 °C (just under the yellow line), the planner simulates a few fixes (break now, swap their heavy task with a cooler coworker, push it later) and picks the one that cools things most for the least lost work. Changes that can only make things safer happen automatically. Anything that costs work goes to the crew lead. That's our "AI coordinator, not AI manager" decision.
 
-### Results on 12 held-out days
+### Results on 12 held-out simulated days
+
+All planner numbers come from simulated days run through the heat physics model, not from real crews.
+
 
 | | Safety violations | Work done | Heat alerts per day |
 | --- | --- | --- | --- |
@@ -318,7 +327,7 @@ Every minute, if someone's 20-minute forecast reaches 37.7 °C (just under the y
 | Solver + rule checker | 0 | 68% | 0.19 |
 | **Full planner** | **0** | 67% | **0.17** |
 
-- Adjusting on the fly: **22% less** time above 38.0 °C, time above 38.5 °C down to **zero**, no work lost.
+- Adjusting on the fly (12 simulated days, heat model, not real people): **22% less** time above 38.0 °C, time above 38.5 °C down to **zero**, no work lost.
 - Storm chances in the points: outdoor work in stormy slots dropped from **29 to 9** units with the same total work.
 - The fixed schedule only "gets more done" because it ignores heat. That's the danger.
 
@@ -329,8 +338,8 @@ Every minute, if someone's 20-minute forecast reaches 37.7 °C (just under the y
 The planner's AI gets better every day, by itself, without code changes and without ever touching a safety rule. It practices on simulated days and is scored on work done, minus anyone who'd get a heat alert, minus how hot the hottest worker ran. Zero safety violations is required.
 
 1. **It invents its own practice** (self-play curriculum, from the 2025 "Absolute Zero" research). Claude makes up hard days: heat waves, new hires, afternoon storms, short crews, tight deadlines. The agent tries each one 6 times, and a day is kept only if it sometimes wins and sometimes fails. **27 of 93** invented days made the cut.
-2. **It writes its own playbook** (Agentic Context Engineering, ACE, Stanford 2025). After each day: plan, reflect on what went wrong, write a short lesson, and keep it only if the score improves on other days. Over 14 days, **3 of 18** proposed lessons survived. On a held-out heat-wave day, the agent used a lesson from day 2 to move a worker's 11:30 task, and his peak temperature dropped 0.18 °C with the same work done.
-3. **It evolves its own strategy** (GEPA + the Darwin Gödel Machine, 2025). Claude reads where the agent failed and rewrites its strategy. We keep a family tree of different good versions, explore new branches, and pick winners only on days it never trained on. Score: **0.378 → 0.452**. The winner learned to care 5× more about peak heat and to give new hires lighter work early.
+2. **It writes its own playbook** (Agentic Context Engineering, ACE, Stanford 2025). After each day: plan, reflect on what went wrong, write a short lesson, and keep it only if the score improves on other days. Over 14 days, **3 of 18** proposed playbook updates survived, adding up to 2 lessons. On the best of 8 held-out heat-wave days, the agent used a lesson from day 2 to move a worker's 11:30 task, and that worker's peak temperature dropped 0.18 °C with the same work done. Across all 8 heat-wave days, day 14 was not better on average, so this is an example, not a general result.
+3. **It evolves its own strategy** (GEPA + the Darwin Gödel Machine, 2025). Claude reads where the agent failed and rewrites its strategy. We keep a family tree of different good versions, explore new branches, and pick winners only on days it never trained on. Score on the validation days used for picking: **0.378 → 0.452**. The winner learned to care 5× more about peak heat and to give new hires lighter work early.
 4. **The nightly loop** ties it together: learn from yesterday, update each worker's profile, test tomorrow's plan against 30 random versions of tomorrow (Monte Carlo), practice, and give the 6 PM briefing a risk number. Over 14 simulated nights with the same crew, the **risk number got better calibrated** (Brier score 0.140 → 0.105, lower is better: on day 14, "0-10% risk" days went wrong about 10% of the time, while day 1 over-warned), and the profiles picked up that one worker runs hot on moderate work. But the **plans themselves didn't get safer** on held-out days (workers alerted per day 0.24 → 0.27, work done down 11%). The loop kept 1 lesson and accepted 0 of 9 strategy edits. Honest result: it learned to *predict* tomorrow's risk better, not yet to *plan* better. Cost: $0.45.
 
 | 12 held-out days | Violations | Work done | Heat alerts per day |
@@ -376,15 +385,8 @@ It got much better without getting lazier: from 17% to 68% of its own schedules 
 
 **Explaining plans, offline:** a code fact-checker compared every number, time and name in its explanations against the real plan. Claude: 0 unsupported claims out of 108. Our model: **0 out of 86**, and 0 out of 33 on the held-out days. That's its real job offline, and it does it as accurately as Claude.
 
-What didn't work: having it *edit* the solver's plan (76% of its answers changed nothing), and an early self-training run that filled the Mac's memory (fixed by capping the model's cache). Teaching data cost **$23.57**; everything after that was free.
+What didn't work: having it *edit* the solver's plan (76% of its answers changed nothing), and an early self-training run that filled the Mac's memory (fixed by capping the model's cache). Teaching data cost **$21.71** ($23.57 including one Claude re-run on the test days for comparison); everything after that was free.
 
---- | --- | --- |
-| As trained | 79% | 22% |
-| + Forcing the output format (constrained decoding) | **100%** | 22% |
-| + Safety rules in its instructions | 100% | 37% |
-| + A fix loop: the rule checker says what broke, it retries | 100% | **56%** |
-
-Next: training it to *edit* the solver's plan instead of writing one from scratch, then one final score on the held-out days. Teaching data cost **$23.57**.
 
 ---
 
@@ -414,8 +416,9 @@ We placed real test calls to our own phone. The first one failed because this Ma
 **How we kept it honest:**
 - **ML first.** We built and measured the models before the polished app, and every model had to beat a simple baseline before it shipped.
 - **Fake data and replay first.** Every module runs and tests without hardware, so a dead cable never blocks anyone. If the band fails during judging, we flip to replay.
-- **Acceptance tests written before the code was finished:** 36 backend checks and 24 frontend checks, turned into automated tests. They found **15 real bugs**, including a crash at startup with no internet, two SOS calls getting mixed up, and full phone numbers showing on the projector. All fixed.
-- **674 automated tests:** 386 backend, 79 ML, 159 end-to-end (the whole system: band lines, alerts, privacy, calls, hazards, restarts, 6 workers × 8 hours of load), 50 frontend.
+- **Hardware bugs found by measuring, not guessing:** a variable name that clashed with the chip's touch pins (caught by a real compile), the board being the 4 MB / 2 MB PSRAM version (the upload told us), a USB write that would freeze the band on a phone charger, and the flashlight aliasing above.
+- **Acceptance tests written before the code was finished:** 36 backend checks and 24 frontend checks, turned into automated tests. They found **14 real bugs** (and the frontend's tests on real recorded data found more), including a crash at startup with no internet, two SOS calls getting mixed up, and full phone numbers showing on the projector. All fixed.
+- **729 automated tests:** 421 backend, 93 ML, 162 end-to-end (the whole system: band lines, alerts, privacy, calls, hazards, restarts, 6 workers × 8 hours of load), 53 frontend.
 - **One locked test set, scored once.**
 - **Every claim traceable** to a results file in the repo.
 
