@@ -99,7 +99,7 @@ def build_report(event: MandownConfirmed, now: float) -> Report:
 def crew_script(r: Report, cancel_window_s: int) -> str:
     """What the crew lead and safety officer hear: who, where, what, and how to cancel."""
     return (
-        f"PlanIT Control alert. {r.worker} needs help at {r.site}. "
+        f"Redline alert. {r.worker} needs help at {r.site}. "
         f"They {r.what_happened}. It started {r.time_since} ago. "
         f"Emergency services will be called in {cancel_window_s} seconds. "
         f"If this is a false alarm, press cancel on the dashboard now."
@@ -110,7 +110,7 @@ def emergency_script(r: Report) -> str:
     """What the responder hears. Only what's needed to get there and know what to expect.
     The location comes first and is repeated at the end."""
     return (
-        f"Emergency. This is an automated call from PlanIT Control, a worker safety system. "
+        f"Emergency. This is an automated call from Redline, a worker safety system. "
         f"A worker needs help at {r.site}, GPS {r.gps}. "
         f"Worker: {r.worker}. They {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "
         f"Last vitals: {r.core_temp}, {r.heart_rate}. "

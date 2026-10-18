@@ -45,7 +45,7 @@ TICK_S = 0.5                     # how often timers are checked (real seconds)
 # Settings (from the command line, or defaults when imported by tests/uvicorn)
 # ---------------------------------------------------------------------------
 def parse_args(argv=None) -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="PlanIT Control live server")
+    ap = argparse.ArgumentParser(description="Redline live server")
     ap.add_argument("--source", choices=["replay", "live", "none"], default="replay",
                     help="replay = simulated shifts, live = band + Pulsoid, none = wait for REST/inputs")
     ap.add_argument("--speed", type=float, default=10.0, help="replay speed factor (10 = 10x real time)")
@@ -280,7 +280,7 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     return tasks
 
 
-app = FastAPI(title="PlanIT Control", lifespan=lifespan)
+app = FastAPI(title="Redline", lifespan=lifespan)
 try:
     # Session B's planner: /api/schedule, /api/briefing, /api/planner/*. Mounted before
     # frontend_router so its routes win over the empty fallbacks there.
@@ -550,7 +550,7 @@ def main(argv=None):
     SETTINGS = parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     import uvicorn
-    print(f"\n  PlanIT Control: open http://{SETTINGS.host}:{SETTINGS.port}\n", flush=True)
+    print(f"\n  Redline: open http://{SETTINGS.host}:{SETTINGS.port}\n", flush=True)
     uvicorn.run(app, host=SETTINGS.host, port=SETTINGS.port, log_level="warning")
 
 

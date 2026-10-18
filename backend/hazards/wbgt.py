@@ -27,7 +27,7 @@ Reference: Liljegren, J. C., Carhart, R. A., Lawday, P., Tschopp, S., Sharp, R.
 Measurements." J. Occup. Environ. Hyg. 5:10, 645-655 (2008).
 "This product includes software produced by UChicago Argonne, LLC under
 Contract No. DE-AC02-06CH11357 with the Department of Energy."
-(Ported to Python for PlanIT Control, 2026.)
+(Ported to Python for Redline, 2026.)
 """
 
 import math

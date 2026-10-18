@@ -1,4 +1,4 @@
-# PlanIT Control: the full write-up
+# Redline: the full write-up
 
 *How we built a wristband that warns outdoor workers before they overheat, plans their day around the heat, and calls for help when someone goes down. SwampHacks XII, Sperry Tech PlanIT Control track.*
 
@@ -380,7 +380,7 @@ When a fall is confirmed or someone holds SOS:
 2. A **30-second cancel window** for false alarms (10 seconds in the quick demo).
 3. An **AI voice agent** (ElevenLabs, through a Twilio phone number) calls and says:
 
-> "Emergency. This is an automated call from PlanIT Control, a worker safety system. A worker needs help at Deerhaven Generating Station, GPS 29.75810 north, 82.38980 west. Worker: Alex Rivera. They collapsed, no movement for 115 seconds. It started at 12:40 am, 115 seconds ago. Last vitals: estimated core temperature 39.1 degrees Celsius, heart rate 142 beats per minute. Again, the location is Deerhaven Generating Station, GPS 29.75810 north, 82.38980 west."
+> "Emergency. This is an automated call from Redline, a worker safety system. A worker needs help at Deerhaven Generating Station, GPS 29.75810 north, 82.38980 west. Worker: Alex Rivera. They collapsed, no movement for 115 seconds. It started at 12:40 am, 115 seconds ago. Last vitals: estimated core temperature 39.1 degrees Celsius, heart rate 142 beats per minute. Again, the location is Deerhaven Generating Station, GPS 29.75810 north, 82.38980 west."
 
 Location first and repeated at the end, the way dispatchers want it. It answers follow-up questions only from the incident data, and says "Sorry, I don't know the answer" to anything else. It never guesses and never gives medical advice.
 

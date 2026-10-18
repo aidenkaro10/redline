@@ -1,4 +1,4 @@
-# PlanIT Control
+# Redline
 
 A wristband that forecasts heat strain in outdoor workers and buzzes them before they overheat. Built for SwampHacks XII (Sperry Tech PlanIT Control track).
 

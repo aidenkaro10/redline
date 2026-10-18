@@ -1,4 +1,4 @@
-PlanIT Control 6 PM briefing for 2026-10-18
+Redline 6 PM briefing for 2026-10-18
 
 Tomorrow (2026-10-18): highest hazard index is Big Bend at 0.3/10. Crew site Deerhaven Generating Station: plan optimizer:throughput. Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 67% of priority-weighted work done.
 

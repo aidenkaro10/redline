@@ -1,6 +1,6 @@
-# PlanIT Control: technical write-up
+# Redline: technical write-up
 
-PlanIT Control keeps outdoor crews from overheating. A wristband streams sensor data to a laptop, which estimates each worker's core body temperature every minute, forecasts it 30 minutes ahead with calibrated uncertainty, schedules the workday around heat and weather, and escalates to a phone call if a worker goes down.
+Redline keeps outdoor crews from overheating. A wristband streams sensor data to a laptop, which estimates each worker's core body temperature every minute, forecasts it 30 minutes ahead with calibrated uncertainty, schedules the workday around heat and weather, and escalates to a phone call if a worker goes down.
 
 **Design principle:** learned models predict and suggest. Deterministic code makes every safety decision (alert thresholds, the plan rule checker, the lightning rule, emergency number blocking). No threshold is ever learned.
 
