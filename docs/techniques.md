@@ -78,6 +78,8 @@ One line per technique: what we did in plain words, then the standard name and w
 | Predict each worker's heat for every candidate schedule | Predict-then-optimize | Standard operations research |
 | Claude suggests, code checks every plan | Generator-verifier pattern (LLM with a code verifier) | Standard AI safety practice |
 | Claude calls the forecaster and optimizer | LLM tool use (function calling) | Anthropic API |
+| Several candidate plans, rule check, critic, combine, re-check | Generate-verify-critique-fuse pipeline (Archon-style inference-time architecture) | Saad-Falcon et al. 2024 |
+| Re-plan during the day when forecasts change | Closed-loop replanning (model predictive control style) | Standard control practice |
 | Auto-apply only changes that can only make things safer | Monotone (safer-only) autonomy, human approval for the rest | Our design |
 | Penalty for outdoor work in likely-storm slots | Soft constraint (cost term) | Standard optimization |
 | Search for the best heat vs. work balance | Random search + successive halving, Pareto front | Jamieson and Talwalkar 2016 |
