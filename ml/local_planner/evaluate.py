@@ -42,6 +42,7 @@ from backend.planner.optimizer import optimize
 from backend.planner.rules import check_plans
 from backend.planner.scenario import Plan, Scenario
 
+CLAUDE_CAP_USD = 30.0         # same overall cap as the teacher (the cost log is shared)
 EVAL_DIR = Path(os.getenv("LOCAL_PLANNER_EVAL_DIR", str(DATA_DIR / "eval")))
 # B's scored benchmark runs (same score_plans, same test set). Lives next to our data folder.
 B_BENCHMARK = Path(os.getenv("LOCAL_PLANNER_B_BENCHMARK", str(DATA_DIR.parent / "planner" / "benchmark.json")))
@@ -55,7 +56,12 @@ def parse_plan(text: str, source: str) -> Plan:
                 source=source, notes=str(data.get("notes", ""))[:300])
 
 
-def make_llm(name: str, temperature: float = 0.0, seed: int = 0):
+def make_llm(name: str, temperature: float = 0.0, seed: int = 0, scenario_id: str = "eval"):
+    if name == "claude":
+        # B's real agent LLM (Opus 5.5, critic ON), under the same $ cap and cost log as the teacher.
+        # Used only to SCORE on the test days; nothing from these runs is ever trained on.
+        from ml.local_planner.teacher import Budget, RecordingLLM, spent_so_far
+        return RecordingLLM(Budget(CLAUDE_CAP_USD, spent_so_far()), f"eval:{scenario_id}", skip_critic=False)
     from ml.local_planner.client import LocalLLM
     if name == "base":
         return LocalLLM(adapter_dir=None, temperature=temperature, seed=seed)
@@ -130,12 +136,12 @@ def optimizer_rows(scenarios: list[Scenario]) -> dict:
 def pipeline(model: str, scenarios: list[Scenario]) -> list[dict]:
     rows = []
     for sc in scenarios:
-        llm = make_llm(model)
+        llm = make_llm(model, scenario_id=sc.id)
         r = plan_with_agent(sc, playbook=None, llm=llm)
         s = score_plans(sc, [r.plan])[0]
         direct = next((c for c in r.candidates if c.name == "llm:direct"), None)
-        rows.append({"scenario": sc.id, "run": 0, **s, "latency_s": r.latency_s, "cost_usd": 0.0,
-                     "llm_seconds": llm.seconds, "llm_calls": llm.calls, "source": r.plan.source,
+        rows.append({"scenario": sc.id, "run": 0, **s, "latency_s": r.latency_s, "cost_usd": r.cost_usd,
+                     "llm_seconds": getattr(llm, "seconds", None), "llm_calls": llm.calls, "source": r.plan.source,
                      "rank": score(sc, r.plan, r.check, AgentSettings())["rank"] if r.check.ok else None,
                      "direct_given": direct is not None, "direct_ok": bool(direct and direct.check and direct.check.ok),
                      "direct_valid": bool(direct and direct.check and len(direct.check.violations) == direct.check.n_safety),
@@ -226,7 +232,7 @@ def main():
             path.write_text(json.dumps(raw))
     path.write_text(json.dumps(raw))
 
-    for m in models + ["base", "finetuned"]:          # best-of-k is recomputed from the saved samples
+    for m in [m for m in models if m != "claude"] + ["base", "finetuned"]:          # best-of-k is recomputed from the saved samples
         if f"first_try:{m}" in raw:
             n = len({r["run"] for r in raw[f"first_try:{m}"]})
             for key in [k for k in raw if k.startswith("best_of_") and k.endswith(f":{m}")]:
@@ -237,6 +243,8 @@ def main():
     results = {"first_try": {"Claude Opus 5.5 alone (B's llm_only)": summarize(b_rows("llm_only"))},
                "pipeline": {"optimizer only": summarize(opt),
                             "Claude agent (B's agent_day1)": summarize(b_rows("agent_day1"))}}
+    if "pipeline:claude" in raw:
+        results["pipeline"]["Claude agent, re-run here (same solver settings)"] = summarize(raw["pipeline:claude"])
     for m in ("base", "finetuned"):
         label = "Qwen3-1.7B base" if m == "base" else "Qwen3-1.7B + LoRA"
         if f"first_try:{m}" in raw:
