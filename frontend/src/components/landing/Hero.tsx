@@ -8,7 +8,8 @@
  * 2. Hero: the miniature job site (ElevenLabs picture) fills the screen. Each worker has a
  *    floating status pill. Hover one to see their 30-minute forecast.
  * 3. Click anywhere on the scene: a storm rolls in. Lightning flash, a 10-mile ring,
- *    and every pill flips to STOP WORK while the workers move inside. Click again to clear.
+ *    and every pill flips to STOP WORK while the workers move inside. Once the storm fills
+ *    the view it stays 3 seconds, then clears by itself (or click again to clear it sooner).
  *
  * Motion style (same as Aiden's other sites): fast start, long soft landing (expo out),
  * no bounce, no blur. Only transform and opacity animate, so it stays at 60 fps.
@@ -20,7 +21,6 @@ import gsap from "gsap";
 import { useEffect, useRef, useState } from "react";
 
 export const SERIF = { fontFamily: '"Iowan Old Style", "New York", ui-serif, Georgia, serif' };
-const RATIO = 2752 / 1536;                     // the pictures' width / height
 // Fade the picture's left and top edges to transparent so it melts into the page background
 const FEATHER = "linear-gradient(to right, transparent, black 14%), linear-gradient(to bottom, transparent, black 10%)";
 
@@ -55,6 +55,7 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
   const flashRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<HTMLDivElement>(null);
   const finished = useRef(false);
+  const stormTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dark = night || storm;
 
@@ -102,13 +103,17 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
     gsap.fromTo("[data-pin]", { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 1, stagger: 0.1, ease: "expo.out", delay: delay + 0.8 });
   }
 
-  // ---- 3. Storm: two soft lightning flashes ----------------------------------------------
+  // ---- 3. Storm: two soft lightning flashes, holds 3 s once it fills the view, then clears ----
+  const STORM_IN_MS = 1200;          // the storm picture's crossfade
+  const STORM_HOLD_MS = 3000;        // how long it stays once fully in
   function toggleStorm(e: React.MouseEvent) {
     if ((e.target as HTMLElement).closest("a,button,input,select,[data-pin]")) return;
     const next = !storm;
     setStorm(next);
     setOpen(null);
+    if (stormTimer.current) clearTimeout(stormTimer.current);
     if (next) {
+      stormTimer.current = setTimeout(() => { setStorm(false); setOpen(null); }, STORM_IN_MS + STORM_HOLD_MS);
       setLeft(1800);
       gsap.timeline({ delay: 0.75 })
         .to(flashRef.current, { opacity: 0.55, duration: 0.06, ease: "power1.out" })
@@ -117,6 +122,8 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
         .to(flashRef.current, { opacity: 0, duration: 0.9, ease: "expo.out" });
     }
   }
+
+  useEffect(() => () => { if (stormTimer.current) clearTimeout(stormTimer.current); }, []);
 
   // "All clear in 30:00" ticks down while the storm is on
   useEffect(() => {
@@ -129,10 +136,11 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
     <section onClick={intro ? undefined : toggleStorm}
       className={`relative h-screen min-h-[640px] overflow-clip transition-colors duration-1000 ${dark ? "bg-[#0d1220] text-[#f4ede2]" : "bg-[#f4ede2] text-[#1d1b19]"} ${intro ? "" : "cursor-pointer"}`}>
 
-      {/* The scene: 92% of the screen tall, anchored bottom-right, edges feathered into the page color.
-          Narrow screens crop the empty left side, never the site. Pin positions are % of this box. */}
-      <div ref={sceneRef} className="absolute bottom-0 right-[-2vw]"
-        style={{ contain: "layout paint", transform: "translateZ(0)", height: "92vh", width: `${92 * RATIO}vh`, maskImage: FEATHER, WebkitMaskImage: FEATHER, maskComposite: "intersect", WebkitMaskComposite: "source-in" }}>
+      {/* The scene, edges feathered into the page color. Size lives in .hero-scene (globals.css):
+          laptop = 92% of the screen tall, bottom right; phone = the lower half, centered on the plant.
+          Pin positions are % of this box, so they line up at any size. */}
+      <div ref={sceneRef} className="hero-scene absolute"
+        style={{ contain: "layout paint", maskImage: FEATHER, WebkitMaskImage: FEATHER, maskComposite: "intersect", WebkitMaskComposite: "source-in" }}>
         <img src="/landing/hero.jpg" alt="A miniature Florida power plant job site with five workers" className="absolute inset-0 h-full w-full" />
         <img src="/landing/night.jpg" alt="" className={`absolute inset-0 h-full w-full transition-opacity duration-[1400ms] ${night && !storm ? "opacity-100" : "opacity-0"}`} />
         <img src="/landing/storm.jpg" alt="" className={`absolute inset-0 h-full w-full transition-opacity duration-[1200ms] ${storm ? "opacity-100" : "opacity-0"}`} />
@@ -166,19 +174,19 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
           The rain layer is taller than the screen and slides down (cheap), instead of repainting its background. */}
       {storm && <div className="rain-layer fade-in pointer-events-none absolute inset-x-0 bottom-0 top-[-480px]" />}
       <div ref={flashRef} className="pointer-events-none absolute inset-0 bg-white opacity-0" />
-      {/* Soft wash on the left so the headline always reads */}
-      <div className={`pointer-events-none absolute inset-y-0 left-0 w-[55%] transition-opacity duration-1000 ${dark ? "bg-gradient-to-r from-[#0d1220]/85 via-[#0d1220]/40 to-transparent" : "bg-gradient-to-r from-[#f4ede2]/80 via-[#f4ede2]/30 to-transparent"}`} />
+      {/* Soft wash so the headline always reads: from the top on phones, from the left on laptops */}
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-[62%] bg-gradient-to-b md:inset-x-auto md:inset-y-0 md:left-0 md:h-auto md:w-[55%] md:bg-gradient-to-r ${dark ? "from-[#0d1220]/90 via-[#0d1220]/50 to-transparent" : "from-[#f4ede2] via-[#f4ede2]/80 to-transparent md:from-[#f4ede2]/80 md:via-[#f4ede2]/30"}`} />
 
       {/* Header */}
-      <header className="relative z-20 mx-auto flex max-w-[1400px] items-center gap-6 px-8 py-6">
+      <header className="relative z-20 mx-auto flex max-w-[1400px] items-center gap-4 px-5 py-4 md:gap-6 md:px-8 md:py-6">
         <a href="/preview" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
           <Logo /> Redline
         </a>
-        <nav className="ml-auto flex items-center gap-6 text-sm">
-          <a href="/worker" className="opacity-70 transition-opacity hover:opacity-100">Worker app</a>
+        <nav className="ml-auto flex items-center gap-4 whitespace-nowrap text-sm md:gap-6">
+          <a href="/worker" className="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">Worker app</a>
           <a href="/signin" className="opacity-70 transition-opacity hover:opacity-100">Sign in</a>
           <button onClick={() => setNight(!night)} aria-label={night ? "Day" : "Night"}
-            className={`grid h-9 w-9 place-items-center rounded-full border backdrop-blur ${dark ? "border-white/20 bg-white/10" : "border-black/10 bg-white/50"}`}>
+            className={`hidden h-9 w-9 place-items-center rounded-full border backdrop-blur sm:grid ${dark ? "border-white/20 bg-white/10" : "border-black/10 bg-white/50"}`}>
             {night ? "☀" : "☾"}
           </button>
           <button onClick={onSignup} className={`rounded-full px-4 py-2 font-semibold ${dark ? "bg-[#f4ede2] text-[#1d1b19]" : "bg-[#1d1b19] text-white"}`}>Get started</button>
@@ -186,17 +194,17 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
       </header>
 
       {/* Headline */}
-      <div ref={textRef} className="pointer-events-none relative z-10 mx-auto flex h-[calc(100%-88px)] max-w-[1400px] flex-col justify-center px-8 pb-16 opacity-0">
-        <p data-fade className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] opacity-60">Heat safety for outdoor crews · Florida</p>
-        <h1 className="max-w-[560px] text-[clamp(42px,4.6vw,74px)] leading-[0.98] tracking-[-0.025em]" style={SERIF}>
+      <div ref={textRef} className="pointer-events-none relative z-10 mx-auto flex max-w-[1400px] flex-col px-5 pt-6 opacity-0 md:h-[calc(100%-88px)] md:justify-center md:px-8 md:pb-16 md:pt-0">
+        <p data-fade className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] opacity-60 md:mb-5">Heat safety for outdoor crews · Florida</p>
+        <h1 className="max-w-[560px] text-[clamp(38px,4.6vw,74px)] leading-[0.98] tracking-[-0.025em]" style={SERIF}>
           <Words text="Know who's overheating." />
           <span className="block italic"><Words text="Before they do." className="heat-text pr-[0.08em]" /></span>
         </h1>
-        <p data-fade className="mt-6 max-w-[440px] text-[17px] leading-relaxed opacity-75">
+        <p data-fade className="mt-4 max-w-[440px] text-[15px] leading-relaxed opacity-75 md:mt-6 md:text-[17px]">
           A wristband forecasts each worker&apos;s core temperature 30 minutes ahead and buzzes them before it gets dangerous.
           The crew lead sees who needs a break.
         </p>
-        <div data-fade className="pointer-events-auto mt-8 flex items-center gap-3">
+        <div data-fade className="pointer-events-auto mt-6 flex items-center gap-3 md:mt-8">
           <button onClick={onSignup} className={`rounded-full px-6 py-3 text-sm font-semibold shadow-lg transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-[1.03] active:scale-[0.97] ${dark ? "bg-[#f4ede2] text-[#1d1b19]" : "bg-[#1d1b19] text-white"}`}>
             Get your crew on it →
           </button>
@@ -204,16 +212,17 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
       </div>
 
       {/* Hint chip / storm banner, bottom center */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-7 z-10 flex justify-center">
+      <div className="pointer-events-none absolute inset-x-0 bottom-5 z-10 flex justify-center px-4 md:bottom-7">
         {storm ? (
-          <div key="storm" className="flip-in flex items-center gap-3 rounded-full bg-[#e5483b] px-5 py-2.5 text-sm font-semibold text-white shadow-xl">
+          <div key="storm" className="flip-in flex items-center gap-2.5 whitespace-nowrap rounded-full bg-[#e5483b] px-4 py-2.5 text-[13px] font-semibold text-white shadow-xl md:gap-3 md:px-5 md:text-sm">
             <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
-            Lightning 4 mi away. Everyone inside.
+            <span className="hidden sm:inline">Lightning 4 mi away. Everyone inside.</span><span className="sm:hidden">Lightning. Everyone inside.</span>
             <span className="tabular rounded-full bg-black/20 px-2.5 py-0.5">All clear in {Math.floor(left / 60)}:{String(left % 60).padStart(2, "0")}</span>
           </div>
         ) : !intro && (
           <div key="hint" className="fade-in rounded-full border border-black/5 bg-white/70 px-4 py-2 text-xs font-medium text-[#5d564d] shadow-sm backdrop-blur" style={{ animationDelay: "2.2s" }}>
-            Hover a worker · Click anywhere to send a storm
+            <span className="hidden md:inline">Hover a worker · Click anywhere to send a storm</span>
+            <span className="md:hidden">Tap a worker · Tap the sky for a storm</span>
           </div>
         )}
       </div>

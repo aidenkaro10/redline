@@ -182,6 +182,14 @@ body {
 .dark .leaflet-control-attribution a { color: var(--ink-2); }
 .dark .leaflet-bar a { background: var(--surface); color: var(--ink); border-color: var(--line); }
 
+/* ---- Selling page (/preview) hero scene size. Width keeps the pictures' 2752:1536 shape. ---- */
+.hero-scene { height: 92vh; width: calc(92vh * 1.7917); right: -2vw; bottom: 0; transform: translateZ(0); }
+/* Phones: the lower part of the screen, centered between the outer workers (Jake ~44%, Tasha ~80%
+   across the picture) and sized so both of their pills fit on a 390 px wide screen */
+@media (max-width: 767px) {
+  .hero-scene { height: 40vh; width: calc(40vh * 1.7917); right: auto; left: 50%; bottom: 4vh; transform: translateX(-61%) translateZ(0); }
+}
+
 /* ---- Selling page (/preview) motion. The big timelines are GSAP; these are the small loops. ---- */
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes flip-in { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; transform: none; } }

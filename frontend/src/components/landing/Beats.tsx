@@ -1,8 +1,10 @@
 "use client";
 
 /**
- * The three scroll beats under the hero. Each one pins to the screen while you scroll and
- * plays a GSAP timeline tied to the scroll position (scrub), like a little film you control.
+ * The three scroll beats under the hero. On laptops each one pins to the screen while you scroll
+ * and plays a GSAP timeline tied to the scroll position (scrub), like a little film you control.
+ * On phones the scenes are taller than the screen, so they don't pin: each one plays by itself
+ * once you scroll to it.
  *
  *   BandBeat:    the wristband close-up + a core temp chart that draws itself. The forecast
  *                crosses the warning line, and the band buzzes 18 minutes early.
@@ -44,7 +46,9 @@ const CROSS = 17.8;                               // minutes until the forecast 
 export function BandBeat() {
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    const mm = gsap.matchMedia(root);
+    mm.add({ big: "(min-width: 1024px)", small: "(max-width: 1023px)" }, (ctx) => {
+      const big = !!ctx.conditions?.big;
       const q = gsap.utils.selector(root);
       const len = (el: SVGPathElement) => el.getTotalLength();
       const past = root.current!.querySelector<SVGPathElement>("[data-past]")!;
@@ -55,10 +59,14 @@ export function BandBeat() {
       // Words and the chart card rise as the section comes into view...
       gsap.from([...q("[data-copy] > *"), ...q("[data-chart]")], { y: 36, opacity: 0, stagger: 0.08, duration: 1.2, ease: "expo.out",
         scrollTrigger: { trigger: root.current, start: "top 65%" } });
-      // ...then the section pins and the scroll wheel plays the chart like a film
+      // ...then (laptop) the section pins and the scroll wheel plays the chart like a film,
+      // or (phone) the chart plays by itself once it's on screen
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: root.current, start: "top top", end: "+=1300", scrub: true, pin: true, anticipatePin: 1 },
+        scrollTrigger: big
+          ? { trigger: root.current, start: "top top", end: "+=1300", scrub: true, pin: true, anticipatePin: 1 }
+          : { trigger: q("[data-chart]")[0], start: "top 75%", toggleActions: "play none none none" },
       });
+      if (!big) tl.timeScale(1.5);
       tl.fromTo(q("[data-photo]"), { scale: 1.35, clipPath: "inset(18% 22% 18% 22% round 40px)" }, { scale: 1, clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1.2, ease: "power2.inOut" })
         .to(past, { strokeDashoffset: 0, duration: 1.2, ease: "none" })
         .from(q("[data-now]"), { opacity: 0, duration: 0.2 })
@@ -69,13 +77,13 @@ export function BandBeat() {
         .from(q("[data-callout]"), { y: 16, opacity: 0, duration: 0.5, ease: "expo.out" }, "<")
         .to(q("[data-led]"), { opacity: 1, scale: 1, duration: 0.3 }, "<")
         .to({}, { duration: 0.8 });            // hold the finished frame for a moment
-    }, root);
-    return () => ctx.revert();
+    });
+    return () => mm.revert();
   }, []);
 
   return (
-    <section ref={root} className="relative flex h-screen items-center overflow-clip bg-[#f4ede2] text-[#1d1b19]">
-      <div className="mx-auto grid w-full max-w-[1400px] items-center gap-12 px-8 lg:grid-cols-[1.15fr_1fr]">
+    <section ref={root} className="relative flex items-center overflow-clip bg-[#f4ede2] py-20 text-[#1d1b19] lg:h-screen lg:py-0">
+      <div className="mx-auto grid w-full max-w-[1400px] items-center gap-10 px-5 md:px-8 lg:grid-cols-[1.15fr_1fr] lg:gap-12">
         <div className="relative aspect-[16/9] w-full">
           <div data-photo className="absolute inset-0 overflow-hidden rounded-[28px] shadow-[0_40px_80px_-30px_rgba(60,40,20,.45)]">
             <img src="/landing/wrist.jpg" alt="A worker's wristband with a glowing amber light" className="h-full w-full object-cover" />
@@ -83,7 +91,7 @@ export function BandBeat() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <div data-copy className="flex flex-col gap-3">
             <Label n="01" text="The band" />
             <h2 className="text-[clamp(34px,3.6vw,56px)] leading-[1.02] tracking-[-0.02em]" style={SERIF}>30 minutes of <i className="heat-text">warning.</i></h2>
@@ -114,7 +122,7 @@ export function BandBeat() {
               <circle data-cross cx={X(CROSS)} cy={Y(38.5)} r="7" fill="#f0a020" stroke="white" strokeWidth="3" />
               {[-40, -20, 0, 15, 30].map((t) => <text key={t} x={X(t)} y="298" textAnchor="middle" fontSize="11" fill="#8a8174">{t === 0 ? "" : t > 0 ? `+${t} min` : `${t} min`}</text>)}
             </svg>
-            <div data-callout className="absolute right-6 top-6 rounded-2xl bg-[#1d1b19] px-4 py-2.5 text-white shadow-xl">
+            <div data-callout className="mt-3 inline-block rounded-2xl bg-[#1d1b19] px-4 py-2.5 text-white shadow-xl lg:absolute lg:right-6 lg:top-6 lg:mt-0">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/60">Band buzzes now</p>
               <p className="text-lg font-semibold">Danger in 18 min</p>
             </div>
@@ -140,13 +148,21 @@ const ROW = 68;
 export function CrewBeat() {
   const root = useRef<HTMLElement>(null);
   useEffect(() => {
-    const ctx = gsap.context(() => {
+    const mm = gsap.matchMedia(root);
+    mm.add({ big: "(min-width: 1024px)", small: "(max-width: 1023px)" }, (ctx) => {
+      const big = !!ctx.conditions?.big;
       const q = gsap.utils.selector(root);
       // The words and the phone glide in as the section arrives (time-based, not tied to the wheel)...
       gsap.from([...q("[data-copy] > *"), ...q("[data-phone]")], { y: 48, opacity: 0, stagger: 0.08, duration: 1.2, ease: "expo.out",
         scrollTrigger: { trigger: root.current, start: "top 65%" } });
-      // ...then it pins, and scrolling plays the re-sort. Same trigger for both, so nothing moves after it unpins.
-      const tl = gsap.timeline({ scrollTrigger: { trigger: root.current, start: "top top", end: "+=1100", scrub: true, pin: true, anticipatePin: 1 } });
+      // ...then (laptop) it pins and scrolling plays the re-sort, same trigger for both so nothing moves
+      // after it unpins; or (phone) the re-sort plays by itself once the phone is on screen
+      const tl = gsap.timeline({
+        scrollTrigger: big
+          ? { trigger: root.current, start: "top top", end: "+=1100", scrub: true, pin: true, anticipatePin: 1 }
+          : { trigger: q("[data-phone]")[0], start: "top 55%", toggleActions: "play none none none" },
+        delay: big ? 0 : 0.6,
+      });
       tl.to(q("[data-ok='Jake Rivera']"), { opacity: 0, y: -6, duration: 0.35 }, 0.1)
         .from(q("[data-bad='Jake Rivera']"), { opacity: 0, y: 6, duration: 0.45, ease: "expo.out" }, "<")
         .to(q("[data-ok='Tasha Webb']"), { opacity: 0, y: -6, duration: 0.35 }, "<0.15")
@@ -155,13 +171,13 @@ export function CrewBeat() {
       CREW.forEach((c, i) => tl.to(q(`[data-row='${c.name}']`), { y: (c.rank - i) * ROW, duration: 0.9, ease: "expo.inOut" }, i ? "<" : "+=0.2"));
       tl.fromTo(q("[data-note]"), { y: -60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "expo.out" }, "+=0.15")
         .to({}, { duration: 0.8 });
-    }, root);
-    return () => ctx.revert();
+    });
+    return () => mm.revert();
   }, []);
 
   return (
-    <section ref={root} className="relative flex h-screen items-center overflow-clip bg-[#ebe3d6] text-[#1d1b19]">
-      <div className="mx-auto grid w-full max-w-[1200px] items-center gap-16 px-8 lg:grid-cols-[1fr_auto]">
+    <section ref={root} className="relative flex items-center overflow-clip bg-[#ebe3d6] py-20 text-[#1d1b19] lg:h-screen lg:py-0">
+      <div className="mx-auto grid w-full max-w-[1200px] items-center gap-12 px-5 md:px-8 lg:grid-cols-[1fr_auto] lg:gap-16">
         <div data-copy className="flex flex-col gap-3">
           <Label n="02" text="The crew lead" />
           <h2 className="text-[clamp(34px,3.6vw,56px)] leading-[1.02] tracking-[-0.02em]" style={SERIF}>See who needs <i className="heat-text">a break.</i></h2>
@@ -172,7 +188,7 @@ export function CrewBeat() {
           <p className="max-w-[440px] text-[13px] leading-relaxed opacity-50">Safety calls come from fixed rules, never from AI.</p>
         </div>
 
-        <div data-phone className="relative h-[600px] w-[296px] rounded-[48px] bg-[#16161a] p-[10px] shadow-[0_50px_100px_-30px_rgba(30,20,10,.6)]">
+        <div data-phone className="relative mx-auto h-[600px] w-[296px] rounded-[48px] lg:mx-0 bg-[#16161a] p-[10px] shadow-[0_50px_100px_-30px_rgba(30,20,10,.6)]">
           <div className="relative h-full overflow-hidden rounded-[39px] bg-[#f7f7f5]">
             <div className="absolute left-1/2 top-2.5 h-6 w-24 -translate-x-1/2 rounded-full bg-[#16161a]" />
             <div className="flex justify-between px-7 pt-3 text-[11px] font-semibold"><span>2:41</span><span>●●● ▮</span></div>
@@ -242,10 +258,10 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
   }, []);
 
   return (
-    <section ref={ref} id="signup" className="relative overflow-clip bg-[#0d1220] py-28 text-[#f4ede2]">
+    <section ref={ref} id="signup" className="relative overflow-clip bg-[#0d1220] py-20 text-[#f4ede2] md:py-28">
       <div aria-hidden className="pointer-events-none absolute -right-40 top-0 h-[600px] w-[600px] rounded-full bg-[#ff7a3d] opacity-[0.07] blur-3xl" />
-      <div className="mx-auto grid max-w-[1300px] items-center gap-16 px-8 lg:grid-cols-[1.1fr_1fr]">
-        <div className="relative">
+      <div className="mx-auto grid max-w-[1300px] items-center gap-12 px-5 md:px-8 lg:grid-cols-[1.1fr_1fr] lg:gap-16">
+        <div className="relative min-w-0">
           <svg ref={mapRef} viewBox="0 0 560 470" className="w-full overflow-visible">
             <defs>
               <radialGradient id="glow"><stop offset="0" stopColor="#f4ede2" stopOpacity=".09" /><stop offset="1" stopColor="#f4ede2" stopOpacity="0" /></radialGradient>
@@ -267,7 +283,7 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
               </g>
             )}
           </svg>
-          <div className="mt-2 flex gap-5 text-[11px] text-white/55">
+          <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-[11px] text-white/55">
             {[["#52d18a", "Low"], ["#ffb02e", "Elevated"], ["#ff5a3d", "High"]].map(([c, t]) => (
               <span key={t} className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: c }} />{t}</span>
             ))}
@@ -275,7 +291,7 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
           </div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <div className="flex flex-col gap-3">
             <Label n="03" text="Every site" />
             <h2 className="text-[clamp(34px,3.6vw,56px)] leading-[1.02] tracking-[-0.02em]" style={SERIF}>Tomorrow&apos;s heat, <i className="heat-text">every site.</i></h2>
@@ -287,7 +303,7 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
         </div>
       </div>
 
-      <footer className="mx-auto mt-24 flex max-w-[1300px] items-center justify-between px-8 text-xs text-white/40">
+      <footer className="mx-auto mt-16 flex max-w-[1300px] flex-col gap-2 px-5 text-xs text-white/40 md:mt-24 md:flex-row md:items-center md:justify-between md:px-8">
         <span>Redline · Built at SwampHacks XII</span>
         <span>Pictures and film made with ElevenLabs</span>
       </footer>
@@ -300,7 +316,7 @@ function SignupCard({ onDone }: { onDone: (company: string | null) => void }) {
   const [done, setDone] = useState<string | null>(null);
   const [form, setForm] = useState({ company: "", name: "", email: "", size: "11-50" });
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm({ ...form, [k]: e.target.value });
-  const input = "rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-[#ff9a5a]";
+  const input = "w-full min-w-0 rounded-xl border border-white/15 bg-white/[0.06] px-3.5 py-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-[#ff9a5a]";
 
   return (
     <div className="w-full max-w-[480px] [perspective:900px]">
