@@ -19,6 +19,7 @@ Run:  python -m ml.local_planner.explain_check --adapter adapter
 import argparse
 import json
 import re
+from pathlib import Path
 
 from ml.local_planner.common import BASE_MODEL_DIR, CKPT_DIR, DATA_DIR, out_dir
 
@@ -122,12 +123,43 @@ def summarize(rows: list[dict], key: str) -> dict:
             "answers_with_any_unsupported": sum(r[key]["unsupported"] > 0 for r in rows) / len(rows)}
 
 
+def heldout(results_path: Path, keys: dict) -> dict:
+    """
+    Held-out days (B's 12 test days), from the pipeline eval results. Claude's exact facts weren't
+    saved there, so BOTH models are checked against the same thing: the final plan's facts (the
+    summary + the code-written facts line). Claims about the alternatives can't be confirmed that
+    way, so they count as unsupported for both. For local models the full facts were saved too.
+    """
+    from backend.planner.generate import load_test_set
+    raw = json.loads(Path(results_path).read_text())
+    scs = {sc.id: sc for sc in load_test_set()}
+    out = {}
+    for label, key in keys.items():
+        rows, full = [], []
+        for r in raw.get(key, []):
+            sc = scs[r["scenario"]]
+            bullets = "\n".join(r["reasons"][:-1])           # the last reason is the code facts line
+            rows.append({key: check(bullets, r["summary"] + "\n" + r["reasons"][-1], sc)})
+            if r.get("explain_facts"):
+                full.append({key: check(bullets, r["explain_facts"], sc)})
+        out[label] = {"vs_final_plan_facts": summarize(rows, key) if rows else None,
+                      "vs_full_facts": summarize(full, key) if full else None}
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--adapter", default="adapter")
     ap.add_argument("--recheck", action="store_true", help="re-score saved answers, no generation")
+    ap.add_argument("--heldout", default="", help="pipeline eval results.json to check (held-out days)")
     args = ap.parse_args()
     out = out_dir(DATA_DIR / "explain_check")
+    if args.heldout:
+        res = heldout(Path(args.heldout), {"Claude agent": "pipeline:claude", "local base": "pipeline:base",
+                                           "local adapter": "pipeline:finetuned"})
+        (out / "heldout.json").write_text(json.dumps(res, indent=1))
+        print(json.dumps(res, indent=1))
+        return
     if args.recheck:
         res = json.loads((out / f"val_{args.adapter}.json").read_text())
         scs = {it["scenario"]["id"]: Scenario.from_dict(it["scenario"]) for it in val_items()}

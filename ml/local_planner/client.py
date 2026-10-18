@@ -86,6 +86,7 @@ class LocalLLM:
         self.tokens_in = 0
         self.tokens_out = 0
         self.seconds = 0.0
+        self.log = []                              # (prompt, answer) of every text() call, for fact checks
 
     def _generate(self, messages: list, max_tokens: int) -> tuple[str, int, int]:
         import mlx.core as mx
@@ -116,6 +117,7 @@ class LocalLLM:
         self.tokens_in += n_in
         self.tokens_out += n_out
         self.seconds += time.time() - t0
+        self.log.append({"prompt": prompt, "answer": out})
         return out
 
     def create(self, messages: list, system: str | None = None, tools: list | None = None,
