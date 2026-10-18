@@ -62,7 +62,7 @@ def test_full_chain_with_fake_phone(tmp_path):
     assert all(e.demo_label == "Demo: would call 911" for e in emergency)
 
     # The dispatcher's question was answered from data.
-    assert "Unknown. Last movement was at" in phone.calls[-1].transcript[-1]["text"]
+    assert phone.calls[-1].transcript[-1]["text"] == "Sorry, I don't know the answer."
 
     # Every step is logged to the file with time, number, script, transcript, outcome.
     lines = [json.loads(line) for line in log_file.read_text().splitlines()]

@@ -1,7 +1,7 @@
 """The call script and follow-up answers come only from the event data."""
 
 from backend.emergency.events import MandownConfirmed
-from backend.emergency.report import answer_question, build_report, clock, crew_script, emergency_script
+from backend.emergency.report import DONT_KNOW, answer_question, build_report, clock, crew_script, emergency_script
 
 T0 = 1_760_000_000.0
 
@@ -35,18 +35,18 @@ def test_missing_data_is_said_as_unknown_not_invented():
     assert "worker ID worker-1" in s
     assert "temperature unknown" in s and "heart rate unknown" in s
     assert "GPS Unknown" in s
-    assert answer_question("What's his temperature?", r).startswith("Unknown")
-    assert answer_question("What's his pulse?", r).startswith("Unknown")
+    assert answer_question("What's his temperature?", r) == DONT_KNOW
+    assert answer_question("What's his pulse?", r) == DONT_KNOW
 
 
 def test_follow_up_answers():
     r = build_report(event(), now=T0 + 200)
-    assert answer_question("Is he breathing?", r) == f"Unknown. Last movement was at {clock(T0)}."
+    assert answer_question("Is he breathing?", r) == DONT_KNOW
     assert "GPS 29.75810 north" in answer_question("Where exactly is he?", r)
     assert "39.1" in answer_question("What's his temperature?", r)
     assert "142" in answer_question("What's his heart rate?", r)
     assert "3 minutes ago" in answer_question("How long ago did it happen?", r)
-    assert answer_question("What medication is he on?", r).startswith("Unknown")
+    assert answer_question("What medication is he on?", r) == DONT_KNOW
 
 
 def test_heat_trigger_wording():

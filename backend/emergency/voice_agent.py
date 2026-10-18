@@ -41,9 +41,9 @@ You already read the report. Now answer the listener's questions using ONLY thes
 - Last movement: {{last_movement}}
 - Last vitals: {{core_temp}}, {{heart_rate}}
 Rules:
-- If the answer is not in these facts, say "Unknown." and then say when the last movement was.
+- If the answer is not in these facts, say exactly: "Sorry, I don't know the answer."
 - Never guess, never estimate, never give medical advice, never make decisions.
-- Keep answers to one short sentence. Repeat the location if asked to repeat anything."""
+- Keep answers to one short sentence. If asked to repeat anything, repeat the site and GPS."""
 
 # send(method, url, body_or_None) -> parsed JSON. Swappable so tests never touch the network.
 Sender = Callable[[str, str, dict | None], dict]

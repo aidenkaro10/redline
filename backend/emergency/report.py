@@ -11,6 +11,7 @@ from datetime import datetime
 from backend.emergency.events import MandownConfirmed
 
 UNKNOWN = "Unknown"
+DONT_KNOW = "Sorry, I don't know the answer."   # what the call says when the data doesn't have it
 
 
 def clock(ts: float | None) -> str:
@@ -96,33 +97,31 @@ def build_report(event: MandownConfirmed, now: float) -> Report:
 
 
 def crew_script(r: Report, cancel_window_s: int) -> str:
-    """What the crew lead and safety officer hear. Ends with how to cancel."""
+    """What the crew lead and safety officer hear: who, where, what, and how to cancel."""
     return (
-        f"PlanIT Control automated alert. {r.worker} needs help at {r.site}. "
-        f"They {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "
-        f"Last vitals: {r.core_temp}, {r.heart_rate}. "
+        f"PlanIT Control alert. {r.worker} needs help at {r.site}. "
+        f"They {r.what_happened}. It started {r.time_since} ago. "
         f"Emergency services will be called in {cancel_window_s} seconds. "
         f"If this is a false alarm, press cancel on the dashboard now."
     )
 
 
 def emergency_script(r: Report) -> str:
-    """What the dispatcher hears. Facts only, in the order a dispatcher asks for them."""
+    """What the responder hears. Only what's needed to get there and know what to expect.
+    The location comes first and is repeated at the end."""
     return (
-        f"This is an automated emergency report from PlanIT Control, a worker safety system. "
-        f"A worker needs help. "
-        f"Location: {r.site}, GPS {r.gps}. "
-        f"Worker: {r.worker}. "
-        f"What happened: {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "
+        f"Emergency. This is an automated call from PlanIT Control, a worker safety system. "
+        f"A worker needs help at {r.site}, GPS {r.gps}. "
+        f"Worker: {r.worker}. They {r.what_happened}. It started at {r.started_at}, {r.time_since} ago. "
         f"Last vitals: {r.core_temp}, {r.heart_rate}. "
-        f"I can answer questions using the data I have."
+        f"Again, the location is {r.site}, GPS {r.gps}."
     )
 
 
 def answer_question(question: str, r: Report) -> str:
     """
     Answer a follow-up question from the data only. Plain keyword matching.
-    If we don't have the data, the answer starts with "Unknown".
+    If we don't have the data, the answer is DONT_KNOW. Never a guess.
     """
     q = question.lower()
 
@@ -130,17 +129,17 @@ def answer_question(question: str, r: Report) -> str:
         return any(w in q for w in words)
 
     if has("breath", "conscious", "awake", "responsive", "alive", "talking", "bleeding"):
-        return f"{UNKNOWN}. Last movement was at {r.last_movement}."
+        return DONT_KNOW
     if has("where", "location", "address", "gps", "site", "directions"):
         return f"{r.site}, GPS {r.gps}."
     if has("temp", "fever", "hot"):
-        return f"Last {r.core_temp}." if UNKNOWN.lower() not in r.core_temp else f"{UNKNOWN}."
+        return f"Last {r.core_temp}." if UNKNOWN.lower() not in r.core_temp else DONT_KNOW
     if has("heart", "pulse", "bpm"):
-        return f"Last {r.heart_rate}." if UNKNOWN.lower() not in r.heart_rate else f"{UNKNOWN}."
+        return f"Last {r.heart_rate}." if UNKNOWN.lower() not in r.heart_rate else DONT_KNOW
     if has("when", "how long", "what time", "started"):
         return f"It started at {r.started_at}, {r.time_since} ago."
     if has("name", "who"):
         return f"{r.worker}."
     if has("what happened", "happen", "fall", "fell", "collapse"):
         return f"{r.worker} {r.what_happened}."
-    return f"{UNKNOWN}. I can only report location, what happened, the time, and last vitals."
+    return DONT_KNOW
