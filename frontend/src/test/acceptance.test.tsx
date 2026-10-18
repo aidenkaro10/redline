@@ -26,7 +26,7 @@ import DemoPage from "@/app/demo/page";
 import ResultsPage from "@/app/demo/results/page";
 import WorkerPhonePage from "@/app/worker/[id]/page";
 import { AppHeader } from "@/components/AppHeader";
-import { DemoControls } from "@/components/DemoControls";
+import { DemoControls, HeartRateButtons } from "@/components/DemoControls";
 import { Shell } from "@/components/Shell";
 import { buildCoreChart } from "@/lib/chart";
 import type { Estimate, LiveEvent, Site, SiteStatus, ViewFilter, WorkerStatus } from "@/lib/contract";
@@ -34,6 +34,7 @@ import { primeSites } from "@/lib/crew";
 import { demoActions } from "@/lib/demo-actions";
 import { CALL_FAILED_TEXT, cancelCallRequest } from "@/lib/emergency";
 import { parseThermometer } from "@/lib/format";
+import { DEMO_HR_TAG, hrPicker, readHrMode } from "@/lib/heart-rate";
 import { createHold } from "@/lib/hold";
 import { acceptEvent, applyEvents, EMPTY, LiveContext, type LiveState } from "@/lib/live";
 import { lightningRings, TEN_MILES_M } from "@/lib/map-layers";
@@ -43,6 +44,7 @@ import { singleFlight } from "@/lib/once";
 import { rankSites } from "@/lib/ranking";
 import { RESULTS } from "@/lib/results-data";
 import { sendSpotCheck } from "@/lib/spotcheck";
+import { MockEngine } from "@/mock/engine";
 import { setRoute } from "./stubs/next-navigation.mjs";
 import fixture from "./fixtures/real/replay-recording.json" with { type: "json" };
 
@@ -631,4 +633,66 @@ test("22 robustness: at 10x replay, worker data uses replay time; lightning and 
 test("21 robustness (header): the phone apps say reconnecting when the connection drops", () => {
   const t = text(render(<AppHeader title="Your crew" />, { ...crewBase(), connected: false }));
   assert.match(t, /Reconnecting/);
+});
+
+// ---------------------------------------------------------------------------
+// Demo heart rate (the band has no pulse sensor): POST/GET /api/demo/heart_rate
+// ---------------------------------------------------------------------------
+
+test("demo heart rate: each button sends the right request, once on a double tap", async () => {
+  const sent: [string, Record<string, unknown>][] = [];
+  let release!: () => void;
+  const shown: string[] = [];
+  const pick = hrPicker((path, body) => { sent.push([path, body]); return new Promise((r) => { release = () => r({ ok: true, mode: body.mode }); }); }, (m) => shown.push(m));
+  const first = pick("rest");
+  await pick("rest");                                                                // second tap while the first is in flight
+  release();
+  await first;
+  assert.deepEqual(sent, [["/demo/heart_rate", { mode: "rest" }]]);
+  assert.deepEqual(shown, ["rest"]);
+  for (const m of ["off", "active"] as const) {
+    const got: unknown[] = [];
+    await hrPicker(async (p, b) => { got.push([p, b]); return { mode: m }; }, () => {})(m);
+    assert.deepEqual(got, [["/demo/heart_rate", { mode: m }]]);
+  }
+  // A rejected request leaves the old mode showing.
+  const after: string[] = [];
+  await hrPicker(async () => ({ ok: false, error: "nope" }), (m) => after.push(m))("active");
+  assert.deepEqual(after, []);
+});
+
+test("demo heart rate: the active button comes from GET (survives a reload)", () => {
+  assert.equal(readHrMode({ mode: "active" }), "active");
+  assert.equal(readHrMode({ mode: "sprinting" }), null);
+  assert.equal(readHrMode(null), null);
+  const html = renderToString(<HeartRateButtons mode="rest" onPick={() => {}} />);
+  const pressed = [...html.matchAll(/aria-pressed="true"[^>]*>([^<]+)</g)].map((m) => m[1]);
+  assert.deepEqual(pressed, ["Resting (about 70 bpm)"]);
+  for (const label of ["Off (real sensors)", "Running in place (about 110 bpm)"]) assert.ok(html.includes(label));
+  // The mock backend answers GET with what was last POSTed.
+  const engine = new MockEngine();
+  assert.deepEqual(engine.handle("GET", ["demo", "heart_rate"], new URLSearchParams(), {}).json, { mode: "off" });
+  engine.handle("POST", ["demo", "heart_rate"], new URLSearchParams(), { mode: "active" });
+  assert.deepEqual(engine.handle("GET", ["demo", "heart_rate"], new URLSearchParams(), {}).json, { mode: "active" });
+  assert.equal(engine.handle("POST", ["demo", "heart_rate"], new URLSearchParams(), { mode: "fast" }).status, 400);
+});
+
+test("demo heart rate: the tag shows only for demo_input, and never on the crew view", () => {
+  const vitals = (src: string): LiveEvent => ({ type: "vitals", vitals: { worker_id: "demo-2", timestamp: 1792002700, hr: 142, skin_temp: 34.9, activity: 6, tilt: 0, hr_source: src } });
+  const demoPage = (src: string) => text(render(<DemoPage />, stateOf(DEMO, [snapshot("demo"), vitals(src)]), { path: "/demo", search: "worker=demo-2" }));
+  assert.ok(demoPage("demo_input").includes(DEMO_HR_TAG));
+  assert.ok(!demoPage("watch").includes(DEMO_HR_TAG));
+  // An estimate tagged demo_input also turns the tag on.
+  const est = msgs("demo", "estimate").find((e) => (e as { estimate: Estimate }).estimate.worker_id === "demo-2");
+  if (est) {
+    (est as { estimate: Estimate }).estimate.hr_source = "demo_input";
+    assert.ok(text(render(<DemoPage />, stateOf(DEMO, [snapshot("demo"), est]), { path: "/demo", search: "worker=demo-2" })).includes(DEMO_HR_TAG));
+  }
+  // Crew: vitals never get in, so no heart rate and no tag.
+  const crew = stateOf(CREW, [snapshot("crew"), vitals("demo_input")]);
+  assert.deepEqual(crew.history, {});
+  for (const search of ["", "tab=sites"]) {
+    const t = text(render(<CrewApp />, crew, { path: "/", search }));
+    assert.ok(!t.includes(DEMO_HR_TAG) && !t.includes("142") && !/bpm/.test(t), "no heart rate on the crew view");
+  }
 });

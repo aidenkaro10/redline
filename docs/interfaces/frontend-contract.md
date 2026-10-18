@@ -221,6 +221,8 @@ Hazard: `kind, level (none|low|moderate|high|extreme), headline, detail, source,
 | POST | `/api/demo/clear-hazards` | | Clears test hazards |
 | POST | `/api/demo/replay` | `{on?: bool, speed?: number}` | Replay on/off and speed (1, 5, 10, 30) |
 | POST | `/api/demo/threshold` | `{on: bool}` | Demo thresholds (37.3 / 37.5 °C from `config.py`) |
+| POST | `/api/demo/heart_rate` | `{mode: "off" \| "rest" \| "active"}` | Demo heart rate (the band has no pulse sensor): rest 65-75 bpm (about 70), active 105-115 bpm (about 110). While on, that worker's `vitals` and `estimate` carry `hr_source: "demo_input"` and the worker/demo views tag it "Heart rate: demo input" (never the crew view). |
+| GET | `/api/demo/heart_rate` | | `{mode}`, so the buttons show the right one after a reload |
 | POST | `/api/demo/mandown` | `{worker_id}` | Fakes a fall for that worker |
 | POST | `/api/demo/sos` | `{worker_id}` | Fakes an SOS (button held 3 s) for that worker |
 | POST | `/api/demo/emergency` | `{format?: "call" \| "status", fail_next?: bool}` | Mock only. `status` = send D's `emergency_status` events instead of `emergency`. `fail_next` = the next emergency call fails (tests the "Call 911 yourself" screen) |

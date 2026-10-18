@@ -21,6 +21,7 @@ import type {
 } from "../lib/contract.ts";
 import { canSee, HAZARD_ORDER } from "../lib/contract.ts";
 import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
+import type { HeartRateMode } from "../lib/heart-rate.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
 import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
 
@@ -339,6 +340,7 @@ export class MockEngine {
   band: BandCommand[] = [];
   demo: DemoState;
   scenarioStart: number | null = null;   // sim time the scripted demo started
+  hrMode: HeartRateMode = "off";          // demo heart rate buttons (the band has no pulse sensor)
   scenarioDone = new Set<number>();      // which scenario steps already ran
   nextId = 1;
   timer: ReturnType<typeof setInterval> | null = null;
@@ -518,11 +520,19 @@ export class MockEngine {
       w.hr = fakeHr(w, this.rng);
       if (w.collapsed) w.hr = Math.max(w.hr, 112 + (this.rng() - 0.5) * 6);
       w.skin += ((33.6 + 1.2 * w.intensity + 0.35 * (w.core - 37) + (wbgt - 28) * 0.12) - w.skin) * 0.08;
+      const demoHr = this.isDemoHrWorker(w);
+      if (demoHr) {
+        // Demo heart rate: a made-up value inside the button's range, wandering a little each reading
+        const [lo, hi] = this.hrMode === "rest" ? [65, 75] : [105, 115];
+        const prev = w.hr >= lo && w.hr <= hi ? w.hr : (lo + hi) / 2;
+        w.hr = clamp(prev + (this.rng() - 0.5) * 6, lo, hi);
+      }
       w.minuteHr.push(w.hr);
       const activity = w.collapsed ? 0 : round(clamp(w.intensity * 9 + (this.rng() - 0.5) * 2, 0, 12), 1);
       const v: Vitals = {
         worker_id: w.def.worker_id, timestamp: this.sim, hr: Math.round(w.hr),
         skin_temp: round(w.skin + (this.rng() - 0.5) * 0.06, 2), activity, tilt: w.collapsed ? 1 : 0,
+        ...(demoHr ? { hr_source: "demo_input" } : {}),
       };
       w.vitals.push(v);
       while (w.vitals.length && w.vitals[0].timestamp < this.sim - HISTORY_VITALS_S) w.vitals.shift();
@@ -550,6 +560,11 @@ export class MockEngine {
   }
 
   /** Build this minute's estimate from the raw model value, minus the worker's personal offset. */
+  /** The demo heart rate feeds the first worker (the one wearing the demo band). */
+  isDemoHrWorker(w: WorkerSim) {
+    return this.hrMode !== "off" && w.def.worker_id === this.workers.keys().next().value;
+  }
+
   pushEstimate(w: WorkerSim, thr = this.thresholds()) {
     const offset = this.offsetOf(w.def.worker_id);
     const mean = w.rawEstimate - offset;
@@ -564,6 +579,7 @@ export class MockEngine {
       thresholds: { ...thr, demo: this.demo.demo_threshold },
       model: "mock forecaster (fake physiology)",
       offset_applied_c: round(offset),
+      ...(this.isDemoHrWorker(w) ? { hr_source: "demo_input" } : {}),
     };
     w.estimates.push(est);
     while (w.estimates.length > HISTORY_ESTIMATES_MIN) w.estimates.shift();
@@ -1393,6 +1409,7 @@ export class MockEngine {
         const mins = Number(query.get("minutes") ?? 60);
         return ok({ vitals: w.vitals.filter((v) => v.timestamp >= this.sim - mins * 60), estimates: w.estimates.filter((e) => e.timestamp >= this.sim - mins * 60) });
       }
+      if (a === "demo" && b === "heart_rate") return ok({ mode: this.hrMode });
       if (a === "schedule") return ok(this.schedule());
       if (a === "briefing") return ok(this.briefing());
       if (a === "reports") return ok(this.reports);
@@ -1436,6 +1453,13 @@ export class MockEngine {
           return ok({ ok: true });
         }
         if (b === "clear-hazards") { this.clearHazards(); return ok({ ok: true }); }
+        if (b === "heart_rate") {
+          const mode = body.mode;
+          if (mode !== "off" && mode !== "rest" && mode !== "active") return bad("mode must be off, rest or active");
+          this.hrMode = mode;
+          this.addLog(mode === "off" ? "Demo heart rate OFF: real sensors" : `Demo heart rate: ${mode === "rest" ? "resting (about 70 bpm)" : "running in place (about 110 bpm)"}`, "demo button");
+          return ok({ ok: true, mode });
+        }
         if (b === "replay") {
           if (typeof body.on === "boolean") this.demo.source = body.on ? "replay" : "live";
           if (typeof body.speed === "number" && body.speed > 0 && body.speed <= 60) this.demo.speed = body.speed;
