@@ -1034,7 +1034,7 @@ export class MockEngine {
       const stillFor = md ? Math.round(this.sim - md.fell_at) : 0;
       em.transcript.push({
         at: this.sim, speaker: "agent",
-        text: `This is an automated emergency report from PlanIT Control. Worker ${md?.worker_name} at ${md?.site_name}, GPS ${loc}, ${md?.reason === "sos" ? `pressed SOS on their band ${stillFor} seconds ago` : `collapsed, no movement for ${stillFor} seconds`}. Last estimated core temperature ${v?.core_temp?.toFixed(1) ?? "unknown"} degrees Celsius, heart rate ${v?.hr ?? "unknown"}. It started at ${md ? clockText(md.fell_at) : "unknown"}.`,
+        text: `This is an automated emergency report from Redline. Worker ${md?.worker_name} at ${md?.site_name}, GPS ${loc}, ${md?.reason === "sos" ? `pressed SOS on their band ${stillFor} seconds ago` : `collapsed, no movement for ${stillFor} seconds`}. Last estimated core temperature ${v?.core_temp?.toFixed(1) ?? "unknown"} degrees Celsius, heart rate ${v?.hr ?? "unknown"}. It started at ${md ? clockText(md.fell_at) : "unknown"}.`,
       });
       changed = true;
     }
