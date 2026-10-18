@@ -300,6 +300,7 @@ def make_briefing(crew_scenario: Scenario | None = None, for_date: str | None = 
                                          [r.summary] + suggestions + ([] if r.used_llm else [NO_LLM_NOTE])),
                      "llm": r.used_llm},
         "llm": r.used_llm,
+        "ai_notes": r.ai_notes,            # labeled "AI note: ...", no numbers; everything else above is code
         "plan": plan_view(crew_sc, r.plan, r.check),
         "crew_site_id": crew_site["id"],
         "crew_data_sources": crew_entry["data_sources"] if crew_entry else None,

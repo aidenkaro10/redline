@@ -23,6 +23,7 @@ No key = the same pipeline without the LLM steps.
 
 import json
 import math
+import re
 import time
 from dataclasses import dataclass, field, replace
 
@@ -82,6 +83,8 @@ class AgentResult:
     cost_usd: float
     candidates: list = field(default_factory=list)
     used_llm: bool = False           # False = made without Claude (no key, or use_llm=False): optimizer + rule checker only
+    ai_notes: list = field(default_factory=list)      # labeled LLM notes, no numbers, safe to show
+    ai_notes_raw: list = field(default_factory=list)  # the LLM's unfiltered bullets: evaluation only, never shown
 
     def to_dict(self, scenario: Scenario) -> dict:
         return {
@@ -90,7 +93,7 @@ class AgentResult:
                              for c in self.alternatives],
             "summary": self.summary, "reasons": self.reasons, "lessons_used": self.lessons_used,
             "log": self.log, "latency_s": round(self.latency_s, 2), "cost_usd": round(self.cost_usd, 4),
-            "llm": self.used_llm,
+            "llm": self.used_llm, "ai_notes": self.ai_notes,
             "candidates": [{"name": c.name, "verified": bool(c.check and c.check.ok),
                             "violations": c.check.n_safety if c.check else None, "score": c.score}
                            for c in self.candidates],
@@ -235,9 +238,31 @@ def llm_critic(llm, scenario: Scenario, cands: list[Candidate], s: AgentSettings
     return out
 
 
+PRONOUN_RULE = "Refer to workers by name or as 'they', never he/she."
+_GENDERED = re.compile(r"\b(he|she|him|his|her|hers|himself|herself)\b", re.IGNORECASE)
+
+
+def ai_notes_from(bullets: list[str]) -> list[str]:
+    """
+    LLM bullets the crew lead may see, as labeled AI notes. Numbers only ever come from code, so any
+    bullet with a digit is dropped (a local model once wrote wrong percentages); so is any bullet that
+    calls a worker he/she.
+    """
+    out = []
+    for b in bullets:
+        if re.search(r"\d", b) or _GENDERED.search(b):
+            continue
+        out.append(f"AI note: {b}")
+    return out[:3]
+
+
 def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], lessons: list[str],
-            playbook: Playbook | None) -> tuple[str, list[str]]:
-    """Plain reasons for the crew lead. LLM-written with a key, template without."""
+            playbook: Playbook | None) -> tuple[str, list[str], list[str], list[str]]:
+    """
+    Plain reasons for the crew lead. Returns (summary, reasons, ai_notes, raw_bullets).
+    reasons are ALWAYS the code-computed facts. With an LLM, its bullets become separate,
+    labeled ai_notes (filtered by ai_notes_from); raw_bullets are kept for evaluation only.
+    """
     sc = best.score
     facts = (f"Peak 90th pct core temp {floor2(sc['peak_p90']):.2f} °C (limit {config.PLAN_MAX_P90_C}), tightest margin "
              f"{floor2(sc['min_margin_c']):.2f} °C, {sc['throughput']:.0%} of priority-weighted work done.")
@@ -259,13 +284,13 @@ def explain(llm, scenario: Scenario, best: Candidate, alts: list[Candidate], les
         used = {l.id: l.text for l in playbook.lessons}
         reasons += [f"Lesson {lid}: {used[lid]}" for lid in lessons if lid in used]
     summary = f"Recommended: {best.name}. {facts}"
+    raw = []
     if llm is not None:
         txt = llm.text("Write 3 short plain-language bullet points (no jargon) for a crew lead explaining this "
-                       f"schedule's trade-offs. Facts:\n" + "\n".join(reasons), effort="low")
-        bullets = [b.strip("-• ").strip() for b in txt.splitlines() if b.strip()]
-        if bullets:
-            reasons = bullets[:5] + [facts]
-    return summary, reasons
+                       f"schedule's trade-offs. Don't use numbers. {PRONOUN_RULE} Facts:\n" + "\n".join(reasons),
+                       effort="low")
+        raw = [b.strip("-• ").strip() for b in txt.splitlines() if b.strip()][:5]
+    return summary, reasons, ai_notes_from(raw), raw
 
 
 # ---------------------------------------------------------------------------
@@ -374,12 +399,13 @@ def plan_with_agent(scenario: Scenario, playbook: Playbook | None = None, run: i
 
     alts = [c for c in reps if c is not best and c.plan.assignments != best.plan.assignments][:2]
     used = lessons_used if (best.objective and any(p.get("lesson") for p in best.objective.soft)) else []
-    summary, reasons = explain(llm, scenario, best, alts, used, playbook)
+    summary, reasons, ai_notes, raw_bullets = explain(llm, scenario, best, alts, used, playbook)
     best.plan.notes = summary
     best.plan.lessons_used = used
     best.plan.source = f"agent:{best.name}"
     return AgentResult(best.plan, best.check, alts, summary, reasons, used, log, time.time() - t0,
-                       llm.cost_usd if llm else 0.0, cands, used_llm=llm is not None)
+                       llm.cost_usd if llm else 0.0, cands, used_llm=llm is not None,
+                       ai_notes=ai_notes, ai_notes_raw=raw_bullets)
 
 
 # ---------------------------------------------------------------------------
