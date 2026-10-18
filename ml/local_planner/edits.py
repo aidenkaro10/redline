@@ -151,3 +151,47 @@ def gen_edit_plans(model, tok, sc: Scenario, day: dict, k: int, temperature: flo
         if not todo:
             break
     return results
+
+
+# ---------------------------------------------------------------------------
+# Training data in the edit format (from the teacher runs; training days only)
+# ---------------------------------------------------------------------------
+def edit_examples(split: str = "train") -> tuple[list[dict], dict]:
+    """
+    One example per kept teacher day: optimizer plan + edits that turn it into the verified plan
+    Claude's agent picked (the same STaR target as the plan examples). Returns (examples, stats).
+    """
+    from backend.planner.generate import assert_not_test
+    from ml.local_planner.dataset import compact, notes_from_reasons, pick_target
+    from ml.local_planner.scenarios import is_safe_to_learn_from
+    from ml.local_planner.teacher import RUNS_DIR
+    runs, days = [], []
+    for path in sorted(RUNS_DIR.glob("*.json")):
+        run = json.loads(path.read_text())
+        if run["split"] != split:
+            continue
+        sc = Scenario.from_dict(run["scenario"])
+        assert_not_test(sc)
+        if not is_safe_to_learn_from(sc):
+            continue
+        target, source = pick_target(run)
+        if target is None:
+            continue
+        runs.append((run, target))
+        days.append({"scenario": run["scenario"]})
+    days = add_optimizer_plans(days)
+    out, sizes = [], []
+    for (run, target), day in zip(runs, days):
+        sc = Scenario.from_dict(run["scenario"])
+        edits = diff_edits(day["opt_plan"], target)
+        if len(edits) > MAX_EDITS:
+            continue                                   # too different to teach as edits
+        sizes.append(len(edits))
+        answer = {"edits": edits, "notes": notes_from_reasons(run["final"]["reasons"])}
+        out.append({"messages": [{"role": "system", "content": EDIT_SYSTEM},
+                                 {"role": "user", "content": edit_prompt(sc, day)},
+                                 {"role": "assistant", "content": compact(answer)}]})
+    import numpy as np
+    stats = {"examples": len(out), "edits_median": float(np.median(sizes)) if sizes else 0,
+             "edits_max": max(sizes) if sizes else 0, "no_change": sum(s == 0 for s in sizes)}
+    return out, stats
