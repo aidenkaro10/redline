@@ -130,6 +130,8 @@ export interface Vitals {
   skin_temp: number | null;
   activity: number | null;
   tilt: number | null;
+  /** Where the heart rate came from: "band" | "ble" | "watch", or "demo_input" while the demo heart rate buttons are on. */
+  hr_source?: string | null;
 }
 
 export interface ForecastPoint {
@@ -147,6 +149,7 @@ export interface Estimate {
   kalman: number;                 // ECTemp baseline, shown as a thin line
   forecast: ForecastPoint[];      // 30 points, 1..30 minutes ahead
   why: string | null;             // "Rising because heart rate jumped 18 bpm in 10 min and WBGT is 31 °C." null = no explanation this minute
+  hr_source?: string | null;      // "demo_input" while the demo heart rate buttons are on
   /** Personal offset already subtracted from core + forecast (see OffsetUpdate). 0 or missing = average person. */
   offset_applied_c?: number;
   thresholds: { warning: number; danger: number; demo: boolean };

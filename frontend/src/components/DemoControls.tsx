@@ -2,14 +2,15 @@
 
 /**
  * Demo controls, one click each (CLAUDE.md rule): scripted demo, test hazard
- * alerts, man-down, replay on/off, replay speed, demo threshold.
+ * alerts, man-down, replay on/off, replay speed, demo threshold, demo heart rate.
  */
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { useCrew } from "@/lib/crew";
 import { demoActions, SPEEDS, type Request } from "@/lib/demo-actions";
-import { apiPost, useLive } from "@/lib/live";
+import { HR_MODES, HR_PATH, hrPicker, readHrMode, type HeartRateMode } from "@/lib/heart-rate";
+import { apiGet, apiPost, useLive } from "@/lib/live";
 
 /** `target`: who the man-down / SOS buttons act on (defaults to the first worker). */
 export function DemoControls({ target }: { target?: string }) {
@@ -62,6 +63,7 @@ export function DemoControls({ target }: { target?: string }) {
         >
           Demo threshold: {demo.demo_threshold ? `ON (${demo.thresholds.warning} / ${demo.thresholds.danger} °C)` : "off"}
         </button>
+        <DemoHeartRate />
       </div>
       {(running || demo.scenario.step === "Finished") && (
         <p className="mt-1.5 text-xs text-ink-2">
@@ -69,6 +71,37 @@ export function DemoControls({ target }: { target?: string }) {
           {running && " · heat alerts come from the alert rules, not the script"}
         </p>
       )}
+    </div>
+  );
+}
+
+/** Demo heart rate (the band has no pulse sensor). Asks the backend which mode is on, so it survives a reload. */
+function DemoHeartRate() {
+  const [mode, setMode] = useState<HeartRateMode | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    apiGet(HR_PATH).then((r) => setMode(readHrMode(r))).catch(() => {});   // older backend: no mode shown
+  }, []);
+  const pick = useMemo(() => {
+    const send = hrPicker((path, body) => apiPost(path, body), setMode);
+    return async (m: HeartRateMode) => { setBusy(true); try { await send(m); } finally { setBusy(false); } };
+  }, []);
+  return <HeartRateButtons mode={mode} busy={busy} onPick={pick} />;
+}
+
+/** The three heart rate buttons. `mode` null = not known yet (none shows as on). */
+export function HeartRateButtons({ mode, busy, onPick }: { mode: HeartRateMode | null; busy?: boolean; onPick: (m: HeartRateMode) => void }) {
+  return (
+    <div className="flex items-center gap-1.5" title="The band has no pulse sensor. These feed a made-up heart rate, clearly tagged as demo input.">
+      <span className="text-xs text-muted">Heart rate</span>
+      <div className="flex rounded-lg border border-line p-0.5">
+        {HR_MODES.map((o) => (
+          <button key={o.mode} disabled={busy} onClick={() => onPick(o.mode)} aria-pressed={o.mode === mode}
+            className={`rounded-md px-2 py-1 text-xs font-semibold disabled:opacity-60 ${o.mode === mode ? (o.mode === "off" ? "bg-surface-2 text-ink shadow-sm" : "bg-warn-bg text-warn-ink shadow-sm") : "text-ink-2"}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

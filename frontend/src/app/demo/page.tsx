@@ -21,6 +21,7 @@ import { LearningCard } from "@/components/LearningCard";
 import { Card, StatusBadge, fmtClockSec } from "@/components/ui";
 import type { BandCommand } from "@/lib/contract";
 import { airLine } from "@/lib/format";
+import { DEMO_HR_TAG, isDemoHr } from "@/lib/heart-rate";
 import { useLive, useSimNow } from "@/lib/live";
 import { useCrew, useSites } from "@/lib/crew";
 
@@ -42,6 +43,7 @@ function DemoView() {
   const lastE = hist.estimates[hist.estimates.length - 1];
   const band = [...live.band].reverse().filter((b) => b.worker_id === id);
   const at20 = lastE?.forecast[19];
+  const demoHr = isDemoHr(lastV, lastE);                 // the demo heart rate buttons are feeding this worker
 
   return (
     <>
@@ -68,7 +70,7 @@ function DemoView() {
       {/* Big numbers */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Stat label="Status">{w ? <StatusBadge status={w.status} big /> : "--"}<p className="mt-1 text-xs text-ink-2">{w?.status_reason}</p></Stat>
-        <Stat label="Heart rate" value={lastV?.hr != null ? Math.round(lastV.hr) : "--"} unit="bpm" />
+        <Stat label="Heart rate" value={lastV?.hr != null ? Math.round(lastV.hr) : "--"} unit="bpm" tag={demoHr ? <DemoHrTag /> : undefined} />
         <Stat label="Skin temp" value={lastV?.skin_temp?.toFixed(1) ?? "--"} unit="°C"
           sub={live.air[id]?.air_temp_c != null ? `air at band ${airLine(live.air[id])}` +
             (live.air[id].wbgt_correction_c ? ` · WBGT ${live.air[id].wbgt_correction_c! > 0 ? "+" : ""}${live.air[id].wbgt_correction_c!.toFixed(1)} °C` : "") : ""} />
@@ -95,7 +97,7 @@ function DemoView() {
 
         <div className="flex flex-col gap-4">
           {w && <LearningCard workerId={id} name={w.name} offset={live.offsets[id]} />}
-          <Card title="Heart rate" right="Apple Watch via Pulsoid, last 15 min">
+          <Card title="Heart rate" right={demoHr ? <DemoHrTag /> : "Apple Watch via Pulsoid, last 15 min"}>
             <Sparkline vitals={hist.vitals} field="hr" now={now} unit="bpm" height={110} pad={4} />
           </Card>
           <Card title="Skin temperature" right="Band diode, last 15 min">
@@ -120,10 +122,10 @@ function DemoView() {
   );
 }
 
-function Stat({ label, value, unit, sub, children }: { label: string; value?: React.ReactNode; unit?: string; sub?: string; children?: React.ReactNode }) {
+function Stat({ label, value, unit, sub, tag, children }: { label: string; value?: React.ReactNode; unit?: string; sub?: string; tag?: React.ReactNode; children?: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-line bg-surface p-3">
-      <p className="text-xs text-muted">{label}</p>
+      <p className="flex flex-wrap items-center gap-1.5 text-xs text-muted">{label}{tag}</p>
       {children ?? (
         <p className="mt-0.5 text-3xl font-bold tabular leading-tight">
           {value}<span className="ml-1 text-sm font-medium text-ink-2">{unit}</span>
@@ -169,4 +171,9 @@ function BandPanel({ cmds, sosActive, connected }: { cmds: BandCommand[]; sosAct
       </ul>
     </div>
   );
+}
+
+/** "Heart rate: demo input": the number comes from the demo buttons, not a sensor. */
+function DemoHrTag() {
+  return <span data-testid="demo-hr" className="rounded border border-warn bg-warn-bg px-1.5 py-0.5 text-[10px] font-bold text-warn-ink">{DEMO_HR_TAG}</span>;
 }
