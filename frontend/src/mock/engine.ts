@@ -1609,7 +1609,7 @@ export class MockEngine {
     const people = [...this.workers.values()].map((w) => ({
       id: w.def.worker_id, name: w.def.name, breakOffset: w.def.breakOffset, lighter: offset === 1 && this.hadHeatWarning(w.def.worker_id),
     }));
-    const key = `${this.dayStartOf(offset)}|${offset}|${this.demo.scene ?? ""}|${this.live.weatherAt}|${people.filter((p) => p.lighter).map((p) => p.id).join(",")}`;
+    const key = `${this.dayStartOf(offset)}|${offset}|${this.demo.scene ?? ""}|${source}|${hours.map((h) => `${h.hiF}/${h.rain}`).join(",")}|${people.filter((p) => p.lighter).map((p) => p.id).join(",")}`;
     let plan = this.planCache.get(key);
     if (!plan) {
       plan = planDay(this.dayStartOf(offset), hours, people, source);
