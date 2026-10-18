@@ -112,6 +112,25 @@ We tried 8 held-out heat-wave days and show the clearest one where the day-14 pl
 ```
 `<metrics>` = `tasks_per_shift, throughput, minutes_above_yellow, minutes_above_red, peak_p90_c, fairness_spread, safety_violations, invalid`. Suggested view: a scatter of `pareto_train` (tasks per shift vs minutes above yellow, dot size = fairness spread) with default and tuned highlighted, and a small held-out table under it.
 
+### `nightly_day1_vs_day14.json`: the nightly loop, same crew, same held-out day
+
+```json
+{"label": "Simulated days (not real shifts). Same crew, same held-out day.",
+ "day": {"id": "cur-7927950f", "tags": ["heat_dome"]}, "pick_rule": "...",
+ "day1": {"risk": 0.567, "risk_text": "17 of 30 variations had someone above the yellow line",
+          "weak_spot": {"worker": "Tom", "time": "07:00", "variations": 6},
+          "actual_anyone_above_yellow_rate": 0.33, "workers_alerted": 0.5, "minutes_above_yellow": 7.5,
+          "work_done": 0.51, "score": 0.12, "lessons_used": [], "safety_violations": 0,
+          "schedule": [{"worker": "Kofi (new hire)", "slots": [{"time": "07:00", "task": "moderate|rest|...", "label": "..."}]}]},
+ "day14": { "...same shape..." },
+ "profiles_day14": {"Kofi": {"runs_hotter_c": 0.044, "confidence": 0.98, "checks": 84,
+                             "heat_bias_c_per_slot": {"light": -0.003, "moderate": 0.052, "heavy": -0.026, "very_heavy": 0.0}}},
+ "lessons_day14": [{"id": "L1", "text": "...", "learned": "day 9"}],
+ "summary": {"day 1": {"workers_alerted_per_day": 0.24, "minutes_above_yellow_per_day": 37.4, "work_done": 0.52,
+                       "score": 0.26, "safety_violations": 0, "brier": 0.14}, "day 7": {}, "day 14": {}}}
+```
+Show the 6 PM card per side: the risk sentence, the weak spot, the cited lessons. Under it, the `summary` table (the honest average over 13 held-out days). Every-night detail is in `data/learning/nightly/run.json` (`timeline[].six_pm`).
+
 ### `summary.json`
 
 ```json

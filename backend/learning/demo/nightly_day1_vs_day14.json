@@ -1,0 +1,1170 @@
+{
+ "label": "Simulated days (not real shifts). Same crew, same held-out day.",
+ "day": {
+  "id": "cur-7927950f",
+  "tags": [
+   "heat_dome"
+  ]
+ },
+ "pick_rule": "Held-out day with the largest day-14 score gain, of 13; all are in nightly_report.json.",
+ "day1": {
+  "risk": 0.567,
+  "risk_text": "17 of 30 variations had someone above the yellow line",
+  "weak_spot": {
+   "worker": "Tom",
+   "time": "07:00",
+   "variations": 6
+  },
+  "actual_anyone_above_yellow_rate": 0.3333333333333333,
+  "workers_alerted": 0.5,
+  "minutes_above_yellow": 7.5,
+  "work_done": 0.5106,
+  "score": 0.12051666666666666,
+  "lessons_used": [],
+  "safety_violations": 0,
+  "schedule": [
+   {
+    "worker": "Marcus",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Ana",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "07:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Luis",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:30",
+      "task": "moderate",
+      "label": "Pipe insulation"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "10:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     }
+    ]
+   },
+   {
+    "worker": "Jada",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ]
+   },
+   {
+    "worker": "Tom",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "time": "07:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "11:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Kofi (new hire)",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ]
+   }
+  ]
+ },
+ "day14": {
+  "risk": 0.0,
+  "risk_text": "0 of 30 variations had someone above the yellow line",
+  "weak_spot": {
+   "worker": "Jada",
+   "time": "14:30",
+   "variations": 0,
+   "closest_peak_c": 37.72
+  },
+  "actual_anyone_above_yellow_rate": 0.0,
+  "workers_alerted": 0.0,
+  "minutes_above_yellow": 0.0,
+  "work_done": 0.40430000000000005,
+  "score": 0.30101666666666665,
+  "lessons_used": [
+   "L1"
+  ],
+  "safety_violations": 0,
+  "schedule": [
+   {
+    "worker": "Marcus",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "07:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "09:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Ana",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Luis",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Pipe insulation"
+     },
+     {
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Jada",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "07:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "09:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ]
+   },
+   {
+    "worker": "Tom",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "07:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "10:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   },
+   {
+    "worker": "Kofi (new hire)",
+    "slots": [
+     {
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "time": "07:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "time": "08:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "09:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "10:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "11:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "12:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "13:30",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:00",
+      "task": "rest",
+      "label": "Shade break"
+     },
+     {
+      "time": "14:30",
+      "task": "rest",
+      "label": "Shade break"
+     }
+    ]
+   }
+  ]
+ },
+ "profiles_day14": {
+  "Marcus": {
+   "runs_hotter_c": -0.02,
+   "confidence": 0.974,
+   "checks": 75,
+   "heat_bias_c_per_slot": {
+    "light": -0.003,
+    "moderate": 0.018,
+    "heavy": -0.053,
+    "very_heavy": 0.0
+   }
+  },
+  "Ana": {
+   "runs_hotter_c": 0.056,
+   "confidence": 0.975,
+   "checks": 77,
+   "heat_bias_c_per_slot": {
+    "light": -0.013,
+    "moderate": -0.014,
+    "heavy": -0.031,
+    "very_heavy": 0.0
+   }
+  },
+  "Luis": {
+   "runs_hotter_c": 0.059,
+   "confidence": 0.974,
+   "checks": 76,
+   "heat_bias_c_per_slot": {
+    "light": 0.002,
+    "moderate": 0.03,
+    "heavy": 0.064,
+    "very_heavy": 0.0
+   }
+  },
+  "Jada": {
+   "runs_hotter_c": 0.005,
+   "confidence": 0.976,
+   "checks": 83,
+   "heat_bias_c_per_slot": {
+    "light": 0.001,
+    "moderate": -0.001,
+    "heavy": 0.027,
+    "very_heavy": 0.0
+   }
+  },
+  "Tom": {
+   "runs_hotter_c": 0.049,
+   "confidence": 0.975,
+   "checks": 78,
+   "heat_bias_c_per_slot": {
+    "light": 0.001,
+    "moderate": 0.014,
+    "heavy": 0.038,
+    "very_heavy": 0.0
+   }
+  },
+  "Kofi": {
+   "runs_hotter_c": 0.044,
+   "confidence": 0.977,
+   "checks": 84,
+   "heat_bias_c_per_slot": {
+    "light": -0.003,
+    "moderate": 0.052,
+    "heavy": -0.026,
+    "very_heavy": 0.0
+   }
+  }
+ },
+ "lessons_day14": [
+  {
+   "id": "L1",
+   "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after.",
+   "learned": "day 9"
+  }
+ ],
+ "summary": {
+  "day 1": {
+   "workers_alerted_per_day": 0.244,
+   "minutes_above_yellow_per_day": 37.4,
+   "work_done": 0.516,
+   "score": 0.261,
+   "safety_violations": 0,
+   "brier": 0.1404
+  },
+  "day 7": {
+   "workers_alerted_per_day": 0.346,
+   "minutes_above_yellow_per_day": 37.4,
+   "work_done": 0.504,
+   "score": 0.213,
+   "safety_violations": 0,
+   "brier": 0.0833
+  },
+  "day 14": {
+   "workers_alerted_per_day": 0.269,
+   "minutes_above_yellow_per_day": 37.6,
+   "work_done": 0.461,
+   "score": 0.221,
+   "safety_violations": 0,
+   "brier": 0.105
+  }
+ }
+}
