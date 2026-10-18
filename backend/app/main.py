@@ -234,7 +234,12 @@ def wire_emergency(hub: Hub, s) -> list[asyncio.Task]:
     if getattr(s, "demo_timers", False):
         mandown.use_demo_timers(True)
         kwargs["cancel_window_s"] = config.DEMO_EMERGENCY_CANCEL_WINDOW_S
-        log.warning("DEMO TIMERS ON: man-down after %ss still, confirmed %ss later, emergency call %ss after that",
+        # Demo: only the emergency (stand-in for 911) number is called. No crew lead / safety officer calls,
+        # even if .env has their numbers.
+        from backend.emergency.escalation import default_contacts
+        kwargs["contacts"] = {**default_contacts(), "crew_lead": "", "safety_officer": ""}
+        log.warning("DEMO TIMERS ON: man-down after %ss still, confirmed %ss later, emergency call %ss after that "
+                    "(only the emergency number is called)",
                     config.DEMO_MANDOWN_STILL_S, config.DEMO_MANDOWN_ESCALATE_S, config.DEMO_EMERGENCY_CANCEL_WINDOW_S)
     manager = EscalationManager(phone=make_phone(s.emergency_phone),
                                 emit=lambda status: hub.dispatch([status.model_dump()]), **kwargs)
