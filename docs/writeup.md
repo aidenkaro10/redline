@@ -329,7 +329,7 @@ The planner's AI gets better every day, by itself, without code changes and with
 1. **It invents its own practice** (self-play curriculum, from the 2025 "Absolute Zero" research). Claude makes up hard days: heat waves, new hires, afternoon storms, short crews, tight deadlines. The agent tries each one 6 times, and a day is kept only if it sometimes wins and sometimes fails. **27 of 93** invented days made the cut.
 2. **It writes its own playbook** (Agentic Context Engineering, ACE, Stanford 2025). After each day: plan, reflect on what went wrong, write a short lesson, and keep it only if the score improves on other days. Over 14 days, **3 of 18** proposed lessons survived. On a held-out heat-wave day, the agent used a lesson from day 2 to move a worker's 11:30 task, and his peak temperature dropped 0.18 °C with the same work done.
 3. **It evolves its own strategy** (GEPA + the Darwin Gödel Machine, 2025). Claude reads where the agent failed and rewrites its strategy. We keep a family tree of different good versions, explore new branches, and pick winners only on days it never trained on. Score: **0.378 → 0.452**. The winner learned to care 5× more about peak heat and to give new hires lighter work early.
-4. **The nightly loop** (running now) ties it together: learn from yesterday, update each worker's profile, test tomorrow's plan against 30 random versions of tomorrow (Monte Carlo), practice, and give the 6 PM briefing a risk number.
+4. **The nightly loop** ties it together: learn from yesterday, update each worker's profile, test tomorrow's plan against 30 random versions of tomorrow (Monte Carlo), practice, and give the 6 PM briefing a risk number. Over 14 simulated nights with the same crew, the **risk number got better calibrated** (Brier score 0.140 → 0.105, lower is better: on day 14, "0-10% risk" days went wrong about 10% of the time, while day 1 over-warned), and the profiles picked up that one worker runs hot on moderate work. But the **plans themselves didn't get safer** on held-out days (workers alerted per day 0.24 → 0.27, work done down 11%). The loop kept 1 lesson and accepted 0 of 9 strategy edits. Honest result: it learned to *predict* tomorrow's risk better, not yet to *plan* better. Cost: $0.45.
 
 | 12 held-out days | Violations | Work done | Heat alerts per day |
 | --- | --- | --- | --- |
@@ -337,7 +337,7 @@ The planner's AI gets better every day, by itself, without code changes and with
 | After 14 days of playbook learning | 0 | 67% | **0.11** |
 | After strategy evolution + playbook | 0 | 61% | **0.03** |
 
-The system itself is the big jump (107 violations to zero). Learning adds a real but smaller gain on top: alerts down another third with the same work. All of it cost **$2.49** in Claude calls.
+The system itself is the big jump (107 violations to zero). Learning adds a real but smaller gain on top: alerts down another third with the same work. All of the learning work cost **$2.49** in Claude calls.
 
 One trap we caught: the solver gave slightly different answers depending on how busy the laptop was, and our first loop "learned" improvements that were just that noise. We made the solver deterministic and re-ran everything.
 
@@ -431,6 +431,7 @@ We placed real test calls to our own phone. The first one failed because this Ma
 | Tuning the planner's point values | Better on practice days, 6% fewer tasks on test days | Kept the defaults |
 | 20 min work / 10 min rest in hot hours (from a 2024 study) | 3% less time above yellow, but more above red (34 vs 8 worker-minutes) | Kept current breaks, 20/10 is an option |
 | Small AI planning on its own | Safe only by resting everyone | Used only inside the rule-checked planner |
+| Nightly learning loop, 14 simulated nights | Risk number got better calibrated, but plans didn't get safer and work dropped 11% | Use it for the 6 PM risk number, keep the planner as is |
 | Self-training the small AI from its own plans | Only 3.6% of its plans were both safe and productive, too few to learn from | Switched to format forcing, editing and a fix loop |
 | Red-alert catch rate | 9 of 10 vs 10 of 10 for a simple trend | Reported as is |
 
@@ -441,7 +442,7 @@ We placed real test calls to our own phone. The first one failed because this Ma
 1. **Real-world data.** The band's own pulse recordings, treadmill tests in layers with thermometer checks, then a pilot with a real crew.
 2. **The band alone.** The Kalman filter running on the band itself, so it works with no phone or laptop at all.
 3. **Better personal fit** from real thermometer data, and acclimatization tracked over days.
-4. **The nightly learning loop on real days,** not simulated ones.
+4. **The nightly learning loop on real days,** not simulated ones, and learning time-of-day patterns (it missed a worker who only runs hot after lunch).
 5. **A stronger offline model** (a 4-billion-parameter version, and reward-based training).
 6. **Licensed emergency dispatch** for the 911 leg, and a license for the Army's patented ECTemp method (or our own replacement for it).
 
