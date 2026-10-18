@@ -197,3 +197,19 @@ def test_edits_round_trip_and_illegal_edits_are_dropped():
     assert apply_edits(sc, base, [])[0] == base                       # empty list keeps the plan
     assert parse_edits('{"edits": [["w1", 3, "rest"]], "notes": "x"}') == ([["w1", 3, "rest"]], "x")
     assert parse_edits("nope")[0] is None
+
+
+def test_explanation_fact_check():
+    from ml.local_planner.explain_check import check, times_in
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    name = sc.crew[0].name.split(" ")[0]
+    facts = ("Peak 90th pct core temp 37.91 °C (limit 38.0), tightest margin 0.08 °C, 63% of priority-weighted work done.\n"
+             "No outdoor work 13:00-14:30 (lightning).\nAlternatives: optimizer:balanced (64% work, peak 37.88 °C)")
+    good = f"We get 63% done. {name} works early. No outdoor work from 1 to 2:30 PM. Peak 37.91 °C."
+    r = check(good, facts, sc)
+    assert r["claims"] >= 4 and r["unsupported"] == 0, r
+    stranger = next(n for n in ("Omar", "Lena", "Ike", "Jo") if n not in {w.name.split(' ')[0] for w in sc.crew})
+    bad = f"We get about 93% done. {stranger} takes the trenching. Peak 37.50 °C at 4 PM."
+    r = check(bad, facts, sc)
+    assert {k for k, _ in r["bad"]} == {"pct", "name", "temp", "time"}, r
+    assert times_in("from 1 to 2 p.m.") == [13 * 60, 14 * 60]
