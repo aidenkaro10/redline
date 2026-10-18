@@ -57,6 +57,8 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--no-ack", action="store_true",
                     help="replay workers never press the button (shows the red-unacknowledged man-down path)")
     ap.add_argument("--demo", action="store_true", help="start with demo thresholds (37.3 / 37.5 °C)")
+    ap.add_argument("--demo-timers", action="store_true",
+                    help="demo only: man-down beep after 10 s still, crew lead call ~20 s, emergency call ~30 s")
     ap.add_argument("--no-forecaster", action="store_true", help="Kalman-only alerts")
     ap.add_argument("--checkpoint", default=None, help="forecaster file (default: final_cv.pt, then ens5.pt, then v1.pt)")
     ap.add_argument("--band", choices=["auto", "ble", "usb"], default="auto",
@@ -228,6 +230,12 @@ def wire_emergency(hub: Hub, s) -> list[asyncio.Task]:
         return []
     from backend.emergency.escalation import EscalationLog
     kwargs = {"log": EscalationLog(s.emergency_log)} if s.emergency_log is not None else {}
+    from backend.alerts import mandown
+    if getattr(s, "demo_timers", False):
+        mandown.use_demo_timers(True)
+        kwargs["cancel_window_s"] = config.EMERGENCY_DEMO_CANCEL_WINDOW_S
+        log.warning("DEMO TIMERS ON: man-down after %ss still, confirmed %ss later, emergency call %ss after that",
+                    config.DEMO_MANDOWN_STILL_S, config.DEMO_MANDOWN_ESCALATE_S, config.EMERGENCY_DEMO_CANCEL_WINDOW_S)
     manager = EscalationManager(phone=make_phone(s.emergency_phone),
                                 emit=lambda status: hub.dispatch([status.model_dump()]), **kwargs)
 

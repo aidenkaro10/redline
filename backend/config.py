@@ -63,6 +63,9 @@ HEAT_RED_ACK_TIMEOUT_S = 60
 # ---------------------------------------------------------------------------
 MANDOWN_STILL_S = 45         # tipped over + no movement this long -> check (spec: 30-60 s)
 MANDOWN_ESCALATE_S = 60      # not cancelled this long -> alert crew lead and crewmates
+# Demo only (--demo-timers): a judge can't wait 2+ minutes. Off by default; the real timers above stay the rule.
+DEMO_MANDOWN_STILL_S = 10     # demo: beep after 10 s still
+DEMO_MANDOWN_ESCALATE_S = 10  # demo: confirmed (crew lead call) 10 s later, about 20 s after the fall
 
 
 # ---------------------------------------------------------------------------

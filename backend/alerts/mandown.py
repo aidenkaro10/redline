@@ -22,6 +22,27 @@ from backend import config
 
 OK, CHECKING, CONFIRMED = "ok", "checking", "confirmed"
 
+# Demo timers (--demo-timers): shorter waits so a judge sees the whole man-down flow in about 30 s.
+# Off by default. This never changes backend.config; it only picks which named constants to use.
+_demo_timers = False
+
+
+def use_demo_timers(on: bool) -> None:
+    global _demo_timers
+    _demo_timers = bool(on)
+
+
+def demo_timers_on() -> bool:
+    return _demo_timers
+
+
+def still_s() -> float:
+    return config.DEMO_MANDOWN_STILL_S if _demo_timers else config.MANDOWN_STILL_S
+
+
+def escalate_s() -> float:
+    return config.DEMO_MANDOWN_ESCALATE_S if _demo_timers else config.MANDOWN_ESCALATE_S
+
 
 class ManDownDetector:
     def __init__(self):
@@ -77,9 +98,9 @@ class ManDownDetector:
 
     def tick(self, t: float) -> list[dict]:
         """Check the timers. Call on every reading and about once a second."""
-        if self.state == OK and self.still_since is not None and t - self.still_since >= config.MANDOWN_STILL_S:
+        if self.state == OK and self.still_since is not None and t - self.still_since >= still_s():
             return [self._start(t, "fall", started_at=self.still_since)]
-        if self.state == CHECKING and t - self.check_started >= config.MANDOWN_ESCALATE_S:
+        if self.state == CHECKING and t - self.check_started >= escalate_s():
             self.state = CONFIRMED
             return [{
                 "type": "mandown_confirmed", "timestamp": t, "reason": self.reason,

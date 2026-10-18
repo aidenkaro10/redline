@@ -33,6 +33,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from backend import config
+import backend.alerts.mandown as mandown_timers
 from backend.app.planner_bridge import schedule_status
 
 Z90 = 1.2816                      # 90th percentile of a normal distribution, in standard deviations
@@ -409,7 +410,7 @@ class FrontendAdapter:
             "worker_name": self.hub.workers[wid]["name"], "site_id": site.get("site_id"),
             "site_name": site.get("name"), "lat": site.get("lat"), "lon": site.get("lon"),
             "fell_at": started, "check_started_at": t,
-            "confirm_at": t if sos else t + config.MANDOWN_ESCALATE_S,
+            "confirm_at": t if sos else t + mandown_timers.escalate_s(),
             "confirmed_at": t if sos else None, "stage": stage, "reason": reason,
             "last_vitals": {"core_temp": last.get("core_temp"), "hr": p.last_reading.get("hr") if p else None,
                             "at": last.get("timestamp", t)},
