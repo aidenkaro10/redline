@@ -56,19 +56,19 @@ Every result in this write-up is measured on people, days or years the model nev
 
 The band is an **Adafruit ESP32-S3 Feather** on a half-size breadboard strapped to the forearm. We picked the Feather because it has WiFi, Bluetooth and a built-in battery charger on one small board. An Arduino Uno was the backup.
 
-**What's on it now:**
+**What's on it now (Oct 18 build):**
 
 | Part | Job | Wiring |
 | --- | --- | --- |
 | Adafruit ESP32-S3 Feather | Main board | |
 | Built-in RGB LED (NeoPixel) | Status color | `PIN_NEOPIXEL`, power enabled first |
-| Passive buzzer | Alert sounds | D5, driven with `tone()`, 100 Ω in series |
-| Push button | "I'm OK" (short press), SOS (3-second hold) | D6, `INPUT_PULLUP` |
-| Tilt switch | Man-down and activity (backup) | D9, `INPUT_PULLUP` |
+| Passive buzzer | Alert sounds | Pin 5, driven with `tone()` |
+| Push button | "I'm OK" (short press), SOS (3-second hold) | Pin 6, `INPUT_PULLUP` |
+| Adafruit Prop-Maker FeatherWing (LIS3DH accelerometer) | Falls and activity | I2C at 0x18, with the Feather's I2C power switch turned on |
+| Photoresistor + 10 kΩ resistor | Sun vs. shade (sun adds heat load) | Pin 10 |
 | 1N4148 diode + 10 kΩ resistor | Skin temperature | Junction read on A5 |
-| Grove light sensor + LED | Pulse | Sensor on D10, LED on D12 |
-| Grove 3-axis accelerometer | Movement, falls | I2C (SDA/SCL) |
-| BME280 | Air temperature, humidity, pressure | I2C (shares the accelerometer's wires) |
+
+All of it sits on a full-size breadboard: the Feather at the top, the Prop-Maker Wing lower down, joined by four jumpers (3V, GND, SDA, SCL). The band program (`firmware/band/band.ino`) detects which sensors are present and skips the rest.
 
 **Things we figured out the hard way:**
 - **The buzzer is passive.** Setting the pin HIGH does nothing. Every alert sound is a `tone()` pattern.
@@ -76,7 +76,9 @@ The band is an **Adafruit ESP32-S3 Feather** on a half-size breadboard strapped 
 - **A diode is a cheap thermometer.** A plain 1N4148 diode's voltage drops about 2 mV for every degree it warms up. We read it through a 10 kΩ resistor, average 64 readings, and calibrate at two temperatures (room and ice water).
 - **Analog pins vs. WiFi.** On this chip, pins A0-A4 stop reading analog values whenever WiFi is on. So the temperature sensor uses A5 and the pulse sensor uses D10, both on the converter that keeps working with WiFi.
 - **Upload gotchas.** "USB CDC On Boot" has to be enabled or no serial port shows up. The port number changes after every upload. When an upload fails: hold BOOT, tap RST, release BOOT, retry.
-- **No parts could be ordered.** The hackathon was too short for shipping, so everything new came from the MLH hardware lab. When there were no Grove-to-jumper cables, we cut Grove-to-Grove cables in half and stripped the ends into the breadboard.
+- **No parts could be ordered.** The hackathon was too short for shipping, so everything new came from the MLH hardware lab. There were no Grove cables anywhere, so the Grove accelerometer and light sensor couldn't connect. We swapped in an Adafruit Prop-Maker FeatherWing (its LIS3DH accelerometer talks over plain I2C pins) and a plain photoresistor.
+- **The accelerometer wasn't found, twice.** First the Wing was in the breadboard turned 180°. Then it turned out the ESP32-S3 Feather's I2C pins are unpowered until the code switches them on (`PIN_I2C_POWER`).
+- **The LED strip stayed dark.** Its wires were on the OUT end, and data only goes in the IN end.
 
 ### How the band talks to the laptop
 
@@ -110,7 +112,7 @@ Our first plan was an Apple Watch through the Pulsoid app. Then we realized Puls
 
 So we switched to **local Bluetooth**: the standard Bluetooth Heart Rate profile, which the HeartCast app can broadcast from an iPhone and Apple Watch, and which any chest strap or Garmin watch also speaks. No internet, no cost. It runs in its own process, so if macOS refuses Bluetooth permission, only the helper dies and the server keeps going.
 
-Then we went further and put **a pulse sensor on the band itself**, so the band needs nothing else. The watch stays as a silent backup until the band is proven.
+We also built the software for **a pulse sensor on the band itself**, so a future band needs nothing else. In this build the band has no pulse sensor (we couldn't get one in time, and the light sensor we had is used for sunlight), so heart rate comes from the watch over Bluetooth.
 
 ### Pulse from light
 
@@ -131,11 +133,11 @@ On synthetic test data (30 sessions per activity, 5 minutes each, never used for
 | Arm work | 6.3 bpm | 49% |
 | (Simple peak counter, for comparison) | 22-47 bpm | |
 
-Real numbers come from the band's own recordings, which our hardware team is capturing now (sitting, walking, arm swings and fake falls, 2 minutes each).
+These are synthetic numbers. The pulse hardware isn't in this build, so real-world accuracy is still to be measured.
 
 ### Falls
 
-A fall is a sharp jolt, then lying flat, then no movement, confirmed by the barometer seeing the band drop about a meter (air pressure changes about 0.12 hPa per meter). The tilt switch stays as a backup trigger. Movement or a button press cancels the check, and a red heat alert nobody acknowledges also starts one.
+A fall is a sharp jolt, then lying flat, then no movement, from the Prop-Maker Wing's accelerometer at 50 readings a second. If a barometer is fitted, it confirms the band dropped about a meter (air pressure changes about 0.12 hPa per meter). The same readings give an activity level, which replaced the earlier tilt switch. Movement or a button press cancels the check, and a red heat alert nobody acknowledges also starts one.
 
 ---
 

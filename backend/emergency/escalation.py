@@ -108,8 +108,14 @@ class Escalation:
         number = self.contacts.get(target, "")
         if not number:
             msg = f"No {target} number set in .env. Call skipped."
-            self._status("failed", target, message=msg)
-            self._log("call", target=target, number="", script=script, transcript=[], outcome="failed", error=msg)
+            if target == "emergency":
+                # The emergency leg missing is a real failure: the screen must say "call 911 yourself".
+                self._status("failed", target, message=msg)
+                self._log("call", target=target, number="", script=script, transcript=[], outcome="failed", error=msg)
+            else:
+                # Crew lead / safety officer are optional: leaving one empty just skips it.
+                # Logged, but not shown as a red "failed" step on the dashboards.
+                self._log("call", target=target, number="", script=script, transcript=[], outcome="skipped", error=msg)
             return None
 
         def on_status(status: str, message: str) -> None:

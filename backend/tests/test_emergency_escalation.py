@@ -142,7 +142,8 @@ def test_missing_number_is_skipped_not_crashed():
     m, clock, events, phone = make(contacts=dict(CONTACTS, safety_officer=""))
     inc = m.handle(EVENT)
     assert inc.stage == "cancel_window"
-    assert any(e.target == "safety_officer" and e.status == "failed" for e in events)
+    # An empty optional contact is skipped quietly: no red "failed" step on the dashboards.
+    assert not any(e.target == "safety_officer" for e in events)
 
 
 def test_same_worker_twice_does_not_double_call():
@@ -221,3 +222,4 @@ def test_status_text_never_has_a_full_phone_number(capsys):
             assert number not in text and number[1:] not in text
             assert number not in printed
         assert "0001" in text           # the last 4 digits are still there
+
