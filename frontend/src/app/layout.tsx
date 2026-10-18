@@ -5,7 +5,7 @@ import { LiveProvider } from "@/lib/live";
 import { Shell } from "@/components/Shell";
 
 export const metadata: Metadata = {
-  title: "PlanIT Control",
+  title: "Redline",
   description: "Heat strain forecasting for outdoor crews",
 };
 

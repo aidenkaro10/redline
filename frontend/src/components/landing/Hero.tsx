@@ -173,7 +173,7 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
       {/* Header */}
       <header className="relative z-20 mx-auto flex max-w-[1400px] items-center gap-6 px-8 py-6">
         <a href="/preview" className="flex items-center gap-2.5 text-[15px] font-semibold tracking-tight">
-          <Logo /> PlanIT Control
+          <Logo /> Redline
         </a>
         <nav className="ml-auto flex items-center gap-6 text-sm">
           <a href="/worker" className="opacity-70 hover:opacity-100">Worker app</a>
