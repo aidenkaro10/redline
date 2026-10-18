@@ -30,7 +30,7 @@ export function Nav() {
       <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
         <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
           <Logo />
-          <span>PlanIT Control</span>
+          <span>Redline</span>
         </Link>
         <nav className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto md:order-none md:w-auto">
           {LINKS.map((l) => {

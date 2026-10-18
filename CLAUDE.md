@@ -1,4 +1,4 @@
-# PlanIT Control
+# Redline
 
 Heat strain forecasting wearable for SwampHacks XII. **Read PROJECT.md for the full spec.** Build order and status: PLAN.md.
 

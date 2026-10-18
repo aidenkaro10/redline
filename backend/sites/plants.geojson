@@ -1,6 +1,6 @@
 {
  "type": "FeatureCollection",
- "name": "PlanIT Control job sites: Florida power plants",
+ "name": "Redline job sites: Florida power plants",
  "source": "U.S. Energy Information Administration, Form EIA-860M (august_generator2026.xlsx, inventory of operating generators as of August 2026). Public domain.",
  "features": [
   {

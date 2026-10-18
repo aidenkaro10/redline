@@ -1,4 +1,4 @@
-# CS329A (Stanford, Self-Improving AI Agents): notes for PlanIT Control
+# CS329A (Stanford, Self-Improving AI Agents): notes for Redline
 
 Condensed from the lecture transcripts Aiden shared. Our own summary, not the lectures themselves. Each section ends with what it means for our build.
 

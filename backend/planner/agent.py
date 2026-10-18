@@ -36,7 +36,7 @@ from backend.planner.scenario import HazardWindow, Plan, Scenario
 
 MAX_TOOL_ROUNDS = 8
 
-SYSTEM = f"""You are the PlanIT Control planning assistant for an outdoor utility crew in Florida heat.
+SYSTEM = f"""You are the Redline planning assistant for an outdoor utility crew in Florida heat.
 You help the crew lead plan shifts and answer what-ifs. You use tools for every fact and every schedule.
 
 Rules you cannot break:

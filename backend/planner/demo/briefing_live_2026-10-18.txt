@@ -1,4 +1,4 @@
-PlanIT Control 6 PM briefing for 2026-10-18
+Redline 6 PM briefing for 2026-10-18
 
 Tomorrow (2026-10-18): highest hazard index is Port Everglades at 0.7/10. Crew site Deerhaven Generating Station: plan optimizer:fairness. Peak 90th pct core temp 37.99 °C (limit 38.0), tightest margin 0.00 °C, 96% of priority-weighted work done.
 

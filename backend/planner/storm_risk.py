@@ -29,6 +29,7 @@ from zoneinfo import ZoneInfo
 import numpy as np
 
 from backend.planner.scenario import Scenario
+from backend.hazards.http import SSL_CONTEXT   # Mac python.org builds ship without HTTPS certificates
 
 log = logging.getLogger(__name__)
 TZ = ZoneInfo("America/New_York")
@@ -59,7 +60,7 @@ def fetch_hourly(lat: float, lon: float) -> dict | None:
                                 "hourly": "precipitation_probability,weather_code",
                                 "timezone": "GMT", "forecast_days": 3, "past_days": 1})
     try:
-        with urllib.request.urlopen(f"{URL}?{q}", timeout=10) as r:
+        with urllib.request.urlopen(f"{URL}?{q}", timeout=10, context=SSL_CONTEXT) as r:
             h = json.loads(r.read())["hourly"]
         times = [dt.datetime.fromisoformat(t).replace(tzinfo=dt.timezone.utc).timestamp() for t in h["time"]]
         rain = np.array([0 if v is None else v for v in h["precipitation_probability"]], float) / 100

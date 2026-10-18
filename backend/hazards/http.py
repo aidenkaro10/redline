@@ -26,6 +26,7 @@ def _ssl_context():
 
 
 _SSL = _ssl_context()
+SSL_CONTEXT = _SSL   # shared: anything in the backend that opens HTTPS with urllib uses this
 
 
 def build_url(url, params=None):

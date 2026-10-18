@@ -75,6 +75,35 @@ Tuned vs default: `margin` 0 → 4, `budget_margin_c` 0.05 → 0.075, priority v
 
 **In the self-improving story:** GEPA's genome now includes `PlannerWeights` (validated by `PlannerWeights.validate()`, clamped, mutated by Claude or the code mutator, gated on held-out days like every other knob), and `python -m backend.learning.gepa --start-weights` starts evolution from the tuned weights. `python -m backend.learning.ace --weights` runs the 14-day playbook loop on top of them. Neither has been rerun with weights yet. The weights can never move a safety limit: `validate()` refuses a negative budget margin or an early line above the yellow line, and the rule checker still gates every plan.
 
+### Nightly learning loop: "learns from yesterday" (`nightly.py`)
+
+One cycle per simulated day, 14 days, home crew (all simulated):
+1. **Day:** the crew works last night's 6 PM plan in the simulated world. Hidden traits persist per person: personal offsets, Kofi tires on harder work from 11:00, Marcus runs hot after lunch. *Deviation, on purpose:* B's simulated shift re-draws hidden offsets per scenario id, so traits wouldn't persist across days. `world.py` keeps them fixed per person (same PHS engine).
+2. **Learn:** thermometer spot checks at breaks feed each worker's profile (`personal_offset.py`: same shrinkage, same 0.6 °C cap) plus a per-intensity heat bias. People are compared to a **hindcast** (the model re-run on the weather that actually happened), so a hot day isn't blamed on the crew. The planner only ever uses the "runs hotter" side. ACE reflects and curates, gating each update alone.
+3. **Night:** 30 Monte Carlo variations of tomorrow (weather error sized from the forecast misses seen so far: 1.7 °C after day 1, settling to 1.15; person variation from profiles; early storms 15% of the time). The agent plans 6 practice variations; the curriculum keeps the "sometimes solved" ones; GEPA tries one Claude edit and must beat the current agent on 3 variations it didn't practice on.
+4. **6 PM:** tomorrow's plan + "k of 30 variations had someone above the yellow line" + the weak spot (worker + time) + lessons used.
+
+Run: 14 nights, 2.5 h on 3 processes × 1 solver thread, **Claude $0.45** for the final run (23 calls); $0.55 including two aborted starts. Cap $5.
+
+**Held-out (13 home-crew days no loop learned from, 6 simulated outcomes each):**
+
+| Agent | Workers alerted / day | Worker-min above yellow / day | Work done | Simulated score | Risk-number Brier (lower = better) | Safety violations |
+| --- | --- | --- | --- | --- | --- | --- |
+| day 1 (before learning) | 0.24 | 37.4 | 0.52 | 0.261 | 0.140 | 0 |
+| day 7 | 0.35 | 37.4 | 0.50 | 0.213 | 0.083 | 0 |
+| day 14 | 0.27 | 37.6 | 0.46 | 0.221 | 0.105 | 0 |
+
+**Risk calibration, day 14 agent** (held-out): predicted 0-10% → actually went wrong 10% of the time (7 days); 10-30% → 8% (2 days); 30-60% → 33% (1 day); 60-100% → 33% (3 days). The day-1 agent over-warned (60-100% predicted, 27% happened) because it starts with a wide weather prior. After learning, low-risk calls are slightly overconfident (it said ~1%, it happened ~10%).
+
+**Honest read:**
+- What improved: the **risk number** got better calibrated (Brier 0.140 → 0.105, best 0.083 at day 7), and profiles learned real things. Kofi's moderate-work heat bias (+0.05 °C per slot) matches his hidden trait. Offsets stayed small and sane (≤ 0.06 °C) once the hindcast fix was in.
+- What did NOT improve: plans on held-out days. Alerts didn't drop (0.24 → 0.27), heat minutes stayed flat, work done fell 11%. The one kept lesson ("new hires: moderate/heavy work before 9:00", written by the code curator on day 9) made plans more cautious without cutting alerts on average. GEPA tried 9 edits; 0 beat the current agent on unpracticed variations, so the settings never changed.
+- Missed: Marcus's after-lunch trait. The per-intensity bias averages over the whole day, so a trait that only shows after 12:00 washes out. Next step: a per-intensity, per-time-of-day bias.
+- Day 14 itself had an alert the 6 PM forecast gave 0 of 30. Calibration at the low end is the weak spot.
+- 0 rule-checker violations on every plan, every night, every version.
+
+Demo: `backend/learning/demo/nightly_day1_vs_day14.json`, same crew, held-out heat-dome day `cur-7927950f`. Day 1: "17 of 30 variations had someone above the yellow line", weak spot Tom at 07:00; really happened in 2 of 6 simulated outcomes. Day 14 cites L1: "0 of 30", and 0 of 6 happened, but it got there by doing less work (0.51 → 0.40). It's the held-out day with the largest day-14 gain of 13 (the pick rule is in the file); the table above is the average.
+
 ### What I learned building it (honest notes)
 
 1. **Solver noise fooled the first gates.** B's CP-SAT stops on a wall-clock limit, so under a busy laptop the same day gave slightly different plans. My first ACE run "kept" updates that a deterministic rerun showed were noise (+0.026 → +0.000). Fix: inside the loops, the solver uses a deterministic work limit and 1 thread (`parallel.py`, no change to B's code). Every number above is from deterministic runs. The wall-clock runs are archived in `data/learning/old/wallclock/`.
@@ -90,6 +119,7 @@ python -m backend.learning.curriculum --llm --rounds 8 --per-round 12 --home-sha
 python -m backend.learning.ace --llm                                                   # ~55 min, ~$0.15
 python -m backend.learning.gepa --llm --iterations 8 --n-train 21 --n-val 6           # ~30 min, ~$0.30
 PLANNER_LLM_CACHE=<B's data/planner/llm_cache> python -m backend.learning.report      # ~25 min, $0
+python -m backend.learning.nightly --llm                                              # ~2.5 h, ~$0.45 (cap $5), then the held-out report
 python -m backend.learning.weights_search                                             # ~30 min, $0 (search + held-out once)
 python -m backend.learning.demo                                                        # ~15 min, $0 (DEMO_REUSE_DAY=1: 1 min)
 ```

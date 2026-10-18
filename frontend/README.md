@@ -1,4 +1,4 @@
-# PlanIT Control frontend
+# Redline frontend
 
 Next.js + Tailwind + Recharts + Leaflet. Runs on its own with a built-in **mock backend**, so every screen works with no Python and no hardware.
 

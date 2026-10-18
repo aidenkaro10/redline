@@ -1,5 +1,6 @@
 {
   "name": "planit-frontend",
+  "description": "Redline frontend: worker app, crew lead app and selling page",
   "version": "0.1.0",
   "private": true,
   "scripts": {
