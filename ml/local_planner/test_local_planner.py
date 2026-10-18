@@ -21,6 +21,21 @@ def test_test_scenarios_are_refused():
     assert scenarios.is_safe_to_learn_from(make_scenario(3, prefix="train"))
 
 
+def test_every_test_day_copy_is_refused_even_renamed_or_reannotated():
+    """Regenerated copies of ALL 12 test days, with new names and extra fields filled in, are still caught."""
+    from backend.planner.generate import TEST_SEEDS, TEST_TAGS
+    for seed, tags in zip(TEST_SEEDS, TEST_TAGS):
+        copy = make_scenario(seed, prefix="trainvar", tags=tags)
+        for w in copy.crew:
+            w.name = "Someone else"
+        for slot in copy.weather:
+            slot.storm_prob = 0.9                     # optional add-on fields the test files don't have
+        for t in copy.tasks:
+            t.elevated = not t.elevated
+        copy.tags = ["looks_new"]
+        assert not scenarios.is_safe_to_learn_from(copy), seed
+
+
 def test_split_is_stable_and_mostly_train():
     ids = [f"train-{i}" for i in range(500)]
     splits = [scenarios.split_of(i) for i in ids]
