@@ -21,11 +21,17 @@ export default function WorkerPicker() {
   const teamName = useTeams().find((t) => t.id === team)?.name;
   const router = useRouter();
 
-  // Same phone as last time: go straight to that worker.
+  // Same phone as last time: go straight to that worker, but only once per browser tab, and never
+  // when they came back here on purpose (the back button / "switch" link adds ?switch=1).
+  // Otherwise pressing Back would bounce them straight forward again.
   useEffect(() => {
-    let last: string | null = null;
-    try { last = localStorage.getItem("worker_id"); } catch { /* private mode */ }
-    if (last && workers.some((w) => w.worker_id === last)) router.replace(`/worker/${last}`);
+    if (new URLSearchParams(window.location.search).get("switch")) return;
+    let last: string | null = null, jumped = false;
+    try { last = localStorage.getItem("worker_id"); jumped = sessionStorage.getItem("worker_jumped") === "1"; } catch { /* private mode */ }
+    if (!jumped && last && workers.some((w) => w.worker_id === last)) {
+      try { sessionStorage.setItem("worker_jumped", "1"); } catch { /* ignore */ }
+      router.replace(`/worker/${last}`);
+    }
   }, [workers, router]);
 
   return (
@@ -37,7 +43,7 @@ export default function WorkerPicker() {
           {workers.map((w) => (
             <li key={w.worker_id}>
               <Link href={`/worker/${w.worker_id}`}
-                onClick={() => { try { localStorage.setItem("worker_id", w.worker_id); } catch { /* ignore */ } }}
+                onClick={() => { try { localStorage.setItem("worker_id", w.worker_id); sessionStorage.setItem("worker_jumped", "1"); } catch { /* ignore */ } }}
                 className="flex min-h-14 items-center gap-3 px-4 py-3 text-[16px] font-semibold active:bg-surface-2">
                 <StatusDot status={w.status} /> <span className="shrink-0">{w.name}</span>
                 <span className="ml-auto min-w-0 truncate text-[14px] font-normal text-muted">{w.role}</span>

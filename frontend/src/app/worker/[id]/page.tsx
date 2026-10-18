@@ -14,6 +14,7 @@
  * person's own numbers and nobody else's.
  */
 
+import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 
@@ -152,9 +153,16 @@ function WorkerPhone() {
     <Frame status={stopWork ? "stop" : w.status}>
       <Wash tone={look.tone}>
         <div className="px-4 pt-[max(14px,env(safe-area-inset-top))]">
+          {/* Back to the name list (iOS-style back button), and tap your initials to switch person */}
           <div className="flex items-center justify-between">
-            <span className="text-[15px] font-semibold text-ink/70">{site ? shortSiteName(site.name) : w.site_id}</span>
-            <Avatar name={w.name} />
+            <Link href={`/worker?team=${encodeURIComponent(w.team ?? "demo")}&switch=1`} aria-label="Back to the crew list"
+              className="-ml-1.5 flex min-h-11 items-center gap-1 pr-2 text-[15px] font-semibold text-ink/70 active:opacity-60">
+              <svg viewBox="0 0 10 16" className="h-4 w-2.5" aria-hidden><path d="M8 2L2 8l6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+              {site ? shortSiteName(site.name) : w.site_id}
+            </Link>
+            <Link href={`/worker?team=${encodeURIComponent(w.team ?? "demo")}&switch=1`} aria-label={`Not ${w.name}? Switch person`} className="min-h-11 content-center">
+              <Avatar name={w.name} />
+            </Link>
           </div>
           <h1 className="mt-12 text-[34px] font-semibold leading-[1.08] tracking-[-0.035em] text-balance">{look.title}</h1>
           {!stopWork && <p className="mt-1.5 text-[17px] font-medium leading-snug" style={statusHue ? { color: statusHue } : undefined}>{danger}</p>}
