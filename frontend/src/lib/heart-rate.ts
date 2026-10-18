@@ -16,8 +16,8 @@ export const DEMO_HR_TAG = "Heart rate: demo input";
 /** The three buttons, in order. */
 export const HR_MODES: { mode: HeartRateMode; label: string }[] = [
   { mode: "off", label: "Off (real sensors)" },
-  { mode: "rest", label: "Resting (55-70 bpm)" },
-  { mode: "active", label: "Running in place (130-155 bpm)" },
+  { mode: "rest", label: "Resting (about 70 bpm)" },
+  { mode: "active", label: "Running in place (about 110 bpm)" },
 ];
 
 export const heartRateRequest = (mode: HeartRateMode): Request => [HR_PATH, { mode }];

@@ -667,8 +667,8 @@ test("demo heart rate: the active button comes from GET (survives a reload)", ()
   assert.equal(readHrMode(null), null);
   const html = renderToString(<HeartRateButtons mode="rest" onPick={() => {}} />);
   const pressed = [...html.matchAll(/aria-pressed="true"[^>]*>([^<]+)</g)].map((m) => m[1]);
-  assert.deepEqual(pressed, ["Resting (55-70 bpm)"]);
-  for (const label of ["Off (real sensors)", "Running in place (130-155 bpm)"]) assert.ok(html.includes(label));
+  assert.deepEqual(pressed, ["Resting (about 70 bpm)"]);
+  for (const label of ["Off (real sensors)", "Running in place (about 110 bpm)"]) assert.ok(html.includes(label));
   // The mock backend answers GET with what was last POSTed.
   const engine = new MockEngine();
   assert.deepEqual(engine.handle("GET", ["demo", "heart_rate"], new URLSearchParams(), {}).json, { mode: "off" });

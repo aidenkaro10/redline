@@ -523,7 +523,7 @@ export class MockEngine {
       const demoHr = this.isDemoHrWorker(w);
       if (demoHr) {
         // Demo heart rate: a made-up value inside the button's range, wandering a little each reading
-        const [lo, hi] = this.hrMode === "rest" ? [55, 70] : [130, 155];
+        const [lo, hi] = this.hrMode === "rest" ? [65, 75] : [105, 115];
         const prev = w.hr >= lo && w.hr <= hi ? w.hr : (lo + hi) / 2;
         w.hr = clamp(prev + (this.rng() - 0.5) * 6, lo, hi);
       }
@@ -1457,7 +1457,7 @@ export class MockEngine {
           const mode = body.mode;
           if (mode !== "off" && mode !== "rest" && mode !== "active") return bad("mode must be off, rest or active");
           this.hrMode = mode;
-          this.addLog(mode === "off" ? "Demo heart rate OFF: real sensors" : `Demo heart rate: ${mode === "rest" ? "resting (55-70 bpm)" : "running in place (130-155 bpm)"}`, "demo button");
+          this.addLog(mode === "off" ? "Demo heart rate OFF: real sensors" : `Demo heart rate: ${mode === "rest" ? "resting (about 70 bpm)" : "running in place (about 110 bpm)"}`, "demo button");
           return ok({ ok: true, mode });
         }
         if (b === "replay") {
