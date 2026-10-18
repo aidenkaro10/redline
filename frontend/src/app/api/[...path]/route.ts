@@ -3,6 +3,8 @@
  *
  *   GET  /api/stream?view=crew|worker|demo[&worker_id=...]   live events (Server-Sent Events)
  *   GET  /api/...    and   POST /api/...                      REST calls (see the contract doc)
+ *   GET  /api/teams                                           the two saved crews (names, which need a passcode)
+ *   POST /api/signin {team, passcode}                         manager sign-in check (passcode lives in Render settings)
  *
  * The real backend (session A) sends the same events over a WebSocket at /ws/live.
  */
@@ -10,6 +12,7 @@
 import type { ViewFilter } from "@/lib/contract.ts";
 import { getEngine } from "@/mock/server.ts";
 import { RESULTS } from "@/mock/extras.ts";
+import { checkPasscode, teams } from "@/mock/teams.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +21,7 @@ type Ctx = { params: Promise<{ path: string[] }> };
 export async function GET(req: Request, ctx: Ctx) {
   const { path } = await ctx.params;
   const url = new URL(req.url);
+  if (path[0] === "teams") return Response.json(teams());
   const engine = getEngine();
 
   if (path[0] === "stream") return stream(req, {
@@ -36,6 +40,10 @@ export async function POST(req: Request, ctx: Ctx) {
   const url = new URL(req.url);
   let body: Record<string, unknown> = {};
   try { body = await req.json(); } catch { /* empty body is fine */ }
+  if (path[0] === "signin") {
+    const r = checkPasscode(String(body.team ?? ""), String(body.passcode ?? ""));
+    return Response.json(r, { status: r.ok ? 200 : 401 });
+  }
   const res = getEngine().handle("POST", path, url.searchParams, body);
   return Response.json(res.json, { status: res.status });
 }

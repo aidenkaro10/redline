@@ -23,6 +23,7 @@ import { canSee, HAZARD_ORDER } from "../lib/contract.ts";
 import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
 import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
+import { DEMO_TEAM, FRIENDS_TEAM, friendNames, ownerName } from "./teams.ts";
 
 // ---------------------------------------------------------------------------
 // Numbers mirrored from backend/config.py (the backend is the source of truth;
@@ -120,6 +121,7 @@ interface WorkerDef {
   effort: number;          // how hard this person works on a "heavy" slot (0-1)
   breakOffset: number;     // which half-hour their breaks fall on
   trueOffset: number;      // how much hotter (+) this body really runs than the model reads (hidden; spot checks find it)
+  team?: string;           // which saved crew ("account") this person is in; missing = demo (see teams.ts)
 }
 
 const WORKERS: WorkerDef[] = [
@@ -130,6 +132,21 @@ const WORKERS: WorkerDef[] = [
   { worker_id: "worker-5", name: "Priya Shah", role: "Technician", site_id: "fl-kelly", restHr: 66, effort: 0.38, breakOffset: 1, trueOffset: -0.1 },
   { worker_id: "worker-6", name: "Marcus Bell", role: "Groundworker", site_id: "fl-kelly", restHr: 74, effort: 0.36, breakOffset: 2, trueOffset: 0.2 },
 ];
+
+/**
+ * Everyone the engine simulates: the demo crew (the 6 made-up workers above + Aiden) and the
+ * friends crew (Aiden + friends). Real names come from Render's private settings (teams.ts).
+ */
+function allWorkers(): WorkerDef[] {
+  const demo: WorkerDef[] = WORKERS.map((w) => ({ ...w, team: DEMO_TEAM }));
+  demo.push({ worker_id: "worker-7", name: ownerName(), role: "Crew lead", site_id: "fl-deerhaven", restHr: 66, effort: 0.32, breakOffset: 3, trueOffset: 0.05, team: DEMO_TEAM });
+  const friends: WorkerDef[] = [ownerName(), ...friendNames()].map((name, i) => ({
+    worker_id: `friend-${i + 1}`, name, role: i === 0 ? "Crew lead" : "Crew", site_id: "fl-deerhaven",
+    restHr: 64 + ((i * 5) % 11), effort: 0.28 + ((i * 7) % 5) * 0.04, breakOffset: i % 4,
+    trueOffset: (((i * 3) % 5) - 2) * 0.06, team: FRIENDS_TEAM,
+  }));
+  return [...demo, ...friends];
+}
 
 interface WorkerSim {
   def: WorkerDef;
@@ -391,7 +408,7 @@ export class MockEngine {
     this.sites.clear();
     for (const s of SITES) this.sites.set(s.id, baselineSite(s.id, t));
     this.workers.clear();
-    for (const def of WORKERS) {
+    for (const def of allWorkers()) {
       const core = 37.05 + def.effort * 0.35;
       this.workers.set(def.worker_id, {
         def, core, intensity: def.effort, scriptedIntensity: null, hr: def.restHr, skin: 34.2,
@@ -728,7 +745,7 @@ export class MockEngine {
     else if (w.status === "red") reason = mtd === 0 ? "In the danger zone now. Cool down." : "Forecast to reach danger within 10 min.";
     else if (w.status === "yellow") reason = mtd !== null ? `Forecast to reach danger in ~${mtd} min.` : "Forecast near the warning line.";
     return {
-      worker_id: id, name: w.def.name, role: w.def.role, site_id: w.def.site_id, status: w.status,
+      worker_id: id, name: w.def.name, role: w.def.role, site_id: w.def.site_id, team: w.def.team ?? DEMO_TEAM, status: w.status,
       minutes_to_danger: w.status === "green" ? null : mtd, status_reason: reason,
       hazard: top?.kind ?? null,
       alert_acknowledged: heat?.kind === "HEAT_RED" ? heat.acknowledged_at !== null : null,

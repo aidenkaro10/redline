@@ -6,10 +6,12 @@
  * Everything here comes from whatever backend we're connected to.
  */
 
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import type { Site, WorkerStatus } from "./contract";
 import { apiGet, useLive } from "./live";
+import { signedIn } from "./session";
 
 // The site list rarely changes, so every page shares one copy.
 let sitesCache: Promise<Site[]> | null = null;
@@ -33,14 +35,50 @@ export function useSites() {
   return { sites, byId };
 }
 
-/** The crew: workers sorted by id, the sites they're on, and the "demo wearer" (first worker). */
+/**
+ * Which saved crew this screen shows: ?team=... in the link (the QR join link), the signed-in crew
+ * on the manager view, otherwise the demo crew. Workers with no team are in the demo crew.
+ */
+export function useTeam(): string {
+  const path = usePathname();
+  const [team, setTeam] = useState("demo");
+  useEffect(() => {
+    const fromLink = new URLSearchParams(window.location.search).get("team");
+    setTeam(fromLink || (path.startsWith("/manager") ? signedIn()?.team : null) || "demo");
+  }, [path]);
+  return team;
+}
+
+export interface TeamInfo { id: string; name: string; locked: boolean }
+const FALLBACK_TEAMS: TeamInfo[] = [
+  { id: "demo", name: "Demo crew", locked: false },
+  { id: "friends", name: "Friends crew", locked: true },
+];
+let teamsCache: Promise<TeamInfo[]> | null = null;
+
+/** The two saved crews and their names (from the server, so the friends crew's name can live in Render settings). */
+export function useTeams(): TeamInfo[] {
+  const [list, setList] = useState<TeamInfo[]>(FALLBACK_TEAMS);
+  useEffect(() => {
+    let alive = true;
+    teamsCache ??= fetch("/api/teams").then((r) => (r.ok ? r.json() : FALLBACK_TEAMS)).catch(() => FALLBACK_TEAMS);
+    teamsCache.then((t) => alive && Array.isArray(t) && setList(t));
+    return () => { alive = false; };
+  }, []);
+  return list;
+}
+
+/** The crew on this screen: its workers sorted by id, the sites they're on, and the "demo wearer" (first worker). */
 export function useCrew() {
   const { workers } = useLive();
+  const team = useTeam();
   return useMemo(() => {
-    const list: WorkerStatus[] = Object.values(workers).sort((a, b) => a.worker_id.localeCompare(b.worker_id, undefined, { numeric: true }));
+    const list: WorkerStatus[] = Object.values(workers)
+      .filter((w) => (w.team ?? "demo") === team)
+      .sort((a, b) => a.worker_id.localeCompare(b.worker_id, undefined, { numeric: true }));
     const siteIds = [...new Set(list.map((w) => w.site_id))];
-    return { workers: list, siteIds, firstWorkerId: list[0]?.worker_id ?? null };
-  }, [workers]);
+    return { workers: list, siteIds, firstWorkerId: list[0]?.worker_id ?? null, team };
+  }, [workers, team]);
 }
 
 /** "Deerhaven Generating Station" -> "Deerhaven" for tight spots. */

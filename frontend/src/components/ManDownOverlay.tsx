@@ -20,6 +20,7 @@ import { useMemo, useState } from "react";
 import type { EmergencyCall, EmergencyStage, ManDown } from "@/lib/contract";
 import { CALL_FAILED_TEXT, callForIncident, cancelCallRequest } from "@/lib/emergency";
 import { singleFlight } from "@/lib/once";
+import { useTeam } from "@/lib/crew";
 import { apiPost, useLive, useSimNow } from "@/lib/live";
 import { secondsUntil } from "@/lib/normalize";
 import { fmtClock, fmtClockSec, fmtCountdown } from "./ui";
@@ -33,7 +34,8 @@ const STEPS: { stage: EmergencyStage; label: string }[] = [
 ];
 
 export function ManDownOverlay() {
-  const { mandown: md, emergency: em } = useLive();
+  const { mandown: md, emergency: em, workers } = useLive();
+  const team = useTeam();
   const path = usePathname();
   const now = useSimNow(250);
   const [minimized, setMinimized] = useState<string | null>(null);
@@ -45,6 +47,9 @@ export function ManDownOverlay() {
   if (phone === md.worker_id) return null;
   // Other workers' phones only hear about it once it's confirmed (crewmates get alerted).
   if (phone && md.stage !== "confirmed") return null;
+  // Only your own crew's emergencies: a crew lead sees their crew, a phone sees its crewmates.
+  const crewOf = (id: string | undefined) => (id ? workers[id]?.team : undefined) ?? "demo";
+  if (crewOf(md.worker_id) !== (phone ? crewOf(phone) : team)) return null;
 
   const call = callForIncident(em, md);
   const failed = call?.stage === "failed";

@@ -4,7 +4,8 @@
  * Manager view (laptop). The crew lead signs in from the selling page and lands here.
  * Same cards and colors as the phone apps, laid out wide: the crew on the left,
  * the sites map and tomorrow's ranking on the right.
- * Workers use the phone app (/worker). The demo controls are one click away (top right).
+ * Workers use the phone app (/worker): they join by scanning the "Add your crew" QR code.
+ * Shows the saved crew picked at sign-in (demo or friends). Demo controls are one click away (top right).
  *
  * Privacy: connects as view=crew, so no raw heart rate or core temp (same as the phone crew app).
  */
@@ -14,29 +15,32 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { CrewPanel, SitesPanel } from "@/components/crew-view";
+import { JoinQR } from "@/components/JoinQR";
 import { Avatar, Wash, type WashTone } from "@/components/health";
 import { Logo } from "@/components/landing/Hero";
 import { shortSiteName, useCrew, useSites } from "@/lib/crew";
 import { USING_MOCK, useLive } from "@/lib/live";
-import { signOut, signedInAs } from "@/lib/session";
+import { type Session, signOut, signedIn } from "@/lib/session";
 
 export default function ManagerPage() {
   const router = useRouter();
   const live = useLive();
   const { workers, siteIds } = useCrew();
   const { byId } = useSites();
-  const [who, setWho] = useState<string | null>(null);
+  const [me, setMe] = useState<Session | null>(null);
+  const who = me?.email ?? null;
 
   // Not signed in on this laptop yet: go to the sign-in page first.
   useEffect(() => {
-    const me = signedInAs();
-    if (!me) router.replace("/signin");
-    else setWho(me);
+    const s = signedIn();
+    if (!s) router.replace("/signin");
+    else setMe(s);
   }, [router]);
 
   const attention = workers.filter((w) => w.status !== "green").length;
   const stop = siteIds.some((id) => live.sites[id]?.hazards.some((h) => h.stop_work));
-  const tone: WashTone = workers.some((w) => w.status === "red") || live.mandown ? "danger" : stop ? "stop" : attention ? "warn" : "ok";
+  const downHere = !!live.mandown && workers.some((w) => w.worker_id === live.mandown!.worker_id);   // only this crew's emergencies
+  const tone: WashTone = workers.some((w) => w.status === "red") || downHere ? "danger" : stop ? "stop" : attention ? "warn" : "ok";
   const site = byId[siteIds[0]];
 
   return (
@@ -59,16 +63,19 @@ export default function ManagerPage() {
           </nav>
         </header>
         <div className="mx-auto max-w-[1280px] px-5 pb-2 pt-10 md:px-8 md:pt-14">
-          <h1 className="text-[34px] font-semibold md:text-[40px] leading-[1.05] tracking-[-0.035em]">{site ? `${shortSiteName(site.name)} crew` : "Your crew"}</h1>
+          <h1 className="text-[34px] font-semibold md:text-[40px] leading-[1.05] tracking-[-0.035em]">{me?.teamName ?? "Your crew"}</h1>
           <p className="mt-1 text-[17px] text-ink-2">
-            {workers.length ? `${attention ? `${attention} need${attention === 1 ? "s" : ""} attention` : "Everyone OK"} · ${workers.length} on shift` : "Connecting…"}
+            {workers.length ? `${site ? `${shortSiteName(site.name)} · ` : ""}${attention ? `${attention} need${attention === 1 ? "s" : ""} attention` : "Everyone OK"} · ${workers.length} on shift` : "Connecting…"}
           </p>
         </div>
       </Wash>
 
       <main className="relative mx-auto grid max-w-[1280px] gap-x-10 px-4 pb-16 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
         <section className="min-w-0"><CrewPanel /></section>
-        <section className="min-w-0"><SitesPanel layout="laptop" /></section>
+        <section className="min-w-0">
+          {me && <div className="pt-4"><JoinQR team={me.team} teamName={me.teamName} /></div>}
+          <SitesPanel layout="laptop" />
+        </section>
       </main>
     </div>
   );

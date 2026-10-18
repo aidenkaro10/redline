@@ -109,6 +109,8 @@ export interface WorkerStatus {
   name: string;
   role: string;
   site_id: string;
+  /** Which saved crew ("account") this worker is in. Built-in demo backend only; missing = "demo". */
+  team?: string;
   status: Status;
   /** Minutes until the forecast (90th pct) crosses the danger line. 0 = already there. null = not in the next 30 min. */
   minutes_to_danger: number | null;
