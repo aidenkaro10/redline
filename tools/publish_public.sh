@@ -8,7 +8,7 @@
 # Run from the project folder:   bash tools/publish_public.sh
 set -euo pipefail
 
-REPO_URL="https://github.com/aidenkaro10/planit-control.git"
+REPO_URL="https://github.com/aidenkaro10/redline.git"
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 

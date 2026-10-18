@@ -362,10 +362,23 @@ Job sites often have no signal, and Claude needs the internet. Worker health dat
 
 Inside our system it matches Claude for free. On its own it's not a planner (its passing plans rest people a lot), which is exactly why no model plans without the rule checker.
 
-**Making it better (in progress), validation days:**
+**Making it better, scored once on the 12 held-out days:**
 
-| Step | Valid | Passes every safety rule |
-| --- | --- | --- |
+| Small AI, writing a schedule alone | Valid | Passes every safety rule | Work done when it passes |
+| --- | --- | --- | --- |
+| Claude | 100% | 8% | 82% |
+| Our model as first trained | 43% | 17% | 35% |
+| + Forcing the output format (constrained decoding) + safety rules in its instructions | **100%** | 43% | 48% |
+| + One round of self-training on its own safe, productive plans (expert iteration) | 100% | **57%** | 50% |
+| + A fix loop: the rule checker says what broke, it retries | 100% | **68%** | 50% |
+
+It got much better without getting lazier: from 17% to 68% of its own schedules passing every safety rule, and passing plans doing more work (35% → 50%). It still does less work than the solver (69%), so the solver stays in charge. Inside the full planner it still ties Claude, now faster (49 s vs 67 s per plan), at $0.
+
+**Explaining plans, offline:** a code fact-checker compared every number, time and name in its explanations against the real plan. Claude: 0 unsupported claims out of 108. Our model: **0 out of 86**, and 0 out of 33 on the held-out days. That's its real job offline, and it does it as accurately as Claude.
+
+What didn't work: having it *edit* the solver's plan (76% of its answers changed nothing), and an early self-training run that filled the Mac's memory (fixed by capping the model's cache). Teaching data cost **$23.57**; everything after that was free.
+
+--- | --- | --- |
 | As trained | 79% | 22% |
 | + Forcing the output format (constrained decoding) | **100%** | 22% |
 | + Safety rules in its instructions | 100% | 37% |
@@ -434,7 +447,8 @@ We placed real test calls to our own phone. The first one failed because this Ma
 | 20 min work / 10 min rest in hot hours (from a 2024 study) | 3% less time above yellow, but more above red (34 vs 8 worker-minutes) | Kept current breaks, 20/10 is an option |
 | Small AI planning on its own | Safe only by resting everyone | Used only inside the rule-checked planner |
 | Nightly learning loop, 14 simulated nights | Risk number got better calibrated, but plans didn't get safer and work dropped 11% | Use it for the 6 PM risk number, keep the planner as is |
-| Self-training the small AI from its own plans | Only 3.6% of its plans were both safe and productive, too few to learn from | Switched to format forcing, editing and a fix loop |
+| Self-training the small AI on everything that passed | Only 3.6% of its plans were both safe and productive | Forced the format first (good plans up to 7%), then self-training worked |
+| Having the small AI edit the solver's plan | 76% of its answers changed nothing | Dropped |
 | Red-alert catch rate | 9 of 10 vs 10 of 10 for a simple trend | Reported as is |
 
 ---

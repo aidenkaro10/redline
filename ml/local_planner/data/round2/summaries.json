@@ -1,0 +1,273 @@
+{
+ "adapter/edit.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 1.0,
+  "good_pass": 1.0,
+  "work_when_pass": 0.6618965704920118,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 0.0,
+  "seconds_per_sample": 3.7078449513231004,
+  "tries_mean": 1.0,
+  "beats_optimizer_rank": 0.0
+ },
+ "adapter/format.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.22321428571428573,
+  "good_pass": 0.026785714285714284,
+  "work_when_pass": 0.36036730138097445,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 2.455357142857143,
+  "seconds_per_sample": 4.834366349237306,
+  "beats_optimizer_rank": 0.0
+ },
+ "adapter/free.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 0.7857142857142857,
+  "pass": 0.22321428571428573,
+  "good_pass": 0.03571428571428571,
+  "work_when_pass": 0.44078100627204464,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 2.0892857142857144,
+  "seconds_per_sample": 3.5653020164796283,
+  "beats_optimizer_rank": 0.04
+ },
+ "adapter/rules+repair.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.5625,
+  "good_pass": 0.03571428571428571,
+  "work_when_pass": 0.4510077043293831,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 1.1428571428571428,
+  "seconds_per_sample": 19.924809174878256,
+  "tries_mean": 2.0625,
+  "beats_optimizer_rank": 0.015873015873015872
+ },
+ "adapter/rules.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.36607142857142855,
+  "good_pass": 0.03571428571428571,
+  "work_when_pass": 0.4575664049182404,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 1.5089285714285714,
+  "seconds_per_sample": 4.888990027563913,
+  "beats_optimizer_rank": 0.07317073170731707
+ },
+ "adapter_TEST/rules.json": {
+  "days": 12,
+  "samples": 60,
+  "valid": 1.0,
+  "pass": 0.43333333333333335,
+  "good_pass": 0.06666666666666667,
+  "work_when_pass": 0.48141535984717626,
+  "opt_work": 0.6865416666666667,
+  "safety_violations_per_sample": 1.2,
+  "seconds_per_sample": 3.859788239002228,
+  "notes_pct_claims": 3,
+  "notes_pct_wrong": 1.0,
+  "beats_optimizer_rank": 0.0
+ },
+ "adapter_edit/edit+repair.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.9107142857142857,
+  "good_pass": 0.875,
+  "work_when_pass": 0.6555407545989305,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 0.4107142857142857,
+  "seconds_per_sample": 7.994582721165249,
+  "tries_mean": 1.4375,
+  "beats_optimizer_rank": 0.00980392156862745
+ },
+ "adapter_edit/edit.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.7857142857142857,
+  "good_pass": 0.7767857142857143,
+  "work_when_pass": 0.6631949782502026,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 0.8125,
+  "seconds_per_sample": 3.2652631593602046,
+  "tries_mean": 1.0,
+  "beats_optimizer_rank": 0.011363636363636364
+ },
+ "adapter_edit/rules.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.5357142857142857,
+  "good_pass": 0.07142857142857142,
+  "work_when_pass": 0.4303984203846503,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 0.8928571428571429,
+  "seconds_per_sample": 4.415155355419431,
+  "beats_optimizer_rank": 0.0
+ },
+ "adapter_st1/free.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 0.8303571428571429,
+  "pass": 0.4107142857142857,
+  "good_pass": 0.044642857142857144,
+  "work_when_pass": 0.4124361584892893,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 1.4642857142857142,
+  "seconds_per_sample": 3.5417679931436266,
+  "notes_pct_claims": 2,
+  "notes_pct_wrong": 0.5,
+  "beats_optimizer_rank": 0.06521739130434782
+ },
+ "adapter_st1/rules.json": {
+  "days": 28,
+  "samples": 112,
+  "valid": 1.0,
+  "pass": 0.5,
+  "good_pass": 0.11607142857142858,
+  "work_when_pass": 0.5053746949351374,
+  "opt_work": 0.6619,
+  "safety_violations_per_sample": 0.9017857142857143,
+  "seconds_per_sample": 4.509630865284374,
+  "beats_optimizer_rank": 0.07142857142857142
+ },
+ "adapter_st1_TEST/free.json": {
+  "days": 12,
+  "samples": 60,
+  "valid": 0.5833333333333334,
+  "pass": 0.2833333333333333,
+  "good_pass": 0.016666666666666666,
+  "work_when_pass": 0.3718331148023804,
+  "opt_work": 0.6865416666666667,
+  "safety_violations_per_sample": 2.316666666666667,
+  "seconds_per_sample": 3.342007207870483,
+  "notes_pct_claims": 2,
+  "notes_pct_wrong": 1.0,
+  "beats_optimizer_rank": 0.0
+ },
+ "adapter_st1_TEST/rules+repair.json": {
+  "days": 12,
+  "samples": 60,
+  "valid": 1.0,
+  "pass": 0.6833333333333333,
+  "good_pass": 0.08333333333333333,
+  "work_when_pass": 0.503212597866315,
+  "opt_work": 0.6865416666666667,
+  "safety_violations_per_sample": 0.6833333333333333,
+  "seconds_per_sample": 14.049511559804277,
+  "notes_pct_claims": 1,
+  "notes_pct_wrong": 1.0,
+  "tries_mean": 1.8333333333333333,
+  "beats_optimizer_rank": 0.04878048780487805
+ },
+ "adapter_st1_TEST/rules.json": {
+  "days": 12,
+  "samples": 60,
+  "valid": 1.0,
+  "pass": 0.5666666666666667,
+  "good_pass": 0.05,
+  "work_when_pass": 0.501553810078032,
+  "opt_work": 0.6865416666666667,
+  "safety_violations_per_sample": 0.9333333333333333,
+  "seconds_per_sample": 3.975261469682058,
+  "notes_pct_claims": 3,
+  "notes_pct_wrong": 1.0,
+  "beats_optimizer_rank": 0.058823529411764705
+ },
+ "self_train/round1": {
+  "round": 1,
+  "start": "/Users/Annabelle/Documents/projects/planit-control/ml/checkpoints/local_planner/adapter_edit",
+  "train_day_stats": {
+   "days": 100,
+   "samples": 800,
+   "valid": 1.0,
+   "pass": 0.5325,
+   "good_pass": 0.06,
+   "work_when_pass": 0.4610740375148454,
+   "work_all": 0.45014143351373176,
+   "days_with_good": 28,
+   "safety_violations_per_sample": 1.08125
+  },
+  "kept": 28,
+  "dataset": {
+   "self_samples": 28,
+   "self_copies": 3,
+   "claude_replay": 498,
+   "total": 582
+  },
+  "val": {
+   "days": 28,
+   "samples": 112,
+   "valid": 1.0,
+   "pass": 0.5803571428571429,
+   "good_pass": 0.08035714285714286,
+   "work_when_pass": 0.5112894714024966,
+   "work_all": 0.5233944680989561,
+   "days_with_good": 6,
+   "safety_violations_per_sample": 0.8392857142857143
+  },
+  "seconds": 3183.8040702342987
+ },
+ "explain_check/val_adapter.json": {
+  "claude": {
+   "answers": 28,
+   "claims": 108,
+   "unsupported": 0,
+   "unsupported_share": 0.0,
+   "answers_with_any_unsupported": 0.0
+  },
+  "local": {
+   "answers": 28,
+   "claims": 86,
+   "unsupported": 0,
+   "unsupported_share": 0.0,
+   "answers_with_any_unsupported": 0.0
+  }
+ },
+ "explain_check/heldout.json": {
+  "Claude agent": {
+   "vs_final_plan_facts": {
+    "answers": 12,
+    "claims": 54,
+    "unsupported": 12,
+    "unsupported_share": 0.2222222222222222,
+    "answers_with_any_unsupported": 0.5833333333333334
+   },
+   "vs_full_facts": null
+  },
+  "local base": {
+   "vs_final_plan_facts": {
+    "answers": 12,
+    "claims": 42,
+    "unsupported": 5,
+    "unsupported_share": 0.11904761904761904,
+    "answers_with_any_unsupported": 0.3333333333333333
+   },
+   "vs_full_facts": null
+  },
+  "local adapter": {
+   "vs_final_plan_facts": {
+    "answers": 12,
+    "claims": 33,
+    "unsupported": 10,
+    "unsupported_share": 0.30303030303030304,
+    "answers_with_any_unsupported": 0.75
+   },
+   "vs_full_facts": {
+    "answers": 12,
+    "claims": 33,
+    "unsupported": 1,
+    "unsupported_share": 0.030303030303030304,
+    "answers_with_any_unsupported": 0.08333333333333333
+   }
+  }
+ }
+}

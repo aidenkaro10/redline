@@ -40,7 +40,10 @@ _LOCK = threading.Lock()       # one generation at a time (the GPU can't share a
 
 def load_model(model_dir: Path = BASE_MODEL_DIR, adapter_dir: Path | None = ADAPTER_DIR):
     """Load (once) the base model and, if given and present, the LoRA adapter."""
+    import mlx.core as mx
     from mlx_lm import load
+    # Cap mlx's buffer cache. Without it, long sampling runs pinned ~11 GB on this 16 GB Mac and it swapped.
+    mx.set_cache_limit(int(os.getenv("LOCAL_PLANNER_MLX_CACHE_GB", "1")) << 30)
     adapter = str(adapter_dir) if adapter_dir and (Path(adapter_dir) / "adapters.safetensors").exists() else None
     key = (str(model_dir), adapter)
     if key not in _CACHE:
@@ -83,6 +86,7 @@ class LocalLLM:
         self.tokens_in = 0
         self.tokens_out = 0
         self.seconds = 0.0
+        self.log = []                              # (prompt, answer) of every text() call, for fact checks
 
     def _generate(self, messages: list, max_tokens: int) -> tuple[str, int, int]:
         import mlx.core as mx
@@ -113,6 +117,7 @@ class LocalLLM:
         self.tokens_in += n_in
         self.tokens_out += n_out
         self.seconds += time.time() - t0
+        self.log.append({"prompt": prompt, "answer": out})
         return out
 
     def create(self, messages: list, system: str | None = None, tools: list | None = None,

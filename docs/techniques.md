@@ -104,6 +104,9 @@ One line per technique: what we did in plain words, then the standard name and w
 | Keep a change only if it wins on unseen days | Validation gate (held-out selection) | Standard ML practice |
 | Score candidates with several weak checkers combined (no gain) | Weak verifier ensembling (Weaver) | Saad-Falcon et al. 2025 |
 | Small open-source model that copies Claude's plans offline | Knowledge distillation + LoRA fine-tuning (Qwen3-1.7B, 4-bit, MLX) | Hinton et al. 2015; Hu et al. 2021 |
+| Force the small model's output into the schedule format | Constrained decoding | Standard technique |
+| Retrain on its own plans that pass the rule checker and do real work | Expert iteration (STaR / ReST style self-training with a verifier) | Zelikman et al. 2022; Gulcehre et al. 2023 |
+| Feed the rule checker's violations back so it can fix its plan | Verifier-feedback repair loop | Standard technique |
 
 ## Band sensors (laptop side)
 
