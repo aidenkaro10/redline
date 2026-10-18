@@ -205,6 +205,9 @@ def print_key_event(ev: dict) -> None:
         text = kind + "".join(f" {k}={ev[k]}" for k in ("reason", "by") if ev.get(k))
     elif kind == "hazard":
         text, who = f"hazard {ev['kind']} {'ON' if ev['on'] else 'off'} ({ev['source']})", ev["site_id"]
+    elif kind in ("band_fall", "band_up"):
+        from backend.app.frontend_api import fall_text
+        text = fall_text(ev)                     # every fall decision, so real-band tests show why
     else:
         return
     print(f"{time.strftime('%H:%M:%S')} [event {who}] {text}", flush=True)

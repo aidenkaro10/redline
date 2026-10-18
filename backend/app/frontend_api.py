@@ -49,6 +49,22 @@ AIR_FIELDS = ("worker_id", "timestamp", "air_temp_c", "humidity_pct", "pressure_
 HR_MISSING_S = 120                 # no heart rate this long -> the card says "Heart rate missing"       # ~1.5 MB JPEG as a base64 data URL
 
 
+def fall_text(ev: dict) -> str:
+    """Plain words for every fall decision (accepted or not), so tests on the real band can see why."""
+    if ev["type"] == "band_up":
+        return f"back up ({ev.get('reason')})"
+    bits = [f"{ev['impact_g']} g" if ev.get("impact_g") is not None else None,
+            f"angle {ev['angle_deg']}°" if ev.get("angle_deg") is not None else None,
+            f"pressure +{ev['baro_rise_hpa']} hPa" if ev.get("baro_rise_hpa") is not None else None]
+    detail = ", ".join(b for b in bits if b)
+    trigger = ev.get("trigger", "impact")
+    if ev["accepted"]:
+        return f"FALL detected ({trigger}; {ev['confirmed_by']}{'; ' + detail if detail else ''}): man-down check after it stays still"
+    why = {"same_angle": "wrist ended at the same angle (a clap or a bump?)", "kept_moving": "kept moving right after",
+           "no_height_drop": "air pressure shows no drop to the ground", "not_enough_data": "not enough accelerometer data"}
+    return f"possible fall ignored ({trigger}): {why.get(ev.get('reason'), ev.get('reason'))}{'; ' + detail if detail else ''}"
+
+
 class FrontendAdapter:
     def __init__(self, hub):
         self.hub = hub
@@ -539,8 +555,8 @@ class FrontendAdapter:
         if kind == "demo_heart_rate":
             return (f"{name}: demo heart rate input {ev['mode'].upper()} (labeled demo data, not a sensor)"
                     if ev["mode"] != "off" else f"{name}: demo heart rate input off")
-        if kind == "band_fall" and ev["accepted"]:
-            return f"{name}: fall detected by the band ({ev['impact_g']} g impact, confirmed by {ev['confirmed_by']})"
+        if kind in ("band_fall", "band_up"):
+            return f"{name}: {fall_text(ev)}"
         return None
 
     # ------------------------------------------------------------------
