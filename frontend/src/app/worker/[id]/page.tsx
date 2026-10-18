@@ -25,10 +25,10 @@ import { Sheet } from "@/components/Sheet";
 import { WhyLine } from "@/components/WhyLine";
 import { Avatar, Card, Chev, HUE, Icon, Ring, SectionHeader, Spark, Sub, Value, Wash, type WashTone } from "@/components/health";
 import { fmtClock, fmtCountdown } from "@/components/ui";
-import type { Hazard, HazardKind, HazardLevel, Status } from "@/lib/contract";
+import type { Hazard, HazardKind, HazardLevel, Schedule, Status, TaskKind } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
-import { USING_MOCK, apiPost, useLive, useSimNow } from "@/lib/live";
+import { USING_MOCK, apiPost, useFetch, useLive, useSimNow } from "@/lib/live";
 import { createHold } from "@/lib/hold";
 import { secondsUntil } from "@/lib/normalize";
 import { shortSiteName, useSites } from "@/lib/crew";
@@ -213,6 +213,8 @@ function WorkerPhone() {
           )}
         </div>
 
+        <YourDay workerId={id} />
+
         <SectionHeader title="Location" />
         <LocationShare workerId={id} />
 
@@ -258,6 +260,38 @@ function WorkerPhone() {
 }
 
 /** Four small bars, filled up to the hazard level (low, moderate, high, extreme). */
+/** "Your day": what you're doing now and next, from the crew lead's plan (Plan tab on the dashboard). */
+const TASK_HUE: Record<TaskKind, string> = { heavy: "#ff6b2c", moderate: "#ff9f0a", light: "#30b0c7", break: "#34c759", stop_work: "#5856d6", off: "#8e8e93" };
+function YourDay({ workerId }: { workerId: string }) {
+  const sched = useFetch<Schedule>("/schedule?day=today", 5000).data;
+  const now = useSimNow(5000);
+  const slots = sched?.rows.find((r) => r.worker_id === workerId)?.slots ?? [];
+  const i = slots.findIndex((s) => now >= s.start && now < s.start + 1800);
+  if (i < 0 || slots[i].task === "off") return null;            // not on shift (or no plan yet)
+  // Merge back-to-back slots with the same task, so "until" is the real end of the block
+  let end = i;
+  while (end + 1 < slots.length && slots[end + 1].label === slots[i].label) end++;
+  const next = slots[end + 1];
+  const work = slots.filter((s) => s.task !== "off");
+  const from = work[0]?.start ?? 0, to = (work.at(-1)?.start ?? 0) + 1800;
+  return (
+    <>
+      <SectionHeader title="Your day" />
+      <Card icon={<Icon.cup />} label={slots[i].changed ? "Plan changed" : "Now"} color={TASK_HUE[slots[i].task]} tintLabel={!!slots[i].changed}
+        viz={<span className="relative block h-2.5 w-28 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+          {work.map((s) => <span key={s.start} className="absolute inset-y-0" style={{ left: `${((s.start - from) / (to - from)) * 100}%`, width: `${(1800 / (to - from)) * 100}%`, background: TASK_HUE[s.task] }} />)}
+          <span className="absolute inset-y-0 w-0.5 bg-ink" style={{ left: `${((now - from) / (to - from)) * 100}%` }} />
+        </span>}>
+        <Value>{slots[i].label.split(":")[0]}</Value>
+        <Sub>
+          {slots[i].label.includes(":") ? `${slots[i].label.split(":")[1].trim()} · ` : ""}until {fmtClock(slots[end].start + 1800)}
+          {next && next.task !== "off" ? `. Then ${next.label.split(":")[0].toLowerCase()}.` : ". Then you're done."}
+        </Sub>
+      </Card>
+    </>
+  );
+}
+
 function LevelBars({ level, color }: { level: HazardLevel; color: string }) {
   const n = LEVEL_N[level];
   return (

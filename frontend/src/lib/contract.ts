@@ -281,6 +281,8 @@ export interface DemoState {
   thresholds: { warning: number; danger: number };  // the ones in force right now
   scenario: { running: boolean; step: string | null; started_at: number | null };
   mock: boolean;                  // true when this is the frontend's mock server
+  /** Video mode scene on the built-in demo backend ("briefing", "morning", "heat", "lightning", "sos"), or null. */
+  scene?: string | null;
 }
 
 export interface BandCommand {
@@ -310,9 +312,13 @@ export interface Schedule {
   date: string;                   // "2026-10-17"
   slot_minutes: number;           // 30
   day_start: number;              // Unix seconds of the first slot
-  rows: { worker_id: string; name: string; slots: { start: number; task: TaskKind; label: string }[] }[];
+  rows: { worker_id: string; name: string; slots: { start: number; task: TaskKind; label: string; changed?: boolean }[] }[];
   notes: string[];                // planner notes, e.g. "Heavy work moved before 11 AM"
   checked_by_rules: boolean;      // passed the safety rule checker (code, not LLM)
+  /** Built-in demo backend: which day, where the forecast came from, and what changed during the day. */
+  day?: "today" | "tomorrow";
+  source?: string;
+  changes?: { at: number; text: string }[];
 }
 
 export interface Briefing {
@@ -327,6 +333,8 @@ export interface Briefing {
     past_incidents: { date: string; text: string; source: string }[];
   }[];
   schedule_suggestions: string[];
+  /** Built-in demo backend: where the forecast came from. */
+  source?: string;
 }
 
 export interface LogEntry {

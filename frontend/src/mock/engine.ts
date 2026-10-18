@@ -24,7 +24,8 @@ import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
 import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
 import { DEMO_TEAM, FRIENDS_TEAM, friendNames, ownerName } from "./teams.ts";
-import { alertsForSite, fetchFloridaAlerts, fetchSighting, fetchWeather, type NwsAlert, type Sighting, type SiteWeather } from "./realdata.ts";
+import { alertsForSite, fetchFloridaAlerts, fetchSighting, fetchWeather, heatIndexF, wbgtShadeC, type NwsAlert, type Sighting, type SiteWeather } from "./realdata.ts";
+import { LABEL, RECORDED_JULY_DAY, planDay, type DayPlan, type HourWx } from "./planner.ts";
 
 // ---------------------------------------------------------------------------
 // Numbers mirrored from backend/config.py (the backend is the source of truth;
@@ -377,6 +378,18 @@ export class MockEngine {
   failNextCall = false;
   /** On the real clock? (see EngineOptions.realTime) */
   realTime = false;
+  /** Day plans by day, cached (see planFor). */
+  planCache = new Map<string, DayPlan>();
+  /** Changes to today's plan during the day (heat alerts): who, when, what. */
+  adjustments: { worker_id: string; from: number; to: number; task: TaskKind; label: string }[] = [];
+  /** What changed today and why, shown under the plan ("1:12 PM · Noah: heat warning ..."). */
+  planChanges: { at: number; text: string }[] = [];
+  /** When each site's current lightning stop-work began (so the plan only marks it from then on). */
+  stopStart = new Map<string, number>();
+  /** Video mode: which crew the scenes act on, and timed follow-ups (red-alert ack, second strike). */
+  videoTeam = DEMO_TEAM;
+  videoHeatTarget: string | null = null;
+  videoTimers: { at: number; run: () => void }[] = [];
   /** Phone locations workers chose to share with their crew lead (kept across demo resets). */
   locations = new Map<string, { lat: number; lon: number; accuracy_m: number | null; at: number }>();
   /** Real outside data (Open-Meteo weather for every site, iNaturalist wildlife at crew sites). */
@@ -452,11 +465,25 @@ export class MockEngine {
     for (const s of SITES) { this.applyLive(s.id); this.emitSite(s.id); }
   }
 
+  /** The recorded July day (video replay) as a weather reading for the current sim hour. */
+  recordedWeather(): SiteWeather {
+    const hour = new Date(this.sim * 1000).getHours();
+    const r = RECORDED_JULY_DAY.find((h) => h.hour === hour) ?? RECORDED_JULY_DAY[0];
+    const his = RECORDED_JULY_DAY.map((h) => Math.round(heatIndexF(h.tempF, h.rh)));
+    return {
+      tempF: r.tempF, rh: r.rh, windMph: 6, hiNowF: Math.round(heatIndexF(r.tempF, r.rh)),
+      wbgtC: Math.round(wbgtShadeC(((r.tempF - 32) * 5) / 9, r.rh) * 10) / 10,
+      hiMaxTodayF: Math.max(...his), hiMaxTomorrowF: Math.max(...his),
+      stormChanceTomorrow: 70, thunderTomorrow: true, soilMoisture: 0.31, hours: [], at: this.sim,
+    };
+  }
+
   /** Put the real data into one site: heat now, tomorrow's heat and storm part of the index, wildlife. */
   applyLive(siteId: string) {
     const sim = this.sites.get(siteId);
     if (!sim) return;
-    const w = this.live.weather[siteId];
+    // Video mode shows the recorded July day at the crew sites
+    const w = this.demo.scene && CREW_SITES.has(siteId) ? this.recordedWeather() : this.live.weather[siteId];
     if (w) {
       const hi = w.hiNowF;
       const level: HazardLevel = hi >= 103 ? "extreme" : hi >= 91 ? "high" : hi >= 80 ? "moderate" : "none";
@@ -468,11 +495,11 @@ export class MockEngine {
           : hi >= 91 ? `Hot. Take shade breaks and drink water often. WBGT about ${w.wbgtC} °C in the shade.`
             : hi >= 80 ? `Warm. Normal heat precautions. WBGT about ${w.wbgtC} °C in the shade.`
               : `Comfortable right now. Today's peak heat index: ${w.hiMaxTodayF} °F.`,
-        source: "Open-Meteo (live) · WBGT shade estimate", updated_at: w.at, stop_work: false, band_pattern: null,
+        source: this.demo.scene && CREW_SITES.has(siteId) ? "Replay: recorded July day" : "Open-Meteo (live) · WBGT shade estimate", updated_at: w.at, stop_work: false, band_pattern: null,
         heat: { wbgt_c: w.wbgtC, heat_index_f: Math.max(hi, Math.round(w.tempF)) },
       };
       // The scripted replay keeps its recorded hot afternoon at the crew sites; live mode uses the real air.
-      if (!(this.demo.scenario.running && CREW_SITES.has(siteId))) sim.wbgt = w.wbgtC;
+      if (!((this.demo.scenario.running || this.demo.scene) && CREW_SITES.has(siteId))) sim.wbgt = w.wbgtC;
 
       // Tomorrow's index: heat and storms from the real forecast; flood and fire parts stay as they were.
       const old = sim.hazardIndex;
@@ -603,6 +630,10 @@ export class MockEngine {
         lastBand: "BUZZ:OFF", heatAlertId: null, rawEstimate: core,
       });
     }
+    this.planCache.clear();
+    this.adjustments = [];
+    this.planChanges = [];
+    this.videoTimers = [];
     for (const s of SITES) this.applyLive(s.id);     // keep real weather/wildlife across resets
     // Warm up quietly (no events sent).
     const quiet = this.subs;
@@ -673,6 +704,7 @@ export class MockEngine {
       if (Math.floor(before / VITALS_EVERY_S) !== Math.floor(this.sim / VITALS_EVERY_S)) this.vitalsStep();
       if (Math.floor(before / 60) !== Math.floor(this.sim / 60)) this.minuteStep();
       this.runScenario();
+      this.videoStep();
       this.manDownStep();
       this.emergencyStep();
       this.lightningStep();
@@ -690,6 +722,12 @@ export class MockEngine {
   /** Planned workload for a worker at time t, from the schedule. */
   plannedTask(w: WorkerSim, t: number): TaskKind {
     if (this.siteStopWork(w.def.site_id, t)) return "stop_work";
+    const adj = this.adjustments.find((a) => a.worker_id === w.def.worker_id && t >= a.from && t < a.to);
+    if (adj) return adj.task;
+    if (this.usePlanner()) {
+      const slot = this.slotFor(w.def.worker_id, t);
+      return slot ? slot.task : "off";
+    }
     const d = new Date(t * 1000);
     const halfHour = d.getHours() * 2 + (d.getMinutes() >= 30 ? 1 : 0);
     if (halfHour < 12 || halfHour >= 40) return "off";                // shift 6:00 to 20:00
@@ -897,6 +935,7 @@ export class MockEngine {
       : `${w.def.name}: heat warning. Forecast crosses the warning line within 20 min.`;
     w.heatAlertId = this.openAlert(kind, w.def.worker_id, w.def.site_id, msg, "forecaster").id;
     this.addLog(`${w.def.name} ${prev} → ${next}${this.demo.demo_threshold ? " (demo threshold)" : ""}`, "forecaster");
+    this.adjustForHeat(w, next);
   }
 
   minutesToDanger(w: WorkerSim): number | null {
@@ -1336,7 +1375,7 @@ export class MockEngine {
 
   siteStopWork(siteId: string, t: number) {
     const l = this.sites.get(siteId)?.hazards.lightning.lightning;
-    return !!(l && l.all_clear_at && t < l.all_clear_at);
+    return !!(l && l.all_clear_at && t < l.all_clear_at && t >= (this.stopStart.get(siteId) ?? -Infinity));
   }
 
   /** A lightning strike `miles` from a site. Starts or extends the 30-min stop-work. */
@@ -1351,6 +1390,7 @@ export class MockEngine {
     if (l.strikes.length > 20) l.strikes.shift();
     const within = miles <= CFG.LIGHTNING_RADIUS_MI;
     if (within) {
+      if (!(l.all_clear_at && this.sim < l.all_clear_at)) this.stopStart.set(siteId, this.sim);   // a new stop-work starts now
       l.last_strike_at = this.sim;
       l.all_clear_at = this.sim + CFG.LIGHTNING_ALL_CLEAR_MIN * 60;
     }
@@ -1363,6 +1403,12 @@ export class MockEngine {
       detail: active ? "Stop work and shelter. All clear 30 min after the last strike within 10 mi." : "Strike outside 10 mi. Watch the storm.",
       source, updated_at: this.sim, stop_work: active, band_pattern: active ? "LIGHTNING" : null,
     });
+    if (active && this.usePlanner() && CREW_SITES.has(siteId)) {
+      const was = this.alerts.some((a) => a.kind === "LIGHTNING" && a.site_id === siteId && !a.cleared_at);
+      this.planChanges.push({ at: this.sim, text: was
+        ? `New strike ${miles.toFixed(1)} mi away: the all clear moves to ${clockText(l.all_clear_at!)}.`
+        : `Lightning ${miles.toFixed(1)} mi from ${site.name}: everyone stops work until ${clockText(l.all_clear_at!)} (30 min after the last strike within 10 mi).` });
+    }
     if (active) {
       const open = this.alerts.find((a) => a.kind === "LIGHTNING" && a.site_id === siteId && !a.cleared_at);
       const msg = `Lightning ${miles.toFixed(1)} mi from ${site.name}. Stop work, shelter now.`;
@@ -1528,7 +1574,207 @@ export class MockEngine {
     };
   }
 
-  schedule(): Schedule {
+  // ---- the day planner (rules in planner.ts) --------------------------------
+
+  /** The planner runs the day on the hosted site (real clock) and in video mode; tests keep the old fixed pattern. */
+  usePlanner() {
+    return this.realTime || !!this.demo.scene;
+  }
+
+  /** Midnight of the sim day, local time. */
+  dayStartOf(offset: number) {
+    return todayAt(0, 0, this.sim * 1000) + offset * 86400;
+  }
+
+  /** The hourly forecast the planner uses for a day: video = recorded July day; else Open-Meteo; else that same sample day. */
+  hoursFor(offset: 0 | 1): { hours: HourWx[]; source: string; sample: boolean } {
+    const w = this.live.weather["fl-deerhaven"];
+    if (!this.demo.scene && w?.hours?.length) {
+      return { hours: w.hours.filter((h) => h.day === offset).map((h) => ({ hour: h.hour, hiF: h.hiF, rain: h.rain, thunder: h.thunder })), source: "Open-Meteo forecast for Deerhaven", sample: false };
+    }
+    return {
+      hours: RECORDED_JULY_DAY.map((h) => ({ hour: h.hour, hiF: Math.round(heatIndexF(h.tempF, h.rh)), rain: h.rain, thunder: h.thunder })),
+      source: this.demo.scene ? "replay of a recorded July day at Deerhaven" : "sample July day (no forecast yet)", sample: true,
+    };
+  }
+
+  /** Who had a heat warning in the last 24 h (they get lighter work in the heat). */
+  hadHeatWarning(id: string) {
+    return this.alerts.some((a) => a.worker_id === id && (a.kind === "HEAT_YELLOW" || a.kind === "HEAT_RED") && this.sim - a.started_at < 86400);
+  }
+
+  /** The plan for today (0) or tomorrow (1), cached until the forecast or the crew changes. */
+  planFor(offset: 0 | 1): DayPlan {
+    const { hours, source } = this.hoursFor(offset);
+    const people = [...this.workers.values()].map((w) => ({
+      id: w.def.worker_id, name: w.def.name, breakOffset: w.def.breakOffset, lighter: offset === 1 && this.hadHeatWarning(w.def.worker_id),
+    }));
+    const key = `${this.dayStartOf(offset)}|${offset}|${this.demo.scene ?? ""}|${this.live.weatherAt}|${people.filter((p) => p.lighter).map((p) => p.id).join(",")}`;
+    let plan = this.planCache.get(key);
+    if (!plan) {
+      plan = planDay(this.dayStartOf(offset), hours, people, source);
+      if (this.planCache.size > 20) this.planCache.clear();
+      this.planCache.set(key, plan);
+    }
+    return plan;
+  }
+
+  slotFor(id: string, t: number) {
+    const offset = t >= this.dayStartOf(1) ? 1 : 0;
+    return this.planFor(offset).slots[id]?.find((x) => t >= x.start && t < x.start + 1800);
+  }
+
+  /** A heat warning or danger changes that person's plan right away: a cooling break, then light work. */
+  adjustForHeat(w: WorkerSim, next: Status) {
+    if (!this.usePlanner() || next === "green") return;
+    const id = w.def.worker_id;
+    const now = this.sim;
+    const breakEnd = now + (next === "red" ? 45 : 30) * 60;
+    const lightEnd = breakEnd + (next === "red" ? 120 : 90) * 60;
+    // Earlier changes for this person end now (kept in the past part of the plan), the new ones start now
+    this.adjustments = this.adjustments
+      .map((a) => (a.worker_id === id && a.to > now ? { ...a, to: now } : a))
+      .filter((a) => a.from < a.to);
+    this.adjustments.push(
+      { worker_id: id, from: now, to: breakEnd, task: "break", label: next === "red" ? "Cool-down break (heat danger)" : "Break now (heat warning)" },
+      { worker_id: id, from: breakEnd, to: lightEnd, task: "light", label: "Light work only (after heat alert)" },
+    );
+    const first = w.def.name.split(" ")[0];
+    this.planChanges.push({ at: now, text: next === "red"
+      ? `${first}: heat danger. Cool-down break until ${clockText(breakEnd)}, then light work only until ${clockText(lightEnd)}.`
+      : `${first}: heat warning. Break now until ${clockText(breakEnd)}, then light work until ${clockText(lightEnd)}.` });
+    for (const x of this.workers.values()) if (x === w) this.emitWorker(x);
+    // Video: the overheated worker stops pushing once the band says stop, and taps "Got it" a moment later.
+    // Slow the replay right down so the red moment stays on camera for a few seconds.
+    if (this.demo.scene && id === this.videoHeatTarget && next === "red") {
+      w.scriptedIntensity = null;
+      if (this.demo.speed > 5) { this.demo.speed = 5; this.emitDemo(); }
+      this.videoTimers.push({ at: now + 20, run: () => this.buttonPress(id) });
+    }
+  }
+
+  schedule(day: "today" | "tomorrow" = "today"): Schedule {
+    if (!this.usePlanner()) return this.legacySchedule();
+    const offset = day === "tomorrow" ? 1 : 0;
+    const plan = this.planFor(offset);
+    const rows = [...this.workers.values()].map((w) => ({
+      worker_id: w.def.worker_id, name: w.def.name,
+      slots: (plan.slots[w.def.worker_id] ?? []).map((slot) => {
+        if (offset === 1) return slot;
+        // The slot happening right now shows what's true right now; other slots use their midpoint
+        const mid = this.sim >= slot.start && this.sim < slot.start + 1800 ? this.sim : slot.start + 900;
+        if (this.siteStopWork(w.def.site_id, mid)) return { start: slot.start, task: "stop_work" as TaskKind, label: LABEL.stop_work, changed: true };
+        const adj = this.adjustments.find((a) => a.worker_id === w.def.worker_id && mid >= a.from && mid < a.to);
+        return adj ? { start: slot.start, task: adj.task, label: adj.label, changed: true } : slot;
+      }),
+    }));
+    return {
+      date: new Date(this.dayStartOf(offset) * 1000 + 12 * 3600000).toISOString().slice(0, 10), slot_minutes: 30,
+      day_start: this.dayStartOf(offset) + 6 * 3600, rows, notes: plan.notes, checked_by_rules: plan.checked,
+      day, source: this.hoursFor(offset as 0 | 1).source, changes: offset === 0 ? [...this.planChanges] : [],
+    };
+  }
+
+  briefing(): Briefing {
+    if (!this.usePlanner()) return this.legacyBriefing();
+    const plan = this.planFor(1);
+    const { source } = this.hoursFor(1);
+    const fmt = (h: number) => `${((Math.floor(h) + 11) % 12) + 1}${h % 1 ? ":30" : ""} ${h < 12 ? "AM" : "PM"}`;
+    const ranked = SITES.map((s) => ({ s, sim: this.sites.get(s.id)! })).sort((a, b) => b.sim.index - a.sim.index);
+    const crew = ranked.filter((r) => CREW_SITES.has(r.s.id));
+    const pick = [...crew, ...ranked.filter((r) => !CREW_SITES.has(r.s.id)).slice(0, 5)];
+    const risky = ranked.filter((r) => r.sim.index >= 5).length;
+    const windows: Briefing["sites"][number]["windows"] = [];
+    if (plan.heatWindow) windows.push({ kind: "heat", start_hour: plan.heatWindow[0], end_hour: plan.heatWindow[1], text: `Heat index 91 °F or more from ${fmt(plan.heatWindow[0])} to ${fmt(plan.heatWindow[1])}` });
+    if (plan.stormWindow) windows.push({ kind: "lightning", start_hour: plan.stormWindow[0], end_hour: plan.stormWindow[1], text: `Storms likely ${fmt(plan.stormWindow[0])} to ${fmt(plan.stormWindow[1])}` });
+    const tomorrow = new Date(this.dayStartOf(1) * 1000 + 12 * 3600000);
+    return {
+      generated_at: todayAt(18, 0, this.sim * 1000),
+      for_date: tomorrow.toISOString().slice(0, 10),
+      summary: `Tomorrow at Deerhaven: heat index up to ${plan.peakHiF} °F around ${fmt(plan.peakHour)}`
+        + (plan.stormWindow ? `, storms likely ${fmt(plan.stormWindow[0])} to ${fmt(plan.stormWindow[1])}` : ", no storms in the forecast")
+        + (this.demo.scene ? "." : `. ${risky} of ${SITES.length} Florida sites score 5 or more on tomorrow's risk index.`),
+      sites: pick.map(({ s, sim }) => ({
+        site_id: s.id, index: sim.index,
+        top_hazards: HAZARD_ORDER.map((k) => sim.hazards[k]).filter((h) => h.level !== "none").slice(0, 3).map((h) => ({ kind: h.kind, level: h.level, text: h.headline })),
+        windows: CREW_SITES.has(s.id) ? windows : [],
+        past_incidents: [],
+      })),
+      schedule_suggestions: plan.notes,
+      source,
+    };
+  }
+
+  // ---- video mode: one button per scene on the manager dashboard ----------------
+
+  /** The crew a scene acts on: its workers, the crew lead (owner) last. */
+  videoCrew() {
+    const list = [...this.workers.values()].filter((w) => (w.def.team ?? DEMO_TEAM) === this.videoTeam);
+    return list.filter((w) => w.def.role !== "Crew lead").concat(list.filter((w) => w.def.role === "Crew lead"));
+  }
+
+  videoStep() {
+    if (!this.videoTimers.length) return;
+    const due = this.videoTimers.filter((x) => this.sim >= x.at);
+    this.videoTimers = this.videoTimers.filter((x) => this.sim < x.at);
+    for (const x of due) x.run();
+  }
+
+  /** Jump the demo to a scene (on a recorded July day). "live" goes back to normal. */
+  scene(name: string, team: string) {
+    const scenes = ["briefing", "morning", "heat", "lightning", "sos", "live"];
+    if (!scenes.includes(name)) return { status: 400, json: { ok: false, error: `scene must be one of ${scenes.join(", ")}` } };
+    this.demo.scenario = { running: false, step: null, started_at: null };   // a scene replaces the scripted demo
+    this.scenarioStart = null;
+    if (name === "live") {
+      this.demo = { ...this.demo, scene: null };
+      this.videoHeatTarget = null;
+      if (this.realTime) this.backToRealTime();
+      else { this.demo = { ...this.demo, source: "live", speed: 1 }; this.reset(todayAt(13, 0, this.baseDate)); this.resendSnapshots(); this.emitDemo(); }
+      return { status: 200, json: { ok: true, scene: null } };
+    }
+    this.videoTeam = team === FRIENDS_TEAM ? FRIENDS_TEAM : DEMO_TEAM;
+    const at = (h: number, m = 0) => todayAt(h, m, this.sim * 1000);
+    const quietTo = (t: number) => {          // move the clock forward without flooding listeners
+      if (t <= this.sim) return;
+      const subs = this.subs; this.subs = new Set(); this.advanceSim(t - this.sim); this.subs = subs;
+    };
+    const prev = this.demo.scene ?? null;
+    this.demo = { ...this.demo, scene: name, source: "replay", speed: 1 };
+
+    if (name === "briefing") { this.reset(at(18, 0)); }                   // 6 PM the day before
+    else if (name === "morning") { this.reset(at(7, 30)); }
+    else if (name === "heat") {
+      this.reset(at(12, 40));
+      const target = this.videoCrew()[0];      // pick after the reset (it rebuilds everyone)
+      if (target) {
+        this.videoHeatTarget = target.def.worker_id;
+        target.scriptedIntensity = 1;          // pushing hard through the hottest part of the day
+        // An urgent repair is the one exception to the plan: heavy work in the heat, until the band says stop
+        this.adjustments.push({ worker_id: target.def.worker_id, from: this.sim, to: this.sim + 3600, task: "heavy", label: "Heavy: urgent line repair" });
+        this.planChanges.push({ at: this.sim, text: `${target.def.name.split(" ")[0]}: urgent line repair in the heat. Redline is watching the forecast.` });
+        this.addLog(`Replay: ${target.def.name} on an urgent repair in the afternoon heat`, "video");
+      }
+      this.demo.speed = 60;                   // fast enough to go yellow then red in a few seconds on camera
+    } else if (name === "lightning") {
+      // Coming from the heat scene: keep its plan changes and move on. Otherwise start fresh at 3 PM.
+      if (prev === "heat") quietTo(at(15, 5)); else this.reset(at(15, 5));
+      this.addStrike("fl-deerhaven", 6.2, 300, "GOES-19 GLM (replay)");
+      this.videoTimers.push({ at: this.sim + 90, run: () => this.addStrike("fl-deerhaven", 4.8, 280, "GOES-19 GLM (replay)") });
+      this.demo.speed = 10;
+    } else if (name === "sos") {
+      const crew = this.videoCrew();
+      const who = crew[1] ?? crew[0];
+      if (this.mandown) this.resolveManDown(true);   // clear an old one first, or the new SOS is ignored
+      if (who) this.sos(who.def.worker_id, "band");
+    }
+    this.demo.scene = name;
+    this.resendSnapshots();
+    this.emitDemo();
+    return { status: 200, json: { ok: true, scene: name, team: this.videoTeam } };
+  }
+
+  legacySchedule(): Schedule {
     const day = todayAt(7, 0, this.sim * 1000);
     const rows = [...this.workers.values()].map((w) => ({
       worker_id: w.def.worker_id, name: w.def.name,
@@ -1550,7 +1796,7 @@ export class MockEngine {
     };
   }
 
-  briefing(): Briefing {
+  legacyBriefing(): Briefing {
     const crewSites = new Set(WORKERS.map((w) => w.site_id));
     const ranked = SITES.map((s) => ({ s, sim: this.sites.get(s.id)! }))
       .sort((a, b) => b.sim.index - a.sim.index);
@@ -1625,7 +1871,7 @@ export class MockEngine {
         const mins = Number(query.get("minutes") ?? 60);
         return ok({ vitals: w.vitals.filter((v) => v.timestamp >= this.sim - mins * 60), estimates: w.estimates.filter((e) => e.timestamp >= this.sim - mins * 60) });
       }
-      if (a === "schedule") return ok(this.schedule());
+      if (a === "schedule") return ok(this.schedule(query.get("day") === "tomorrow" ? "tomorrow" : "today"));
       if (a === "briefing") return ok(this.briefing());
       if (a === "reports") return ok(this.reports);
       return bad("not found", 404);
@@ -1642,6 +1888,7 @@ export class MockEngine {
       if (a === "workers" && c === "button") return ok(this.buttonPress(b));
       if (a === "workers" && c === "sos") return ok(this.sos(b, "phone"));
       if (a === "workers" && c === "location") return this.setLocation(b, body);
+      if (a === "demo" && b === "scene") return this.scene(String(body.scene ?? ""), String(body.team ?? DEMO_TEAM));
       if (a === "spot-check" && !b) {
         const r = this.spotCheck(String(body.worker_id ?? ""), Number(body.thermometer_c));
         return { status: r.ok ? 200 : 400, json: r };

@@ -26,6 +26,8 @@ export interface SiteWeather {
   stormChanceTomorrow: number;   // % chance of rain tomorrow (max hourly)
   thunderTomorrow: boolean;      // a thunderstorm weather code in tomorrow's forecast
   soilMoisture: number | null;   // topsoil water content now, m³/m³ (0 = dry, ~0.45 = soaked)
+  /** Hour by hour, today (day 0) and tomorrow (day 1), local time. Feeds the day planner. */
+  hours: { day: 0 | 1; hour: number; tempF: number; rh: number; hiF: number; rain: number; thunder: boolean }[];
   at: number;                 // Unix seconds of the reading
 }
 
@@ -120,6 +122,12 @@ export async function fetchWeather(sites: { id: string; lat: number; lon: number
         stormChanceTomorrow: Math.round(Math.max(0, ...rainTomorrow)),
         thunderTomorrow: codesTomorrow.some((x) => x >= 95),
         soilMoisture: soil,
+        hours: d.hourly.time.slice(0, 48).map((t, k) => ({
+          day: (k < 24 ? 0 : 1) as 0 | 1, hour: k % 24,
+          tempF: d.hourly.temperature_2m[k], rh: d.hourly.relative_humidity_2m[k],
+          hiF: Math.round(heatIndexF(d.hourly.temperature_2m[k], d.hourly.relative_humidity_2m[k])),
+          rain: d.hourly.precipitation_probability[k] ?? 0, thunder: (d.hourly.weather_code[k] ?? 0) >= 95,
+        })),
         at: Math.round(Date.parse(c.time + ":00Z") / 1000 - (d.utc_offset_seconds ?? 0)) || Math.round(Date.now() / 1000),
       };
     });

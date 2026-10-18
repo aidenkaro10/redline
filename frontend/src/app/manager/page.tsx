@@ -16,10 +16,12 @@ import { useEffect, useState } from "react";
 
 import { CrewPanel, SitesPanel } from "@/components/crew-view";
 import { JoinQR } from "@/components/JoinQR";
+import { PlanView } from "@/components/PlanView";
+import { VideoBar } from "@/components/VideoBar";
 import { Avatar, Wash, type WashTone } from "@/components/health";
 import { Logo } from "@/components/landing/Hero";
 import { shortSiteName, useCrew, useSites } from "@/lib/crew";
-import { USING_MOCK, useLive } from "@/lib/live";
+import { USING_MOCK, useLive, useSimNow } from "@/lib/live";
 import { type Session, signOut, signedIn } from "@/lib/session";
 
 export default function ManagerPage() {
@@ -42,6 +44,19 @@ export default function ManagerPage() {
   const downHere = !!live.mandown && workers.some((w) => w.worker_id === live.mandown!.worker_id);   // only this crew's emergencies
   const tone: WashTone = workers.some((w) => w.status === "red") || downHere ? "danger" : stop ? "stop" : attention ? "warn" : "ok";
   const site = byId[siteIds[0]];
+  const now = useSimNow(1000);
+
+  // Crew tab (who's OK right now) or Plan tab (today's and tomorrow's schedule)
+  const [tab, setTab] = useState<"crew" | "plan">("crew");
+  const [day, setDay] = useState<"today" | "tomorrow">("today");
+  const scene = live.demo?.scene ?? null;
+  // Video mode: each scene opens the tab it's about
+  useEffect(() => {
+    if (scene === "briefing") { setTab("plan"); setDay("tomorrow"); }
+    else if (scene === "morning") { setTab("plan"); setDay("today"); }
+    else if (scene === "heat" || scene === "lightning" || scene === "sos") setTab("crew");
+  }, [scene]);
+  const replay = live.demo?.source === "replay";
 
   return (
     <div className="font-app min-h-screen bg-page text-ink">
@@ -52,6 +67,11 @@ export default function ManagerPage() {
             <span className={`h-1.5 w-1.5 rounded-full ${live.connected ? "bg-ok" : "bg-danger"}`} />
             <span className="hidden sm:inline">{live.connected ? (USING_MOCK ? "Demo data" : "Live") : "Reconnecting…"}</span>
           </span>
+          {replay && (
+            <span className="hidden rounded-full bg-black/[0.06] px-2.5 py-1 text-[12px] sm:inline font-semibold tabular text-ink-2 dark:bg-white/10" title="Recorded data played back faster than real time">
+              Replay · {new Date(now * 1000).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}{live.demo!.speed > 1 ? ` · ${live.demo!.speed}x` : ""}
+            </span>
+          )}
           <nav className="ml-auto flex items-center gap-1 text-[14px] md:gap-2">
             <Link href="/demo" className="rounded-full px-3 py-1.5 font-medium text-ink-2 hover:bg-black/5 dark:hover:bg-white/10">Demo<span className="hidden sm:inline"> controls</span></Link>
             {who && (
@@ -70,13 +90,29 @@ export default function ManagerPage() {
         </div>
       </Wash>
 
-      <main className="relative mx-auto grid max-w-[1280px] gap-x-10 px-4 pb-16 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-        <section className="min-w-0"><CrewPanel /></section>
-        <section className="min-w-0">
-          {me && <div className="pt-4"><JoinQR team={me.team} teamName={me.teamName} /></div>}
-          <SitesPanel layout="laptop" />
-        </section>
-      </main>
+      <div className="relative mx-auto flex max-w-[1280px] flex-wrap items-center gap-3 px-4 pt-3 md:px-8">
+        <div className="grid grid-cols-2 rounded-[10px] bg-black/[0.06] p-0.5 text-[14px] font-semibold dark:bg-white/10" role="tablist" aria-label="View">
+          {(["crew", "plan"] as const).map((t) => (
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
+              className={`min-h-9 rounded-[8px] px-6 py-1.5 capitalize ${tab === t ? "bg-surface text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]" : "text-ink-2"}`}>{t}</button>
+          ))}
+        </div>
+        {USING_MOCK && me && <VideoBar team={me.team} />}
+      </div>
+
+      {tab === "plan" ? (
+        <main className="relative mx-auto max-w-[1280px] px-4 pb-16 md:px-8">
+          <PlanView day={day} onDay={setDay} workerIds={workers.map((w) => w.worker_id)} />
+        </main>
+      ) : (
+        <main className="relative mx-auto grid max-w-[1280px] gap-x-10 px-4 pb-16 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+          <section className="min-w-0"><CrewPanel /></section>
+          <section className="min-w-0">
+            {me && <div className="pt-4"><JoinQR team={me.team} teamName={me.teamName} /></div>}
+            <SitesPanel layout="laptop" />
+          </section>
+        </main>
+      )}
     </div>
   );
 }
