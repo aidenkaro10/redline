@@ -132,3 +132,23 @@ def test_compact_prompt_keeps_the_plan_facts():
     assert body["assignments"] == plan.assignments and body["source"] == "optimizer:throughput"
     assert compact_prompt("Write 3 short bullets") == "Write 3 short bullets"            # other prompts untouched
     assert compact_prompt(prompt.replace(view, "{broken")) == prompt.replace(view, "{broken")
+
+
+
+def test_self_training_keeps_only_safe_plans_that_do_real_work():
+    from ml.local_planner.self_train import is_good, keep_best, stats
+    def smp(ok, tp, rank):
+        return {"success": ok, "valid": True, "n_safety": 0 if ok else 2, "throughput": tp, "rank": rank,
+                "assignments": {}, "notes": ""}
+    rest_everyone = smp(True, 0.0, 0.1)
+    lazy = smp(True, 0.35, 0.2)                          # passes, but far less work than the optimizer
+    good_a, good_b = smp(True, 0.66, 0.40), smp(True, 0.70, 0.45)
+    unsafe = smp(False, 0.90, None)                      # lots of work, breaks a rule
+    assert not is_good(rest_everyone, 0.68) and not is_good(lazy, 0.68) and not is_good(unsafe, 0.68)
+    assert is_good(good_a, 0.68) and is_good(good_b, 0.68)
+    graded = [{"scenario_id": "train-1", "opt_throughput": 0.68, "samples": [rest_everyone, lazy, good_a, good_b, unsafe]},
+              {"scenario_id": "train-2", "opt_throughput": 0.68, "samples": [lazy, unsafe]}]
+    kept = keep_best(graded)
+    assert len(kept) == 1 and kept[0]["scenario_id"] == "train-1" and kept[0]["rank"] == 0.45   # best per day only
+    st = stats(graded)
+    assert st["days_with_good"] == 1 and st["good_pass"] == 2 / 7
