@@ -99,3 +99,13 @@ def test_router_set_many_no_off_flash():
     r.set("HEAT_YELLOW", True, 0)
     ev = r.set_many({"HEAT_YELLOW": False, "HEAT_RED": True}, 1)
     assert [e["pattern"] for e in ev] == ["HEAT_RED"]
+
+
+def test_crew_alert_plays_mandown_and_falls_back():
+    r = BandRouter("w1")
+    r.set("HEAT_YELLOW", True, 0)
+    assert r.set("CREW_ALERT", True, 1)[0]["line"] == "BUZZ:MANDOWN"
+    assert r.set("HEAT_RED", True, 2) == []                     # still MANDOWN on top
+    assert r.set("MANDOWN", True, 3) == []                      # own man-down: same pattern, no resend
+    r.set("MANDOWN", False, 4)
+    assert r.set("CREW_ALERT", False, 5)[0]["line"] == "BUZZ:HEAT_RED"   # back to their own status

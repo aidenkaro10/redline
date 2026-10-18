@@ -3,12 +3,15 @@ Alert router: one band can only play one pattern at a time, so pick the most
 urgent active condition and send it. Only send when the pick changes.
 
 Priority (PLAN.md Phase 8): MANDOWN > HEAT_RED > LIGHTNING > HEAT_YELLOW > FLOOD_FIRE.
-Nothing active -> OFF.
+CREW_ALERT (a crewmate at the same site is down / pressed SOS) plays the MANDOWN pattern too,
+right after the worker's own man-down. Nothing active -> OFF.
 """
 
 from backend.app.schemas import format_command
 
-PRIORITY = ("MANDOWN", "HEAT_RED", "LIGHTNING", "HEAT_YELLOW", "FLOOD_FIRE")
+PRIORITY = ("MANDOWN", "CREW_ALERT", "HEAT_RED", "LIGHTNING", "HEAT_YELLOW", "FLOOD_FIRE")
+# Conditions that play another condition's band pattern (the band only knows the BUZZ patterns).
+PATTERN_OF = {"CREW_ALERT": "MANDOWN"}
 
 
 class BandRouter:
@@ -36,8 +39,9 @@ class BandRouter:
         return self._maybe_send(t)
 
     def pattern(self) -> str:
-        """The most urgent active condition, or OFF."""
-        return next((p for p in PRIORITY if p in self.active), "OFF")
+        """The band pattern of the most urgent active condition, or OFF."""
+        top = next((p for p in PRIORITY if p in self.active), "OFF")
+        return PATTERN_OF.get(top, top)
 
     def _maybe_send(self, t: float) -> list[dict]:
         new = self.pattern()

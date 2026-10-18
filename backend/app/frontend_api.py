@@ -144,6 +144,8 @@ class FrontendAdapter:
         elif kind == "planner_change":
             # Session B's act-on-forecast feed (upsert by id). Body numbers are dropped for crew in broadcast().
             out.append(dict(ev))
+        elif kind == "crew_alert":
+            pass        # shown on the dashboard as a log line only ("Alerted N crewmates: ..."), see _log_text
         elif kind in ("hr_link", "band_link"):
             # Heart rate link / band link status (Bluetooth searching / connected / stale / lost). No body numbers.
             out.append(dict(ev))
@@ -547,6 +549,12 @@ class FrontendAdapter:
             return f"{name}: man-down {kind.split('_')[1]} ({ev['by']})"
         if kind == "sos":
             return f"{name}: SOS pressed"
+        if kind == "crew_alert":
+            n = len(ev["crewmates"])
+            if ev["on"]:
+                return (f"Alerted {n} crewmate{'' if n == 1 else 's'}: {', '.join(ev['names'])}"
+                        if n else f"{name}: no crewmates at the site to alert")
+            return f"Crewmate alert for {name} cleared" + (f" ({', '.join(ev['names'])})" if n else "")
         if kind == "band_link" and ev["state"] in ("connected", "lost"):
             return f"{name}: {ev['message']}"
         if kind == "hr_link" and ev["state"] in ("connected", "stale", "lost"):
@@ -808,6 +816,7 @@ async def resolve(request: Request, mandown_id: str):
     if md and md["reason"] == "sos":
         for msg in a._close_incident(wid, a.hub.now(wid), "resolved") + a._pair_if_shown_changed():
             a.broadcast(msg)                                              # SOS never touched the detector
+        a.hub.dispatch(a.hub.end_crew_alert(wid))                         # crewmates' bands go back to normal
     else:
         a.hub.resolve_mandown(wid)
     return {"ok": True}
