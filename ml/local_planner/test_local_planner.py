@@ -132,3 +132,84 @@ def test_compact_prompt_keeps_the_plan_facts():
     assert body["assignments"] == plan.assignments and body["source"] == "optimizer:throughput"
     assert compact_prompt("Write 3 short bullets") == "Write 3 short bullets"            # other prompts untouched
     assert compact_prompt(prompt.replace(view, "{broken")) == prompt.replace(view, "{broken")
+
+
+
+def test_self_training_keeps_only_safe_plans_that_do_real_work():
+    from ml.local_planner.self_train import is_good, keep_best, stats
+    def smp(ok, tp, rank):
+        return {"success": ok, "valid": True, "n_safety": 0 if ok else 2, "throughput": tp, "rank": rank,
+                "assignments": {}, "notes": ""}
+    rest_everyone = smp(True, 0.0, 0.1)
+    lazy = smp(True, 0.35, 0.2)                          # passes, but far less work than the optimizer
+    good_a, good_b = smp(True, 0.66, 0.40), smp(True, 0.70, 0.45)
+    unsafe = smp(False, 0.90, None)                      # lots of work, breaks a rule
+    assert not is_good(rest_everyone, 0.68) and not is_good(lazy, 0.68) and not is_good(unsafe, 0.68)
+    assert is_good(good_a, 0.68) and is_good(good_b, 0.68)
+    graded = [{"scenario_id": "train-1", "opt_throughput": 0.68, "samples": [rest_everyone, lazy, good_a, good_b, unsafe]},
+              {"scenario_id": "train-2", "opt_throughput": 0.68, "samples": [lazy, unsafe]}]
+    kept = keep_best(graded)
+    assert len(kept) == 1 and kept[0]["scenario_id"] == "train-1" and kept[0]["rank"] == 0.45   # best per day only
+    st = stats(graded)
+    assert st["days_with_good"] == 1 and st["good_pass"] == 2 / 7
+
+
+def test_grammar_accepts_a_legal_plan_and_reads_it_back():
+    from backend.planner.optimizer import optimize
+    from ml.local_planner.constrained import PlanGrammar
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    plan = optimize(sc, "throughput", time_limit_s=1.0).plan
+    text = json.dumps({"assignments": {w.id: plan.assignments[w.id] for w in sc.crew}, "notes": "ok"},
+                      separators=(",", ":"))
+    for level in ("format", "rules"):
+        g = PlanGrammar(sc, level)
+        for i in range(0, len(text), 3):               # feed it in token-sized chunks
+            assert g.free or any(o.startswith(text[i:i + 1]) for o in g.options())
+            g.advance(text[i:i + 3])
+        assert g.free and g.assignments() == plan.assignments
+
+
+def test_grammar_rules_level_blocks_simple_rule_breaks():
+    from ml.local_planner.constrained import PlanGrammar
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    g = PlanGrammar(sc, "rules")
+    outdoor = {t.id for t in sc.tasks if t.outdoor}
+    for k in sc.stop_work_slots():
+        assert not (set(g.legal_values(0, k)) & outdoor)    # no outdoor work in a stop-work window
+    assert "rest" in g.legal_values(0, 0)
+    fmt = PlanGrammar(sc, "format")
+    k = sorted(sc.stop_work_slots())[0]
+    assert set(fmt.legal_values(0, k)) & outdoor or not any(t.outdoor for t in sc.tasks)   # format level allows it
+
+
+def test_edits_round_trip_and_illegal_edits_are_dropped():
+    from ml.local_planner.edits import apply_edits, diff_edits, parse_edits
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    base = {w.id: ["rest"] * sc.n_slots for w in sc.crew}
+    target = {w.id: list(r) for w, r in zip(sc.crew, base.values())}
+    free_task = next(t for t in sc.tasks if not t.skill and t.earliest == 0)
+    target[sc.crew[0].id][0] = free_task.id
+    edits = diff_edits(base, target)
+    assert edits == [[sc.crew[0].id, 0, free_task.id]]
+    plan, applied, dropped = apply_edits(sc, base, edits + [["nobody", 1, "rest"], [sc.crew[0].id, 99, "rest"],
+                                                            [sc.crew[0].id, 2, "t999"], "junk"])
+    assert plan == target and applied == 1 and dropped == 4
+    assert apply_edits(sc, base, [])[0] == base                       # empty list keeps the plan
+    assert parse_edits('{"edits": [["w1", 3, "rest"]], "notes": "x"}') == ([["w1", 3, "rest"]], "x")
+    assert parse_edits("nope")[0] is None
+
+
+def test_explanation_fact_check():
+    from ml.local_planner.explain_check import check, times_in
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    name = sc.crew[0].name.split(" ")[0]
+    facts = ("Peak 90th pct core temp 37.91 °C (limit 38.0), tightest margin 0.08 °C, 63% of priority-weighted work done.\n"
+             "No outdoor work 13:00-14:30 (lightning).\nAlternatives: optimizer:balanced (64% work, peak 37.88 °C)")
+    good = f"We get 63% done. {name} works early. No outdoor work from 1 to 2:30 PM. Peak 37.91 °C."
+    r = check(good, facts, sc)
+    assert r["claims"] >= 4 and r["unsupported"] == 0, r
+    stranger = next(n for n in ("Omar", "Lena", "Ike", "Jo") if n not in {w.name.split(' ')[0] for w in sc.crew})
+    bad = f"We get about 93% done. {stranger} takes the trenching. Peak 37.50 °C at 4 PM."
+    r = check(bad, facts, sc)
+    assert {k for k, _ in r["bad"]} == {"pct", "name", "temp", "time"}, r
+    assert times_in("from 1 to 2 p.m.") == [13 * 60, 14 * 60]
