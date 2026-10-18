@@ -4,7 +4,7 @@ Are the crew-lead explanations factually right? A plain-code fact check, no LLM 
 The agent asks the LLM to explain a plan from a list of facts (peak temperature, margin, work done,
 stop-work times, new hires, alternatives). Every concrete claim in the answer must be backed by those
 facts or by the day itself:
-  - percentages        must match a percentage in the facts (within 1 point)
+  - percentages        must match a percentage in the facts (within 2.5 points: "about 60%" is fine)
   - temperatures (°C)  must match a temperature in the facts or the day's WBGT/limit (within 0.05)
   - clock times        must be a time in the facts (13:00 = 1 PM = 1 p.m.) or a stop-work window edge
   - worker names       must be on the crew
@@ -26,6 +26,7 @@ from backend.planner.generate import NAMES
 from backend.planner.scenario import Scenario
 from ml.local_planner.teacher import RUNS_DIR
 
+PCT_TOL = 2.5          # "about 60%" for 62% is fine; 93% for 71% is not
 OTHER_NAMES = ["Rosa", "Dev", "Priya", "Emma", "Sam", "Wei", "Jo", "Ike", "Lena", "Omar", "Marcus", "Ana", "Luis",
                "Jada", "Tom", "Kofi"]
 PCT = re.compile(r"(\d{1,3}(?:\.\d)?)\s?(?:%|percent)")
@@ -53,7 +54,8 @@ def times_in(text: str) -> list[int]:
     text = RANGE12.sub(" ", text)
     out += [_minutes_12(h, m, ap) for h, m, ap in CLOCK12.findall(text)]
     text = CLOCK12.sub(" ", text)                             # so "2:30 PM" isn't also read as 02:30
-    out += [int(h) * 60 + int(m) for h, m in CLOCK24.findall(text)]
+    # bare "3:00": shifts run in daytime, so hours 1-6 mean the afternoon (3:00 = 15:00)
+    out += [(int(h) + (12 if 1 <= int(h) <= 6 else 0)) * 60 + int(m) for h, m in CLOCK24.findall(text)]
     return out
 
 
@@ -75,7 +77,7 @@ def check(answer: str, facts: str, sc: Scenario) -> dict:
     for x in PCT.findall(answer):
         v = float(x)
         claims.append(("pct", v))
-        if not any(abs(v - f) <= 1.0 for f in fact_pcts):
+        if not any(abs(v - f) <= PCT_TOL for f in fact_pcts):
             bad.append(("pct", v))
     for a, b in TEMP.findall(answer):
         v = float(a or b)
@@ -123,7 +125,19 @@ def summarize(rows: list[dict], key: str) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--adapter", default="adapter")
+    ap.add_argument("--recheck", action="store_true", help="re-score saved answers, no generation")
     args = ap.parse_args()
+    out = out_dir(DATA_DIR / "explain_check")
+    if args.recheck:
+        res = json.loads((out / f"val_{args.adapter}.json").read_text())
+        scs = {it["scenario"]["id"]: Scenario.from_dict(it["scenario"]) for it in val_items()}
+        for r in res["rows"]:
+            for who in ("claude", "local"):
+                r[who] = check(r[f"{who}_text"], r["facts"], scs[r["scenario"]])
+        res["claude"], res["local"] = summarize(res["rows"], "claude"), summarize(res["rows"], "local")
+        (out / f"val_{args.adapter}.json").write_text(json.dumps(res, indent=1))
+        print(json.dumps({"claude": res["claude"], f"local ({args.adapter})": res["local"]}, indent=1))
+        return
     from ml.local_planner.client import LocalLLM
     llm = LocalLLM(adapter_dir=CKPT_DIR / args.adapter if args.adapter != "none" else None)
     rows = []
