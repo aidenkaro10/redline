@@ -52,29 +52,25 @@ Button feedback (the band does this itself, on top of whatever pattern is showin
 
 No connection: if the band hasn't received any command for 60 s, blink cyan slowly so we can spot a dead cable during the demo. (The laptop re-sends the current status every 20 s so this never triggers when things are fine.)
 
-## 2b. New parts: pulse (light sensor + LED) and accelerometer (added Oct 17)
+## 2b. New parts: pulse, accelerometer, air sensor (added Oct 17)
 
-Goal: the band measures heart rate itself, so no Apple Watch is needed. The laptop does the hard part (finding heartbeats, throwing out arm movement). The band just sends raw numbers fast and evenly spaced.
+Goal: the band measures heart rate itself, so no Apple Watch is needed. The band sends raw numbers fast and evenly spaced; the laptop does the hard part (finding heartbeats, throwing out arm movement, spotting falls). Step-by-step wiring, code and tests: `docs/band-finish-guide.md`.
 
-**Wiring**
-- Light sensor: any free analog pin A0-A4. Those pins only work with WiFi **off**, so this runs over the USB cable. Put the LED right next to it, both pressed against the skin, and block room light (tape or a dark sleeve over both).
-- Accelerometer: the I2C pins (SDA/SCL). Tell Aiden the exact model printed on the board (for example ADXL345 or LIS3DH) so the laptop knows its units.
+**Wiring (all sensors on 3V, never 5V)**
+- Light sensor signal: **D10** (an ADC1 pin, so it keeps working with WiFi on; A0-A4 don't). Pulse LED: **D12**, held on.
+- Accelerometer and air sensor (BME280/BMP280): the I2C pins **SDA/SCL**, sharing the same two wires.
 
 **New lines**
 
 | When | Line | Notes |
 | --- | --- | --- |
-| Every 200 ms | `PPG:512,515,520,518,511,507,509,514,519,516` | 10 raw light readings taken exactly 20 ms apart (50 per second), oldest first. Use a timer (`micros()`), not `delay()`, so the spacing is even. Raw `analogRead` numbers, no filtering. |
-| Every 100 ms | `ACC:0.98,0.02,0.11` | x, y, z in g (gravity = 1.00), 2 decimals. Average the readings in each 100 ms. |
+| Every 200 ms | `PPG:512,515,520,518,511,507,509,514,519,516` | 10 raw `analogRead` values taken exactly 20 ms apart (50 per second), oldest first. Timer-driven (`micros()`), no `delay()`, no filtering. |
+| Every 20 ms | `ACC:0.98,0.02,0.11` | One accelerometer reading, x,y,z in g (gravity = 1.00), 2 decimals. Same 50 per second as PPG so the laptop can cancel arm movement and see fall impacts. |
+| Every 1 s | `AIRT:31.42` | Air temperature at the worker, °C. |
+| Every 1 s | `HUM:58.2` | Relative humidity, % (BME280 only). |
+| Every 1 s | `BARO:1012.35` | Air pressure, hPa, 2 decimals (about 0.12 hPa per meter of height: helps confirm falls). |
 
-Keep sending `TEMP`, `TILT` and `BTN` exactly as before. Don't compute heart rate on the band; if you already have code that does, it can send `HR:72` too, and the laptop uses both.
-
-**Test**
-1. Open the Arduino Serial Plotter at 115200 baud and print only the PPG numbers (one per line) for this test.
-2. Put the band on the wrist, light sensor against the skin, room light blocked. Sit still.
-3. The line should bump about once a second, in time with your pulse (check against a finger on your neck).
-4. Then walk around. The bumps will get messy. That's expected; the laptop uses the accelerometer to clean it up.
-5. Switch back to the normal `PPG:` lines above and check `ACC` reads about 1.00 on the axis pointing down while the band lies flat.
+Keep sending `TEMP`, `TILT` and `BTN` exactly as before (the laptop keeps the tilt switch as the fallback: it still catches a slow slump with no impact, and takes over again if `ACC` stops). The laptop side for these lines is built (`docs/sessions/band-sensors.md`): a `PPG` line with anything other than exactly 10 whole numbers 0-4095 is dropped whole. If the band already computes heart rate, it can also send `HR:72`; the laptop uses both.
 
 ## 3. WiFi (optional, later)
 

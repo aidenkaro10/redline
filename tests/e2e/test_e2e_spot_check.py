@@ -14,7 +14,7 @@ import pytest
 
 from backend import config
 from backend.replay import shifts
-from e2e_support import ENS5_PATH, StepClock
+from e2e_support import DEMO_MODEL_PATH, StepClock
 
 START = 1_792_000_000.0
 SPOT_AT_S = 20 * 60 + 30          # 30 s into replay minute 20
@@ -22,7 +22,7 @@ SPOT_AT_S = 20 * 60 + 30          # 30 s into replay minute 20
 
 def run(live_app, spot_c_below_raw: float | None):
     """Play 20.5 replay minutes, maybe do a spot check, then one more minute. Returns (app, update, est)."""
-    extra = ["--checkpoint", str(ENS5_PATH)] if ENS5_PATH else []
+    extra = ["--checkpoint", str(DEMO_MODEL_PATH)] if DEMO_MODEL_PATH else []
     app = live_app(*extra, clock=StepClock(start=START))
     app.start_replay(shifts.synthetic(n_crew=1, fall_worker=None))
     app.step(SPOT_AT_S)
@@ -72,7 +72,7 @@ def test_A10_another_workers_numbers_do_not_move(runs):
     assert runs["mate"]["offset_c"] == 0
 
 
-@pytest.mark.skipif(ENS5_PATH is None, reason="needs ml/checkpoints/ens5.pt for a forecast")
+@pytest.mark.skipif(DEMO_MODEL_PATH is None, reason="needs the demo model checkpoint for a forecast")
 def test_A10_offset_is_applied_to_every_forecast_percentile(runs):
     est, base, off = runs["est"], runs["base"], runs["update"]["offset_c"]
     assert est["forecast"] and base["forecast"]
@@ -107,9 +107,6 @@ def test_A11_A34_offset_survives_a_server_restart(runs):
     assert snap["offsets"]["demo-1"]["n_checks"] == 1
 
 
-@pytest.mark.xfail(strict=True, reason="gap (session A): the frontend contract asks for a fresh estimate right "
-                   "after an accepted spot check 'so the chart moves while the judge watches'; A only re-checks "
-                   "the heat alert, so the chart waits for the next minute (60 s live).")
 def test_fresh_estimate_is_pushed_right_after_a_spot_check(live_app):
     app = live_app(clock=StepClock(start=START))
     app.start_replay(shifts.synthetic(n_crew=0, fall_worker=None))

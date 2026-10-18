@@ -214,6 +214,16 @@ PLAN_PROPOSAL_EXPIRE_MIN = 15             # a change waiting for the crew lead e
 # One-way SMS to the crew lead (backend/planner/notify.py). Dry run unless PLANNER_SMS_MODE=twilio.
 PLAN_SMS_MIN_GAP_S = 300                  # at least 5 min between texts
 PLAN_SMS_MAX_PER_HOUR = 6
+# Short work/rest cycles in hot slots (WBGT >= PLAN_HOT_WBGT_C). Evidence: "Plateau in Core Temperature
+# during Shorter but Not Longer Work/Rest Cycles in Heat", IJERPH 2024 21(3):371,
+# https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10970706/ . 14 people walking at ~36 °C on 2:1 schedules:
+# 20 min work / 10 min rest made core temp plateau in hour 2, 40/20 kept rising (same ~38.0 peak);
+# the authors recommend shorter cycles for work over 2 h.
+# "cycles": a hot work slot = 20 min work + 10 min shade inside the 30-min slot (counts 2/3 of the work).
+# "blocks": the older rule only (2 hot work slots max, then a 30-min break).
+PLAN_HOT_CYCLE_WORK_MIN = 20
+PLAN_HOT_CYCLE_REST_MIN = 10
+PLAN_HOT_WORK_PATTERN = "blocks"          # set after the held-out comparison (docs/sessions/planner.md)
 
 # ---------------------------------------------------------------------------
 # LIVE SYSTEM (session A). Band link timing, from docs/firmware-contract.md.
@@ -223,3 +233,40 @@ BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real 
 # Bluetooth heart rate (backend/ingest/ble_hr.py): HeartCast relaying the Apple Watch, a strap, a Garmin.
 BLE_HR_DEVICE = os.getenv("BLE_HR_DEVICE", "")   # part of the device name, or its address; "" = first 0x180D device
 BLE_HR_STALE_S = 15          # connected but no heart rate this long -> "stale" status event
+
+# ---------------------------------------------------------------------------
+# BAND SENSORS (backend/ingest/band_*.py): pulse light sensor (PPG), accelerometer,
+# air sensor. Lines and rates: docs/firmware-contract.md section 2b.
+# None of these is a heat-alert threshold. The heat and man-down limits above are untouched.
+# ---------------------------------------------------------------------------
+BAND_SAMPLE_HZ = 50              # PPG and ACC samples per second (one every 20 ms)
+BAND_PPG_LOW_HZ = 0.7            # band-pass for the pulse: 42 bpm ...
+BAND_PPG_HIGH_HZ = 3.5           # ... to 210 bpm
+BAND_PPG_WINDOW_S = 10           # each heart rate is worked out from the last 10 s of light readings
+BAND_PPG_STEP_S = 5              # one heart rate (or nothing) every 5 s
+BAND_PPG_GAP_S = 1.0             # PPG lines further apart than this = a gap: start the window over
+BAND_PPG_MIN_QUALITY = 0.55      # quality score 0-1; below this we send NO heart rate (never a made-up one)
+BAND_PPG_CLIPPED_SHARE = 0.05    # more than 5% of samples stuck at 0 or 4095 = sensor lost the skin
+BAND_CADENCE_MATCH_BPM = 6       # a pulse peak this close to the arm-swing / step rhythm is suspect
+BAND_HEAVY_MOTION_G = 0.8        # arm movement (g, wrist tilting counts) where the pulse sensor is mostly arm noise
+# Accelerometer -> activity. The forecaster was trained on tilt-switch flickers per second (ACT),
+# so accelerometer movement is put on the same scale: ACT-equivalent = BAND_ACT_PER_G * movement (g).
+# Provisional: re-fit once the band records ACC and ACT side by side.
+BAND_ACT_PER_G = 18.0
+BAND_STILL_G = 0.03              # movement below this (g) counts as perfectly still (activity 0)
+BAND_ACC_LIVE_S = 3.0            # ACC heard this recently -> it replaces the tilt switch for man-down/activity
+# Falls: impact spike, then the wrist ends up at a new angle, then stillness.
+BAND_FALL_IMPACT_G = 2.5         # impact spike (total acceleration, g)
+BAND_FALL_HARD_IMPACT_G = 4.0    # an impact this hard counts even if the pressure sensor saw no height drop
+BAND_FALL_ANGLE_DEG = 45         # wrist angle change from before the fall to after
+BAND_FALL_STILL_S = 2.0          # mostly still for this long right after the impact
+BAND_FALL_BARO_MIN_HPA = 0.05    # pressure RISE after a fall (~0.4 m lower; 0.12 hPa per meter)
+BAND_FALL_BARO_NOISE_HPA = 0.05  # pressure noisier than this before the fall -> don't trust it either way
+BAND_GOT_UP_S = 5.0              # moving this long (or wrist back at its old angle) = got back up
+# Air sensor (AIRT/HUM) -> local WBGT correction for that worker's forecaster input.
+BAND_AIR_MIN_SAMPLES = 20        # readings needed in a minute to use that minute
+BAND_AIR_MAX_STD_C = 1.0         # air temp jumping more than this within a minute = not sane
+BAND_AIR_SKIN_GAP_C = 2.0        # air reading within this of skin temp (and above 30 °C) = sensor touching skin
+BAND_AIR_MAX_SITE_GAP_C = 8.0    # air reading this far from the site weather = sensor in the sun or on the body
+WBGT_LOCAL_MAX_UP_C = 2.0        # local correction can raise the worker's WBGT input at most this much
+WBGT_LOCAL_MAX_DOWN_C = 1.0      # ...and lower it at most this much (cautious: lower WBGT = calmer forecast)

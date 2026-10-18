@@ -2,6 +2,8 @@
 The hub: the one place every piece meets.
 
     sources (replay, serial, UDP, Pulsoid) ──handle_input()──> hub ──> WorkerPipeline (one per worker)
+    band PPG / ACC / air lines (BandSample) ──> BandStreams (backend/ingest/band_stream.py)
+        ──> a few slow readings (heart rate, activity, tilt) back into handle_input()
                                                                 │
          events <───────────────────────────────────────────────┘
            ├─> band outputs (console / serial / UDP)    for "band_command"
@@ -25,7 +27,8 @@ from typing import Callable
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand
 from backend.app.pipeline import WorkerPipeline
-from backend.app.schemas import ButtonPress, Reading
+from backend.app.schemas import BandSample, ButtonPress, Reading
+from backend.ingest.band_stream import BandStreams
 from backend.replay.clock import RealClock
 
 log = logging.getLogger(__name__)
@@ -61,6 +64,8 @@ class Hub:
         self.demo = demo
         self.sites: dict[str, dict] = {}
         self.default_site_id = self.add_site(site or DEFAULT_SITE)
+        if self.db:
+            self.schedule = self.db.load_kv("schedule")  # last schedule survives a restart (breaks on cards)
         self.workers: dict[str, dict] = {}
         self.pipelines: dict[str, WorkerPipeline] = {}
         self.clocks: dict[str, object] = {}
@@ -70,13 +75,17 @@ class Hub:
         self.hazards: dict[str, dict[str, dict]] = {}     # site_id -> kind -> latest hazard event
         self.site_status: dict[str, dict] = {}            # site_id -> full status pushed by session C1
         self.plans: list[dict] = []
-        self.schedule: dict | None = None               # the planner's current verified schedule (session B)
+        if not hasattr(self, "schedule"):
+            self.schedule: dict | None = None           # the planner's current verified schedule (session B)
         self.replay = None              # the running Replay, if any
         self.replay_task: asyncio.Task | None = None
         self.real_clock = RealClock()
         self.last_sent: dict[str, float] = {}          # worker -> monotonic time of the last command to their band
         self.why = None                                 # WhyExplainer (backend/app/why.py), set by main.py
         self.whys: dict[str, dict] = {}                 # worker -> latest why-line result
+        # The band's fast lines (PPG, ACC) and air sensor, per worker. See backend/ingest/band_stream.py.
+        self.site_air: dict[str, tuple[float, float]] = {}   # site -> (air temp °C, RH %) from the weather feed
+        self.band_streams = BandStreams(site_air_of=self.site_air_of)
 
     # ------------------------------------------------------------------
     # Workers and sites
@@ -115,6 +124,7 @@ class Hub:
     def remove_worker(self, worker_id: str) -> None:
         for d in (self.workers, self.pipelines, self.clocks):
             d.pop(worker_id, None)
+        self.band_streams.drop(worker_id)
         self.dispatch([{"type": "worker_removed", "timestamp": self.real_clock.now(), "worker_id": worker_id}])
 
     def public_info(self, worker_id: str) -> dict:
@@ -127,10 +137,17 @@ class Hub:
     # ------------------------------------------------------------------
     # Inputs
     # ------------------------------------------------------------------
-    def handle_input(self, event: Reading | ButtonPress, source: str = "live") -> None:
+    def handle_input(self, event: Reading | ButtonPress | BandSample, source: str = "live") -> None:
         """A reading or button press from any source. Unknown workers are created on the fly."""
         if event.worker_id not in self.pipelines:
             self.register_worker(event.worker_id, source=source)
+        if isinstance(event, BandSample):
+            self._band_sample(event, source)        # fast band lines: never stored or broadcast one by one
+            return
+        if isinstance(event, Reading) and event.worker_id in self.band_streams:
+            event = self.band_streams.filter_reading(event)   # ACC streaming: it replaces the tilt switch
+            if event is None:
+                return
         if isinstance(event, Reading) and event.source is None:
             event.source = source                           # tag untagged readings with where they came in
         if self.recorder and source != "replay":
@@ -147,6 +164,32 @@ class Hub:
         out += derived
         self.dispatch(out)
 
+    def _band_sample(self, sample: BandSample, source: str) -> None:
+        """PPG / ACC / air -> the band stream. Its few slow outputs come back in as normal inputs."""
+        readings, events = self.band_streams.feed(sample)
+        for r in readings:
+            self.handle_input(r, source)
+        for ev in events:
+            if ev["type"] == "band_minute" and sample.worker_id in self.pipelines:
+                # Local air -> this worker's WBGT input only (None = no sane reading: no correction).
+                self.pipelines[sample.worker_id].set_wbgt_correction(ev["wbgt_correction_c"], ev["timestamp"])
+        if events:
+            self.dispatch(events)
+
+    def site_air_of(self, worker_id: str) -> tuple[float, float] | None:
+        """
+        Air temp and humidity at a worker's site, to compare with the band's air sensor:
+        from POST /api/sites/{id}/weather (temp_c, rh_pct), else from C1's heat hazard details.
+        """
+        site = self.workers.get(worker_id, {}).get("site_id")
+        if site in self.site_air:
+            return self.site_air[site]
+        for h in (self.site_status.get(site) or {}).get("hazards") or []:
+            d = h.get("details") if isinstance(h, dict) else None
+            if isinstance(d, dict) and d.get("temp_c") is not None and d.get("rh_pct") is not None:
+                return float(d["temp_c"]), float(d["rh_pct"])
+        return None
+
     def set_context(self, worker_id: str, **context) -> None:
         """
         Per-worker weather / planned workload (replay, planner). Keys: wbgt, workload,
@@ -155,11 +198,15 @@ class Hub:
         if worker_id in self.pipelines:
             self.pipelines[worker_id].set_context(**context)
 
-    def set_site_weather(self, site_id: str, wbgt: float, future_wbgt: list | None = None) -> None:
+    def set_site_weather(self, site_id: str, wbgt: float, future_wbgt: list | None = None,
+                         temp_c: float | None = None, rh_pct: float | None = None) -> None:
         """
         Session C1: current WBGT at a site, plus optionally the forecast for the next
         30 minutes (one value per minute). Feeds every worker there (forecaster inputs).
+        temp_c / rh_pct: the site's air, compared with each band's air sensor (local WBGT correction).
         """
+        if temp_c is not None and rh_pct is not None:
+            self.site_air[site_id] = (float(temp_c), float(rh_pct))
         for wid, w in self.workers.items():
             if w["site_id"] == site_id:
                 self.pipelines[wid].set_context(wbgt=wbgt, future_wbgt=future_wbgt)
@@ -222,12 +269,14 @@ class Hub:
                 self.db.log_event(ev)
             if kind not in QUIET_EVENTS:
                 self.recent.append(ev)
+            # Broadcast first: a listener (session D) may react with events of its own, and those
+            # must reach the dashboards AFTER the event that caused them.
+            self.broadcast(ev)
             for listener in self.listeners:
                 try:
                     listener(ev)
                 except Exception as e:
                     log.warning("listener failed on %s: %s", kind, e)
-            self.broadcast(ev)
 
     def _add_why(self, ev: dict) -> None:
         """
@@ -237,7 +286,8 @@ class Hub:
         wid = ev["worker_id"]
         ev["why"] = self.whys.get(wid, {}).get("why")
         p = self.pipelines.get(wid)
-        if self.why is not None and self.why.enabled and ev.get("forecast") and p and not ev.get("preroll"):
+        if (self.why is not None and self.why.enabled and ev.get("forecast") and p
+                and not ev.get("preroll") and not ev.get("refresh")):
             self.why.request(wid, p._model_arrays(), p.n_minutes - 1)
 
     def on_why(self, worker_id: str, minute: int, result: dict) -> None:
@@ -330,6 +380,8 @@ class Hub:
     def set_schedule(self, schedule: dict) -> None:
         """Session B's current schedule (frontend Schedule shape). Drives on_break / break_at."""
         self.schedule = schedule
+        if self.db:
+            self.db.save_kv("schedule", schedule)
         self.dispatch([{"type": "schedule", "timestamp": self.real_clock.now(), "schedule": schedule}])
 
     def set_site_status(self, site_id: str, status: dict) -> None:

@@ -23,7 +23,7 @@ import pytest
 
 import contract_schemas as C
 from backend.replay import shifts
-from e2e_support import ENS5_PATH, FIXTURES, SIM_PATH, AppFactory
+from e2e_support import DEMO_MODEL_PATH, FIXTURES, SIM_PATH, AppFactory
 
 WRITE = os.getenv("E2E_WRITE_FIXTURES") == "1"
 TINY_JPEG = "data:image/jpeg;base64," + "A" * 64            # a stand-in photo (small data URL)
@@ -86,8 +86,8 @@ def recording(tmp_path_factory):
     """
     mp = pytest.MonkeyPatch()
     factory = AppFactory(tmp_path_factory.mktemp("contract"), mp)
-    real_demo = SIM_PATH is not None and ENS5_PATH is not None
-    app = factory.start("--hazards", "fake", *(["--checkpoint", str(ENS5_PATH)] if real_demo else []))
+    real_demo = SIM_PATH is not None and DEMO_MODEL_PATH is not None
+    app = factory.start("--hazards", "fake", *(["--checkpoint", str(DEMO_MODEL_PATH)] if real_demo else []))
     rest: dict[str, tuple[int, object]] = {}
 
     def call(key, method, path, body=None):

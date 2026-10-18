@@ -1,0 +1,35 @@
+{
+ "id": "a5",
+ "genome": {
+  "settings": {
+   "objectives": [
+    "throughput",
+    "balanced",
+    "margin",
+    "fairness"
+   ],
+   "use_playbook": true,
+   "n_llm_ideas": 3,
+   "llm_direct_plan": true,
+   "fuse": true,
+   "w_peak": 2.5,
+   "w_fair": 0.002,
+   "w_complaint": 0.1,
+   "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+   "time_limit_s": 4.0
+  },
+  "strategy_note": "Give unacclimatized new hires light or moderate tasks. If they must do heavy tasks, put them in the earliest slots and give their later slots to acclimatized crew. Prefer plans the critic has no new-hire complaints about."
+ },
+ "val": {
+  "score": 0.4515,
+  "strain_margin_c": 0.1727,
+  "throughput": 0.6985,
+  "fairness": -44.35,
+  "latency": -54.74,
+  "cost": -0.0,
+  "workers_alerted": 0.333,
+  "solve_rate": 0.25,
+  "safety_violations": 0
+ },
+ "why": "The only alert came from scenario cur-a91522a2. Sam (new hire, unacclimatized) was on Cable pulling at 09:00 and then on heavy and very heavy work from 11:00 onward. The critic flagged both new hires, but ranking still picked the balanced/fused plan: throughput 0.722, peak_p90 37.948. The margin pla"
+}

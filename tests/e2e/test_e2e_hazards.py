@@ -144,9 +144,6 @@ def test_A23_flood_warning_buzzes_flood_fire(site_app):
     assert app.band.lines_for("w-a")[-1] == "BUZZ:OFF"
 
 
-@pytest.mark.xfail(strict=True, reason="demo gap (session A): POST /api/demo/test-alert buzzes the bands at once "
-                   "but doesn't rebuild C1's picture, so the crew site card (stop-work banner, 10-mile ring, "
-                   "30-min countdown) only appears after C1's next 60 s rebuild + the bridge's 15 s poll")
 def test_demo_test_alert_shows_on_the_site_card_right_away(live_app):
     app = live_app("--hazards", "fake")
     app.on_loop(app.app.state.sites.refresh)

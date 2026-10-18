@@ -27,7 +27,7 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand, UDPBand
@@ -45,7 +45,7 @@ TICK_S = 0.5                     # how often timers are checked (real seconds)
 # Settings (from the command line, or defaults when imported by tests/uvicorn)
 # ---------------------------------------------------------------------------
 def parse_args(argv=None) -> argparse.Namespace:
-    ap = argparse.ArgumentParser(description="PlanIT Control live server")
+    ap = argparse.ArgumentParser(description="Redline live server")
     ap.add_argument("--source", choices=["replay", "live", "none"], default="replay",
                     help="replay = simulated shifts, live = band + Pulsoid, none = wait for REST/inputs")
     ap.add_argument("--speed", type=float, default=10.0, help="replay speed factor (10 = 10x real time)")
@@ -57,7 +57,7 @@ def parse_args(argv=None) -> argparse.Namespace:
                     help="replay workers never press the button (shows the red-unacknowledged man-down path)")
     ap.add_argument("--demo", action="store_true", help="start with demo thresholds (37.3 / 37.5 °C)")
     ap.add_argument("--no-forecaster", action="store_true", help="Kalman-only alerts")
-    ap.add_argument("--checkpoint", default=None, help="forecaster file (default: ml/checkpoints/ens5.pt, then v1.pt)")
+    ap.add_argument("--checkpoint", default=None, help="forecaster file (default: final_cv.pt, then ens5.pt, then v1.pt)")
     ap.add_argument("--serial", default=config.SERIAL_PORT, help="band USB serial port (live)")
     ap.add_argument("--udp-port", type=int, default=config.UDP_PORT, help="band WiFi UDP port (live)")
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
@@ -84,7 +84,7 @@ SETTINGS = parse_args([])         # defaults; replaced by main() when run from t
 
 
 def load_predictor(settings):
-    """Best forecaster available (ens5, then v1), else None = Kalman-only alerts."""
+    """Best forecaster available (final_cv, then ens5, then v1), else None = Kalman-only alerts."""
     if settings.no_forecaster:
         return None
     from backend.app.model_runner import load_best_predictor
@@ -131,6 +131,8 @@ async def lifespan(app: FastAPI):
                  else "off until session H's ml/explain is merged")
     app.state.hub = hub
     app.state.frontend = FrontendAdapter(hub)           # the Next.js dashboard's contract (/ws/live)
+    if db:
+        app.state.frontend.restore_alerts(db.recent_alert_events())   # alert history survives a restart
     hub.add_listener(app.state.frontend.on_event)
     tasks = [asyncio.create_task(_tick_forever(hub, app.state.frontend))]
 
@@ -144,6 +146,12 @@ async def lifespan(app: FastAPI):
     app.state.planner = make_planner_bridge(hub) if s.planner else None
     if app.state.planner is not None:
         tasks.append(asyncio.create_task(app.state.planner.run()))
+        try:
+            # Session B's act-on-forecast: reads estimates, changes only the plan, sends planner_change events.
+            from backend.planner.proactive import attach
+            attach(hub)
+        except ImportError:
+            pass
 
     if s.source == "replay":
         hub.start_replay(make_replay(hub, s))
@@ -253,14 +261,17 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     ble_on = False
     if s.ble:
         from backend.ingest import ble_hr
-        if ble_hr.available():
-            reader = ble_hr.BleHeartRate(hub, config.WORKER_ID, wanted=s.ble_device or None)
+        if not ble_hr.safe_to_scan():
+            log.info("Bluetooth heart rate off (test suite or PLANIT_BLE=off)")
+        elif not ble_hr.available():
+            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
+        else:
+            # In a helper process: if macOS refuses Bluetooth it kills that process, not this server.
+            reader = ble_hr.BleHelper(hub, config.WORKER_ID, wanted=s.ble_device or None)
             tasks.append(asyncio.create_task(reader.run()))
             ble_on = True
             log.info("Bluetooth heart rate started (%s). macOS asks for Bluetooth permission the first time.",
                      f"device {s.ble_device!r}" if s.ble_device else "first heart rate device found")
-        else:
-            log.warning("bleak not installed: no Bluetooth heart rate (pip install -r requirements.txt)")
     if config.PULSOID_TOKEN and not s.no_pulsoid:
         tasks.append(asyncio.create_task(pulsoid_client.run(hub, config.PULSOID_TOKEN, worker_id=config.WORKER_ID)))
         log.info("Pulsoid heart rate client started")
@@ -269,7 +280,7 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     return tasks
 
 
-app = FastAPI(title="PlanIT Control", lifespan=lifespan)
+app = FastAPI(title="Redline", lifespan=lifespan)
 try:
     # Session B's planner: /api/schedule, /api/briefing, /api/planner/*. Mounted before
     # frontend_router so its routes win over the empty fallbacks there.
@@ -450,7 +461,7 @@ class SiteRequest(BaseModel, extra="allow"):
 
 class SpotCheck(BaseModel):
     worker_id: str
-    thermometer_c: float                # ear or oral thermometer reading, °C
+    thermometer_c: float = Field(ge=34, le=42)   # ear or oral thermometer reading, °C (outside: 422)
     timestamp: float | None = None      # when it was taken (default: now on that worker's clock)
 
 
@@ -465,6 +476,8 @@ async def spot_check(body: SpotCheck):
 class WeatherRequest(BaseModel):
     wbgt: float
     future_wbgt: list[float] | None = None     # next 30 minutes, one per minute (optional)
+    temp_c: float | None = None                # site air temp + humidity: compared with each band's
+    rh_pct: float | None = None                # air sensor for a local WBGT correction (optional)
 
 
 class ContextRequest(BaseModel):
@@ -502,7 +515,7 @@ async def site_status(site_id: str, body: dict):
 
 @app.post("/api/sites/{site_id}/weather")
 async def site_weather(site_id: str, body: WeatherRequest):
-    hub_of().set_site_weather(site_id, body.wbgt, body.future_wbgt)
+    hub_of().set_site_weather(site_id, body.wbgt, body.future_wbgt, body.temp_c, body.rh_pct)
     return {"ok": True}
 
 
@@ -537,7 +550,7 @@ def main(argv=None):
     SETTINGS = parse_args(argv)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     import uvicorn
-    print(f"\n  PlanIT Control: open http://{SETTINGS.host}:{SETTINGS.port}\n", flush=True)
+    print(f"\n  Redline: open http://{SETTINGS.host}:{SETTINGS.port}\n", flush=True)
     uvicorn.run(app, host=SETTINGS.host, port=SETTINGS.port, log_level="warning")
 
 

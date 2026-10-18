@@ -19,8 +19,8 @@ import numpy as np
 
 log = logging.getLogger(__name__)
 
-# Best model first. A final, calibrated ensemble will replace ens5.pt with the same interface.
-CHECKPOINTS = (Path("ml/checkpoints/ens5.pt"), Path("ml/checkpoints/v1.pt"))
+# Best model first: final_cv (cross-fitted, scored on locked test people), then older fallbacks.
+CHECKPOINTS = (Path("ml/checkpoints/final_cv.pt"), Path("ml/checkpoints/ens5.pt"), Path("ml/checkpoints/v1.pt"))
 
 
 def load_best_predictor(paths=CHECKPOINTS, explicit: str | None = None):

@@ -12,7 +12,8 @@ system and brings its schedule back into the hub:
     verified plan WITHOUT the LLM (~5 s, on a thread) so "Next break" works right away.
     The LLM is only used when someone asks for it (POST /api/planner/plan, chat), and
     only if ANTHROPIC_API_KEY is set (the planner's own rule).
-  - It pre-builds tomorrow's 6 PM briefing on a thread at startup (the first build is slow).
+  - It pre-builds tomorrow's 6 PM briefing on a thread right after the first plan (the first
+    build is slow; never in parallel with the first plan, see e2e bug #1).
   - Whenever the planner's current plan changes, it pushes the schedule to the hub
     ("schedule" event), which fills WorkerStatus.on_break / break_at.
 
@@ -24,8 +25,15 @@ import asyncio
 import dataclasses
 import datetime as dt
 import logging
+import os
+import threading
 
 log = logging.getLogger(__name__)
+
+# B's heat model (pythermalcomfort + numba parallel) aborts the WHOLE process if two threads run
+# it at once (e2e bug #1). Everything this bridge runs on a thread takes this lock first, so the
+# bridge never overlaps with itself. (B adds a lock inside the heat model for everyone else.)
+PLANNER_LOCK = threading.Lock()
 
 POLL_S = 3.0                 # how often we look for crew changes and new plans
 
@@ -37,6 +45,7 @@ class PlannerBridge:
         self.hub = hub
         self.crew_key = None                        # the crew the current scenario was built for
         self.result_seen = None                     # the planner result we last pushed
+        self.briefing_started = False               # the briefing pre-build waits for the first plan
 
     # -- scenario for our crew --------------------------------------------------
     def build_scenario(self):
@@ -70,8 +79,9 @@ class PlannerBridge:
         from backend.planner.archon import plan_with_agent
         from backend.planner.playbook import Playbook
 
-        self.api.set_scenario(scenario, offsets)
-        result = plan_with_agent(scenario, playbook=Playbook.load_learned(), use_llm=False)
+        with PLANNER_LOCK:
+            self.api.set_scenario(scenario, offsets)
+            result = plan_with_agent(scenario, playbook=Playbook.load_learned(), use_llm=False)
         with self.api._lock:                         # don't overwrite a newer scenario's plan
             if self.api._state["scenario"] is scenario and self.api._state["result"] is None:
                 self.api._state["result"] = result
@@ -83,6 +93,11 @@ class PlannerBridge:
             self.crew_key = key
             scenario, offsets = self.build_scenario()
             await asyncio.to_thread(self.plan_now, scenario, offsets)
+            if not self.briefing_started and warm_briefing_enabled():
+                # Only now: B's heat model must never run on two threads at once (it aborts the
+                # process), so the slow briefing build starts after the first plan is done.
+                self.briefing_started = True
+                asyncio.get_running_loop().run_in_executor(None, self.warm_briefing)
         result = self.api._state.get("result")
         if result is not None and result is not self.result_seen:
             self.result_seen = result
@@ -93,19 +108,28 @@ class PlannerBridge:
         """Build tomorrow's briefing once in the background: the first one takes a couple of
         minutes (it pulls every site's forecast), later requests hit the planner's cache."""
         try:
-            self.api.get_briefing()
+            with PLANNER_LOCK:
+                self.api.get_briefing()
             log.info("6 PM briefing ready")
         except Exception as e:
             log.warning("briefing pre-build failed (%s); it will be built on first request", e)
 
     async def run(self) -> None:
-        asyncio.get_running_loop().run_in_executor(None, self.warm_briefing)
         while True:
             try:
                 await self.step()
             except Exception:
                 log.exception("planner bridge step failed")
             await asyncio.sleep(POLL_S)
+
+
+def warm_briefing_enabled() -> bool:
+    """
+    The briefing pre-build runs for minutes on a background thread. Never inside the test suite
+    (it would outlive its test and run the heat model next to the next test's), or with
+    PLANIT_WARM_BRIEFING=off.
+    """
+    return "PYTEST_CURRENT_TEST" not in os.environ and os.getenv("PLANIT_WARM_BRIEFING", "on").lower() != "off"
 
 
 def make_planner_bridge(hub) -> "PlannerBridge | None":

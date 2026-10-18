@@ -340,7 +340,7 @@ def schedule_suggestions(scenario: Scenario, plan: Plan) -> list[str]:
 
 def render_text(b: dict) -> str:
     """Plain-text version for the console or an email."""
-    lines = [f"PlanIT Control 6 PM briefing for {b['for_date']}", "", b["summary"], ""]
+    lines = [f"Redline 6 PM briefing for {b['for_date']}", "", b["summary"], ""]
     for s in b["sites"]:
         src = ", ".join(f"{k}: {v}" for k, v in s["data_sources"].items())
         lines.append(f"{s['name']} ({s['site_id']}): index {s['index']:.1f}/10 {s.get('band') or ''}  [{src}]")

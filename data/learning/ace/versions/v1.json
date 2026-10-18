@@ -1,0 +1,55 @@
+{
+ "version": 1,
+ "lessons": [
+  {
+   "id": "L1",
+   "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "unacclimatized",
+    "intensities": [
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 9,
+    "to_hour": 24,
+    "penalty": 20
+   },
+   "source": "day 2",
+   "uses": 0,
+   "helped": 0
+  }
+ ],
+ "day": 2,
+ "gate": {
+  "score": 0.2991,
+  "throughput": 0.8043,
+  "actual_peak_c": 38.0729,
+  "strain_margin_c": -0.0729,
+  "workers_alerted": 0.875,
+  "solve_rate": 0.125,
+  "safety_violations": 0,
+  "heat_spread": 47.0
+ },
+ "change": [
+  {
+   "op": "add",
+   "id": "L1",
+   "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+   "hint": {
+    "type": "avoid_intensity",
+    "who": "unacclimatized",
+    "intensities": [
+     "heavy",
+     "very_heavy"
+    ],
+    "from_hour": 9,
+    "to_hour": 24,
+    "penalty": 20
+   },
+   "result": "applied",
+   "by": "llm",
+   "gate": "kept"
+  }
+ ]
+}

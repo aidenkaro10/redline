@@ -1,0 +1,2543 @@
+{
+ "scenario": {
+  "id": "cur-7927950f",
+  "site": "Deerhaven Generating Station",
+  "date": "2026-07-15",
+  "tags": [
+   "heat_dome",
+   "home_crew"
+  ],
+  "max_wbgt_c": 32.9,
+  "max_air_c": 36.2,
+  "hazards": [
+   "Heat Advisory (no stop-work)"
+  ]
+ },
+ "note": "Simulated day, held out from all learning. Same scenario, same simulated weather and people.",
+ "day1": {
+  "label": "Day 1 agent (empty playbook)",
+  "schedule": [
+   {
+    "worker_id": "w1",
+    "name": "Marcus",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.83,
+    "simulated_peak_c": 37.72,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w2",
+    "name": "Ana",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.9,
+    "simulated_peak_c": 37.69,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w3",
+    "name": "Luis",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "moderate",
+      "label": "Pipe insulation"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     }
+    ],
+    "planned_peak_p90_c": 37.9,
+    "simulated_peak_c": 37.76,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w4",
+    "name": "Jada",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ],
+    "planned_peak_p90_c": 37.98,
+    "simulated_peak_c": 37.75,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w5",
+    "name": "Tom",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.85,
+    "simulated_peak_c": 37.81,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w6",
+    "name": "Kofi (new hire)",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ],
+    "planned_peak_p90_c": 37.87,
+    "simulated_peak_c": 37.92,
+    "simulated_alert_minutes": 0
+   }
+  ],
+  "lessons_cited": [],
+  "outcome": {
+   "score": 0.3018,
+   "throughput": 0.5106,
+   "actual_peak_c": 37.918,
+   "workers_alerted": 0,
+   "priority1_done": false
+  },
+  "safety_violations": 0,
+  "rule_checker_ok": true,
+  "focus_worker": {
+   "id": "w6",
+   "name": "Kofi (new hire)",
+   "heavy_or_moderate_after_11": [
+    "11:30"
+   ],
+   "simulated_core_c_every_10_min": [
+    36.818,
+    37.262,
+    37.585,
+    37.74,
+    37.628,
+    37.476,
+    37.386,
+    37.266,
+    37.173,
+    37.125,
+    37.122,
+    37.123,
+    37.123,
+    37.127,
+    37.132,
+    37.135,
+    37.14,
+    37.147,
+    37.15,
+    37.156,
+    37.161,
+    37.163,
+    37.173,
+    37.178,
+    37.18,
+    37.181,
+    37.186,
+    37.194,
+    37.488,
+    37.776,
+    37.918,
+    37.748,
+    37.515,
+    37.375,
+    37.316,
+    37.291,
+    37.281,
+    37.35,
+    37.436,
+    37.481,
+    37.44,
+    37.369,
+    37.328,
+    37.303,
+    37.294,
+    37.291,
+    37.369,
+    37.456
+   ],
+   "planned_p90_c_every_10_min": [
+    36.963,
+    37.398,
+    37.714,
+    37.864,
+    37.756,
+    37.608,
+    37.521,
+    37.403,
+    37.308,
+    37.26,
+    37.254,
+    37.252,
+    37.25,
+    37.253,
+    37.258,
+    37.259,
+    37.263,
+    37.268,
+    37.271,
+    37.278,
+    37.283,
+    37.286,
+    37.296,
+    37.302,
+    37.304,
+    37.305,
+    37.309,
+    37.313,
+    37.503,
+    37.694,
+    37.788,
+    37.68,
+    37.524,
+    37.43,
+    37.395,
+    37.38,
+    37.374,
+    37.447,
+    37.536,
+    37.583,
+    37.537,
+    37.462,
+    37.418,
+    37.391,
+    37.382,
+    37.38,
+    37.456,
+    37.545
+   ],
+   "peak_c": 37.918
+  },
+  "reasons": [
+   "Peak 90th pct core temp 37.98 \u00b0C (limit 38.0), tightest margin 0.01 \u00b0C, 51% of priority-weighted work done.",
+   "Kofi (new hire) is not acclimatized: no very heavy work in high heat.",
+   "Alternatives: optimizer:balanced (43% work, peak 37.85 \u00b0C); optimizer:fairness (43% work, peak 37.84 \u00b0C)"
+  ]
+ },
+ "day14": {
+  "label": "Day 14 agent (learned playbook)",
+  "schedule": [
+   {
+    "worker_id": "w1",
+    "name": "Marcus",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "moderate",
+      "label": "Pipe insulation"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.82,
+    "simulated_peak_c": 37.71,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w2",
+    "name": "Ana",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ],
+    "planned_peak_p90_c": 37.87,
+    "simulated_peak_c": 37.67,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w3",
+    "name": "Luis",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.95,
+    "simulated_peak_c": 37.81,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w4",
+    "name": "Jada",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.98,
+    "simulated_peak_c": 37.75,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w5",
+    "name": "Tom",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     }
+    ],
+    "planned_peak_p90_c": 37.85,
+    "simulated_peak_c": 37.75,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w6",
+    "name": "Kofi (new hire)",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "heavy",
+      "label": "Cable pulling"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.86,
+    "simulated_peak_c": 37.74,
+    "simulated_alert_minutes": 0
+   }
+  ],
+  "lessons_cited": [
+   {
+    "id": "L1",
+    "text": "Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+    "learned": "day 2"
+   },
+   {
+    "id": "L2",
+    "text": "Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00.",
+    "learned": "day 2"
+   }
+  ],
+  "outcome": {
+   "score": 0.355,
+   "throughput": 0.5106,
+   "actual_peak_c": 37.811,
+   "workers_alerted": 0,
+   "priority1_done": false
+  },
+  "safety_violations": 0,
+  "rule_checker_ok": true,
+  "focus_worker": {
+   "id": "w6",
+   "name": "Kofi (new hire)",
+   "heavy_or_moderate_after_11": [],
+   "simulated_core_c_every_10_min": [
+    36.818,
+    37.262,
+    37.585,
+    37.739,
+    37.558,
+    37.329,
+    37.197,
+    37.207,
+    37.263,
+    37.296,
+    37.255,
+    37.192,
+    37.156,
+    37.143,
+    37.141,
+    37.141,
+    37.223,
+    37.313,
+    37.359,
+    37.309,
+    37.239,
+    37.199,
+    37.189,
+    37.186,
+    37.184,
+    37.185,
+    37.189,
+    37.191,
+    37.195,
+    37.199,
+    37.202,
+    37.221,
+    37.229,
+    37.233,
+    37.322,
+    37.413,
+    37.459,
+    37.406,
+    37.332,
+    37.292,
+    37.284,
+    37.282,
+    37.28,
+    37.35,
+    37.436,
+    37.48,
+    37.435,
+    37.367
+   ],
+   "planned_p90_c_every_10_min": [
+    36.963,
+    37.398,
+    37.714,
+    37.862,
+    37.686,
+    37.465,
+    37.332,
+    37.342,
+    37.4,
+    37.434,
+    37.388,
+    37.321,
+    37.282,
+    37.267,
+    37.264,
+    37.264,
+    37.345,
+    37.436,
+    37.482,
+    37.433,
+    37.362,
+    37.323,
+    37.313,
+    37.311,
+    37.309,
+    37.308,
+    37.311,
+    37.313,
+    37.315,
+    37.319,
+    37.322,
+    37.339,
+    37.345,
+    37.348,
+    37.438,
+    37.531,
+    37.578,
+    37.522,
+    37.446,
+    37.404,
+    37.394,
+    37.389,
+    37.387,
+    37.46,
+    37.549,
+    37.595,
+    37.539,
+    37.461
+   ],
+   "peak_c": 37.739
+  },
+  "reasons": [
+   "Peak 90th pct core temp 37.97 \u00b0C (limit 38.0), tightest margin 0.02 \u00b0C, 51% of priority-weighted work done.",
+   "Kofi (new hire) is not acclimatized: no very heavy work in high heat.",
+   "Alternatives: optimizer:throughput (51% work, peak 37.98 \u00b0C); optimizer:fairness+playbook (43% work, peak 37.84 \u00b0C)",
+   "Lesson L1: Don't give a new hire like Kofi the full moderate, heavy, very heavy run alone. Mix his shop repair work with lighter tasks or pair him with an experienced worker.",
+   "Lesson L2: Marcus heats up faster than forecast on moderate and heavy work from 10:00, even though he is acclimatized. Give him jobs like transformer maintenance before 10:00."
+  ]
+ },
+ "difference": {
+  "focus_peak_drop_c": 0.179,
+  "score_gain": 0.0532,
+  "alerts_avoided": 0
+ },
+ "day14_evolved": {
+  "label": "Day 14 agent + evolved settings (Loop 3)",
+  "schedule": [
+   {
+    "worker_id": "w1",
+    "name": "Marcus",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Pipe insulation"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ],
+    "planned_peak_p90_c": 37.72,
+    "simulated_peak_c": 37.61,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w2",
+    "name": "Ana",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.42,
+    "simulated_peak_c": 37.31,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w3",
+    "name": "Luis",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ],
+    "planned_peak_p90_c": 37.66,
+    "simulated_peak_c": 37.55,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w4",
+    "name": "Jada",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.5,
+    "simulated_peak_c": 37.26,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w5",
+    "name": "Tom",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "moderate",
+      "label": "Transformer maintenance"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "light",
+      "label": "Inverter inspection"
+     }
+    ],
+    "planned_peak_p90_c": 37.75,
+    "simulated_peak_c": 37.69,
+    "simulated_alert_minutes": 0
+   },
+   {
+    "worker_id": "w6",
+    "name": "Kofi (new hire)",
+    "slots": [
+     {
+      "slot": 0,
+      "time": "07:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 1,
+      "time": "07:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 2,
+      "time": "08:00",
+      "task": "light",
+      "label": "Inverter inspection"
+     },
+     {
+      "slot": 3,
+      "time": "08:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 4,
+      "time": "09:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 5,
+      "time": "09:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 6,
+      "time": "10:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 7,
+      "time": "10:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 8,
+      "time": "11:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 9,
+      "time": "11:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 10,
+      "time": "12:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 11,
+      "time": "12:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 12,
+      "time": "13:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 13,
+      "time": "13:30",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 14,
+      "time": "14:00",
+      "task": "break",
+      "label": "Shade break"
+     },
+     {
+      "slot": 15,
+      "time": "14:30",
+      "task": "break",
+      "label": "Shade break"
+     }
+    ],
+    "planned_peak_p90_c": 37.44,
+    "simulated_peak_c": 37.3,
+    "simulated_alert_minutes": 0
+   }
+  ],
+  "lessons_cited": [],
+  "outcome": {
+   "score": 0.3098,
+   "throughput": 0.4043,
+   "actual_peak_c": 37.689,
+   "workers_alerted": 0,
+   "priority1_done": false
+  },
+  "safety_violations": 0,
+  "rule_checker_ok": true,
+  "focus_worker": {
+   "id": "w6",
+   "name": "Kofi (new hire)",
+   "heavy_or_moderate_after_11": [],
+   "simulated_core_c_every_10_min": [
+    36.814,
+    37.064,
+    37.198,
+    37.258,
+    37.218,
+    37.16,
+    37.126,
+    37.182,
+    37.259,
+    37.301,
+    37.263,
+    37.202,
+    37.165,
+    37.153,
+    37.151,
+    37.15,
+    37.154,
+    37.161,
+    37.164,
+    37.17,
+    37.174,
+    37.176,
+    37.186,
+    37.191,
+    37.193,
+    37.195,
+    37.2,
+    37.202,
+    37.205,
+    37.21,
+    37.213,
+    37.232,
+    37.24,
+    37.243,
+    37.255,
+    37.261,
+    37.262,
+    37.259,
+    37.26,
+    37.261,
+    37.274,
+    37.28,
+    37.281,
+    37.275,
+    37.275,
+    37.275,
+    37.276,
+    37.28
+   ],
+   "planned_p90_c_every_10_min": [
+    36.959,
+    37.198,
+    37.333,
+    37.394,
+    37.354,
+    37.294,
+    37.26,
+    37.318,
+    37.397,
+    37.438,
+    37.397,
+    37.331,
+    37.293,
+    37.278,
+    37.276,
+    37.275,
+    37.277,
+    37.281,
+    37.284,
+    37.291,
+    37.296,
+    37.299,
+    37.309,
+    37.315,
+    37.317,
+    37.318,
+    37.322,
+    37.323,
+    37.326,
+    37.33,
+    37.332,
+    37.349,
+    37.356,
+    37.358,
+    37.369,
+    37.374,
+    37.375,
+    37.371,
+    37.372,
+    37.374,
+    37.385,
+    37.389,
+    37.39,
+    37.383,
+    37.383,
+    37.383,
+    37.38,
+    37.38
+   ],
+   "peak_c": 37.302
+  },
+  "reasons": [
+   "Peak 90th pct core temp 37.75 \u00b0C (limit 38.0), tightest margin 0.24 \u00b0C, 40% of priority-weighted work done.",
+   "Kofi (new hire) is not acclimatized: no very heavy work in high heat.",
+   "Alternatives: optimizer:margin+playbook (40% work, peak 37.78 \u00b0C); optimizer:fairness+playbook (43% work, peak 37.84 \u00b0C)"
+  ]
+ },
+ "candidates": [
+  {
+   "id": "cur-0c683453",
+   "spec": {
+    "seed": 4,
+    "crew": "home",
+    "heat_c": 5.0,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.4215,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.99,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.0818,
+    "workers_alerted": 1,
+    "focus_peak_c": 38.223,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.0818,
+    "workers_alerted": 1,
+    "focus_peak_c": 38.223,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-002e655b",
+   "spec": {
+    "seed": 41,
+    "crew": "home",
+    "heat_c": 4.0,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.6446,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.958,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.6446,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.958,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.6446,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.958,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-c577408e",
+   "spec": {
+    "seed": 42,
+    "crew": "home",
+    "heat_c": 4.5,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.2235,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.37,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.2231,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.378,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.2231,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.378,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-6739becd",
+   "spec": {
+    "seed": 43,
+    "crew": "home",
+    "heat_c": 3.5,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.1701,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.768,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.1289,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.956,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.1396,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.31,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-7eaa7904",
+   "spec": {
+    "seed": 44,
+    "crew": "home",
+    "heat_c": 5.0,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.1864,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.633,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.1305,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.666,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.1305,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.666,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-7927950f",
+   "spec": {
+    "seed": 45,
+    "crew": "home",
+    "heat_c": 4.0,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.3018,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.918,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.355,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.739,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.3098,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.302,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-03d6a26e",
+   "spec": {
+    "seed": 46,
+    "crew": "home",
+    "heat_c": 3.0,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.3494,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.368,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.3494,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.389,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.3494,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.36,
+    "safety_violations": 0
+   }
+  },
+  {
+   "id": "cur-b675b5df",
+   "spec": {
+    "seed": 47,
+    "crew": "home",
+    "heat_c": 4.5,
+    "heavy_bias": 0.6,
+    "demand": 0.75
+   },
+   "day1": {
+    "score": 0.212,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.917,
+    "safety_violations": 0
+   },
+   "day14": {
+    "score": 0.212,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.917,
+    "safety_violations": 0
+   },
+   "day14_evolved": {
+    "score": 0.2127,
+    "workers_alerted": 0,
+    "focus_peak_c": 37.915,
+    "safety_violations": 0
+   }
+  }
+ ],
+ "pick_rule": "Shown: the clearest of 8 held-out heat-wave days (largest day-14 score gain among days where the day-14 plan used a lesson). All candidates are listed in 'candidates'.",
+ "candidates_summary": {
+  "n": 8,
+  "day14_better": 1,
+  "day14_worse": 3,
+  "same": 4,
+  "mean_score_day1": 0.3137,
+  "mean_score_day14": 0.2657,
+  "mean_score_day14_evolved": 0.2614,
+  "alerts_day1": 0,
+  "alerts_day14": 1
+ }
+}

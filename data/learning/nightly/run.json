@@ -1,0 +1,4448 @@
+{
+ "timeline": [
+  {
+   "day": 1,
+   "scenario": "cur-4a81884a",
+   "tags": [
+    "heat_dome"
+   ],
+   "forecast_risk": {
+    "risk_k": 14,
+    "risk_n": 30,
+    "risk": 0.467,
+    "weak_spot": {
+     "worker": "Marcus",
+     "time": "07:00",
+     "variations": 4
+    },
+    "storm_variations": 2,
+    "mean_units_lost_to_storms": 0.13
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": -1.537,
+    "throughput": 0.7995,
+    "actual_peak_c": 39.173,
+    "workers_alerted": 6,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 1221
+   },
+   "anyone_above_yellow": true,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.011,
+     "confidence": 0.75,
+     "checks": 6,
+     "heat_bias_c_per_slot": {
+      "light": -0.001,
+      "moderate": 0.017,
+      "heavy": -0.015,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.012,
+     "confidence": 0.75,
+     "checks": 6,
+     "heat_bias_c_per_slot": {
+      "light": -0.021,
+      "moderate": -0.022,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.186,
+     "confidence": 0.75,
+     "checks": 6,
+     "heat_bias_c_per_slot": {
+      "light": 0.01,
+      "moderate": 0.034,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.073,
+     "confidence": 0.75,
+     "checks": 6,
+     "heat_bias_c_per_slot": {
+      "light": 0.004,
+      "moderate": -0.005,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.033,
+     "confidence": 0.75,
+     "checks": 6,
+     "heat_bias_c_per_slot": {
+      "light": 0.0,
+      "moderate": 0.005,
+      "heavy": 0.006,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": -0.126,
+     "confidence": 0.75,
+     "checks": 6,
+     "heat_bias_c_per_slot": {
+      "light": -0.011,
+      "moderate": -0.014,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": 2.46,
+   "reflection": "Marcus was the only worker whose body heated up faster than forecast. From 9:00 he moved quickly from moderate to heavy to very heavy pipe insulation, and his temperature climbed about 0.07\u00b0C more per half hour than predicted. The steep ramp in effort, not the heat alone, pushed him to the alert line by 11:00. All six workers hit the alert line at about 38.0\u00b0C, but for the others the forecast was at or above what actually happened. The forecasts already saw their heat load coming, yet the schedule kept them working until they reached the limit. Kofi, the new hire, was still at 38\u00b0C at 13:00 wh",
+   "ace": [
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Marcus warms up faster than expected when his work ramps up quickly in the morning. Keep him off very heavy pipe insulation from 9:00 to noon and put lighter tasks between heavy blocks.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "to_hour": 12,
+       "penalty": 20
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "New hires are not yet used to the work. Give them light or moderate tasks through the morning and midday instead of heavy jobs.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "unacclimatized",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 8,
+       "to_hour": 14,
+       "penalty": 25
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": -0.0688
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Split pipe insulation into shorter turns shared across more workers instead of giving anyone long continuous stretches of it.",
+      "hint": null,
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Marcus heats up faster than forecast on moderate and heavy work from 9:00. Give Marcus that work before 9:00.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "moderate",
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": -0.0498
+    }
+   ],
+   "practice": {
+    "weather_sd_c": 1.73,
+    "tried": 6,
+    "kept": 1,
+    "solve_rates": [
+     0.75,
+     1.0,
+     1.0,
+     1.0,
+     0.0,
+     1.0
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "The one alert hit Luis (w3) at 07:00 while he was resting. His forecast p90 was 37.2 and actual 36.99, so the heat came from the shift start or the work just before it. It did not come from midday. Ev",
+    "minibatch_gain": 0.057,
+    "accepted": false,
+    "heldout_gain": -0.0024
+   },
+   "six_pm": {
+    "for_day": 2,
+    "risk_text": "3 of 30 variations had someone above the yellow line",
+    "risk_k": 3,
+    "risk_n": 30,
+    "risk": 0.1,
+    "weak_spot": {
+     "worker": "Ana",
+     "time": "12:00",
+     "variations": 2
+    },
+    "storm_variations": 6,
+    "mean_units_lost_to_storms": 0.8,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 2,
+   "scenario": "cur-4606f0c3",
+   "tags": [
+    "heat_dome",
+    "storm_2pm",
+    "warning"
+   ],
+   "forecast_risk": {
+    "risk_k": 3,
+    "risk_n": 30,
+    "risk": 0.1,
+    "weak_spot": {
+     "worker": "Ana",
+     "time": "12:00",
+     "variations": 2
+    },
+    "storm_variations": 6,
+    "mean_units_lost_to_storms": 0.8
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.6933,
+    "throughput": 0.8294,
+    "actual_peak_c": 37.772,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.099,
+     "confidence": 0.857,
+     "checks": 12,
+     "heat_bias_c_per_slot": {
+      "light": -0.001,
+      "moderate": 0.036,
+      "heavy": -0.035,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.017,
+     "confidence": 0.857,
+     "checks": 12,
+     "heat_bias_c_per_slot": {
+      "light": -0.019,
+      "moderate": -0.013,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.081,
+     "confidence": 0.857,
+     "checks": 12,
+     "heat_bias_c_per_slot": {
+      "light": 0.012,
+      "moderate": 0.034,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.055,
+     "confidence": 0.857,
+     "checks": 12,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": -0.0,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.045,
+     "confidence": 0.857,
+     "checks": 12,
+     "heat_bias_c_per_slot": {
+      "light": -0.001,
+      "moderate": -0.006,
+      "heavy": 0.006,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": -0.088,
+     "confidence": 0.857,
+     "checks": 12,
+     "heat_bias_c_per_slot": {
+      "light": -0.007,
+      "moderate": -0.009,
+      "heavy": -0.012,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": 1.45,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.66,
+    "tried": 6,
+    "kept": 0,
+    "solve_rates": [
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0,
+     0.0
+    ],
+    "safety_violations": 3
+   },
+   "gepa": null,
+   "six_pm": {
+    "for_day": 3,
+    "risk_text": "6 of 30 variations had someone above the yellow line",
+    "risk_k": 6,
+    "risk_n": 30,
+    "risk": 0.2,
+    "weak_spot": {
+     "worker": "Sam (temp)",
+     "time": "07:00",
+     "variations": 2
+    },
+    "storm_variations": 4,
+    "mean_units_lost_to_storms": 1.37,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 3,
+   "scenario": "cur-53cd914e",
+   "tags": [
+    "heat_dome",
+    "new_hire"
+   ],
+   "forecast_risk": {
+    "risk_k": 6,
+    "risk_n": 30,
+    "risk": 0.2,
+    "weak_spot": {
+     "worker": "Sam (temp)",
+     "time": "07:00",
+     "variations": 2
+    },
+    "storm_variations": 4,
+    "mean_units_lost_to_storms": 1.37
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.3935,
+    "throughput": 0.5995,
+    "actual_peak_c": 37.912,
+    "workers_alerted": 0,
+    "priority1_share": 0.533,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.007,
+     "confidence": 0.9,
+     "checks": 18,
+     "heat_bias_c_per_slot": {
+      "light": 0.0,
+      "moderate": 0.036,
+      "heavy": -0.033,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.023,
+     "confidence": 0.9,
+     "checks": 18,
+     "heat_bias_c_per_slot": {
+      "light": -0.01,
+      "moderate": -0.011,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.056,
+     "confidence": 0.9,
+     "checks": 18,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.034,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.009,
+     "confidence": 0.9,
+     "checks": 18,
+     "heat_bias_c_per_slot": {
+      "light": 0.005,
+      "moderate": -0.0,
+      "heavy": 0.021,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.06,
+     "confidence": 0.9,
+     "checks": 18,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": -0.006,
+      "heavy": 0.002,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": -0.017,
+     "confidence": 0.9,
+     "checks": 18,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": -0.009,
+      "heavy": 0.002,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": 0.23,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.49,
+    "tried": 6,
+    "kept": 4,
+    "solve_rates": [
+     1.0,
+     0.25,
+     0.25,
+     1.0,
+     0.75,
+     0.25
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "In the heat-dome traces every plan the checker accepted runs right at the edge of the heat limit: predicted p90 peak was 37.93-37.98\u00b0C against a threshold of about 38. Actual peaks reached 38.06, and ",
+    "minibatch_gain": -0.0749,
+    "accepted": false
+   },
+   "six_pm": {
+    "for_day": 4,
+    "risk_text": "1 of 30 variations had someone above the yellow line",
+    "risk_k": 1,
+    "risk_n": 30,
+    "risk": 0.033,
+    "weak_spot": {
+     "worker": "Marcus",
+     "time": "08:00",
+     "variations": 1
+    },
+    "storm_variations": 4,
+    "mean_units_lost_to_storms": 0.27,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 4,
+   "scenario": "cur-aa363cb1",
+   "tags": [
+    "heat_dome"
+   ],
+   "forecast_risk": {
+    "risk_k": 1,
+    "risk_n": 30,
+    "risk": 0.033,
+    "weak_spot": {
+     "worker": "Marcus",
+     "time": "08:00",
+     "variations": 1
+    },
+    "storm_variations": 4,
+    "mean_units_lost_to_storms": 0.27
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.4553,
+    "throughput": 0.6,
+    "actual_peak_c": 37.789,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.054,
+     "confidence": 0.923,
+     "checks": 24,
+     "heat_bias_c_per_slot": {
+      "light": -0.001,
+      "moderate": 0.011,
+      "heavy": -0.033,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.028,
+     "confidence": 0.923,
+     "checks": 24,
+     "heat_bias_c_per_slot": {
+      "light": -0.009,
+      "moderate": -0.012,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.072,
+     "confidence": 0.923,
+     "checks": 24,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": 0.036,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.046,
+     "confidence": 0.923,
+     "checks": 24,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": -0.004,
+      "heavy": 0.021,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.092,
+     "confidence": 0.923,
+     "checks": 24,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": 0.016,
+      "heavy": 0.002,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": -0.005,
+     "confidence": 0.923,
+     "checks": 24,
+     "heat_bias_c_per_slot": {
+      "light": -0.004,
+      "moderate": -0.02,
+      "heavy": 0.002,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -0.39,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.37,
+    "tried": 6,
+    "kept": 1,
+    "solve_rates": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     0.5
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "The only alert was Luis at 07:00 while he was resting. The forecast predicted it (p90 37.03), so he started the day already hot and no schedule change could have prevented it. The real loss is through",
+    "minibatch_gain": 0.0963,
+    "accepted": false,
+    "heldout_gain": 0.0
+   },
+   "six_pm": {
+    "for_day": 5,
+    "risk_text": "18 of 30 variations had someone above the yellow line",
+    "risk_k": 18,
+    "risk_n": 30,
+    "risk": 0.6,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "11:30",
+     "variations": 12
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.33,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 5,
+   "scenario": "cur-492f162f",
+   "tags": [
+    "heat_dome",
+    "storm_2pm",
+    "warning"
+   ],
+   "forecast_risk": {
+    "risk_k": 18,
+    "risk_n": 30,
+    "risk": 0.6,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "11:30",
+     "variations": 12
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.33
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.2425,
+    "throughput": 0.3846,
+    "actual_peak_c": 37.784,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.027,
+     "confidence": 0.938,
+     "checks": 30,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.007,
+      "heavy": -0.04,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.018,
+     "confidence": 0.938,
+     "checks": 30,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.021,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.062,
+     "confidence": 0.938,
+     "checks": 30,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.025,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.055,
+     "confidence": 0.938,
+     "checks": 30,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": 0.003,
+      "heavy": 0.046,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.091,
+     "confidence": 0.938,
+     "checks": 30,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.014,
+      "heavy": 0.002,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": -0.008,
+     "confidence": 0.938,
+     "checks": 30,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": 0.001,
+      "heavy": -0.013,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": 0.15,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.27,
+    "tried": 6,
+    "kept": 0,
+    "solve_rates": [
+     1.0,
+     0.0,
+     0.0,
+     0.0,
+     1.0,
+     1.0
+    ],
+    "safety_violations": 0
+   },
+   "gepa": null,
+   "six_pm": {
+    "for_day": 6,
+    "risk_text": "0 of 30 variations had someone above the yellow line",
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "07:30",
+     "variations": 0,
+     "closest_peak_c": 37.66
+    },
+    "storm_variations": 2,
+    "mean_units_lost_to_storms": 0.1,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 6,
+   "scenario": "cur-37a9aa9d",
+   "tags": [
+    "storm_2pm",
+    "warning"
+   ],
+   "forecast_risk": {
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "07:30",
+     "variations": 0,
+     "closest_peak_c": 37.66
+    },
+    "storm_variations": 2,
+    "mean_units_lost_to_storms": 0.1
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.2476,
+    "throughput": 0.2993,
+    "actual_peak_c": 37.603,
+    "workers_alerted": 0,
+    "priority1_share": 0.438,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.03,
+     "confidence": 0.947,
+     "checks": 36,
+     "heat_bias_c_per_slot": {
+      "light": 0.0,
+      "moderate": 0.002,
+      "heavy": -0.04,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": -0.021,
+     "confidence": 0.947,
+     "checks": 36,
+     "heat_bias_c_per_slot": {
+      "light": -0.012,
+      "moderate": -0.022,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.057,
+     "confidence": 0.947,
+     "checks": 36,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.026,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.025,
+     "confidence": 0.947,
+     "checks": 36,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.002,
+      "heavy": 0.046,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.049,
+     "confidence": 0.947,
+     "checks": 36,
+     "heat_bias_c_per_slot": {
+      "light": -0.0,
+      "moderate": 0.009,
+      "heavy": 0.002,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.005,
+     "confidence": 0.947,
+     "checks": 36,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": -0.001,
+      "heavy": -0.013,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": 1.32,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.27,
+    "tried": 6,
+    "kept": 0,
+    "solve_rates": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "safety_violations": 0
+   },
+   "gepa": null,
+   "six_pm": {
+    "for_day": 7,
+    "risk_text": "1 of 30 variations had someone above the yellow line",
+    "risk_k": 1,
+    "risk_n": 30,
+    "risk": 0.033,
+    "weak_spot": {
+     "worker": "Jada",
+     "time": "14:00",
+     "variations": 1
+    },
+    "storm_variations": 3,
+    "mean_units_lost_to_storms": 0.17,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 7,
+   "scenario": "cur-5dcbd679",
+   "tags": [
+    "storm_2pm",
+    "warning"
+   ],
+   "forecast_risk": {
+    "risk_k": 1,
+    "risk_n": 30,
+    "risk": 0.033,
+    "weak_spot": {
+     "worker": "Jada",
+     "time": "14:00",
+     "variations": 1
+    },
+    "storm_variations": 3,
+    "mean_units_lost_to_storms": 0.17
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.4905,
+    "throughput": 0.702,
+    "actual_peak_c": 37.923,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.009,
+     "confidence": 0.955,
+     "checks": 42,
+     "heat_bias_c_per_slot": {
+      "light": 0.0,
+      "moderate": 0.006,
+      "heavy": -0.048,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": -0.01,
+     "confidence": 0.955,
+     "checks": 42,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.023,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.042,
+     "confidence": 0.955,
+     "checks": 42,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": 0.024,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.029,
+     "confidence": 0.955,
+     "checks": 42,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.003,
+      "heavy": 0.044,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.024,
+     "confidence": 0.955,
+     "checks": 42,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.009,
+      "heavy": 0.022,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.014,
+     "confidence": 0.955,
+     "checks": 42,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": 0.018,
+      "heavy": -0.018,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -0.54,
+   "reflection": "From 11:00 Marcus was on shop equipment repair at moderate to very heavy effort, and his body heated up about 0.06 \u00b0C faster every half hour than the plan expected. This happened over 2 slots. He is acclimatized and no alerts fired, so this was not a safety breakdown. The problem is that the plan treated shop repair as easier on the body than it really is in late-morning heat, and stacked the heavy and very heavy parts of the job back to back at the hottest part of his shift. The plan underestimated the heat load of this task, which also cut how much got done (throughput 0.70).",
+   "ace": [
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Treat shop equipment repair as harder work than its label once the day warms up. Lifting, awkward positions and indoor heat build-up wear a worker down faster than planned.",
+      "hint": null,
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Schedule the heaviest repair work, like lifting, teardown and reassembly, before 11:00. Save diagnostics and paperwork for late morning and midday.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "all",
+       "intensities": [
+        "very_heavy"
+       ],
+       "from_hour": 11,
+       "to_hour": 24,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "After 11:00, don't stack heavy and very heavy repair slots back to back for one person. Put a light or moderate task between them, even for acclimatized workers.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "all",
+       "intensities": [
+        "heavy"
+       ],
+       "from_hour": 11,
+       "to_hour": 24,
+       "penalty": 5
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Marcus heats up faster than forecast on moderate and heavy work from 11:00. Give Marcus that work before 11:00.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "moderate",
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 11,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": 0.0
+    }
+   ],
+   "practice": {
+    "weather_sd_c": 1.21,
+    "tried": 6,
+    "kept": 0,
+    "solve_rates": [
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0,
+     1.0
+    ],
+    "safety_violations": 0
+   },
+   "gepa": null,
+   "six_pm": {
+    "for_day": 8,
+    "risk_text": "0 of 30 variations had someone above the yellow line",
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Jada",
+     "time": "11:30",
+     "variations": 0,
+     "closest_peak_c": 37.8
+    },
+    "storm_variations": 0,
+    "mean_units_lost_to_storms": 0.0,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 8,
+   "scenario": "cur-6608d8de",
+   "tags": [
+    "dead_watch"
+   ],
+   "forecast_risk": {
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Jada",
+     "time": "11:30",
+     "variations": 0,
+     "closest_peak_c": 37.8
+    },
+    "storm_variations": 0,
+    "mean_units_lost_to_storms": 0.0
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.5197,
+    "throughput": 0.698,
+    "actual_peak_c": 37.856,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.003,
+     "confidence": 0.957,
+     "checks": 45,
+     "heat_bias_c_per_slot": {
+      "light": 0.0,
+      "moderate": 0.015,
+      "heavy": -0.048,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.003,
+     "confidence": 0.959,
+     "checks": 47,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.021,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.039,
+     "confidence": 0.959,
+     "checks": 47,
+     "heat_bias_c_per_slot": {
+      "light": 0.003,
+      "moderate": 0.03,
+      "heavy": 0.0,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.018,
+     "confidence": 0.959,
+     "checks": 47,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.004,
+      "heavy": 0.044,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.025,
+     "confidence": 0.96,
+     "checks": 48,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.009,
+      "heavy": 0.022,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.016,
+     "confidence": 0.96,
+     "checks": 48,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": 0.033,
+      "heavy": -0.018,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -0.71,
+   "reflection": "Marcus and Luis both heated up faster than forecast once they moved into heavy and very heavy work. Luis ran hot from 9:00 and Marcus from 12:00, each over 4 straight half-hour slots. Their temperatures rose about 0.06\u20130.08 \u00b0C more per slot than expected. Both are acclimatized, so this was not new-worker strain. The schedule stacked their hardest jobs back to back: they went from moderate work (pipe insulation) into heavy work (shop equipment repair), and for Marcus into very heavy work (transformer maintenance). There was no lighter work in between to let their bodies recover. No alerts fired",
+   "ace": [
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Marcus heats up faster than forecast from midday on. Give him his heaviest jobs in the morning and lighter tasks after 12:00.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 12,
+       "to_hour": 24,
+       "penalty": 20
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Luis warms up faster than forecast on heavy work even early in the day. Keep his heavy and very heavy jobs short and mix in moderate or light tasks from 9:00.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Luis",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "to_hour": 24,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": -0.0022
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Don't put very heavy jobs like transformer maintenance right after heavy jobs like shop equipment repair for the same worker. Put a moderate or light task in between.",
+      "hint": null,
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Marcus heats up faster than forecast on moderate and heavy work from 12:00. Give Marcus that work before 12:00.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "moderate",
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 12,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": -0.0591
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Luis heats up faster than forecast on moderate and heavy work from 9:00. Give Luis that work before 9:00.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Luis",
+       "intensities": [
+        "moderate",
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": -0.0559
+    }
+   ],
+   "practice": {
+    "weather_sd_c": 1.17,
+    "tried": 6,
+    "kept": 2,
+    "solve_rates": [
+     1.0,
+     0.0,
+     0.75,
+     0.5,
+     1.0,
+     1.0
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "In both days the optimizer:throughput plan won the ranking, and it produced alerts for 25% and 50% of workers, with actual peaks near 37.95-37.99\u00b0C. Its throughput edge over the other plans is small (",
+    "minibatch_gain": 0.1207,
+    "accepted": false,
+    "heldout_gain": -0.0608
+   },
+   "six_pm": {
+    "for_day": 9,
+    "risk_text": "3 of 30 variations had someone above the yellow line",
+    "risk_k": 3,
+    "risk_n": 30,
+    "risk": 0.1,
+    "weak_spot": {
+     "worker": "Kofi (new hire)",
+     "time": "13:00",
+     "variations": 2
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.83,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 0,
+   "n_lessons": 0,
+   "genome_changed": false
+  },
+  {
+   "day": 9,
+   "scenario": "cur-9dda323a",
+   "tags": [
+    "callout"
+   ],
+   "forecast_risk": {
+    "risk_k": 3,
+    "risk_n": 30,
+    "risk": 0.1,
+    "weak_spot": {
+     "worker": "Kofi (new hire)",
+     "time": "13:00",
+     "variations": 2
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.83
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.4886,
+    "throughput": 0.7083,
+    "actual_peak_c": 37.939,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.014,
+     "confidence": 0.962,
+     "checks": 51,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.011,
+      "heavy": -0.057,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.015,
+     "confidence": 0.964,
+     "checks": 53,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.021,
+      "heavy": -0.016,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.05,
+     "confidence": 0.964,
+     "checks": 53,
+     "heat_bias_c_per_slot": {
+      "light": -0.0,
+      "moderate": 0.032,
+      "heavy": 0.062,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": 0.006,
+     "confidence": 0.964,
+     "checks": 53,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.004,
+      "heavy": 0.039,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.017,
+     "confidence": 0.964,
+     "checks": 54,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": 0.043,
+      "heavy": -0.018,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -0.81,
+   "reflection": "Kofi is a new hire whose body is not yet used to working in the heat. From 9:00 he was given pipe insulation and then transformer maintenance, which moved from moderate to heavy to very heavy work with no easy stretch in between. The plan assumed he would heat up like a seasoned worker. Instead his body temperature rose about 0.1 \u00b0C faster than forecast every half hour over two slots. No alert fired, but his heat load climbed faster than planned. The schedule loaded the hardest tasks onto the person least able to handle them.",
+   "ace": [
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "Give very heavy jobs like transformer maintenance to seasoned crew, not new hires who are still getting used to working in hot weather.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "unacclimatized",
+       "intensities": [
+        "very_heavy"
+       ],
+       "from_hour": 0,
+       "to_hour": 24,
+       "penalty": 30
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "For new hires, do not stack moderate, heavy and very heavy jobs back to back. Put a light or moderate task between harder ones.",
+      "hint": null,
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "If a new hire must do heavy work, schedule it early in the morning, before 9:00, and keep later slots for moderate tasks.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "unacclimatized",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "to_hour": 24,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": -0.0272
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L1",
+      "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "unacclimatized",
+       "intensities": [
+        "moderate",
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "code"
+     },
+     "kept": true,
+     "gain": 0.0413
+    }
+   ],
+   "practice": {
+    "weather_sd_c": 1.15,
+    "tried": 6,
+    "kept": 3,
+    "solve_rates": [
+     1.0,
+     0.75,
+     0.75,
+     1.0,
+     1.0,
+     0.5
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "Every day, the plain throughput plan (optimizer:throughput+playbook) won the ranking, and it ran close to the hottest outcome each time. Predicted peaks were about 37.9-38.0\u00b0C, and actual alerts hit 2",
+    "minibatch_gain": 0.0164,
+    "accepted": false,
+    "heldout_gain": -0.1786
+   },
+   "six_pm": {
+    "for_day": 10,
+    "risk_text": "6 of 30 variations had someone above the yellow line",
+    "risk_k": 6,
+    "risk_n": 30,
+    "risk": 0.2,
+    "weak_spot": {
+     "worker": "Tom",
+     "time": "12:30",
+     "variations": 3
+    },
+    "storm_variations": 2,
+    "mean_units_lost_to_storms": 0.3,
+    "lessons_used": [
+     {
+      "id": "L1",
+      "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after."
+     }
+    ],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 1,
+   "n_lessons": 1,
+   "genome_changed": false
+  },
+  {
+   "day": 10,
+   "scenario": "cur-1a789c47",
+   "tags": [
+    "heat_dome"
+   ],
+   "forecast_risk": {
+    "risk_k": 6,
+    "risk_n": 30,
+    "risk": 0.2,
+    "weak_spot": {
+     "worker": "Tom",
+     "time": "12:30",
+     "variations": 3
+    },
+    "storm_variations": 2,
+    "mean_units_lost_to_storms": 0.3
+   },
+   "lessons_used": [
+    "L1"
+   ],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.4178,
+    "throughput": 0.6257,
+    "actual_peak_c": 37.916,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.019,
+     "confidence": 0.966,
+     "checks": 57,
+     "heat_bias_c_per_slot": {
+      "light": -0.001,
+      "moderate": 0.02,
+      "heavy": -0.054,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.037,
+     "confidence": 0.967,
+     "checks": 59,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.023,
+      "heavy": -0.031,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.044,
+     "confidence": 0.967,
+     "checks": 59,
+     "heat_bias_c_per_slot": {
+      "light": -0.0,
+      "moderate": 0.032,
+      "heavy": 0.064,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": -0.004,
+     "confidence": 0.967,
+     "checks": 59,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.004,
+      "heavy": 0.039,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.041,
+     "confidence": 0.964,
+     "checks": 54,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.012,
+      "heavy": 0.036,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.022,
+     "confidence": 0.968,
+     "checks": 60,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": 0.043,
+      "heavy": -0.019,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -0.4,
+   "reflection": "Marcus was given pipe insulation work that kept getting harder through the hottest part of the day: moderate, then heavy, then very heavy, starting at noon. His body temperature climbed about 0.13 \u00b0C faster every 30 minutes than the plan expected, for three slots in a row. The plan was built on the forecast heat rise, and it underestimated how much each step up in effort adds when the work runs straight through midday heat. No alert fired, but the margin was eaten up quickly. That forced a conservative pace, which is likely why throughput (0.63) and the overall score (0.42) came out low.",
+   "ace": [
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Marcus heats up faster than forecast when moderate, heavy and very heavy work runs back-to-back from noon. Give him his hardest pipe insulation before noon or late afternoon.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 12,
+       "to_hour": 16,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Do not ramp effort up slot after slot for one worker after noon. Alternate heavy tasks with moderate or light ones, or split very heavy jobs across two or more people.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "all",
+       "intensities": [
+        "very_heavy"
+       ],
+       "from_hour": 12,
+       "to_hour": 16,
+       "penalty": 8
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "merge",
+      "into": "L1",
+      "text": "Marcus heats up faster than forecast on moderate and heavy work from 12:00. Give Marcus that work before 12:00.",
+      "result": "merged near-duplicate",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": 0.0
+    }
+   ],
+   "practice": {
+    "weather_sd_c": 1.1,
+    "tried": 6,
+    "kept": 1,
+    "solve_rates": [
+     0.0,
+     1.0,
+     0.0,
+     1.0,
+     0.25,
+     1.0
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "75% of workers were alerted while throughput was only 0.74, so the score fell to 0.26. Tom (w5) hit 38.0\u00b0C at 14:30 doing shop equipment repair; Marcus also ran over budget on that task from 9:00. The",
+    "minibatch_gain": 0.1388,
+    "accepted": false,
+    "heldout_gain": -0.0474
+   },
+   "six_pm": {
+    "for_day": 11,
+    "risk_text": "18 of 30 variations had someone above the yellow line",
+    "risk_k": 18,
+    "risk_n": 30,
+    "risk": 0.6,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "13:00",
+     "variations": 7
+    },
+    "storm_variations": 4,
+    "mean_units_lost_to_storms": 0.0,
+    "lessons_used": [
+     {
+      "id": "L1",
+      "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after."
+     }
+    ],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 1,
+   "n_lessons": 1,
+   "genome_changed": false
+  },
+  {
+   "day": 11,
+   "scenario": "cur-5e316842",
+   "tags": [
+    "heat_dome"
+   ],
+   "forecast_risk": {
+    "risk_k": 18,
+    "risk_n": 30,
+    "risk": 0.6,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "13:00",
+     "variations": 7
+    },
+    "storm_variations": 4,
+    "mean_units_lost_to_storms": 0.0
+   },
+   "lessons_used": [
+    "L1"
+   ],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.5514,
+    "throughput": 0.7368,
+    "actual_peak_c": 37.871,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.012,
+     "confidence": 0.969,
+     "checks": 63,
+     "heat_bias_c_per_slot": {
+      "light": -0.001,
+      "moderate": 0.022,
+      "heavy": -0.053,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.043,
+     "confidence": 0.97,
+     "checks": 65,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.021,
+      "heavy": -0.031,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.047,
+     "confidence": 0.97,
+     "checks": 65,
+     "heat_bias_c_per_slot": {
+      "light": -0.0,
+      "moderate": 0.032,
+      "heavy": 0.064,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": 0.001,
+     "confidence": 0.97,
+     "checks": 65,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.001,
+      "heavy": 0.039,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.056,
+     "confidence": 0.968,
+     "checks": 60,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.017,
+      "heavy": 0.046,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.028,
+     "confidence": 0.971,
+     "checks": 66,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": 0.043,
+      "heavy": -0.019,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -1.6,
+   "reflection": "From noon on, Marcus was put on shop equipment repair and the work stepped up from moderate to heavy to very heavy. His body heated up faster than planned, about 0.12 \u00b0C more per half-hour than forecast, for two slots in a row. The plan treated shop repair as easier on the body than it really is in the early-afternoon heat. Being acclimatized did not cover the jump to very heavy work at the hottest part of the day. No alert fired, but the forecast was off for him. Lesson L1 was applied, and it did not stop this.",
+   "ace": [
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Acclimatized workers also heat up faster than forecast on very heavy work after noon. Move very heavy jobs before 12:00 or spread them across the crew.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "all",
+       "intensities": [
+        "very_heavy"
+       ],
+       "from_hour": 12,
+       "to_hour": 24,
+       "penalty": 15
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Plan shop equipment repair as heavy work, not moderate. Its jobs quickly turn into hard physical effort, so keep it out of early-afternoon slots.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "all",
+       "intensities": [
+        "heavy"
+       ],
+       "from_hour": 12,
+       "to_hour": 16,
+       "penalty": 8
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": -0.0085
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Do not step Marcus up from moderate to heavy to very heavy in back-to-back slots after noon. Give him lighter work between hard repair pieces.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Marcus",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 12,
+       "to_hour": 24,
+       "penalty": 10
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "merge",
+      "into": "L1",
+      "text": "Marcus heats up faster than forecast on moderate and heavy work from 12:00. Give Marcus that work before 12:00.",
+      "result": "merged near-duplicate",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": 0.0
+    }
+   ],
+   "practice": {
+    "weather_sd_c": 1.15,
+    "tried": 6,
+    "kept": 4,
+    "solve_rates": [
+     0.75,
+     1.0,
+     0.5,
+     0.5,
+     0.0,
+     0.5
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "Every day had 25-50% of workers alerted, with actual peaks of 37.95-38.04\u00b0C. All 8 candidates predicted p90 peaks of about 37.85-37.98, above the 37.5 line, so the plans themselves run too hot. Rankin",
+    "minibatch_gain": 0.075,
+    "accepted": false,
+    "heldout_gain": -0.0457
+   },
+   "six_pm": {
+    "for_day": 12,
+    "risk_text": "7 of 30 variations had someone above the yellow line",
+    "risk_k": 7,
+    "risk_n": 30,
+    "risk": 0.233,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "13:30",
+     "variations": 3
+    },
+    "storm_variations": 6,
+    "mean_units_lost_to_storms": 0.2,
+    "lessons_used": [
+     {
+      "id": "L1",
+      "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after."
+     }
+    ],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 1,
+   "n_lessons": 1,
+   "genome_changed": false
+  },
+  {
+   "day": 12,
+   "scenario": "cur-43fabccf",
+   "tags": [
+    "callout"
+   ],
+   "forecast_risk": {
+    "risk_k": 7,
+    "risk_n": 30,
+    "risk": 0.233,
+    "weak_spot": {
+     "worker": "Luis",
+     "time": "13:30",
+     "variations": 3
+    },
+    "storm_variations": 6,
+    "mean_units_lost_to_storms": 0.2
+   },
+   "lessons_used": [
+    "L1"
+   ],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.7821,
+    "throughput": 0.9733,
+    "actual_peak_c": 37.883,
+    "workers_alerted": 0,
+    "priority1_share": 0.969,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.052,
+     "confidence": 0.973,
+     "checks": 71,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.014,
+      "heavy": -0.031,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.052,
+     "confidence": 0.973,
+     "checks": 71,
+     "heat_bias_c_per_slot": {
+      "light": -0.0,
+      "moderate": 0.025,
+      "heavy": 0.064,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": 0.022,
+     "confidence": 0.973,
+     "checks": 71,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": -0.001,
+      "heavy": 0.03,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.059,
+     "confidence": 0.971,
+     "checks": 66,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.014,
+      "heavy": 0.042,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.034,
+     "confidence": 0.973,
+     "checks": 72,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": 0.037,
+      "heavy": -0.013,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -1.45,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.17,
+    "tried": 6,
+    "kept": 2,
+    "solve_rates": [
+     0.5,
+     1.0,
+     0.0,
+     1.0,
+     0.0,
+     0.75
+    ],
+    "safety_violations": 0
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "In both days the throughput plans won the ranking (throughput 0.969, predicted p90 peak about 37.9\u00b0C). On the hottest day the actual peak was higher than predicted (38.0 vs 37.91), and 25-50% of worke",
+    "minibatch_gain": -0.001,
+    "accepted": false
+   },
+   "six_pm": {
+    "for_day": 13,
+    "risk_text": "0 of 30 variations had someone above the yellow line",
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Tom",
+     "time": "07:30",
+     "variations": 0,
+     "closest_peak_c": 37.87
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.7,
+    "lessons_used": [
+     {
+      "id": "L1",
+      "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after."
+     }
+    ],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 1,
+   "n_lessons": 1,
+   "genome_changed": false
+  },
+  {
+   "day": 13,
+   "scenario": "cur-397fcd84",
+   "tags": [
+    "callout"
+   ],
+   "forecast_risk": {
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Tom",
+     "time": "07:30",
+     "variations": 0,
+     "closest_peak_c": 37.87
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.7
+   },
+   "lessons_used": [
+    "L1"
+   ],
+   "safety_violations": 0,
+   "outcome": {
+    "score": 0.7635,
+    "throughput": 0.9688,
+    "actual_peak_c": 37.911,
+    "workers_alerted": 0,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 0
+   },
+   "anyone_above_yellow": false,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.023,
+     "confidence": 0.972,
+     "checks": 69,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": 0.016,
+      "heavy": -0.053,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": 0.022,
+     "confidence": 0.975,
+     "checks": 77,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": -0.001,
+      "heavy": 0.027,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.051,
+     "confidence": 0.973,
+     "checks": 72,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.014,
+      "heavy": 0.038,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.04,
+     "confidence": 0.975,
+     "checks": 78,
+     "heat_bias_c_per_slot": {
+      "light": -0.002,
+      "moderate": 0.037,
+      "heavy": -0.026,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": 0.66,
+   "reflection": "Nothing ran hotter than forecast. No change needed.",
+   "ace": [],
+   "practice": {
+    "weather_sd_c": 1.15,
+    "tried": 6,
+    "kept": 2,
+    "solve_rates": [
+     0.0,
+     1.0,
+     0.75,
+     1.0,
+     0.75,
+     1.0
+    ],
+    "safety_violations": 1
+   },
+   "gepa": {
+    "by": "llm",
+    "why": "On both days the throughput plan won (0.72 throughput, peak_p90 about 37.95), yet 25% of workers still hit an alert. That cost about 0.3 of score, while the 'balanced' plans cooled peaks only slightly",
+    "minibatch_gain": -0.2013,
+    "accepted": false
+   },
+   "six_pm": {
+    "for_day": 14,
+    "risk_text": "0 of 30 variations had someone above the yellow line",
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Kofi (new hire)",
+     "time": "11:30",
+     "variations": 0,
+     "closest_peak_c": 37.92
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.0,
+    "lessons_used": [],
+    "rule_checker_ok": true
+   },
+   "playbook_version": 1,
+   "n_lessons": 1,
+   "genome_changed": false
+  },
+  {
+   "day": 14,
+   "scenario": "cur-4b03ba45",
+   "tags": [
+    "dead_watch"
+   ],
+   "forecast_risk": {
+    "risk_k": 0,
+    "risk_n": 30,
+    "risk": 0.0,
+    "weak_spot": {
+     "worker": "Kofi (new hire)",
+     "time": "11:30",
+     "variations": 0,
+     "closest_peak_c": 37.92
+    },
+    "storm_variations": 5,
+    "mean_units_lost_to_storms": 0.0
+   },
+   "lessons_used": [],
+   "safety_violations": 0,
+   "outcome": {
+    "score": -0.0274,
+    "throughput": 0.52,
+    "actual_peak_c": 38.095,
+    "workers_alerted": 1,
+    "priority1_share": 1.0,
+    "minutes_above_yellow": 16
+   },
+   "anyone_above_yellow": true,
+   "profiles": [
+    {
+     "worker": "Marcus",
+     "runs_hotter_c": -0.02,
+     "confidence": 0.974,
+     "checks": 75,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": 0.018,
+      "heavy": -0.053,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Ana",
+     "runs_hotter_c": 0.056,
+     "confidence": 0.975,
+     "checks": 77,
+     "heat_bias_c_per_slot": {
+      "light": -0.013,
+      "moderate": -0.014,
+      "heavy": -0.031,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Luis",
+     "runs_hotter_c": 0.059,
+     "confidence": 0.974,
+     "checks": 76,
+     "heat_bias_c_per_slot": {
+      "light": 0.002,
+      "moderate": 0.03,
+      "heavy": 0.064,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Jada",
+     "runs_hotter_c": 0.005,
+     "confidence": 0.976,
+     "checks": 83,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": -0.001,
+      "heavy": 0.027,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Tom",
+     "runs_hotter_c": 0.049,
+     "confidence": 0.975,
+     "checks": 78,
+     "heat_bias_c_per_slot": {
+      "light": 0.001,
+      "moderate": 0.014,
+      "heavy": 0.038,
+      "very_heavy": 0.0
+     }
+    },
+    {
+     "worker": "Kofi",
+     "runs_hotter_c": 0.044,
+     "confidence": 0.977,
+     "checks": 84,
+     "heat_bias_c_per_slot": {
+      "light": -0.003,
+      "moderate": 0.052,
+      "heavy": -0.026,
+      "very_heavy": 0.0
+     }
+    }
+   ],
+   "weather_miss_c": -1.43,
+   "reflection": "The planner put Transformer maintenance on a heavy-to-very-heavy work ramp starting at 9:00 and assumed the crew would warm up slower than they did. Marcus ran slightly hotter than forecast (+0.05 \u00b0C per 30-min slot). Luis ran clearly hotter (+0.12 \u00b0C per slot). Kofi is a new hire and was on the same task. He went past his forecast late in the morning and crossed 38.0 \u00b0C at 11:00, which triggered a 16-minute alert. The task itself is the problem: Transformer maintenance heats people faster than the plan expects, and that matters most for someone who isn't used to the heat yet. That is why Kofi",
+   "ace": [
+    {
+     "op": {
+      "op": "merge",
+      "into": "L1",
+      "text": "Keep new hires off very heavy Transformer maintenance from 10:00 into late morning. Give them the lighter or earlier parts of the job, or another task.",
+      "result": "merged near-duplicate",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0013
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Transformer maintenance warms crews faster than planned. Don't jump to very heavy right after 9:00; space the very heavy pieces out across workers.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "all",
+       "intensities": [
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "to_hour": 11,
+       "penalty": 8
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "add",
+      "id": "L2",
+      "text": "Luis warms up faster than planned on heavy and very heavy work after 9:00. Give him shorter runs of it or lighter pieces.",
+      "hint": {
+       "type": "avoid_intensity",
+       "who": "Luis",
+       "intensities": [
+        "heavy",
+        "very_heavy"
+       ],
+       "from_hour": 9,
+       "to_hour": 24,
+       "penalty": 10
+      },
+      "result": "applied",
+      "by": "llm"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "merge",
+      "into": "L1",
+      "text": "Marcus heats up faster than forecast on moderate and heavy work from 9:00. Give Marcus that work before 9:00.",
+      "result": "merged near-duplicate",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": 0.0
+    },
+    {
+     "op": {
+      "op": "merge",
+      "into": "L1",
+      "text": "Luis heats up faster than forecast on moderate and heavy work from 9:00. Give Luis that work before 9:00.",
+      "result": "merged near-duplicate",
+      "by": "code"
+     },
+     "kept": false,
+     "gain": 0.0
+    }
+   ],
+   "playbook_version": 1,
+   "n_lessons": 1,
+   "genome_changed": false
+  }
+ ],
+ "snapshots": {
+  "0": {
+   "day": 0,
+   "profiles": {
+    "Marcus": {
+     "misses": [],
+     "bias": {
+      "light": [],
+      "moderate": [],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Ana": {
+     "misses": [],
+     "bias": {
+      "light": [],
+      "moderate": [],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Luis": {
+     "misses": [],
+     "bias": {
+      "light": [],
+      "moderate": [],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Jada": {
+     "misses": [],
+     "bias": {
+      "light": [],
+      "moderate": [],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Tom": {
+     "misses": [],
+     "bias": {
+      "light": [],
+      "moderate": [],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Kofi": {
+     "misses": [],
+     "bias": {
+      "light": [],
+      "moderate": [],
+      "heavy": [],
+      "very_heavy": []
+     }
+    }
+   },
+   "playbook": [],
+   "playbook_version": 0,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0,
+     "weights": null
+    },
+    "strategy_note": ""
+   }
+  },
+  "1": {
+   "day": 1,
+   "profiles": {
+    "Marcus": {
+     "misses": [
+      -0.03628212787423735,
+      0.04421993900509591,
+      0.15446851569821263,
+      -0.03226033203292644,
+      -0.04534938784762943,
+      0.006471782758886491
+     ],
+     "bias": {
+      "light": [
+       -0.010976441146929972,
+       0.0022638495065550046,
+       0.0030825025999732247
+      ],
+      "moderate": [
+       -0.017574259277765236,
+       -0.025078216378105367,
+       -0.009698127132871548,
+       0.1518239366979941
+      ],
+      "heavy": [
+       -0.04489712106347099
+      ],
+      "very_heavy": []
+     }
+    },
+    "Ana": {
+     "misses": [
+      -0.10833395659885525,
+      -0.12574679566364466,
+      -0.08492548481819284,
+      0.018230087085022717,
+      0.15241564566296262,
+      0.05224661123164509
+     ],
+     "bias": {
+      "light": [
+       -0.019082140364375277,
+       -0.029557272453814676,
+       -0.020176265811706173,
+       -0.036610093945164124,
+       -0.04451448764991284
+      ],
+      "moderate": [
+       0.007913068468418771,
+       0.0021158658040647538,
+       -0.0688833550275163,
+       -0.05544967018158786,
+       -0.036881877932621876
+      ],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Luis": {
+     "misses": [
+      -0.12786101998518262,
+      -0.14116870599213627,
+      -0.2093749595959693,
+      -0.23613810381202427,
+      -0.31098306871221126,
+      -0.46386535348672453
+     ],
+     "bias": {
+      "light": [
+       0.027322405867309385,
+       0.022007399317743648,
+       0.02505855658527878,
+       -0.013852449110153486
+      ],
+      "moderate": [
+       0.12650077489991673,
+       0.02024917896049061,
+       -0.007159386255850109,
+       0.040443271126200386,
+       0.056049164548845454,
+       0.037478664847967025
+      ],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Jada": {
+     "misses": [
+      0.027489723165480484,
+      0.22540761579232083,
+      0.3217832131221954,
+      0.008742292552952335,
+      -0.0568791317038162,
+      0.055815567129158694
+     ],
+     "bias": {
+      "light": [
+       -0.007879270544229655,
+       0.02209233048724002
+      ],
+      "moderate": [
+       -0.03911911011162772,
+       0.001520704447109722,
+       -0.013129051736036956,
+       -0.027809032454932492,
+       0.0286328977408985,
+       0.00493822091927143,
+       -0.0016978507433975665
+      ],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Tom": {
+     "misses": [
+      -0.04516319436531546,
+      0.028877701375073173,
+      -0.10484239700802789,
+      -0.03059262202513935,
+      -0.14788795265853594,
+      0.0373172177529284
+     ],
+     "bias": {
+      "light": [],
+      "moderate": [
+       -0.021685421438810693,
+       0.008036106082251138,
+       0.025114180170554334,
+       0.02201839994854282,
+       0.00167113514205397
+      ],
+      "heavy": [
+       0.016903380660636458
+      ],
+      "very_heavy": []
+     }
+    },
+    "Kofi": {
+     "misses": [
+      0.21598092837837157,
+      0.19049543336576846,
+      0.3226286785197843,
+      -0.0013986530287368737,
+      0.25164153457954797,
+      0.030277771788917107
+     ],
+     "bias": {
+      "light": [
+       0.005271558612335525,
+       -0.04769586387368463,
+       -0.013897176973479475
+      ],
+      "moderate": [
+       -0.04184896687700501
+      ],
+      "heavy": [],
+      "very_heavy": []
+     }
+    }
+   },
+   "playbook": [],
+   "playbook_version": 0,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0,
+     "weights": null
+    },
+    "strategy_note": ""
+   }
+  },
+  "7": {
+   "day": 7,
+   "profiles": {
+    "Marcus": {
+     "misses": [
+      -0.03628212787423735,
+      0.04421993900509591,
+      0.15446851569821263,
+      -0.03226033203292644,
+      -0.04534938784762943,
+      0.006471782758886491,
+      0.18873800625216575,
+      0.008531720597822812,
+      0.38987943303111905,
+      0.2938115886749273,
+      0.08172242101682059,
+      0.3270232434884335,
+      -0.2727749939637363,
+      -0.08705418149590116,
+      -0.19985119397679796,
+      -0.16047789473224583,
+      -0.3379045750788947,
+      -0.18891390432014532,
+      0.251547259961896,
+      0.1552119681743136,
+      0.2652087161167813,
+      0.19562801522653928,
+      0.2757812715895227,
+      0.12904283382671622,
+      -0.1861482629998079,
+      -0.05851246010690403,
+      0.010719710274727845,
+      -0.09418343583752176,
+      -0.18758636437434006,
+      -0.026594455060973132,
+      0.05703507518150275,
+      -0.1032512726311694,
+      0.1400255474962222,
+      0.08827801592430262,
+      0.007628306006104424,
+      0.07230288616133151,
+      -0.00235602670686319,
+      -0.2037156535499136,
+      -0.12228399242468413,
+      -0.11541244402813078,
+      -0.13236775257218625,
+      -0.1404781772733017
+     ],
+     "bias": {
+      "light": [
+       -0.010976441146929972,
+       0.0022638495065550046,
+       0.0030825025999732247,
+       0.0009116912241537989,
+       0.011341666429352415,
+       0.00869053725497082,
+       0.0016131696482517555,
+       -0.0013786989795434579,
+       -0.0026674083543412053,
+       -0.015855805187293015,
+       0.003967111188387662,
+       -0.013823298926197936,
+       0.022913088888962818,
+       0.006619828964353758,
+       -0.009501412183915647,
+       -0.02245367273334864,
+       0.023544755790503302
+      ],
+      "moderate": [
+       -0.017574259277765236,
+       -0.025078216378105367,
+       -0.009698127132871548,
+       0.1518239366979941,
+       0.14952999120817623,
+       -0.03145405632194098,
+       -0.028810901318919946,
+       -0.03403676362503205,
+       -0.03816726956956984,
+       0.033449814850548876,
+       -0.054107499275005466,
+       -0.004595288437229783,
+       -0.04348829983219815,
+       -0.015077245525318972,
+       -0.03897784076368538,
+       0.10160349977618921,
+       0.01733089204756766
+      ],
+      "heavy": [
+       -0.04489712106347099,
+       -0.07032652421550267,
+       -0.06062050746682246,
+       -0.03812437299409055,
+       -0.014355706301792281,
+       -0.09343848239400643,
+       -0.107059575101907
+      ],
+      "very_heavy": []
+     }
+    },
+    "Ana": {
+     "misses": [
+      -0.10833395659885525,
+      -0.12574679566364466,
+      -0.08492548481819284,
+      0.018230087085022717,
+      0.15241564566296262,
+      0.05224661123164509,
+      -0.2094033207430286,
+      0.07685619489352291,
+      -0.09571960146705294,
+      0.007950950761554054,
+      -0.03377618330817711,
+      0.11537191161685456,
+      0.11733643857863285,
+      0.007906813302099636,
+      -0.05610717814960253,
+      -0.08624717060467191,
+      -0.06305598008793822,
+      -0.14385014802046214,
+      -0.1704771631282611,
+      -0.0020097029625461005,
+      -0.03119204192932301,
+      -0.1017885349185903,
+      0.10744530222018511,
+      -0.0837374274228253,
+      0.043501979421350256,
+      -0.06444953504520612,
+      0.13007088889647633,
+      0.03189555500494379,
+      0.008049980093488784,
+      0.020650084171336403,
+      0.23597479847087044,
+      0.2228245831052007,
+      0.18285737507238764,
+      0.2895629680644092,
+      0.24449994746348125,
+      0.2085416298279128,
+      -0.03135092557702279,
+      0.028655663622828342,
+      -0.09026053134488166,
+      -0.09605226920655952,
+      -0.010164496952128843,
+      -0.15238806619428402
+     ],
+     "bias": {
+      "light": [
+       -0.019082140364375277,
+       -0.029557272453814676,
+       -0.020176265811706173,
+       -0.036610093945164124,
+       -0.04451448764991284,
+       0.0019144643771866754,
+       0.0011065784873665052,
+       0.0037304312843033927,
+       0.013804924276733743,
+       0.012969978693270434,
+       0.001364841863356503,
+       -0.06133117652610309,
+       0.009137796188376512,
+       -0.016633697632769895,
+       -0.014644988146095272,
+       -0.022124103343614365,
+       -0.021106341192208333,
+       -0.017812184905444894
+      ],
+      "moderate": [
+       0.007913068468418771,
+       0.0021158658040647538,
+       -0.0688833550275163,
+       -0.05544967018158786,
+       -0.036881877932621876,
+       -0.010863973407197136,
+       -0.0020529483293287853,
+       0.0009876089066551685,
+       -0.0066836166501360594,
+       -0.009753198242897554,
+       -0.004548337242653133,
+       0.00081714632859331,
+       0.016964123818354437,
+       -0.04319830324689633,
+       -0.0007344911481794725,
+       -0.008782255872851863,
+       -0.10016978566711998,
+       -0.10718716843845044,
+       -0.03823196232345083,
+       -0.047953175400252235
+      ],
+      "heavy": [
+       -0.0481416486055366
+      ],
+      "very_heavy": []
+     }
+    },
+    "Luis": {
+     "misses": [
+      -0.12786101998518262,
+      -0.14116870599213627,
+      -0.2093749595959693,
+      -0.23613810381202427,
+      -0.31098306871221126,
+      -0.46386535348672453,
+      0.1410795232683668,
+      -0.0848908289733572,
+      0.045021989375413796,
+      0.0669868787555501,
+      0.09654783882360363,
+      0.09034562332703899,
+      -0.0646029988624548,
+      0.15151737708615798,
+      0.02736701948085596,
+      -0.05712798349639314,
+      0.024690976434811773,
+      -0.06998757793909505,
+      -0.1366873031901079,
+      -0.2000883850069144,
+      0.10157584443687284,
+      -0.09217499089952241,
+      -0.15764713004576691,
+      -0.25914398381515724,
+      0.17431175923242392,
+      -0.05001183434991674,
+      0.01833120809115485,
+      -0.019114471286805212,
+      -0.13674213903897225,
+      -0.09274418353361824,
+      0.002483316329318086,
+      -0.13815470104086103,
+      0.005501604754158507,
+      -0.11595077979401225,
+      0.10064659866381476,
+      -0.06337932378444577,
+      0.10194688627672122,
+      -0.05948677655717205,
+      0.26645758111411055,
+      -0.029546020952174956,
+      -0.06190774711716074,
+      0.11094183406051883
+     ],
+     "bias": {
+      "light": [
+       0.027322405867309385,
+       0.022007399317743648,
+       0.02505855658527878,
+       -0.013852449110153486,
+       0.01830819932563088,
+       0.011975075994335782,
+       0.004419512403877945,
+       0.027327949712230293,
+       0.02683119949065116,
+       -0.0019042130233515309,
+       -0.03143016311069147,
+       -0.014565835585059972,
+       -0.013112622641891392,
+       -0.001662116764215682,
+       -0.016424338692530682,
+       -0.016243324056304687,
+       -0.0023169547480534902,
+       -0.01446447134853912,
+       -0.0018998902367073356,
+       0.009206849500451142,
+       0.018824508444851062,
+       -0.010832273477994647,
+       0.01736016075565061
+      ],
+      "moderate": [
+       0.12650077489991673,
+       0.02024917896049061,
+       -0.007159386255850109,
+       0.040443271126200386,
+       0.056049164548845454,
+       0.037478664847967025,
+       0.07870021930830973,
+       0.03243935568781353,
+       0.008262386313681702,
+       0.04171398500809431,
+       0.008540573192881595,
+       0.00954074260339155,
+       0.0018699265933861398,
+       0.0003442873228820531,
+       0.004090234568614903,
+       0.005255629155165309,
+       0.005297464124950579,
+       0.056928818322234065,
+       -0.0021833823273240682,
+       -0.004614968861986313
+      ],
+      "heavy": [],
+      "very_heavy": []
+     }
+    },
+    "Jada": {
+     "misses": [
+      0.027489723165480484,
+      0.22540761579232083,
+      0.3217832131221954,
+      0.008742292552952335,
+      -0.0568791317038162,
+      0.055815567129158694,
+      -0.08099597345043463,
+      0.1464904441294479,
+      0.10865556401126497,
+      -0.14209907477570027,
+      0.097923237213422,
+      0.05473215107657836,
+      -0.18398196683229884,
+      -0.31466158932444444,
+      -0.05011837871801106,
+      0.006979905694279864,
+      0.013339610866324847,
+      -0.06636246034160109,
+      0.24405056866529407,
+      0.24927720966931588,
+      0.13680267030589732,
+      0.1498893903060221,
+      0.07349380421336349,
+      0.17198342909738074,
+      -0.14042072602570954,
+      0.04535596544981502,
+      0.31063029909217477,
+      0.17632704049925962,
+      0.07556308190073224,
+      0.10555127826390986,
+      -0.2111163383408865,
+      -0.0016777249931152483,
+      -0.22712519972412792,
+      -0.23662557522865768,
+      -0.10560002531982349,
+      -0.048597308676434636,
+      0.1278076117063165,
+      0.10325714566894106,
+      0.17029611413137502,
+      -0.027762281224049445,
+      -0.1354971862365062,
+      0.119576932561408
+     ],
+     "bias": {
+      "light": [
+       -0.007879270544229655,
+       0.02209233048724002,
+       -0.01278875595855311,
+       -0.01151523275986932,
+       -0.002541635223522576,
+       -0.0016353101560113714,
+       0.03787921759348478,
+       0.004110570619310749,
+       0.001983259736562104,
+       0.014701157605209403,
+       0.014343998902305088,
+       0.002606759075383991,
+       0.017410823763739813,
+       -0.005423160154755635,
+       -0.007891408198226202,
+       -0.01487961020159645,
+       -0.022913354389984875,
+       -0.009200703710341429,
+       -0.004584119126313624,
+       0.008938130059711114,
+       0.0009934074376118929,
+       0.007924886832107347,
+       0.0006064590775167744
+      ],
+      "moderate": [
+       -0.03911911011162772,
+       0.001520704447109722,
+       -0.013129051736036956,
+       -0.027809032454932492,
+       0.0286328977408985,
+       0.00493822091927143,
+       -0.0016978507433975665,
+       0.009705555495166607,
+       0.010940461583643923,
+       0.011810139750444648,
+       0.012551490740015936,
+       -0.043357545894309624,
+       -0.0059228035919147715,
+       -0.014861495507062727,
+       -0.0029847273600296376,
+       0.04598535744263188,
+       0.0142108852330054,
+       0.062336622128256636,
+       0.016346616531016878,
+       -0.029141666801848487,
+       0.01722750490527858
+      ],
+      "heavy": [
+       0.06336424102337901,
+       0.12012694522032064,
+       0.036034880547454406
+      ],
+      "very_heavy": []
+     }
+    },
+    "Tom": {
+     "misses": [
+      -0.04516319436531546,
+      0.028877701375073173,
+      -0.10484239700802789,
+      -0.03059262202513935,
+      -0.14788795265853594,
+      0.0373172177529284,
+      -0.1022544571279056,
+      -0.03418636120795071,
+      0.005713103694802157,
+      -0.1749912966034941,
+      -0.09316456958509889,
+      0.026609280258412582,
+      -0.1666002754792828,
+      -0.10121150005678459,
+      -0.04355281955891144,
+      -0.00018918032684211994,
+      -0.08558117824922817,
+      -0.172079775025189,
+      -0.22045959495914502,
+      -0.1198864180261836,
+      -0.19368628848884129,
+      -0.31944324743265184,
+      -0.1396374213055367,
+      -0.1871270762701016,
+      -0.2084935649688191,
+      0.10175938606450785,
+      -0.12589407099131478,
+      -0.1008826511919878,
+      -0.10953507382703975,
+      -0.06974442569546824,
+      0.11965494396251586,
+      0.38081774191477535,
+      0.14642603273406252,
+      0.06517875257312511,
+      0.12844405389962077,
+      0.1921008421836703,
+      -0.023027422368514294,
+      0.148038993143345,
+      0.35430392308954595,
+      0.13916399080908093,
+      0.035617172054827506,
+      0.1460355277123
+     ],
+     "bias": {
+      "light": [
+       -0.014911445512844068,
+       0.005327386346273499,
+       -0.009080483049473287,
+       0.014813198255502869,
+       0.008259078110675944,
+       0.004435015590736668,
+       0.0035390999657067823,
+       0.006917978313467188,
+       0.008518900833081489,
+       0.004859857732135708,
+       0.0006138904339252349,
+       -0.0016859482843685214,
+       -0.03659197814702253,
+       0.02705468203879491
+      ],
+      "moderate": [
+       -0.021685421438810693,
+       0.008036106082251138,
+       0.025114180170554334,
+       0.02201839994854282,
+       0.00167113514205397,
+       -0.022817244577829854,
+       -0.036748624503118776,
+       -0.018808428207606198,
+       -0.021567929753459225,
+       0.10141796111217616,
+       0.020809093665079104,
+       0.05747456015287611,
+       0.012616363886515103,
+       0.07095418052008284,
+       0.07380311269635342,
+       -0.002770465628152863,
+       -0.0019037238033945414,
+       -0.08262429450505948
+      ],
+      "heavy": [
+       0.016903380660636458,
+       -0.014993015301143942,
+       0.0083907808032464,
+       0.11905577697069702
+      ],
+      "very_heavy": []
+     }
+    },
+    "Kofi": {
+     "misses": [
+      0.21598092837837157,
+      0.19049543336576846,
+      0.3226286785197843,
+      -0.0013986530287368737,
+      0.25164153457954797,
+      0.030277771788917107,
+      0.10371037924823412,
+      0.08007795878695845,
+      0.06658339141687719,
+      0.17984723160588345,
+      -0.15344549725104173,
+      -0.04868640596323104,
+      -0.21923586494340697,
+      -0.21837642946712776,
+      -0.16249668258722494,
+      -0.11923026289888838,
+      -0.0442187986074245,
+      -0.14276797849488787,
+      -0.219181070491814,
+      0.006296730068832801,
+      0.028249446910820097,
+      0.06899398969853365,
+      -0.00913853241423368,
+      -0.07313114972352963,
+      0.05107473289011466,
+      0.1643670141516793,
+      -0.1600877113451702,
+      0.11731231726042779,
+      -0.07964232734378385,
+      0.04144969071685978,
+      -0.1185867951014643,
+      -0.042708142269034965,
+      -0.041809144316822255,
+      -0.13417727900977638,
+      -0.07364357105473829,
+      -0.057628547976754874,
+      -0.045360121343314574,
+      -0.1467082916601612,
+      0.03460452203945863,
+      -0.12620935416274648,
+      -0.05574531219510703,
+      -0.08187746361677029
+     ],
+     "bias": {
+      "light": [
+       0.005271558612335525,
+       -0.04769586387368463,
+       -0.013897176973479475,
+       -0.004373442860860166,
+       -0.0002872998610641275,
+       -0.0035219565637518713,
+       0.0003559507846944143,
+       -0.009133685117703294,
+       0.0034250689605244133,
+       0.01384515650021001,
+       -0.0048004407200750165,
+       -0.0028755123786723402,
+       0.01364707889784711,
+       0.005151161570978502,
+       -0.0036906727697925135,
+       -0.016317214094016208,
+       -0.00195288014976569,
+       -0.016800544584960164,
+       0.048210646408861635,
+       -0.012743302323492856,
+       -0.003346155075675483,
+       -0.0036486019536567937,
+       -0.00288149515881031,
+       -0.004783598209108675,
+       -0.010713162395006748,
+       -0.001429502175540165,
+       -0.01000345823742066
+      ],
+      "moderate": [
+       -0.04184896687700501,
+       0.00556731630192786,
+       -0.07074661403875382,
+       -0.006765417440114163,
+       -0.03062029779695763,
+       -0.005889532714967061,
+       -0.02754383789037007,
+       0.18447731812442925,
+       -0.013684361526301814,
+       0.2271459717220523
+      ],
+      "heavy": [
+       -0.035211591834787725,
+       0.04284684799077354,
+       -0.07447053063981457,
+       -0.03944152446359084
+      ],
+      "very_heavy": []
+     }
+    }
+   },
+   "playbook": [],
+   "playbook_version": 0,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0,
+     "weights": null
+    },
+    "strategy_note": ""
+   }
+  },
+  "14": {
+   "day": 14,
+   "profiles": {
+    "Marcus": {
+     "misses": [
+      -0.03628212787423735,
+      0.04421993900509591,
+      0.15446851569821263,
+      -0.03226033203292644,
+      -0.04534938784762943,
+      0.006471782758886491,
+      0.18873800625216575,
+      0.008531720597822812,
+      0.38987943303111905,
+      0.2938115886749273,
+      0.08172242101682059,
+      0.3270232434884335,
+      -0.2727749939637363,
+      -0.08705418149590116,
+      -0.19985119397679796,
+      -0.16047789473224583,
+      -0.3379045750788947,
+      -0.18891390432014532,
+      0.251547259961896,
+      0.1552119681743136,
+      0.2652087161167813,
+      0.19562801522653928,
+      0.2757812715895227,
+      0.12904283382671622,
+      -0.1861482629998079,
+      -0.05851246010690403,
+      0.010719710274727845,
+      -0.09418343583752176,
+      -0.18758636437434006,
+      -0.026594455060973132,
+      0.05703507518150275,
+      -0.1032512726311694,
+      0.1400255474962222,
+      0.08827801592430262,
+      0.007628306006104424,
+      0.07230288616133151,
+      -0.00235602670686319,
+      -0.2037156535499136,
+      -0.12228399242468413,
+      -0.11541244402813078,
+      -0.13236775257218625,
+      -0.1404781772733017,
+      -0.0753532308559457,
+      -0.09627088067415457,
+      -0.08587118024073703,
+      0.03781112867387293,
+      0.17500470317344963,
+      0.18224637804494392,
+      0.023733042035061658,
+      0.09832210388851337,
+      0.06746144084954153,
+      0.08438391063377537,
+      0.16019220704266246,
+      0.19736628193811612,
+      0.1780190870781695,
+      -0.09575860907109757,
+      -0.13520596168632437,
+      0.05106868056877545,
+      -0.16470391225992387,
+      -0.16550889189193185,
+      -0.0873813535431438,
+      0.0660420339513692,
+      -0.07487782558995804,
+      0.236633049519007,
+      0.06552172278397705,
+      0.13112418959443772,
+      0.14567982072914276,
+      0.2102756767342413,
+      0.06937054775531948,
+      0.20137292513447846,
+      -0.11716975698524124,
+      -0.005819062488470195,
+      0.052999683928028674,
+      -0.13586736910774988,
+      -0.09748374531497461
+     ],
+     "bias": {
+      "light": [
+       -0.010976441146929972,
+       0.0022638495065550046,
+       0.0030825025999732247,
+       0.0009116912241537989,
+       0.011341666429352415,
+       0.00869053725497082,
+       0.0016131696482517555,
+       -0.0013786989795434579,
+       -0.0026674083543412053,
+       -0.015855805187293015,
+       0.003967111188387662,
+       -0.013823298926197936,
+       0.022913088888962818,
+       0.006619828964353758,
+       -0.009501412183915647,
+       -0.02245367273334864,
+       0.023544755790503302,
+       -0.014835754051667038,
+       0.023430282731922603,
+       -0.04441165375493483,
+       0.01546870641276854,
+       -0.01641643885493238,
+       0.009244414099072173,
+       0.0071201822619215704,
+       -0.030229491874344205,
+       0.02458255800462439,
+       -0.017908021603162183,
+       -0.028715482369314316,
+       -0.04100035976026817
+      ],
+      "moderate": [
+       -0.017574259277765236,
+       -0.025078216378105367,
+       -0.009698127132871548,
+       0.1518239366979941,
+       0.14952999120817623,
+       -0.03145405632194098,
+       -0.028810901318919946,
+       -0.03403676362503205,
+       -0.03816726956956984,
+       0.033449814850548876,
+       -0.054107499275005466,
+       -0.004595288437229783,
+       -0.04348829983219815,
+       -0.015077245525318972,
+       -0.03897784076368538,
+       0.10160349977618921,
+       0.01733089204756766,
+       -0.06799757077558155,
+       0.14395757423027788,
+       0.07587883304323384,
+       0.08304926720877859,
+       0.010302240881649993,
+       0.01711692564808942,
+       -0.035390760670736654,
+       -0.047137863447055395,
+       -0.00677876797165311,
+       -0.048032986448994563,
+       0.10173178099758218,
+       -0.04671878610797364,
+       0.14509984595748904,
+       0.13538094782548882,
+       0.10102457472910942,
+       -0.02790541051192008,
+       -0.03788587201916016,
+       -0.001985723755765889,
+       0.12289748904118625,
+       0.12427149669544235,
+       -0.11956439220141135,
+       -0.0690704991867861,
+       -0.06437569714461233,
+       0.16659368872365832
+      ],
+      "heavy": [
+       -0.04489712106347099,
+       -0.07032652421550267,
+       -0.06062050746682246,
+       -0.03812437299409055,
+       -0.014355706301792281,
+       -0.09343848239400643,
+       -0.107059575101907,
+       -0.14423387547410726,
+       -0.02805939740446206,
+       -0.04448208571002965,
+       -0.03962118398158765
+      ],
+      "very_heavy": []
+     }
+    },
+    "Ana": {
+     "misses": [
+      -0.10833395659885525,
+      -0.12574679566364466,
+      -0.08492548481819284,
+      0.018230087085022717,
+      0.15241564566296262,
+      0.05224661123164509,
+      -0.2094033207430286,
+      0.07685619489352291,
+      -0.09571960146705294,
+      0.007950950761554054,
+      -0.03377618330817711,
+      0.11537191161685456,
+      0.11733643857863285,
+      0.007906813302099636,
+      -0.05610717814960253,
+      -0.08624717060467191,
+      -0.06305598008793822,
+      -0.14385014802046214,
+      -0.1704771631282611,
+      -0.0020097029625461005,
+      -0.03119204192932301,
+      -0.1017885349185903,
+      0.10744530222018511,
+      -0.0837374274228253,
+      0.043501979421350256,
+      -0.06444953504520612,
+      0.13007088889647633,
+      0.03189555500494379,
+      0.008049980093488784,
+      0.020650084171336403,
+      0.23597479847087044,
+      0.2228245831052007,
+      0.18285737507238764,
+      0.2895629680644092,
+      0.24449994746348125,
+      0.2085416298279128,
+      -0.03135092557702279,
+      0.028655663622828342,
+      -0.09026053134488166,
+      -0.09605226920655952,
+      -0.010164496952128843,
+      -0.15238806619428402,
+      -0.07909520575413609,
+      -0.19341165587778875,
+      -0.16152040395474643,
+      0.008449672466447566,
+      -0.20636972940938847,
+      -0.16882389102753592,
+      -0.09839946038740521,
+      -0.07926468617188931,
+      -0.16880416588916347,
+      -0.04270185156445194,
+      -0.1092236131284352,
+      -0.21033643114147083,
+      -0.3903084204868179,
+      -0.16478360197102404,
+      -0.17301985584965252,
+      -0.2951452170992255,
+      -0.1805363153338888,
+      -0.1099742315932275,
+      -0.019366783465258663,
+      -0.01068340246553845,
+      -0.22662283541127692,
+      -0.17477092251333204,
+      -0.08598421398592393,
+      -0.18025594132928546,
+      -0.17046175652231454,
+      -0.18987743538820467,
+      -0.08108506580151698,
+      -0.19600564395737052,
+      -0.1264599729596938,
+      -0.09223801874203019,
+      -0.18250398142328095,
+      -0.1726600180696849,
+      -0.0334477294916411,
+      0.009439599410569599,
+      -0.10392863718454493
+     ],
+     "bias": {
+      "light": [
+       -0.019082140364375277,
+       -0.029557272453814676,
+       -0.020176265811706173,
+       -0.036610093945164124,
+       -0.04451448764991284,
+       0.0019144643771866754,
+       0.0011065784873665052,
+       0.0037304312843033927,
+       0.013804924276733743,
+       0.012969978693270434,
+       0.001364841863356503,
+       -0.06133117652610309,
+       0.009137796188376512,
+       -0.016633697632769895,
+       -0.014644988146095272,
+       -0.022124103343614365,
+       -0.021106341192208333,
+       -0.017812184905444894,
+       -0.01697319866805458,
+       -0.01688415363274487,
+       -0.002005960574670951,
+       -0.016948819305206086,
+       -0.017112180601714044,
+       -0.01710286271832473,
+       -0.005194189790636017,
+       -0.005692079217446633
+      ],
+      "moderate": [
+       0.007913068468418771,
+       0.0021158658040647538,
+       -0.0688833550275163,
+       -0.05544967018158786,
+       -0.036881877932621876,
+       -0.010863973407197136,
+       -0.0020529483293287853,
+       0.0009876089066551685,
+       -0.0066836166501360594,
+       -0.009753198242897554,
+       -0.004548337242653133,
+       0.00081714632859331,
+       0.016964123818354437,
+       -0.04319830324689633,
+       -0.0007344911481794725,
+       -0.008782255872851863,
+       -0.10016978566711998,
+       -0.10718716843845044,
+       -0.03823196232345083,
+       -0.047953175400252235,
+       0.038840965233838176,
+       -0.030276736659160974,
+       -0.024104929547661413,
+       -0.02986140442802565,
+       -0.03851609299630354,
+       -0.0326259068450554,
+       -0.02576316076793006,
+       -0.008185874132124127,
+       -0.011516087986755963,
+       -0.007919490686965958,
+       0.020945616188512872,
+       0.0022895076057523056,
+       0.013917055550876967,
+       0.0144681820308179,
+       -0.0006125839083424012,
+       -0.002762691772524306,
+       0.010095170136793286,
+       0.006599494849076848,
+       -0.0007172117505689357,
+       0.00967404296063279
+      ],
+      "heavy": [
+       -0.0481416486055366,
+       -0.0741962066307309
+      ],
+      "very_heavy": []
+     }
+    },
+    "Luis": {
+     "misses": [
+      -0.12786101998518262,
+      -0.14116870599213627,
+      -0.2093749595959693,
+      -0.23613810381202427,
+      -0.31098306871221126,
+      -0.46386535348672453,
+      0.1410795232683668,
+      -0.0848908289733572,
+      0.045021989375413796,
+      0.0669868787555501,
+      0.09654783882360363,
+      0.09034562332703899,
+      -0.0646029988624548,
+      0.15151737708615798,
+      0.02736701948085596,
+      -0.05712798349639314,
+      0.024690976434811773,
+      -0.06998757793909505,
+      -0.1366873031901079,
+      -0.2000883850069144,
+      0.10157584443687284,
+      -0.09217499089952241,
+      -0.15764713004576691,
+      -0.25914398381515724,
+      0.17431175923242392,
+      -0.05001183434991674,
+      0.01833120809115485,
+      -0.019114471286805212,
+      -0.13674213903897225,
+      -0.09274418353361824,
+      0.002483316329318086,
+      -0.13815470104086103,
+      0.005501604754158507,
+      -0.11595077979401225,
+      0.10064659866381476,
+      -0.06337932378444577,
+      0.10194688627672122,
+      -0.05948677655717205,
+      0.26645758111411055,
+      -0.029546020952174956,
+      -0.06190774711716074,
+      0.11094183406051883,
+      0.08498981061892863,
+      0.09905197159430656,
+      -0.0007834113372666707,
+      -0.1250558853871766,
+      -0.1090742367966655,
+      -0.27567733855428145,
+      -0.19404360379570562,
+      -0.12005472118556781,
+      -0.08077615125359472,
+      -0.08385142100446075,
+      -0.10329420201401973,
+      -0.010547149030358582,
+      0.04188086188460716,
+      0.01287151111806395,
+      0.015465987167814887,
+      -0.12104897074561194,
+      0.15605200026985955,
+      0.005550306101525848,
+      -0.13016437856189356,
+      0.013795609900348893,
+      -0.10060296002228597,
+      -0.1624566138051904,
+      -0.08832781103408394,
+      -0.22472779304785462,
+      -0.025581353250217376,
+      -0.2893488782998688,
+      0.12077187980710846,
+      -0.1842345614006291,
+      -0.049683385878815045,
+      -0.17716236416105602,
+      -0.28158350024694556,
+      -0.14915143155404564,
+      -0.24549463356167678,
+      0.02347920271749615
+     ],
+     "bias": {
+      "light": [
+       0.027322405867309385,
+       0.022007399317743648,
+       0.02505855658527878,
+       -0.013852449110153486,
+       0.01830819932563088,
+       0.011975075994335782,
+       0.004419512403877945,
+       0.027327949712230293,
+       0.02683119949065116,
+       -0.0019042130233515309,
+       -0.03143016311069147,
+       -0.014565835585059972,
+       -0.013112622641891392,
+       -0.001662116764215682,
+       -0.016424338692530682,
+       -0.016243324056304687,
+       -0.0023169547480534902,
+       -0.01446447134853912,
+       -0.0018998902367073356,
+       0.009206849500451142,
+       0.018824508444851062,
+       -0.010832273477994647,
+       0.01736016075565061,
+       -0.07020331293647786,
+       0.02279921017032649,
+       0.02925425586619923
+      ],
+      "moderate": [
+       0.12650077489991673,
+       0.02024917896049061,
+       -0.007159386255850109,
+       0.040443271126200386,
+       0.056049164548845454,
+       0.037478664847967025,
+       0.07870021930830973,
+       0.03243935568781353,
+       0.008262386313681702,
+       0.04171398500809431,
+       0.008540573192881595,
+       0.00954074260339155,
+       0.0018699265933861398,
+       0.0003442873228820531,
+       0.004090234568614903,
+       0.005255629155165309,
+       0.005297464124950579,
+       0.056928818322234065,
+       -0.0021833823273240682,
+       -0.004614968861986313,
+       0.04771002721818007,
+       0.06163706302373129,
+       0.07459717685426881,
+       0.06634479167439622,
+       0.0807475784700813,
+       0.05341887319654859,
+       0.00930904132774657,
+       0.080395428727563,
+       0.016608516535335127,
+       0.04101384874486058,
+       0.03248763630853091,
+       0.03297285969166097,
+       0.008485363097747722,
+       0.007459899266407888,
+       -0.002538269765139489,
+       -0.0026677815092881474,
+       -0.0028145932091874215,
+       -0.007071619085799341,
+       -0.002001915405820398,
+       -0.0027750845321889983,
+       -0.002866126355115739,
+       0.005799133588297423,
+       0.19648436421697113,
+       0.048168293734661916
+      ],
+      "heavy": [
+       0.18519812794934154,
+       0.07165002456704173
+      ],
+      "very_heavy": []
+     }
+    },
+    "Jada": {
+     "misses": [
+      0.027489723165480484,
+      0.22540761579232083,
+      0.3217832131221954,
+      0.008742292552952335,
+      -0.0568791317038162,
+      0.055815567129158694,
+      -0.08099597345043463,
+      0.1464904441294479,
+      0.10865556401126497,
+      -0.14209907477570027,
+      0.097923237213422,
+      0.05473215107657836,
+      -0.18398196683229884,
+      -0.31466158932444444,
+      -0.05011837871801106,
+      0.006979905694279864,
+      0.013339610866324847,
+      -0.06636246034160109,
+      0.24405056866529407,
+      0.24927720966931588,
+      0.13680267030589732,
+      0.1498893903060221,
+      0.07349380421336349,
+      0.17198342909738074,
+      -0.14042072602570954,
+      0.04535596544981502,
+      0.31063029909217477,
+      0.17632704049925962,
+      0.07556308190073224,
+      0.10555127826390986,
+      -0.2111163383408865,
+      -0.0016777249931152483,
+      -0.22712519972412792,
+      -0.23662557522865768,
+      -0.10560002531982349,
+      -0.048597308676434636,
+      0.1278076117063165,
+      0.10325714566894106,
+      0.17029611413137502,
+      -0.027762281224049445,
+      -0.1354971862365062,
+      0.119576932561408,
+      0.1108950333724934,
+      -0.17424111916410112,
+      -0.025351331231469487,
+      -0.12567052931742495,
+      -0.1921629186038416,
+      -0.2837448324847358,
+      -0.2323284101943699,
+      -0.15417067564555254,
+      -0.15844903841379931,
+      -0.2275853294788064,
+      -0.1545755432461391,
+      0.09680469916326473,
+      0.32196050031350154,
+      0.05813557986005691,
+      0.07990473782170682,
+      -0.005702021320118433,
+      0.03789839006608986,
+      -0.06021718603381743,
+      -0.07094762613935046,
+      -0.09665356378925338,
+      -0.11806080811074793,
+      0.17542111106192948,
+      -0.15387733035726114,
+      -0.292176242832177,
+      -0.20963154474299017,
+      -0.23973334829165793,
+      -0.287133861012677,
+      -0.24541299504311098,
+      -0.25551964640771274,
+      -0.011767733531904412,
+      -0.024817557143656188,
+      -0.10777790669406784,
+      -0.010489720762983268,
+      -0.10050444497424849,
+      0.07175020395120413,
+      0.18153246514145138,
+      0.22517937615619843,
+      0.1682378915621996,
+      0.32385361747083863,
+      0.12403070757944334,
+      0.3218100001025235
+     ],
+     "bias": {
+      "light": [
+       -0.007879270544229655,
+       0.02209233048724002,
+       -0.01278875595855311,
+       -0.01151523275986932,
+       -0.002541635223522576,
+       -0.0016353101560113714,
+       0.03787921759348478,
+       0.004110570619310749,
+       0.001983259736562104,
+       0.014701157605209403,
+       0.014343998902305088,
+       0.002606759075383991,
+       0.017410823763739813,
+       -0.005423160154755635,
+       -0.007891408198226202,
+       -0.01487961020159645,
+       -0.022913354389984875,
+       -0.009200703710341429,
+       -0.004584119126313624,
+       0.008938130059711114,
+       0.0009934074376118929,
+       0.007924886832107347,
+       0.0006064590775167744,
+       0.007828202152339259,
+       0.007732995356874994,
+       -0.0018163623937823559,
+       0.010879126018110696,
+       -0.011297295995831291,
+       -0.006689670808043502,
+       -0.005870644093675992,
+       -0.004014892952319826,
+       0.0023489088179573514
+      ],
+      "moderate": [
+       -0.03911911011162772,
+       0.001520704447109722,
+       -0.013129051736036956,
+       -0.027809032454932492,
+       0.0286328977408985,
+       0.00493822091927143,
+       -0.0016978507433975665,
+       0.009705555495166607,
+       0.010940461583643923,
+       0.011810139750444648,
+       0.012551490740015936,
+       -0.043357545894309624,
+       -0.0059228035919147715,
+       -0.014861495507062727,
+       -0.0029847273600296376,
+       0.04598535744263188,
+       0.0142108852330054,
+       0.062336622128256636,
+       0.016346616531016878,
+       -0.029141666801848487,
+       0.01722750490527858,
+       0.061384008113790856,
+       0.022335877710588647,
+       -0.032212560689060865,
+       -0.0049152014640583275,
+       0.009574457762440147,
+       -0.001688628160181338,
+       -0.007100844176640919,
+       -0.02496366078118939,
+       -0.02197337582886405,
+       -0.024995501717356206,
+       0.006508835581989558,
+       0.0026529247001363387,
+       -0.019065479707094823,
+       -0.003417451183850062,
+       0.0018112041126983058,
+       -0.02270183710203355,
+       -0.002655023701386483,
+       -4.395933044065714e-05,
+       -0.02005327435617943,
+       -0.021053935138638735
+      ],
+      "heavy": [
+       0.06336424102337901,
+       0.12012694522032064,
+       0.036034880547454406,
+       0.013299844632165048,
+       0.0376484902200005,
+       -0.03339502443850506,
+       0.009574332494821647
+      ],
+      "very_heavy": []
+     }
+    },
+    "Tom": {
+     "misses": [
+      -0.04516319436531546,
+      0.028877701375073173,
+      -0.10484239700802789,
+      -0.03059262202513935,
+      -0.14788795265853594,
+      0.0373172177529284,
+      -0.1022544571279056,
+      -0.03418636120795071,
+      0.005713103694802157,
+      -0.1749912966034941,
+      -0.09316456958509889,
+      0.026609280258412582,
+      -0.1666002754792828,
+      -0.10121150005678459,
+      -0.04355281955891144,
+      -0.00018918032684211994,
+      -0.08558117824922817,
+      -0.172079775025189,
+      -0.22045959495914502,
+      -0.1198864180261836,
+      -0.19368628848884129,
+      -0.31944324743265184,
+      -0.1396374213055367,
+      -0.1871270762701016,
+      -0.2084935649688191,
+      0.10175938606450785,
+      -0.12589407099131478,
+      -0.1008826511919878,
+      -0.10953507382703975,
+      -0.06974442569546824,
+      0.11965494396251586,
+      0.38081774191477535,
+      0.14642603273406252,
+      0.06517875257312511,
+      0.12844405389962077,
+      0.1921008421836703,
+      -0.023027422368514294,
+      0.148038993143345,
+      0.35430392308954595,
+      0.13916399080908093,
+      0.035617172054827506,
+      0.1460355277123,
+      -0.1828718943396339,
+      -0.00015331237938909226,
+      -0.0052903049422141635,
+      -0.01972739507887411,
+      -0.0940287512476985,
+      0.13052815575317567,
+      -0.2550207329468819,
+      -0.15571587024313516,
+      -0.06654011034785867,
+      -0.12164132685753515,
+      -0.21230911605976388,
+      -0.25229841223833205,
+      -0.2851681670089903,
+      -0.23801992216194634,
+      -0.15611115384044183,
+      -0.3145633671612842,
+      -0.07359276919635249,
+      -0.11386365338149318,
+      -0.12801128210534785,
+      -0.1329785730929416,
+      -0.15029756347519907,
+      -0.13745494996197039,
+      -0.005777462885347973,
+      0.044811966261420366,
+      0.09326109145467143,
+      0.1360509688571696,
+      0.06307525780402301,
+      -0.013481501578368693,
+      -0.06811708227689195,
+      0.011095782479799254,
+      -0.13963519741335517,
+      -0.028399443567167282,
+      0.1289495636330784,
+      0.04526522537300792,
+      -0.009487154503439399,
+      -0.12857092343630683
+     ],
+     "bias": {
+      "light": [
+       -0.014911445512844068,
+       0.005327386346273499,
+       -0.009080483049473287,
+       0.014813198255502869,
+       0.008259078110675944,
+       0.004435015590736668,
+       0.0035390999657067823,
+       0.006917978313467188,
+       0.008518900833081489,
+       0.004859857732135708,
+       0.0006138904339252349,
+       -0.0016859482843685214,
+       -0.03659197814702253,
+       0.02705468203879491,
+       -0.0010861467631499977,
+       0.001393272505566756,
+       0.00038411292532458674,
+       0.0032521602258839266,
+       -0.0030768865656156663,
+       -0.0031644818847098577,
+       -0.005451275370987219,
+       -0.0005011104541807754
+      ],
+      "moderate": [
+       -0.021685421438810693,
+       0.008036106082251138,
+       0.025114180170554334,
+       0.02201839994854282,
+       0.00167113514205397,
+       -0.022817244577829854,
+       -0.036748624503118776,
+       -0.018808428207606198,
+       -0.021567929753459225,
+       0.10141796111217616,
+       0.020809093665079104,
+       0.05747456015287611,
+       0.012616363886515103,
+       0.07095418052008284,
+       0.07380311269635342,
+       -0.002770465628152863,
+       -0.0019037238033945414,
+       -0.08262429450505948,
+       0.03135332161635063,
+       0.05333568182587811,
+       0.009495241518237663,
+       0.038212433774880594,
+       0.007142774220284309,
+       0.052003944043313766,
+       0.007530827838479581,
+       0.05075854629163956,
+       0.03548992544319418,
+       0.031470469736682105,
+       -0.006764933082379798,
+       -0.0033330680891410225,
+       0.008084656162111514,
+       0.002899383290163371,
+       0.0030884359220593183,
+       0.010330873086545012,
+       0.004072807406004131
+      ],
+      "heavy": [
+       0.016903380660636458,
+       -0.014993015301143942,
+       0.0083907808032464,
+       0.11905577697069702,
+       0.12328148540824202,
+       0.11854776118319421,
+       0.030118365615166454,
+       0.01589181711943155,
+       0.0045467438546467065
+      ],
+      "very_heavy": []
+     }
+    },
+    "Kofi": {
+     "misses": [
+      0.21598092837837157,
+      0.19049543336576846,
+      0.3226286785197843,
+      -0.0013986530287368737,
+      0.25164153457954797,
+      0.030277771788917107,
+      0.10371037924823412,
+      0.08007795878695845,
+      0.06658339141687719,
+      0.17984723160588345,
+      -0.15344549725104173,
+      -0.04868640596323104,
+      -0.21923586494340697,
+      -0.21837642946712776,
+      -0.16249668258722494,
+      -0.11923026289888838,
+      -0.0442187986074245,
+      -0.14276797849488787,
+      -0.219181070491814,
+      0.006296730068832801,
+      0.028249446910820097,
+      0.06899398969853365,
+      -0.00913853241423368,
+      -0.07313114972352963,
+      0.05107473289011466,
+      0.1643670141516793,
+      -0.1600877113451702,
+      0.11731231726042779,
+      -0.07964232734378385,
+      0.04144969071685978,
+      -0.1185867951014643,
+      -0.042708142269034965,
+      -0.041809144316822255,
+      -0.13417727900977638,
+      -0.07364357105473829,
+      -0.057628547976754874,
+      -0.045360121343314574,
+      -0.1467082916601612,
+      0.03460452203945863,
+      -0.12620935416274648,
+      -0.05574531219510703,
+      -0.08187746361677029,
+      0.05891633782375294,
+      0.1903884269411975,
+      -0.15653669136903403,
+      -0.024457112433744044,
+      -0.09127542370072916,
+      -0.13489857058596755,
+      0.1553291624608022,
+      -0.05952265880392815,
+      0.10773564645167255,
+      -0.04986202634921,
+      -0.052769671373724236,
+      -0.2558925101896037,
+      0.10992006920476882,
+      -0.010817712934773738,
+      -0.16225967373677008,
+      -0.17547266037887255,
+      -0.11418047420940525,
+      -0.08200123317050867,
+      -0.10510990269239784,
+      -0.011451749493488705,
+      -0.17357542873743625,
+      0.02661473983864937,
+      -0.10716618971868286,
+      -0.15705822168936123,
+      -0.13702791382565493,
+      -0.11464878566070524,
+      -0.15645746208165434,
+      -0.1698015749927535,
+      0.1623362293700552,
+      -0.21805245364863168,
+      -0.21426785290451278,
+      -0.1244975176331593,
+      -0.06285070482246624,
+      -0.05664213528742579,
+      -0.05731383359465525,
+      -0.11929401857570099,
+      -0.32607073379848117,
+      -0.04049389836659856,
+      -0.077596549766632,
+      -0.12136360992723638,
+      -0.10810436892395359,
+      0.018919188236779405
+     ],
+     "bias": {
+      "light": [
+       0.005271558612335525,
+       -0.04769586387368463,
+       -0.013897176973479475,
+       -0.004373442860860166,
+       -0.0002872998610641275,
+       -0.0035219565637518713,
+       0.0003559507846944143,
+       -0.009133685117703294,
+       0.0034250689605244133,
+       0.01384515650021001,
+       -0.0048004407200750165,
+       -0.0028755123786723402,
+       0.01364707889784711,
+       0.005151161570978502,
+       -0.0036906727697925135,
+       -0.016317214094016208,
+       -0.00195288014976569,
+       -0.016800544584960164,
+       0.048210646408861635,
+       -0.012743302323492856,
+       -0.003346155075675483,
+       -0.0036486019536567937,
+       -0.00288149515881031,
+       -0.004783598209108675,
+       -0.010713162395006748,
+       -0.001429502175540165,
+       -0.01000345823742066,
+       -0.009149506111228334,
+       -0.01107381374877292,
+       0.016008010077413815,
+       -0.012002539497849796,
+       -0.0036932106468370307,
+       0.017166560944076537,
+       0.016662058381932354,
+       0.007660402657919008,
+       0.054451363874136405,
+       -0.030395253329629668,
+       -0.024287921880052465,
+       -0.005609671504764435,
+       -0.02724463200757299,
+       -0.011215178157272021,
+       -0.01089030236997246
+      ],
+      "moderate": [
+       -0.04184896687700501,
+       0.00556731630192786,
+       -0.07074661403875382,
+       -0.006765417440114163,
+       -0.03062029779695763,
+       -0.005889532714967061,
+       -0.02754383789037007,
+       0.18447731812442925,
+       -0.013684361526301814,
+       0.2271459717220523,
+       0.20809602508065694,
+       -0.030444291265055767,
+       0.24206691586339701,
+       0.008018979301098739,
+       0.006632425096540828,
+       0.016942972455254335,
+       0.31255214229728523
+      ],
+      "heavy": [
+       -0.035211591834787725,
+       0.04284684799077354,
+       -0.07447053063981457,
+       -0.03944152446359084,
+       -0.025551573428138852,
+       0.028502303411855223,
+       -0.12754198015239382
+      ],
+      "very_heavy": []
+     }
+    }
+   },
+   "playbook": [
+    {
+     "id": "L1",
+     "text": "New hires heat up faster than forecast on moderate and heavy work from 9:00. Give them that work before 9:00 and light or indoor work after.",
+     "hint": {
+      "type": "avoid_intensity",
+      "who": "unacclimatized",
+      "intensities": [
+       "moderate",
+       "heavy",
+       "very_heavy"
+      ],
+      "from_hour": 9,
+      "penalty": 15
+     },
+     "source": "day 9",
+     "uses": 0,
+     "helped": 0
+    }
+   ],
+   "playbook_version": 1,
+   "genome": {
+    "settings": {
+     "objectives": [
+      "throughput",
+      "balanced",
+      "margin",
+      "fairness"
+     ],
+     "use_playbook": true,
+     "n_llm_ideas": 3,
+     "llm_direct_plan": true,
+     "fuse": true,
+     "w_peak": 0.5,
+     "w_fair": 0.002,
+     "w_complaint": 0.03,
+     "critic_instructions": "Check the soft constitution: rotate hot tasks fairly, keep new hires' heavy work early in the day, respect stated preferences, explain trade-offs.",
+     "time_limit_s": 3.0,
+     "weights": null
+    },
+    "strategy_note": ""
+   }
+  }
+ },
+ "llm": {
+  "model": "claude-opus-5-5",
+  "calls": 23,
+  "cost_usd": 0.4498,
+  "cap_usd": 4.9,
+  "blocked_by_cap": 0,
+  "errors": 0
+ },
+ "seconds": 8824.5,
+ "label": "Simulated days (not real shifts)"
+}

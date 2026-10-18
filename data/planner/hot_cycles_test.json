@@ -1,0 +1,446 @@
+{
+ "rows": [
+  {
+   "scenario": "test-1000",
+   "tags": [
+    "normal"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.99303773232761,
+    "true_peak": 38.128,
+    "minutes_above_yellow": 181,
+    "minutes_above_red": 0,
+    "tasks_completed": 3,
+    "throughput": 0.7976,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 13.5
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.99303773232761,
+    "true_peak": 38.128,
+    "minutes_above_yellow": 181,
+    "minutes_above_red": 0,
+    "tasks_completed": 3,
+    "throughput": 0.7976,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 16.8
+   }
+  },
+  {
+   "scenario": "test-1001",
+   "tags": [
+    "normal",
+    "callout"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.98417710525881,
+    "true_peak": 38.537,
+    "minutes_above_yellow": 354,
+    "minutes_above_red": 8,
+    "tasks_completed": 5,
+    "throughput": 0.6454,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 7.1
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.98670035562871,
+    "true_peak": 38.606,
+    "minutes_above_yellow": 370,
+    "minutes_above_red": 34,
+    "tasks_completed": 6,
+    "throughput": 0.7872,
+    "cycled_slots": 7,
+    "solve_rounds": 1,
+    "seconds": 9.0
+   }
+  },
+  {
+   "scenario": "test-1002",
+   "tags": [
+    "new_hire"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.92176790647429,
+    "true_peak": 37.977,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 6,
+    "throughput": 0.8014,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 7.9
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.99653262927976,
+    "true_peak": 37.995,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 6,
+    "throughput": 0.8315,
+    "cycled_slots": 3,
+    "solve_rounds": 1,
+    "seconds": 5.1
+   }
+  },
+  {
+   "scenario": "test-1003",
+   "tags": [
+    "storm_2pm"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.98174850451662,
+    "true_peak": 38.188,
+    "minutes_above_yellow": 40,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.6437,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 7.5
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.98174850451662,
+    "true_peak": 38.188,
+    "minutes_above_yellow": 40,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.6437,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 7.4
+   }
+  },
+  {
+   "scenario": "test-1004",
+   "tags": [
+    "warning"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.94889693117932,
+    "true_peak": 38.037,
+    "minutes_above_yellow": 64,
+    "minutes_above_red": 0,
+    "tasks_completed": 3,
+    "throughput": 0.637,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 5.1
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.94889693117932,
+    "true_peak": 38.037,
+    "minutes_above_yellow": 64,
+    "minutes_above_red": 0,
+    "tasks_completed": 3,
+    "throughput": 0.637,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 5.0
+   }
+  },
+  {
+   "scenario": "test-1005",
+   "tags": [
+    "heat_dome"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.99090409923433,
+    "true_peak": 38.096,
+    "minutes_above_yellow": 109,
+    "minutes_above_red": 0,
+    "tasks_completed": 2,
+    "throughput": 0.7649,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 10.9
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.94785021134126,
+    "true_peak": 38.096,
+    "minutes_above_yellow": 76,
+    "minutes_above_red": 0,
+    "tasks_completed": 1,
+    "throughput": 0.628,
+    "cycled_slots": 11,
+    "solve_rounds": 3,
+    "seconds": 14.5
+   }
+  },
+  {
+   "scenario": "test-1006",
+   "tags": [
+    "heat_dome",
+    "new_hire"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.937857060993494,
+    "true_peak": 38.155,
+    "minutes_above_yellow": 65,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.6923,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 6.3
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.937857060993494,
+    "true_peak": 38.155,
+    "minutes_above_yellow": 65,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.6923,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 6.2
+   }
+  },
+  {
+   "scenario": "test-1007",
+   "tags": [
+    "heat_dome",
+    "storm_2pm"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.93098978386564,
+    "true_peak": 37.977,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.5513,
+    "cycled_slots": 0,
+    "solve_rounds": 2,
+    "seconds": 1.8
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.99045798312805,
+    "true_peak": 38.066,
+    "minutes_above_yellow": 13,
+    "minutes_above_red": 0,
+    "tasks_completed": 6,
+    "throughput": 0.5833,
+    "cycled_slots": 11,
+    "solve_rounds": 3,
+    "seconds": 9.6
+   }
+  },
+  {
+   "scenario": "test-1008",
+   "tags": [
+    "heat_dome",
+    "warning",
+    "new_hire"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.90064781004092,
+    "true_peak": 37.856,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 4,
+    "throughput": 0.9381,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 7.3
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.908873543120365,
+    "true_peak": 37.816,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 3,
+    "throughput": 0.9469,
+    "cycled_slots": 10,
+    "solve_rounds": 1,
+    "seconds": 5.2
+   }
+  },
+  {
+   "scenario": "test-1009",
+   "tags": [
+    "replan"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.941057176026305,
+    "true_peak": 38.069,
+    "minutes_above_yellow": 32,
+    "minutes_above_red": 0,
+    "tasks_completed": 2,
+    "throughput": 0.4545,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 0.5
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.941057176026305,
+    "true_peak": 37.985,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 2,
+    "throughput": 0.4545,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 0.5
+   }
+  },
+  {
+   "scenario": "test-1010",
+   "tags": [
+    "heat_dome",
+    "replan"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.98772517218921,
+    "true_peak": 37.828,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 4,
+    "throughput": 0.3797,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 0.4
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.99664696957226,
+    "true_peak": 37.966,
+    "minutes_above_yellow": 0,
+    "minutes_above_red": 0,
+    "tasks_completed": 2,
+    "throughput": 0.4219,
+    "cycled_slots": 8,
+    "solve_rounds": 2,
+    "seconds": 0.8
+   }
+  },
+  {
+   "scenario": "test-1011",
+   "tags": [
+    "storm_2pm",
+    "new_hire",
+    "callout"
+   ],
+   "blocks": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.94847791908903,
+    "true_peak": 38.205,
+    "minutes_above_yellow": 324,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.9048,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 5.6
+   },
+   "cycles": {
+    "verified": true,
+    "safety_violations": 0,
+    "invalid": 0,
+    "planned_peak_p90": 37.94847791908903,
+    "true_peak": 38.205,
+    "minutes_above_yellow": 324,
+    "minutes_above_red": 0,
+    "tasks_completed": 5,
+    "throughput": 0.9048,
+    "cycled_slots": 0,
+    "solve_rounds": 1,
+    "seconds": 7.8
+   }
+  }
+ ],
+ "summary": {
+  "blocks": {
+   "minutes_above_yellow": 1169,
+   "minutes_above_red": 8,
+   "planned_peak_p90_mean": 37.956,
+   "planned_peak_p90_max": 37.993,
+   "true_peak_mean": 38.088,
+   "tasks_per_shift": 4.08,
+   "throughput": 0.6842,
+   "safety_violations": 0,
+   "verified": 12,
+   "scenarios_with_hot_slots": 6
+  },
+  "cycles": {
+   "minutes_above_yellow": 1133,
+   "minutes_above_red": 34,
+   "planned_peak_p90_mean": 37.965,
+   "planned_peak_p90_max": 37.997,
+   "true_peak_mean": 38.104,
+   "tasks_per_shift": 3.92,
+   "throughput": 0.6941,
+   "safety_violations": 0,
+   "verified": 12,
+   "scenarios_with_hot_slots": 6
+  }
+ }
+}

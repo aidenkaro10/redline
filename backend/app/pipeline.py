@@ -37,6 +37,7 @@ HR_SIGMA = {"watch": config.KALMAN_SIGMA_WATCH, "band": config.KALMAN_SIGMA_BAND
             "ble": config.KALMAN_SIGMA_WATCH}
 CONTEXT = ("wbgt", "workload")                  # per-minute values set from outside (weather, plan)
 HISTORY_KEEP = 600                              # estimates kept in memory for the dashboard (10 h)
+WBGT_CORRECTION_STALE_S = 180                   # a local air correction older than this is dropped
 
 
 def _r(x, nd=3):
@@ -75,6 +76,9 @@ class WorkerPipeline:
         # Known future (next 30 min): forecast WBGT and planned workload. The forecaster's
         # decoder reads these; without them its 90th percentile runs noticeably higher.
         self.future = {name: None for name in CONTEXT}
+        # Local air correction for this worker's WBGT input (band air sensor, backend/ingest/band_air.py).
+        self.wbgt_correction: float | None = None
+        self.wbgt_correction_t: float | None = None
 
         self.kalman = ECTempKalman()
         self.heat = HeatAlerter(demo)
@@ -109,9 +113,10 @@ class WorkerPipeline:
                 if value is not None:
                     self.bucket[name].append(float(value))
             if event.hr is not None:
-                # "band" = the band's pulse sensor, "ble" = Bluetooth heart rate, everything
-                # else (Pulsoid, replay, demo) counts as the watch.
-                src = event.source if event.source in ("band", "ble") else "watch"
+                # "band" = the band's pulse sensor (its own HR: line, or "band_ppg": worked out on the
+                # laptop from its raw PPG lines), "ble" = Bluetooth heart rate, everything else
+                # (Pulsoid, replay, demo) counts as the watch.
+                src = "band" if event.source == "band_ppg" else event.source if event.source in ("band", "ble") else "watch"
                 self.hr_bucket[src].append(float(event.hr))
                 self.last_reading["hr_source"] = src
             for name in ("hr", "skin_temp", "tilt", "activity", "accel"):
@@ -144,6 +149,19 @@ class WorkerPipeline:
             self.future["wbgt"] = future_wbgt
         if future_workload is not None:
             self.future["workload"] = future_workload
+
+    def set_wbgt_correction(self, correction_c: float | None, t: float) -> None:
+        """
+        The band's air sensor says this worker's air differs from the site's: add this (°C) to the
+        site WBGT this worker's forecaster sees. Already capped by band_air.py. None = no correction.
+        Ignored once it's WBGT_CORRECTION_STALE_S old. Alert thresholds never change.
+        """
+        self.wbgt_correction, self.wbgt_correction_t = correction_c, t
+
+    def _wbgt_correction(self, t: float) -> float:
+        if self.wbgt_correction is None or self.wbgt_correction_t is None:
+            return 0.0
+        return self.wbgt_correction if t - self.wbgt_correction_t <= WBGT_CORRECTION_STALE_S else 0.0
 
     def set_demo(self, on: bool) -> list[dict]:
         """Switch demo thresholds and re-check right away (no waiting for the next minute)."""
@@ -194,10 +212,12 @@ class WorkerPipeline:
             self.hr_by_source[src].append(float(np.mean(values)) if values else np.nan)
             self.hr_bucket[src] = []
         self.signals["hr"].append(self._blend_hr())
+        minute_end = self.t0 + 60 * (self.k + 1)
         for name in CONTEXT:
             value = self.context[name]
+            if name == "wbgt" and value is not None:
+                value = value + self._wbgt_correction(minute_end)     # local air (band air sensor), 0 if none
             self.signals[name].append(np.nan if value is None else float(value))
-        minute_end = self.t0 + 60 * (self.k + 1)
         estimate = self._estimate(minute_end)
         self.n_minutes += 1
         self.estimates.append(estimate)
@@ -253,6 +273,7 @@ class WorkerPipeline:
             "hr_watch": _r(self.hr_by_source["watch"][-1], 2), "hr_band": _r(self.hr_by_source["band"][-1], 2),
             "hr_ble": _r(self.hr_by_source["ble"][-1], 2),
             "hr_sources": sources,                   # which devices fed the Kalman this minute
+            "wbgt_local_correction": _r(self._wbgt_correction(t), 2) or None,   # band air sensor, °C
             "kalman": _r(ks.ct), "kalman_sd": _r(math.sqrt(ks.v), 4),
             "core_temp": _r(core), "core_temp_sd": _r(core_sd, 4),
             "core_temp_raw": _r(core_raw), "offset_c": _r(offset, 4),     # before the personal offset
@@ -284,10 +305,31 @@ class WorkerPipeline:
                    "miss_c": _r(est["core_temp_raw"] - thermometer_c),
                    "reason": None if accepted else "reading too far from the model, ignored as a bad reading",
                    **self.offset_status()}]
+        if accepted:
+            events += self._reapply_offset()
         if accepted and self.raw_inputs is not None and self.last_t is not None:
             self.last_inputs = self._corrected(self.raw_inputs)
             events += self._react(self.heat.update(self.last_t, self.last_inputs), self.last_t)
         return self._stamp(events)
+
+    def _reapply_offset(self) -> list[dict]:
+        """
+        Re-send the latest minute's estimate with the NEW offset (same minute, same timestamp),
+        so the chart moves right after a spot check instead of at the next minute.
+        """
+        if not self.estimates:
+            return []
+        e = self.estimates[-1]
+        if e.get("core_temp_raw") is None:
+            return []
+        old, new = e.get("offset_c") or 0.0, self.offset.offset_c
+        shift = old - new                                  # values were raw - old; now raw - new
+        e["core_temp"] = _r(e["core_temp_raw"] - new)
+        if e.get("forecast"):
+            for q in ("p10", "p50", "p90"):
+                e["forecast"][q] = [None if v is None else _r(v + shift) for v in e["forecast"][q]]
+        e["offset_c"] = _r(new, 4)
+        return [{**e, "forecast": dict(e["forecast"]) if e.get("forecast") else None, "refresh": True}]
 
     def offset_status(self) -> dict:
         return {"offset_c": round(self.offset.offset_c, 4), "confidence": round(self.offset.confidence, 3),
@@ -317,6 +359,8 @@ class WorkerPipeline:
             known = self.future.get(name)
             if known is not None:
                 known = np.array([np.nan if v is None else v for v in known[:horizon]], dtype=float)
+                if name == "wbgt" and self.last_t is not None:
+                    known = known + self._wbgt_correction(self.last_t)   # same local air offset ahead
                 future[:len(known)] = known
             arrays[name] = np.concatenate([np.array(values, dtype=float), future])
         return arrays

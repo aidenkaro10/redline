@@ -1,6 +1,6 @@
 # Self-improving system design
 
-How PlanIT Control gets better on its own, safely. Built from the CS329A course ([notes](cs329a-notes.md)) plus newer work (sources at the bottom).
+How Redline gets better on its own, safely. Built from the CS329A course ([notes](cs329a-notes.md)) plus newer work (sources at the bottom).
 
 ## The core argument
 

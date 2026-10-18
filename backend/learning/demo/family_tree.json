@@ -1,0 +1,366 @@
+{
+ "nodes": [
+  {
+   "id": "a0",
+   "parent": null,
+   "generation": 0,
+   "accepted": true,
+   "pareto": true,
+   "best": false,
+   "edit": "starting agent (session B defaults)",
+   "mutator": "seed",
+   "minibatch": null,
+   "scores": {
+    "score": 0.3784,
+    "strain_margin_c": -0.0146,
+    "throughput": 0.8232,
+    "fairness": -54.12,
+    "latency": -30.89,
+    "cost": -0.0,
+    "workers_alerted": 0.75,
+    "safety_violations": 0
+   },
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 0.5,
+    "w_fair": 0.002,
+    "w_complaint": 0.03,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": ""
+  },
+  {
+   "id": "a1",
+   "parent": "a0",
+   "generation": 1,
+   "accepted": true,
+   "pareto": true,
+   "best": false,
+   "edit": "The fairness candidate won all three days. The peak penalty (w_peak 0.5) is too weak to separate plans by heat: every winner had a predicted p90 peak near 37.9 \u00b0C. On cur-846c69f1 this caused an alert: Rosa (w3) ran 38.01 \u00b0C at 08:00 on shop repair, against a 37.83 \u00b0C forecast. The margin plan that ",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": 0.4735,
+    "child": 0.5675,
+    "scenarios": [
+     "cur-aa363cb1",
+     "cur-846c69f1",
+     "cur-5dcbd679"
+    ]
+   },
+   "scores": {
+    "score": 0.4031,
+    "strain_margin_c": 0.1222,
+    "throughput": 0.7169,
+    "fairness": -44.77,
+    "latency": -82.35,
+    "cost": -0.0,
+    "workers_alerted": 0.5,
+    "safety_violations": 0
+   },
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 1.5,
+    "w_fair": 0.002,
+    "w_complaint": 0.03,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": ""
+  },
+  {
+   "id": "a2",
+   "parent": "a1",
+   "generation": 2,
+   "accepted": false,
+   "pareto": false,
+   "best": false,
+   "edit": "On the heat-dome day, alerts came from long runs of the same hot task. Luis had 139 min on Pipe insulation from 10:30, and Marcus and Tom also hit alerts on Pipe insulation. Jada hit one on Transformer maintenance at midday. All four candidates had nearly identical predicted peaks (37.91-37.96), so ",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": -0.0247,
+    "child": -0.0247,
+    "scenarios": [
+     "cur-4a81884a",
+     "cur-8d420618",
+     "cur-1a789c47"
+    ]
+   },
+   "scores": null,
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 1.5,
+    "w_fair": 0.002,
+    "w_complaint": 0.08,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Rotate the hardest tasks (pipe insulation, transformer work, cable pulling, trenching) across the whole crew in short single-slot stints. Interleave them with lighter or indoor tasks. Front-load heavy work into the early morning, especially for new hires and temps. Keep midday and early afternoon for light tasks, so no one stays on one hard task for long."
+  },
+  {
+   "id": "a3",
+   "parent": "a1",
+   "generation": 2,
+   "accepted": false,
+   "pareto": false,
+   "best": false,
+   "edit": "Alerts happened on two of three days even though the chosen plans' forecast peaks looked safe. On cur-1a789c47, new hire Kofi alerted at 11:30 with actual 38.0\u00b0C against a forecast p90 of 37.85\u00b0C. On cur-6608d8de, Luis ran hot from 09:00 and Marcus from 12:00, with an actual peak of 37.945\u00b0C against",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": 0.3375,
+    "child": 0.3375,
+    "scenarios": [
+     "cur-6608d8de",
+     "cur-1a789c47",
+     "cur-9dda323a"
+    ]
+   },
+   "scores": null,
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 3.0,
+    "w_fair": 0.006,
+    "w_complaint": 0.03,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Prefer plans that spread heavy and very heavy tasks across the whole crew and alternate each worker between heavy and lighter tasks, rather than giving one person long consecutive runs of the same strenuous task."
+  },
+  {
+   "id": "a4",
+   "parent": "a0",
+   "generation": 1,
+   "accepted": false,
+   "pareto": false,
+   "best": false,
+   "edit": "The only alert was on day 1: Kofi, an unacclimatized new hire, was on Pipe insulation at 13:00. He had been doing moderate to very heavy tasks from 11:00 onward, and the findings had already flagged him with the largest excess per slot (0.186 over 4 slots). The optimizer:throughput plan won on all 3",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": 0.4068,
+    "child": 0.3878,
+    "scenarios": [
+     "cur-2f72db4d",
+     "cur-397fcd84",
+     "cur-492f162f"
+    ]
+   },
+   "scores": null,
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 2.0,
+    "w_fair": 0.002,
+    "w_complaint": 0.12,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Front-load new hires' heavy and very heavy tasks (pipe insulation, shop repair, trenching) into the early morning and give them lighter tasks after 11:00. Spread midday heavy tasks across several experienced workers rather than stacking them on one person, and keep priority-2 backlog moving in morning slots."
+  },
+  {
+   "id": "a5",
+   "parent": "a1",
+   "generation": 2,
+   "accepted": true,
+   "pareto": true,
+   "best": true,
+   "edit": "The only alert came from scenario cur-a91522a2. Sam (new hire, unacclimatized) was on Cable pulling at 09:00 and then on heavy and very heavy work from 11:00 onward. The critic flagged both new hires, but ranking still picked the balanced/fused plan: throughput 0.722, peak_p90 37.948. The margin pla",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": 0.3413,
+    "child": 0.5352,
+    "scenarios": [
+     "cur-53cd914e",
+     "cur-a91522a2",
+     "cur-d5d445a1"
+    ]
+   },
+   "scores": {
+    "score": 0.4515,
+    "strain_margin_c": 0.1727,
+    "throughput": 0.6985,
+    "fairness": -44.35,
+    "latency": -54.74,
+    "cost": -0.0,
+    "workers_alerted": 0.333,
+    "safety_violations": 0
+   },
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 2.5,
+    "w_fair": 0.002,
+    "w_complaint": 0.1,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Give unacclimatized new hires light or moderate tasks. If they must do heavy tasks, put them in the earliest slots and give their later slots to acclimatized crew. Prefer plans the critic has no new-hire complaints about."
+  },
+  {
+   "id": "a6",
+   "parent": "a1",
+   "generation": 2,
+   "accepted": false,
+   "pareto": false,
+   "best": false,
+   "edit": "Only one day had alerts, and it cost the most. On dead_watch (cur-6608d8de), half the crew alerted and the score fell from about 0.50 to 0.35. The facts show Marcus (from 12:00) and Luis (from 09:00) building up from moderate to heavy to very_heavy work: shop repair, then Transformer maintenance. Al",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": 0.3876,
+    "child": 0.3876,
+    "scenarios": [
+     "cur-37a9aa9d",
+     "cur-6608d8de",
+     "cur-5dcbd679"
+    ]
+   },
+   "scores": null,
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 1.5,
+    "w_fair": 0.002,
+    "w_complaint": 0.1,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Schedule very_heavy tasks in the early morning and split them across several crew members instead of giving one person a run of increasingly heavy tasks. Alternate heavy assignments with lighter shop or moderate work for the same person."
+  },
+  {
+   "id": "a7",
+   "parent": "a0",
+   "generation": 1,
+   "accepted": true,
+   "pareto": true,
+   "best": false,
+   "edit": "Heat-dome day (cur-4a81884a) produced 4.5 alerted workers. Actual peaks reached about 38.0\u00b0C while forecast p90 values were 37.5-37.8\u00b0C, so predicted peak above 37.5 is under-penalized. At w_peak=0.5 the ranking picked the fairness plan (peak 37.907) for a small throughput gain. That trade cost far ",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": -0.0514,
+    "child": 0.1035,
+    "scenarios": [
+     "cur-9dda323a",
+     "cur-4a81884a",
+     "cur-5e316842"
+    ]
+   },
+   "scores": {
+    "score": 0.4166,
+    "strain_margin_c": 0.2074,
+    "throughput": 0.6461,
+    "fairness": -47.63,
+    "latency": -63.74,
+    "cost": -0.0,
+    "workers_alerted": 0.333,
+    "safety_violations": 0
+   },
+   "settings": {
+    "objectives": [
+     "margin",
+     "throughput",
+     "balanced",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 3.0,
+    "w_fair": 0.002,
+    "w_complaint": 0.03,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Schedule heavy and very heavy tasks in the earliest hours and shift lighter or indoor tasks into midday and afternoon. Avoid giving any one worker back-to-back heavy tasks; alternate heavy and light assignments across the crew, especially for new hires."
+  },
+  {
+   "id": "a8",
+   "parent": "a5",
+   "generation": 3,
+   "accepted": true,
+   "pareto": true,
+   "best": false,
+   "edit": "Days 1 and 2 had no alerts, and the margin plan won both. Day 3 (new hire) is the failure. The throughput plan won by only 0.004 rank over balanced (peak_p90 37.924), and new hires Kofi and Sam were put on heavy and very_heavy work (Pipe insulation, Transformer maintenance) from 11:00. Kofi hit an a",
+   "mutator": "llm",
+   "minibatch": {
+    "parent": 0.558,
+    "child": 0.5742,
+    "scenarios": [
+     "cur-9dda323a",
+     "cur-5dcbd679",
+     "cur-111cb926"
+    ]
+   },
+   "scores": {
+    "score": 0.4098,
+    "strain_margin_c": 0.2656,
+    "throughput": 0.5687,
+    "fairness": -44.68,
+    "latency": -51.6,
+    "cost": -0.0,
+    "workers_alerted": 0.167,
+    "safety_violations": 0
+   },
+   "settings": {
+    "objectives": [
+     "throughput",
+     "balanced",
+     "margin",
+     "fairness"
+    ],
+    "fuse": true,
+    "w_peak": 5.0,
+    "w_fair": 0.002,
+    "w_complaint": 0.1,
+    "n_llm_ideas": 3
+   },
+   "strategy_note": "Unacclimatized new hires and temps get light or moderate tasks from late morning on. Any heavy work for them goes in the first slots only. Very_heavy tasks like transformer maintenance go to acclimatized crew. Accept a little less throughput rather than late heavy slots for new hires."
+  }
+ ],
+ "best": "a5",
+ "seed": "a0",
+ "pareto_front": [
+  "a0",
+  "a1",
+  "a5",
+  "a7",
+  "a8"
+ ],
+ "gain_val": 0.0731,
+ "llm": {
+  "model": "claude-opus-5-5",
+  "calls": 8,
+  "cost_usd": 0.3177,
+  "cap_usd": 3.0,
+  "blocked_by_cap": 0,
+  "errors": 0
+ },
+ "metrics_note": "Validation scenarios only (never shown to the mutator). fairness = -heat spread, latency = -seconds, cost = -dollars, so higher is better for all."
+}

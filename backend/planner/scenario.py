@@ -102,6 +102,9 @@ class Scenario:
     hazards: list[HazardWindow] = field(default_factory=list)
     slot_min: int = config.PLAN_SLOT_MIN
     tags: list[str] = field(default_factory=list)   # e.g. ["heat_dome", "storm_2pm"]
+    # How hot slots are worked: "cycles" (20 min work + 10 min shade inside the slot) or "blocks"
+    # (whole slots, then a 30-min break). None = config.PLAN_HOT_WORK_PATTERN.
+    hot_pattern: str | None = None
 
     @property
     def n_slots(self) -> int:
@@ -118,6 +121,17 @@ class Scenario:
         h, m = map(int, self.shift_start.split(":"))
         total = h * 60 + m + slot * self.slot_min
         return f"{total // 60:02d}:{total % 60:02d}"
+
+    def cycled_slots(self) -> set[int]:
+        """Hot slots worked as 20 min work + 10 min shade (empty when the pattern is "blocks")."""
+        pattern = self.hot_pattern or config.PLAN_HOT_WORK_PATTERN
+        if pattern != "cycles":
+            return set()
+        return {k for k, w in enumerate(self.weather) if w.wbgt >= config.PLAN_HOT_WBGT_C}
+
+    def work_minutes(self, slot: int) -> int:
+        """Minutes of actual work in a work slot: 20 in a cycled hot slot, else the whole slot."""
+        return config.PLAN_HOT_CYCLE_WORK_MIN if slot in self.cycled_slots() else self.slot_min
 
     def stop_work_slots(self) -> set[int]:
         """
@@ -147,6 +161,7 @@ class Scenario:
             hazards=[HazardWindow(**h) for h in d.get("hazards", [])],
             slot_min=d.get("slot_min", config.PLAN_SLOT_MIN),
             tags=d.get("tags", []),
+            hot_pattern=d.get("hot_pattern"),
         )
 
     def save(self, path: Path) -> None:
@@ -175,14 +190,19 @@ class Plan:
                    source=d.get("source", ""), notes=d.get("notes", ""),
                    lessons_used=list(d.get("lessons_used", [])))
 
-    def units_done(self, scenario: Scenario) -> dict[str, int]:
-        """How many work units each task gets (capped at what the task needs)."""
-        done = {t.id: 0 for t in scenario.tasks}
+    def units_done(self, scenario: Scenario) -> dict[str, float]:
+        """
+        How many work units each task gets (capped at what the task needs). A cycled hot slot
+        counts 2/3 of a unit (20 of its 30 minutes are work).
+        """
+        done = {t.id: 0.0 for t in scenario.tasks}
+        cycled = scenario.cycled_slots()
+        frac = config.PLAN_HOT_CYCLE_WORK_MIN / scenario.slot_min
         for slots in self.assignments.values():
-            for a in slots:
+            for k, a in enumerate(slots):
                 if a in done:
-                    done[a] += 1
-        return {tid: min(n, scenario.task(tid).units) for tid, n in done.items()}
+                    done[a] += frac if k in cycled else 1.0
+        return {tid: min(round(n, 6), scenario.task(tid).units) for tid, n in done.items()}
 
 
 def all_rest_plan(scenario: Scenario) -> Plan:

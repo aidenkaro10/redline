@@ -1,4 +1,4 @@
-# PlanIT Control: Team Project Doc
+# Redline: Team Project Doc
 
 Oct 17, 2026 · @Aiden
 
@@ -192,6 +192,8 @@ Each hazard gets its own buzz and LED pattern, so the worker knows what's wrong 
 | SOS | Worker holds the button 3 s | 3 beeps | Blinking purple; starts emergency escalation immediately |
 
 If a man-down check isn't cancelled within a minute, the crew lead and nearby crewmates get an alert on the dashboard. Thresholds are configurable; safety limits are hard-coded and never learned.
+
+Where the heat lines come from: ACGIH's heat stress TLV aims to keep core temperature below 38.0 °C for workers not used to heat and 38.5 °C for acclimatized workers; the 38.5 limit leaves a margin for measurement error and time to cool down, and sustained core temps above 39 °C signal losing the ability to cope (secondary sources quoting ACGIH; the primary ACGIH documentation is paywalled). For context: heat exhaustion usually happens at about 38-40 °C, and heat stroke is usually defined as core temp above 40 °C (some use 40.5-40.6) plus confusion, seizures or collapse (Bouchama and Knochel, 2002).
 
 ## Man-down detection
 

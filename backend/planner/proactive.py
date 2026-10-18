@@ -97,11 +97,12 @@ def slot_at(scenario: Scenario, ts: float) -> tuple[int, float]:
 def remaining_scenario(scenario: Scenario, plan: Plan, from_slot: int, core_now: dict) -> Scenario:
     """The rest of the shift from from_slot: weather, hazards and task work left; everyone starts at their current core temp."""
     sc = Scenario.from_dict(copy.deepcopy(scenario.to_dict()))
-    done_before = {t.id: 0 for t in scenario.tasks}
+    done_before = {t.id: 0.0 for t in scenario.tasks}
+    cycled = scenario.cycled_slots()
     for row in plan.assignments.values():
-        for a in row[:from_slot]:
+        for k, a in enumerate(row[:from_slot]):
             if a in done_before:
-                done_before[a] += 1
+                done_before[a] += scenario.work_minutes(k) / scenario.slot_min if k in cycled else 1.0
     sc.id = f"{scenario.id}@{from_slot}"
     sc.shift_start = scenario.slot_time(from_slot)
     sc.weather = sc.weather[from_slot:]

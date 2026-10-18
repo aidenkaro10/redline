@@ -27,6 +27,7 @@ from collections import deque
 from pathlib import Path
 
 from backend import config
+from backend.hazards.http import SSL_CONTEXT   # Mac python.org builds ship without HTTPS certificates
 
 log = logging.getLogger(__name__)
 FEED_PATH = Path(os.getenv("PLANNER_FEED_PATH", "data/planner/feed.jsonl"))
@@ -106,7 +107,7 @@ class Sms:
         body = urllib.parse.urlencode({"To": number, "From": sender, "Body": text[:320]}).encode()
         req = urllib.request.Request(TWILIO_URL.format(sid=sid), data=body, method="POST")
         req.add_header("Authorization", "Basic " + base64.b64encode(f"{sid}:{token}".encode()).decode())
-        with urllib.request.urlopen(req, timeout=15) as r:
+        with urllib.request.urlopen(req, timeout=15, context=SSL_CONTEXT) as r:
             if r.status >= 300:
                 raise RuntimeError(f"HTTP {r.status}")
 

@@ -28,3 +28,6 @@ data/raw/
 
 # Simulated data (regenerate with: python -m ml.simulate)
 data/sim/
+
+# Runtime call log (has real phone numbers): never commit
+data/emergency_log.jsonl

@@ -1,0 +1,16 @@
+{
+ "version": 0,
+ "lessons": [],
+ "day": 0,
+ "gate": {
+  "score": 0.2732,
+  "throughput": 0.8095,
+  "actual_peak_c": 38.0725,
+  "strain_margin_c": -0.0725,
+  "workers_alerted": 1.0,
+  "solve_rate": 0.125,
+  "safety_violations": 0,
+  "heat_spread": 52.425
+ },
+ "change": "empty playbook"
+}

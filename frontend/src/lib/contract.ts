@@ -394,6 +394,26 @@ export interface Snapshot {
   band: BandCommand[];
   /** Personal offsets, only for views allowed to see raw biometrics. Optional: older backends omit it. */
   offsets?: Record<string, OffsetUpdate>;
+  /** Latest air reading at each band (weather at the worker, not body data). Optional: older backends omit it. */
+  air?: Record<string, BandAir>;
+}
+
+/**
+ * The band's air sensor, once a minute (backend/ingest/band_air.py). Weather at the worker,
+ * not body data. wbgt_correction_c = how much this worker's WBGT input was raised (+) or
+ * lowered (-) because their air differs from the site's; null = no correction (see air_note).
+ */
+export interface BandAir {
+  worker_id: string;
+  timestamp: number;
+  air_temp_c: number | null;
+  humidity_pct: number | null;
+  pressure_hpa: number | null;
+  air_sane: boolean | null;
+  air_note: string | null;         // "ok", or why the reading isn't used ("reads like skin ...")
+  wbgt_correction_c: number | null;
+  site_air_temp_c: number | null;
+  site_humidity_pct: number | null;
 }
 
 export type LiveEvent =
@@ -412,7 +432,8 @@ export type LiveEvent =
   | { type: "band_command"; band: BandCommand }
   | { type: "report"; report: PhotoReport }
   | { type: "log"; entry: LogEntry }
-  | { type: "offset_update"; offset: OffsetUpdate };
+  | { type: "offset_update"; offset: OffsetUpdate }
+  | { type: "band_air"; air: BandAir };
 
 /** Who may see what. The server applies this; the UI never receives what it shouldn't. */
 export interface ViewFilter {

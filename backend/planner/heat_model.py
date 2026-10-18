@@ -27,12 +27,13 @@ This model is for planning ahead, when there's no heart rate yet.
 import threading
 import warnings
 import zlib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Protocol
 
 import numpy as np
 from pythermalcomfort.models import phs
 
+from backend import config
 from backend.planner.scenario import INTENSITIES, REST, REST_MET, REST_SHADE, Plan, Scenario, Worker
 
 PHS_STATE = ("t_re", "t_sk", "t_cr", "t_cr_eq", "t_sk_t_cr_wg", "sweat_rate_watt", "evap_load_wm2_min")
@@ -102,6 +103,10 @@ class CostTable:
     teq: dict
     start: dict
     activities: list
+    # Cycled hot slots only: the hottest moment is at the END OF THE WORK PART (minute 20), before the
+    # shade break. peak = (1 - alpha_peak) * T_now + alpha_peak * teq_peak. {(w, slot, activity): value}
+    alpha_peak: dict = field(default_factory=dict)
+    teq_peak: dict = field(default_factory=dict)
 
 
 class HeatModel(Protocol):
@@ -139,6 +144,8 @@ class PHSHeatModel:
     # --- the full model -----------------------------------------------------
     def simulate(self, scenario: Scenario, plans: list[Plan]) -> list[dict[str, np.ndarray]]:
         n_min = scenario.n_slots * scenario.slot_min
+        sm = scenario.slot_min
+        cycled = scenario.cycled_slots()
         rows = []   # one row per (plan, worker, member)
         for p_i, plan in enumerate(plans):
             for w in scenario.crew:
@@ -148,9 +155,15 @@ class PHSHeatModel:
                         for s in range(scenario.n_slots)]
                 ms = np.array([met_shade(a) for a in acts])                     # (slots, 2)
                 outdoor = np.array([a != REST and a[1] for a in acts], float)
+                # minute by minute, so the 10-min shade break inside a cycled hot slot is simulated
+                met_m, shade_m, indoor_m = np.repeat(ms[:, 0], sm), np.repeat(ms[:, 1], sm), np.repeat(1 - outdoor, sm)
+                for k in cycled:
+                    if acts[k] != REST:
+                        rest = slice(k * sm + config.PLAN_HOT_CYCLE_WORK_MIN, (k + 1) * sm)
+                        met_m[rest], shade_m[rest], indoor_m[rest] = REST_MET, REST_SHADE, 1.0
                 for m in range(self.n_members):
-                    rows.append({"plan": p_i, "worker": w, "met": ms[:, 0] * mem["met_x"][m],
-                                 "shade": ms[:, 1], "indoor": 1 - outdoor, "dtdb": mem["dtdb"][m],
+                    rows.append({"plan": p_i, "worker": w, "met": met_m * mem["met_x"][m],
+                                 "shade": shade_m, "indoor": indoor_m, "dtdb": mem["dtdb"][m],
                                  "clo": mem["clo"][m], "offset": mem["offset"][m]})
         core = self._run(scenario, rows, n_min)                                  # (rows, minutes)
 
@@ -163,7 +176,10 @@ class PHSHeatModel:
         return out
 
     def _run(self, scenario: Scenario, rows: list[dict], n_min: int) -> np.ndarray:
-        """Step PHS minute by minute. Rows sharing body size + acclimatization go in one call."""
+        """
+        Step PHS minute by minute. Rows sharing body size + acclimatization go in one call.
+        Each row's met / shade / indoor can be per minute (n_min) or per slot (n_slots, repeated here).
+        """
         sm = scenario.slot_min
         wx = scenario.weather
         tdb_s = np.array([w.tdb for w in wx]); rh_s = np.array([w.rh for w in wx])
@@ -176,8 +192,10 @@ class PHSHeatModel:
         for (weight, height, acc), idx in groups.items():
             idx = np.array(idx)
             g = [rows[i] for i in idx]
-            met = np.stack([r["met"] for r in g]); shade = np.stack([r["shade"] for r in g])
-            indoor = np.stack([r["indoor"] for r in g])
+            # rows may give met / shade / indoor per MINUTE or per SLOT (older callers, e.g. backend/learning)
+            per_min = lambda x: np.repeat(x, sm) if len(x) == scenario.n_slots and sm > 1 else x
+            met = np.stack([per_min(r["met"]) for r in g]); shade = np.stack([per_min(r["shade"]) for r in g])
+            indoor = np.stack([per_min(r["indoor"]) for r in g])
             dtdb = np.array([r["dtdb"] for r in g]); clo = np.array([r["clo"] for r in g])
             offset = np.array([r["offset"] for r in g])
             starts = np.array([r["worker"].start_core_c if r["worker"].start_core_c is not None else np.nan
@@ -189,10 +207,10 @@ class PHSHeatModel:
             for t in range(n_min):
                 s = t // sm
                 tdb = tdb_s[s] + dtdb
-                solar = sol_s[s] * (1 - indoor[:, s])
-                tr = mean_radiant(tdb, solar, shade[:, s])
+                solar = sol_s[s] * (1 - indoor[:, t])
+                tr = mean_radiant(tdb, solar, shade[:, t])
                 res = run_phs(tdb=tdb, tr=tr, v=np.full(len(g), wind_s[s]), rh=np.full(len(g), rh_s[s]),
-                              met=met[:, s], clo=clo, posture="standing", round_output=False,
+                              met=met[:, t], clo=clo, posture="standing", round_output=False,
                               limit_inputs=False, model="7933-2004", weight=weight, height=height,
                               acclimatized=acc, duration=1, **state)
                 state = {k: np.asarray(getattr(res, k), dtype=float) for k in PHS_STATE}
@@ -212,6 +230,7 @@ class PHSHeatModel:
         """
         acts = [REST] + sorted({(t.intensity, t.outdoor) for t in scenario.tasks})
         sm, n_s = scenario.slot_min, scenario.n_slots
+        cycled = scenario.cycled_slots()
         warmups = (REST, ("very_heavy", True))
         rows = []
         for w in scenario.crew:
@@ -222,7 +241,7 @@ class PHSHeatModel:
         groups = {}
         for i, (w, *_rest) in enumerate(rows):
             groups.setdefault((w.weight, w.height, 100 if w.acclim >= 0.5 else 0), []).append(i)
-        mid, end = np.zeros(len(rows)), np.zeros(len(rows))
+        mid, end, work_end = np.zeros(len(rows)), np.zeros(len(rows)), np.zeros(len(rows))
         for (weight, height, acc), idx in groups.items():
             g = [rows[i] for i in idx]
             wx = [scenario.weather[k] for (_, k, _, _) in g]
@@ -235,18 +254,26 @@ class PHSHeatModel:
                 indoor = np.array([0.0 if r[which] == REST else float(not r[which][1]) for r in g])
                 solar = np.array([x.solar for x in wx]) * (1 - indoor)
                 phases.append((ms[:, 0] * (1 + TABLE_Z * MET_SD), mean_radiant(tdb, solar, ms[:, 1])))
+            # cycled hot slots: the activity's last 10 min are a shade break (same as a rest slot here)
+            micro = np.array([k in cycled and a != REST for (_, k, _, a) in g])
+            rest_met = np.full(len(g), REST_MET * (1 + TABLE_Z * MET_SD))
+            rest_tr = mean_radiant(tdb, np.array([x.solar for x in wx]), REST_SHADE)
             state = {}
             for t in range(2 * sm):
                 met, tr = phases[t // sm]
+                if t >= sm + config.PLAN_HOT_CYCLE_WORK_MIN and micro.any():
+                    met, tr = np.where(micro, rest_met, met), np.where(micro, rest_tr, tr)
                 res = run_phs(tdb=tdb, tr=tr, v=v, rh=rh, met=met, clo=clo, posture="standing",
                               round_output=False, limit_inputs=False, model="7933-2004", weight=weight,
                               height=height, acclimatized=acc, duration=1, **state)
                 state = {k: np.asarray(getattr(res, k), dtype=float) for k in PHS_STATE}
                 if t == sm - 1:
                     mid[idx] = state["t_re"]
+                if t == sm + config.PLAN_HOT_CYCLE_WORK_MIN - 1:
+                    work_end[idx] = state["t_re"]
             end[idx] = state["t_re"]
 
-        alpha, teq, start = {}, {}, {}
+        alpha, teq, start, alpha_p, teq_p = {}, {}, {}, {}, {}
         i = 0
         for w in scenario.crew:
             off = w.core_offset_c + Z90 * w.core_sd_c
@@ -261,11 +288,16 @@ class PHSHeatModel:
                     a_row[a] = al
                     # teq from the hotter run (the one that matters near the limit)
                     t_row[a] = float((e_hi - keep * s_hi) / al + off)
+                    if k in cycled and a != REST:      # same fit, for the 20-min work part only
+                        p_lo, p_hi = work_end[i - 2:i]
+                        kp = float(np.clip((p_hi - p_lo) / (s_hi - s_lo), 0.02, 0.98)) if s_hi - s_lo > 0.05 else 0.1
+                        alpha_p[w.id, k, a] = 1 - kp
+                        teq_p[w.id, k, a] = float((p_hi - kp * s_hi) / (1 - kp) + off)
                 alpha[w.id].append(a_row)
                 teq[w.id].append(t_row)
             base = w.start_core_c - w.core_offset_c if w.start_core_c is not None else 36.8
             start[w.id] = float(base + off)
-        return CostTable(alpha=alpha, teq=teq, start=start, activities=acts)
+        return CostTable(alpha=alpha, teq=teq, start=start, activities=acts, alpha_peak=alpha_p, teq_peak=teq_p)
 
 
 def default_heat_model() -> HeatModel:
