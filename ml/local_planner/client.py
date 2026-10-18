@@ -40,7 +40,10 @@ _LOCK = threading.Lock()       # one generation at a time (the GPU can't share a
 
 def load_model(model_dir: Path = BASE_MODEL_DIR, adapter_dir: Path | None = ADAPTER_DIR):
     """Load (once) the base model and, if given and present, the LoRA adapter."""
+    import mlx.core as mx
     from mlx_lm import load
+    # Cap mlx's buffer cache. Without it, long sampling runs pinned ~11 GB on this 16 GB Mac and it swapped.
+    mx.set_cache_limit(int(os.getenv("LOCAL_PLANNER_MLX_CACHE_GB", "1")) << 30)
     adapter = str(adapter_dir) if adapter_dir and (Path(adapter_dir) / "adapters.safetensors").exists() else None
     key = (str(model_dir), adapter)
     if key not in _CACHE:

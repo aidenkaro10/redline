@@ -152,3 +152,48 @@ def test_self_training_keeps_only_safe_plans_that_do_real_work():
     assert len(kept) == 1 and kept[0]["scenario_id"] == "train-1" and kept[0]["rank"] == 0.45   # best per day only
     st = stats(graded)
     assert st["days_with_good"] == 1 and st["good_pass"] == 2 / 7
+
+
+def test_grammar_accepts_a_legal_plan_and_reads_it_back():
+    from backend.planner.optimizer import optimize
+    from ml.local_planner.constrained import PlanGrammar
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    plan = optimize(sc, "throughput", time_limit_s=1.0).plan
+    text = json.dumps({"assignments": {w.id: plan.assignments[w.id] for w in sc.crew}, "notes": "ok"},
+                      separators=(",", ":"))
+    for level in ("format", "rules"):
+        g = PlanGrammar(sc, level)
+        for i in range(0, len(text), 3):               # feed it in token-sized chunks
+            assert g.free or any(o.startswith(text[i:i + 1]) for o in g.options())
+            g.advance(text[i:i + 3])
+        assert g.free and g.assignments() == plan.assignments
+
+
+def test_grammar_rules_level_blocks_simple_rule_breaks():
+    from ml.local_planner.constrained import PlanGrammar
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    g = PlanGrammar(sc, "rules")
+    outdoor = {t.id for t in sc.tasks if t.outdoor}
+    for k in sc.stop_work_slots():
+        assert not (set(g.legal_values(0, k)) & outdoor)    # no outdoor work in a stop-work window
+    assert "rest" in g.legal_values(0, 0)
+    fmt = PlanGrammar(sc, "format")
+    k = sorted(sc.stop_work_slots())[0]
+    assert set(fmt.legal_values(0, k)) & outdoor or not any(t.outdoor for t in sc.tasks)   # format level allows it
+
+
+def test_edits_round_trip_and_illegal_edits_are_dropped():
+    from ml.local_planner.edits import apply_edits, diff_edits, parse_edits
+    sc = make_scenario(5, prefix="train", tags=["storm_2pm", "new_hire"])
+    base = {w.id: ["rest"] * sc.n_slots for w in sc.crew}
+    target = {w.id: list(r) for w, r in zip(sc.crew, base.values())}
+    free_task = next(t for t in sc.tasks if not t.skill and t.earliest == 0)
+    target[sc.crew[0].id][0] = free_task.id
+    edits = diff_edits(base, target)
+    assert edits == [[sc.crew[0].id, 0, free_task.id]]
+    plan, applied, dropped = apply_edits(sc, base, edits + [["nobody", 1, "rest"], [sc.crew[0].id, 99, "rest"],
+                                                            [sc.crew[0].id, 2, "t999"], "junk"])
+    assert plan == target and applied == 1 and dropped == 4
+    assert apply_edits(sc, base, [])[0] == base                       # empty list keeps the plan
+    assert parse_edits('{"edits": [["w1", 3, "rest"]], "notes": "x"}') == ([["w1", 3, "rest"]], "x")
+    assert parse_edits("nope")[0] is None

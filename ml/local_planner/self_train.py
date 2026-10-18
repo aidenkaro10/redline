@@ -89,6 +89,7 @@ def sample_and_grade(adapter_dir: Path | None, days: list[dict], k: int, tempera
 
 def sample(adapter_dir: Path | None, days: list[dict], k: int, temperature: float):
     """Yields one day at a time: the day plus its k sampled answers."""
+    import mlx.core as mx
     from mlx_lm import batch_generate
     from mlx_lm.sample_utils import make_sampler
     from ml.local_planner.client import load_model
@@ -101,6 +102,7 @@ def sample(adapter_dir: Path | None, days: list[dict], k: int, temperature: floa
         ids = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=True, enable_thinking=False,
                                       return_dict=False)
         r = batch_generate(model, tok, [ids] * k, max_tokens=900, sampler=sampler)
+        mx.clear_cache()                       # give the GPU memory back between days
         yield {**day, "texts": list(r.texts)}
         if (i + 1) % 10 == 0:
             print(f"    sampled {i + 1}/{len(days)} days ({time.time() - t0:.0f}s)", flush=True)
