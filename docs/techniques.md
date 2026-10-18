@@ -9,7 +9,7 @@ One line per technique: what we did in plain words, then the standard name and w
 3. **AI proposes, code approves.** Claude alone broke a safety rule in 92% of plans; with the code rule checker, 0% (generator-verifier pattern).
 4. **Acting before the alert.** The planner reacts to the forecast, not the current temp, so it uses where a worker is AND how fast they're heating (the forecaster reads the trend), and adds breaks or swaps tasks before anyone crosses the line (closed-loop replanning, model predictive control style).
 5. **New workers are the highest risk.** Most heat deaths at work happen in a worker's first days, and new hires are the most likely to push through. The planner treats workers not yet used to heat more carefully.
-6. **Breaks backed by research.** Shorter work/rest cycles (20 work / 10 rest) let core temp level off where longer ones (40/20) kept it climbing (IJERPH 2024, 21(3):371). Only claim this once session B's held-out test confirms it in our planner.
+6. **We test research claims instead of copying them.** A 2024 study found shorter work/rest cycles (20 work / 10 rest) let core temp level off where 40/20 kept climbing (IJERPH 2024, 21(3):371). We built it into the planner and tested it on 12 held-out days: 3% less time above the yellow line, but more time above the red line (34 vs 8 worker-minutes) and fewer tasks done. It had looked much better on training days. So the default stays as is, and 20/10 is an option (PLAN_HOT_WORK_PATTERN). Good "we measured it" story.
 
 ## Core temp right now
 

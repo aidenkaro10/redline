@@ -140,6 +140,8 @@ from backend.planner.agent import PlannerSession            # chat + tools
 r = plan_with_agent(demo_scenario())       # r.plan, r.check (ok, violations, peak_p90), r.reasons, r.log
 ```
 
+**Hot-hour pattern:** `Scenario.hot_pattern` = `"blocks"` (default, `config.PLAN_HOT_WORK_PATTERN`) or `"cycles"` (20 min work + 10 min shade inside every hot 30-min slot, counts 2/3 of the work; IJERPH 2024 21(3):371). The schedule shape doesn't change; in "cycles" a hot work slot simply means 20 on / 10 off. Held-out results and why it isn't the default: `docs/sessions/planner.md`, round 4.
+
 **Scenario JSON** (`backend/planner/scenario.py`): `id, site{id,name,lat,lon}, date, shift_start "07:00", slot_min 30, weather[{tdb, rh, solar, wind, wbgt}] (one per slot), crew[{id, name, weight, height, age, acclim 0-1, clo, skills[], start_core_c?, available? [slots], core_offset_c, core_sd_c}], tasks[{id, name, intensity light|moderate|heavy|very_heavy, units, outdoor, priority 1-3, earliest, deadline?, skill?}], hazards[{kind, start_slot, end_slot, source, note}], tags[]`.
 
 **Plan JSON**: `{"assignments": {"w1": ["t3", "rest", ...one per slot]}, "source", "notes", "lessons_used"}`.

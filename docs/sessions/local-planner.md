@@ -24,7 +24,7 @@ This is Aiden's call (it changes B's default). B owns the switch; the change is 
 
 ## How it was trained (STaR style)
 
-1. **Training days only.** 263 days: B's training generator (80), new seeds (40), F's curriculum bank plus new-seed variations (143). Code refuses `test-*` ids and any day whose content matches a held-out test day.
+1. **Training days only.** 263 days: B's training generator (80), new seeds (40), F's curriculum bank plus new-seed variations (143). Code refuses `test-*` ids and any day whose content matches a held-out test day. The content check hashes only a day's core facts (site, start time, weather numbers, crew bodies/skills/availability, tasks, hazard windows), not names or optional add-on fields. That way new planner fields (like B's round-3 storm chances) can't hide a copy of a test day. Re-checked after that change: 0 of the 263 trained-on days match a test day, by core content or by weather alone.
 2. **Teacher = B's Claude agent** (Opus 5.5, optimizer + rule checker). One change: Claude's critic step was skipped (half the cost, prompts too long for a small model; the code critic still runs). Every prompt, answer and cost was saved.
 3. **Keep only verified, good answers.** A day is kept if the agent's final plan passed the rule checker, isn't the all-rest fallback, does at least 30% of the work, and ranks at least as high as every optimizer-only plan.
 4. **Three examples per day**, one per job the LLM has in the pipeline:

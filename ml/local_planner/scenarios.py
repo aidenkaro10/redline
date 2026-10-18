@@ -28,11 +28,37 @@ F_BRANCH = "claude/agent-learning-d87832"
 VAL_SHARE = 0.1
 
 
+def _r(x):
+    """Round numbers so a JSON round-trip can't change the fingerprint."""
+    return None if x is None else round(float(x), 2)
+
+
 def fingerprint(sc: Scenario) -> str:
-    """Hash of the scenario's content without its id/tags (same idea as F's validator)."""
-    d = sc.to_dict()
-    d.pop("id"), d.pop("tags")
-    return hashlib.sha1(json.dumps(d, sort_keys=True).encode()).hexdigest()
+    """
+    Hash of the CORE facts of a day: site, start time, weather numbers, crew bodies, skills and
+    availability, the task list, hazard windows.
+
+    Left out on purpose: ids, tags, people's names, and optional add-on fields (storm/rain chances,
+    elevated / hard-to-stop flags, personal offsets). The planner keeps gaining fields like these, and
+    the saved test files don't have them, so including them would let a renamed copy of a test day
+    slip through (it happened when B added storm_prob and elevated in round 3).
+    """
+    core = {
+        "site": sc.site.get("id"), "date": sc.date, "shift_start": sc.shift_start,
+        "weather": [[_r(w.tdb), _r(w.rh), _r(w.solar), _r(w.wind), _r(w.wbgt)] for w in sc.weather],
+        "crew": [[w.id, _r(w.weight), _r(w.height), int(w.age), _r(w.acclim), _r(w.clo), sorted(w.skills),
+                  _r(w.start_core_c), w.available] for w in sc.crew],
+        "tasks": [[t.id, t.name, t.intensity, int(t.units), bool(t.outdoor), int(t.priority), int(t.earliest),
+                   t.deadline, t.skill] for t in sc.tasks],
+        "hazards": sorted([h.kind, int(h.start_slot), int(h.end_slot)] for h in sc.hazards),
+    }
+    return hashlib.sha1(json.dumps(core, sort_keys=True).encode()).hexdigest()
+
+
+def weather_fingerprint(sc: Scenario) -> str:
+    """Looser check: the same weather (rounded to 0.1) and start time, whatever the crew or tasks."""
+    return hashlib.sha1(json.dumps([sc.shift_start, [[round(w.tdb, 1), round(w.rh), round(w.wbgt, 1)]
+                                                     for w in sc.weather]]).encode()).hexdigest()
 
 
 _TEST_FPS = None
