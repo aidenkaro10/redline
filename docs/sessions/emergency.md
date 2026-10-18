@@ -41,7 +41,7 @@ Unverified: the trial message ("press any key") might clip the start of the call
 2. In the Twilio Console, click Phone Numbers > Verified Caller IDs. Add the teammate's cell (the pretend dispatcher). Do the same for the crew lead and safety officer phones.
 3. Click "Get a phone number" on the Console home page. Accept the number it offers.
 4. On the Console home page, find the Account SID and Auth Token. Leave the tab open.
-5. Go to elevenlabs.io > Agents. Click "Create agent" > "Blank agent". Name it "PlanIT emergency".
+5. Go to elevenlabs.io > Agents. Click "Create agent" > "Blank agent". Name it "Redline emergency".
 6. In "First message", type `{{script}}`.
 7. In "System prompt", paste the text of `AGENT_PROMPT` from `backend/emergency/voice_agent.py`.
 8. Click Save. Copy the agent ID shown under the agent name.
