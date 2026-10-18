@@ -70,7 +70,15 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
       .fromTo(v, { clipPath: "circle(6% at 50% 50%)", scale: 1.12 }, { clipPath: "circle(80% at 50% 50%)", scale: 1, duration: 1.6, ease: "expo.inOut" }, "<")
       .to(lensRef.current, { scale: 3.2, opacity: 0, duration: 1.6, ease: "expo.inOut" }, "<");
     const bail = setTimeout(() => finish(), 9000);   // if the video never plays, don't trap anyone
-    return () => { tl.kill(); clearTimeout(bail); };
+    // Scrolling, swiping or pressing a key skips the film (nobody likes being held back)
+    const skip = () => finish();
+    window.addEventListener("wheel", skip, { passive: true, once: true });
+    window.addEventListener("touchmove", skip, { passive: true, once: true });
+    window.addEventListener("keydown", skip, { once: true });
+    return () => {
+      tl.kill(); clearTimeout(bail);
+      window.removeEventListener("wheel", skip); window.removeEventListener("touchmove", skip); window.removeEventListener("keydown", skip);
+    };
   }, []);
 
   function finish(instant = false) {
@@ -124,7 +132,7 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
       {/* The scene: 92% of the screen tall, anchored bottom-right, edges feathered into the page color.
           Narrow screens crop the empty left side, never the site. Pin positions are % of this box. */}
       <div ref={sceneRef} className="absolute bottom-0 right-[-2vw]"
-        style={{ height: "92vh", width: `${92 * RATIO}vh`, maskImage: FEATHER, WebkitMaskImage: FEATHER, maskComposite: "intersect", WebkitMaskComposite: "source-in" }}>
+        style={{ contain: "layout paint", transform: "translateZ(0)", height: "92vh", width: `${92 * RATIO}vh`, maskImage: FEATHER, WebkitMaskImage: FEATHER, maskComposite: "intersect", WebkitMaskComposite: "source-in" }}>
         <img src="/landing/hero.jpg" alt="A miniature Florida power plant job site with five workers" className="absolute inset-0 h-full w-full" />
         <img src="/landing/night.jpg" alt="" className={`absolute inset-0 h-full w-full transition-opacity duration-[1400ms] ${night && !storm ? "opacity-100" : "opacity-0"}`} />
         <img src="/landing/storm.jpg" alt="" className={`absolute inset-0 h-full w-full transition-opacity duration-[1200ms] ${storm ? "opacity-100" : "opacity-0"}`} />

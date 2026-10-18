@@ -201,7 +201,7 @@ body {
 .flip-in { animation: flip-in .6s cubic-bezier(.22, 1, .36, 1) both; }
 .card-in { animation: card-in .45s cubic-bezier(.22, 1, .36, 1) both; }
 .ripple { animation: ripple 2.4s cubic-bezier(.2, .6, .3, 1) infinite; }
-.puff { animation: puff 4.2s ease-out infinite; }
+.puff { animation: puff 4.2s ease-out infinite; will-change: transform, opacity; }
 .led { animation: led 1.1s ease-in-out infinite; }
 .dot-pulse { animation: dot-pulse 1.8s ease-out infinite; transform-box: fill-box; transform-origin: center; }
 .pin-drop { animation: pin-drop .7s cubic-bezier(.2, .8, .2, 1) both; transform-box: fill-box; transform-origin: bottom; }
@@ -211,8 +211,8 @@ body {
 .heat-text {
   background: linear-gradient(90deg, #e8663d, #f59e3b, #e8453d, #f59e3b, #e8663d);
   background-size: 200% 100%;
+  background-position: 30% 50%;             /* still: an always-moving text gradient repaints every frame */
   -webkit-background-clip: text; background-clip: text; color: transparent;
-  animation: heat-text 12s linear infinite;
 }
 /* Moving rain on top of the storm picture: two tiled layers of short slanted streaks */
 .rain-layer {

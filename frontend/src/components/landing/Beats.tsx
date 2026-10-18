@@ -57,7 +57,7 @@ export function BandBeat() {
         scrollTrigger: { trigger: root.current, start: "top 65%" } });
       // ...then the section pins and the scroll wheel plays the chart like a film
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: root.current, start: "top top", end: "+=1800", scrub: 1.2, pin: true, anticipatePin: 1 },
+        scrollTrigger: { trigger: root.current, start: "top top", end: "+=1300", scrub: true, pin: true, anticipatePin: 1 },
       });
       tl.fromTo(q("[data-photo]"), { scale: 1.35, clipPath: "inset(18% 22% 18% 22% round 40px)" }, { scale: 1, clipPath: "inset(0% 0% 0% 0% round 28px)", duration: 1.2, ease: "power2.inOut" })
         .to(past, { strokeDashoffset: 0, duration: 1.2, ease: "none" })
@@ -142,12 +142,12 @@ export function CrewBeat() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const q = gsap.utils.selector(root);
-      gsap.from(q("[data-copy] > *"), { y: 36, opacity: 0, stagger: 0.08, duration: 1.2, ease: "expo.out",
+      // The words and the phone glide in as the section arrives (time-based, not tied to the wheel)...
+      gsap.from([...q("[data-copy] > *"), ...q("[data-phone]")], { y: 48, opacity: 0, stagger: 0.08, duration: 1.2, ease: "expo.out",
         scrollTrigger: { trigger: root.current, start: "top 65%" } });
-      const tl = gsap.timeline({ scrollTrigger: { trigger: root.current, start: "top 40%", end: "+=2000", scrub: 1.2 } });
-      ScrollTrigger.create({ trigger: root.current, start: "top top", end: "+=1600", pin: true, anticipatePin: 1 });
-      tl.fromTo(q("[data-phone]"), { y: 220, rotate: 3, opacity: 0 }, { y: 0, rotate: 0, opacity: 1, duration: 1.2, ease: "expo.out" })
-        .to(q("[data-ok='Jake Rivera']"), { opacity: 0, y: -6, duration: 0.35 }, "+=0.3")
+      // ...then it pins, and scrolling plays the re-sort. Same trigger for both, so nothing moves after it unpins.
+      const tl = gsap.timeline({ scrollTrigger: { trigger: root.current, start: "top top", end: "+=1100", scrub: true, pin: true, anticipatePin: 1 } });
+      tl.to(q("[data-ok='Jake Rivera']"), { opacity: 0, y: -6, duration: 0.35 }, 0.1)
         .from(q("[data-bad='Jake Rivera']"), { opacity: 0, y: 6, duration: 0.45, ease: "expo.out" }, "<")
         .to(q("[data-ok='Tasha Webb']"), { opacity: 0, y: -6, duration: 0.35 }, "<0.15")
         .from(q("[data-bad='Tasha Webb']"), { opacity: 0, y: 6, duration: 0.45, ease: "expo.out" }, "<");
@@ -253,7 +253,7 @@ export const FloridaBeat = forwardRef<HTMLElement>(function FloridaBeat(_, ref) 
             <path data-coast d={COAST} fill="url(#glow)" stroke="#f4ede2" strokeOpacity=".28" strokeWidth="1.2" strokeLinejoin="round" />
             {SITES.map((s, i) => (
               <g key={i} data-site>
-                {s.r > 0.8 && <circle cx={s.x} cy={s.y} r="4" fill={riskColor(s.r)} className="dot-pulse" style={{ animationDelay: `${(i % 5) * 0.3}s` }} />}
+                {s.r > 0.92 && <circle cx={s.x} cy={s.y} r="4" fill={riskColor(s.r)} className="dot-pulse" style={{ animationDelay: `${(i % 5) * 0.3}s` }} />}
                 <circle cx={s.x} cy={s.y} r="4" fill={riskColor(s.r)} stroke="#0d1220" strokeWidth="1.5"><title>{s.name}</title></circle>
               </g>
             ))}
