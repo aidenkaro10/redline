@@ -167,7 +167,7 @@ class Hub:
         derived = self.pipelines[event.worker_id].handle(event)
         for ev in derived:
             if ev["type"] == "sos":     # where the press came from: the band, the phone, a demo button
-                ev["source"] = "band" if source in ("serial", "udp", "live", "replay") else source
+                ev["source"] = "band" if source in ("serial", "udp", "ble_band", "live", "replay") else source
         out += derived
         self.dispatch(out)
 

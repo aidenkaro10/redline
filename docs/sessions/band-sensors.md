@@ -95,6 +95,18 @@ None yet. When the team records them (`docs/band-finish-guide.md` step 8: `data/
 
 Test: `.venv/bin/python -m pytest backend/tests/test_band_lines.py backend/tests/test_band_pulse.py backend/tests/test_band_motion_air.py backend/tests/test_band_stream.py`
 
+## Band over Bluetooth (Oct 18)
+
+The band is wireless now: Bluetooth LE with the Nordic UART Service, no WiFi needed. `backend/ingest/ble_band.py` finds "Redline Band" (or `BLE_BAND_DEVICE` in `.env`), subscribes to TX, rebuilds whole lines from the notifications (they can split or merge lines), stamps and parses them exactly like USB, and writes BUZZ commands to RX. It runs in its own helper process (like the heart rate one), reconnects with a growing pause (1 s ... 15 s), and the dashboard log shows "band connected over Bluetooth" / "band disconnected, reconnecting".
+
+Run with the real band:
+1. Band on, firmware flashed.
+2. `PLANIT_BLE=on .venv/bin/python -m backend.app.main --source live --band ble`
+3. First time: macOS asks for Bluetooth permission for Terminal. Say yes.
+4. The console logs "band connected over Bluetooth" and the band turns green (`BUZZ:OFF`).
+
+Without the server: `.venv/bin/python -m backend.ingest.ble_band --scan` (is it there?), then `.venv/bin/python -m backend.ingest.ble_band --send BUZZ:HEAT_RED` (prints every line, and the band should flash red). USB is still there: `--band usb` (or `--serial /dev/cu.usbmodem...`).
+
 ## Open items
 
 - Real recordings: the numbers above are synthetic only.
