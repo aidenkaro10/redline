@@ -585,7 +585,7 @@ test("19 judges: results numbers come from one data file and match docs/results.
   const results = readFileSync(join(DOCS, "results.md"), "utf8");
   const final = results.slice(results.indexOf("## FINAL: final_cv"));
   assert.ok(final.length > 100, "docs/results.md has the FINAL section");
-  for (const n of ["0.481", "0.370", "0.347", "0.398", "0.95", "88%, **16.9 min**, **0.20**", "88%, 13.0 min, 0.23", "90% (9/10)", "100% (10/10)", "0.308 -> 0.270"]) {
+  for (const n of ["0.481", "0.370", "0.347", "0.398", "0.95", "88%, **16.9 min**, 0.20", "88%, 13.0 min, 0.23", "88%, 16.1 min, 0.20", "90% (9/10)", "100% (10/10)", "0.308 -> 0.270"]) {
     assert.ok(final.includes(n), `FINAL section has ${n}`);
   }
   assert.match(readFileSync(join(DOCS, "sessions", "planner.md"), "utf8"), /92% of runs have safety violations/);
