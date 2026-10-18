@@ -33,8 +33,9 @@ AVERAGED = ("skin_temp", "activity")            # per-minute averages of these r
 # Heart rate can come from two devices. Each gets its own 1-minute average and its own
 # noise level (sigma, bpm) in the Kalman's sensor fusion (ECTempKalman.step_fused).
 # "ble" = a Bluetooth heart rate sensor (HeartCast relaying the watch, a chest strap, a Garmin).
+# "demo_input" = the labeled demo heart rate (backend/app/demo_hr.py); while it's on it's the only one used.
 HR_SIGMA = {"watch": config.KALMAN_SIGMA_WATCH, "band": config.KALMAN_SIGMA_BAND_PPG,
-            "ble": config.KALMAN_SIGMA_WATCH}
+            "ble": config.KALMAN_SIGMA_WATCH, "demo_input": config.KALMAN_SIGMA_WATCH}
 CONTEXT = ("wbgt", "workload")                  # per-minute values set from outside (weather, plan)
 HISTORY_KEEP = 600                              # estimates kept in memory for the dashboard (10 h)
 WBGT_CORRECTION_STALE_S = 180                   # a local air correction older than this is dropped
@@ -79,6 +80,8 @@ class WorkerPipeline:
         # Local air correction for this worker's WBGT input (band air sensor, backend/ingest/band_air.py).
         self.wbgt_correction: float | None = None
         self.wbgt_correction_t: float | None = None
+        # True while the demo heart rate input is on for this worker: other heart rates are ignored.
+        self.demo_hr_only = False
 
         self.kalman = ECTempKalman()
         self.heat = HeatAlerter(demo)
@@ -112,14 +115,18 @@ class WorkerPipeline:
                 value = getattr(event, name)
                 if value is not None:
                     self.bucket[name].append(float(value))
-            if event.hr is not None:
+            hr_used = event.hr is not None and (not self.demo_hr_only or event.source == "demo_input")
+            if hr_used:
                 # "band" = the band's pulse sensor (its own HR: line, or "band_ppg": worked out on the
-                # laptop from its raw PPG lines), "ble" = Bluetooth heart rate, everything else
-                # (Pulsoid, replay, demo) counts as the watch.
-                src = "band" if event.source == "band_ppg" else event.source if event.source in ("band", "ble") else "watch"
+                # laptop from its raw PPG lines), "ble" = Bluetooth heart rate, "demo_input" = the labeled
+                # demo input, everything else (Pulsoid, replay, demo) counts as the watch.
+                src = ("band" if event.source == "band_ppg" else
+                       event.source if event.source in ("band", "ble", "demo_input") else "watch")
                 self.hr_bucket[src].append(float(event.hr))
                 self.last_reading["hr_source"] = src
             for name in ("hr", "skin_temp", "tilt", "activity", "accel"):
+                if name == "hr" and not hr_used:
+                    continue                           # an ignored heart rate (demo input is on)
                 value = getattr(event, name)
                 if value is not None:
                     self.last_reading[name] = value
@@ -272,6 +279,9 @@ class WorkerPipeline:
             "hr": sig("hr"), "skin_temp": sig("skin_temp"), "activity": sig("activity"), "wbgt": sig("wbgt"),
             "hr_watch": _r(self.hr_by_source["watch"][-1], 2), "hr_band": _r(self.hr_by_source["band"][-1], 2),
             "hr_ble": _r(self.hr_by_source["ble"][-1], 2),
+            "hr_demo_input": _r(self.hr_by_source["demo_input"][-1], 2),
+            # The label the UI shows: "demo_input" whenever the demo input fed this minute.
+            "hr_source": "demo_input" if "demo_input" in sources else (sources[0] if sources else None),
             "hr_sources": sources,                   # which devices fed the Kalman this minute
             "wbgt_local_correction": _r(self._wbgt_correction(t), 2) or None,   # band air sensor, °C
             "kalman": _r(ks.ct), "kalman_sd": _r(math.sqrt(ks.v), 4),

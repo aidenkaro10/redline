@@ -41,7 +41,8 @@ class FakeLLM:
                                                "slots": list(range(self.sc.n_slots)),
                                                "intensities": ["very_heavy"], "text": "too much digging"}
                                               for name in shown]})
-        return "- Safe plan.\n- Storm handled.\n- Fair."
+        assert "never he/she" in prompt and "Facts:" in prompt
+        return "- Safe plan for everyone.\n- He gets 95% of the heavy work.\n- Storm work moved to 9 AM.\n- Fair rotation."
 
 
 def test_agent_no_key_gives_verified_plan(demo):
@@ -95,3 +96,14 @@ def test_benchmark_scores_and_runs(demo):
 def test_extract_json():
     assert extract_json('Sure!\n```json\n{"a": {"b": 1}}\n```') == {"a": {"b": 1}}
     assert extract_json("no json here") is None
+
+
+def test_llm_notes_never_replace_code_facts(demo):
+    from backend.planner.archon import ai_notes_from
+    r = plan_with_agent(demo, llm=FakeLLM(demo))
+    assert r.reasons[0].startswith("Peak 90th pct core temp")              # code facts, not LLM text
+    assert not any("95%" in x or x.startswith("He ") for x in r.reasons)
+    assert r.ai_notes == ["AI note: Safe plan for everyone.", "AI note: Fair rotation."]
+    assert len(r.ai_notes_raw) == 4                                         # unfiltered, evaluation only
+    assert ai_notes_from(["Kofi does light work", "Her break is at 9", "they rest at noon"]) == \
+        ["AI note: Kofi does light work", "AI note: they rest at noon"]

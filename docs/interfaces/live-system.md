@@ -82,6 +82,18 @@ Heart rate can also come from the watch through Pulsoid (online, tagged `watch`)
 
 `POST /spot-check` (alias `/api/spot-check`) `{worker_id, thermometer_c, timestamp?}`. The miss is the model's NOW estimate **before** any offset (the estimate nearest `timestamp`, default now on that worker's clock) minus the thermometer reading, fed to `PersonalOffset.add_check` (it rejects readings more than 1.5 °C off). `offset_c` is subtracted from the NOW estimate and every forecast percentile from then on, and the heat alert is re-checked right away. Capped at ±0.6 °C by the ML session's code; thresholds never change. Offsets are saved per worker in SQLite (`offsets`, every check in `spot_checks`) and reloaded when the worker reappears. Returns the `offset_update` event.
 
+### Demo heart rate input (labeled, for live demos without a pulse sensor)
+
+`POST /api/demo/heart_rate {mode, worker_id?}`. While `mode` isn't `off`, the server feeds that worker one heart rate per second (worker's clock) through the normal path, `source: "demo_input"`, Kalman sigma `KALMAN_SIGMA_WATCH`, and **ignores every other heart rate source for that worker**. Values: smooth random walk centered on 70 inside `DEMO_HR_REST_BPM` (65-75), or on 110 inside `DEMO_HR_ACTIVE_BPM` (105-115), always clamped inside the range after jitter, switching ramps over `DEMO_HR_RAMP_S` (45 s) with ±`DEMO_HR_JITTER_BPM` jitter, never a jump. Off after every restart, never on unless the endpoint is called. Labels for the UI ("Heart rate: demo input"):
+
+- `vitals` (demo / own-worker views): `hr_source: "demo_input"` on every message for that worker while it's on (`hr` is null on a message that carried another source's ignored value).
+- `estimate`: `hr_source` = `"demo_input"` for every minute that contains demo data (truthful per minute: the minute that ended before the switch says `"watch"`). Raw hub estimates also have `hr_demo_input`.
+- `demo_heart_rate` event on `/ws/live`, every view (no body numbers): `{type, timestamp, worker_id, mode, previous, demo, source: "demo_input"}`.
+- `DemoState.demo_heart_rate` (in `demo` messages and the snapshot): `{mode, worker_id, demo, source, range_bpm, ramp_s}`.
+- A log line on every change ("Jake: demo heart rate input ACTIVE (labeled demo data, not a sensor)").
+
+Crew view privacy unchanged: no vitals, estimates or heart rate values there.
+
 ### Small rules worth knowing
 
 - One `EmergencyCall` per incident, keyed by session D's incident id; its `mandown_id` is that worker's own incident. The single `emergency` slot (snapshot and live) always holds the call that belongs to the `mandown` on screen; when the incident on screen changes, its own call (or `null`) is sent right after it. Calls for other open incidents keep running and show when their incident is on screen. `EmergencyCall.worker_name` is an extra field.
@@ -130,6 +142,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | POST | `/api/demo/clear-hazards` | | |
 | POST | `/api/demo/mandown` | `{worker_id}` | fakes a fall (replay workers really tip over in the data) |
 | POST | `/api/demo/sos` | `{worker_id}` | fakes an SOS |
+| GET / POST | `/api/demo/heart_rate` | POST `{mode: "off" \| "rest" \| "active", worker_id?}` (default `WORKER_ID`; bad input 422) | `{mode, worker_id, demo, source: "demo_input", range_bpm, ramp_s}` (no heart rate values) |
 
 ### Live-system controls and plug-ins
 
@@ -197,6 +210,8 @@ Wiring (in `main.py`, active when `backend/emergency/` is merged): every `mandow
 ## 5. Band line protocol (implemented exactly, 115200 baud)
 
 Follows `docs/firmware-contract.md`. Band → laptop: `TEMP:34.62` (every 5 s), `TILT:1,ACT:7` (every 1 s; ACT = tilt switch changes in the last second), `ACC:0.98,0.02,0.11` (later), `BTN:1` (short press) and `BTN:SOS` (held 3 s), both parsed into `ButtonPress` with `kind` `press` / `sos`. Lines starting with `#` are firmware debug prints and are ignored. Accepted extras: `HR:<bpm>` (the band's pulse sensor, tagged `band`, fused with the watch), `ID:<worker_id>` over UDP (which worker a band is). Laptop → band: `BUZZ:HEAT_YELLOW|HEAT_RED|LIGHTNING|FLOOD_FIRE|MANDOWN|OFF`, sent on change plus the 20 s keep-alive.
+
+**Band over Bluetooth LE (`backend/ingest/ble_band.py`).** The band advertises as "Redline Band" (or `BLE_BAND_DEVICE`: name part or address) with the Nordic UART Service (service `6E400001-...`, TX notify `6E400003-...`, RX write `6E400002-...`). Same text lines as USB; notifications are buffered and split on `\n`, each complete line is stamped with the laptop clock and parsed by the shared parser (hub source `ble_band`; SOS still counts as source `band`). BUZZ commands go to RX through a `BleBand` output. Runs in a helper process (`python -m backend.ingest.ble_band --json`, separate from the heart rate helper), restarted with backoff if macOS kills it. Status: `band_link` events `{worker_id, transport: "ble", state: searching|connected|lost, device, address, message}`, passed through on `/ws/live` and logged ("band connected over Bluetooth", "band disconnected, reconnecting"). CLI: `--band auto|ble|usb` (auto = Bluetooth unless `--serial` is given; USB from `SERIAL_PORT` if Bluetooth can't start), `--band-device`. Never starts inside pytest or with `PLANIT_BLE=off`. Quick check without the server: `python -m backend.ingest.ble_band --scan`, `python -m backend.ingest.ble_band` (prints lines), `--send BUZZ:HEAT_RED`.
 
 **Band sensors (firmware contract 2b, `docs/sessions/band-sensors.md`).** `PPG:` (exactly 10 whole numbers 0-4095, else the line is dropped), `ACC:x,y,z`, `AIRT:` (-30..60 °C), `HUM:` (0..100 %), `BARO:` (300..1100 hPa) become a `BandSample`, not a `Reading`. The hub hands those to `backend/ingest/band_stream.py` (one `BandStream` per worker), so the 55 lines a second are never stored or broadcast one by one. What comes back into the hub:
 

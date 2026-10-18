@@ -41,7 +41,7 @@ Unverified: the trial message ("press any key") might clip the start of the call
 2. In the Twilio Console, click Phone Numbers > Verified Caller IDs. Add the teammate's cell (the pretend dispatcher). Do the same for the crew lead and safety officer phones.
 3. Click "Get a phone number" on the Console home page. Accept the number it offers.
 4. On the Console home page, find the Account SID and Auth Token. Leave the tab open.
-5. Go to elevenlabs.io > Agents. Click "Create agent" > "Blank agent". Name it "PlanIT emergency".
+5. Go to elevenlabs.io > Agents. Click "Create agent" > "Blank agent". Name it "Redline emergency".
 6. In "First message", type `{{script}}`.
 7. In "System prompt", paste the text of `AGENT_PROMPT` from `backend/emergency/voice_agent.py`.
 8. Click Save. Copy the agent ID shown under the agent name.
@@ -65,3 +65,8 @@ Unverified: the trial message ("press any key") might clip the start of the call
 - Live calls return once the call is placed (so the cancel window isn't held up). Transcript comes later via `fetch_transcript(conversation_id)`; not yet written back to the log.
 - `data/emergency_log.jsonl` holds phone numbers and isn't in `.gitignore` yet (shared file, Aiden's call).
 - Crew lead gets a call, not a text. Texting would need Twilio SMS.
+
+
+## Real test calls (Oct 18)
+
+Live calls placed from the main session to Aiden's phone through ElevenLabs + Twilio (toll-free number, agent "Redline emergency"). The first failed on HTTPS certificates (python.org Mac build); fixed by reusing the certifi context. Later calls connected. Live calls stay off by default (EMERGENCY_LIVE_CALLS=0).

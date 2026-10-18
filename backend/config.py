@@ -92,6 +92,7 @@ SERVER_PORT = int(os.getenv("SERVER_PORT", "8000"))
 PULSOID_TOKEN = os.getenv("PULSOID_TOKEN", "")
 SERIAL_PORT = os.getenv("SERIAL_PORT", "")
 WORKER_ID = os.getenv("WORKER_ID", "worker-1")
+WORKER_NAME = os.getenv("WORKER_NAME", "")      # the crew member wearing the band (shown on every screen and the emergency call)
 JOB_SITE_LAT = float(os.getenv("JOB_SITE_LAT", "29.6516"))   # Gainesville, FL
 JOB_SITE_LON = float(os.getenv("JOB_SITE_LON", "-82.3248"))
 NWS_USER_AGENT = os.getenv("NWS_USER_AGENT", "planit-control (contact@example.com)")
@@ -232,7 +233,16 @@ BAND_RESEND_S = 20           # re-send the current BUZZ status this often (real 
                              # the band blinks cyan "no connection" after 60 s without a command
 # Bluetooth heart rate (backend/ingest/ble_hr.py): HeartCast relaying the Apple Watch, a strap, a Garmin.
 BLE_HR_DEVICE = os.getenv("BLE_HR_DEVICE", "")   # part of the device name, or its address; "" = first 0x180D device
+# The band itself over Bluetooth LE (backend/ingest/ble_band.py): Nordic UART Service, same lines as USB.
+BLE_BAND_NAME = "Redline Band"                    # what the band advertises as
+BLE_BAND_DEVICE = os.getenv("BLE_BAND_DEVICE", "")  # part of the name, or its address; "" = BLE_BAND_NAME
 BLE_HR_STALE_S = 15          # connected but no heart rate this long -> "stale" status event
+# Labeled demo heart rate input (POST /api/demo/heart_rate), for live demos with no pulse sensor.
+# Never on unless someone presses the demo button; off again after every restart.
+DEMO_HR_REST_BPM = (65, 75)      # "rest" mode stays inside this range (resting, about 70)
+DEMO_HR_ACTIVE_BPM = (105, 115)  # "active" mode stays inside this range (running in place, about 110)
+DEMO_HR_RAMP_S = 45              # time to move between the ranges (climbs gradually, never jumps)
+DEMO_HR_JITTER_BPM = 2           # small second-to-second wiggle, ± bpm
 
 # ---------------------------------------------------------------------------
 # BAND SENSORS (backend/ingest/band_*.py): pulse light sensor (PPG), accelerometer,

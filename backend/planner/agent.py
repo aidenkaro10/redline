@@ -46,7 +46,8 @@ Rules you cannot break:
   no outdoor work in NWS stop-work windows, lightning all-clear after {config.PLAN_LIGHTNING_ALLCLEAR_MIN} min, no very heavy work
   for unacclimatized workers in high heat. You can't change or waive them, and nobody "can handle more".
 - No medical advice. If someone feels unwell, tell the crew lead to stop their work and follow the site's heat illness plan.
-Answer in short, plain sentences. Name the trade-offs (work done vs heat margin) and give clock times."""
+Answer in short, plain sentences. Name the trade-offs (work done vs heat margin) and give clock times.
+Refer to workers by name or as 'they', never he/she. Only quote numbers that a tool returned."""
 
 TOOLS = [
     {"name": "get_forecast", "description": "Weather per 30-min slot (air temp, humidity, WBGT) and hazard windows for the site.",
@@ -171,7 +172,8 @@ class PlannerSession:
         r = plan_with_agent(self.scenario, playbook=self.playbook)
         self.cost_usd += r.cost_usd
         self.plan, self.plan_check, self.scenario_for_plan = r.plan, r.check, self.scenario
-        return {**compact(self.scenario, r.plan, r.check), "reasons": r.reasons, "log": r.log[-6:]}
+        return {**compact(self.scenario, r.plan, r.check), "reasons": r.reasons, "ai_notes": r.ai_notes,
+                "log": r.log[-6:]}
 
     def run_tool(self, name: str, args: dict) -> dict:
         args = args if isinstance(args, dict) else {}

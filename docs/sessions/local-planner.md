@@ -1,6 +1,6 @@
 # Session I: local planner (Qwen3-1.7B + LoRA)
 
-Branch `claude/local-planner-ad9ed5`. Owns `ml/local_planner/`. Status: **done.** Teacher data collected, adapter trained, held-out evaluation run against the optimizer and Claude.
+Branch `claude/local-planner-ad9ed5`. Owns `ml/local_planner/`. Status: **done.** Teacher data collected, adapter trained, held-out evaluation run against the optimizer and Claude. Round 2 ($0, no Claude calls) tried constrained decoding, an edit format, a repair loop and one round of self-training: see "Round 2" below.
 
 ## The answer
 
@@ -77,6 +77,82 @@ This is Aiden's call (it changes B's default). B owns the switch; the change is 
 
 **API cost (all of it): $23.57.** Teacher $21.71 (527 calls), Claude re-run on the test days $1.86 (36 calls). Cap was $30. Log: `ml/local_planner/data/cost_log.jsonl`.
 
+## Round 2: making the standalone model better at $0
+
+Goal (from the main session, approved by Aiden): a local model that writes schedules that pass the rule checker AND do real work, without new Claude calls. Every option was measured on the 28 **validation** days only (4 samples a day); the held-out days were scored once at the end.
+
+"Good pass" = passes every rule AND does at least the optimizer-only plan's work minus 0.05. That's the number that matters: a plan that rests everyone always passes and is useless.
+
+**What each idea did (validation days; the optimizer alone does 0.66 of the work)**
+
+| Variant | Adapter | Valid | Pass every rule | Good pass | Work when passing | s / plan |
+| --- | --- | --- | --- | --- | --- | --- |
+| Free writing (what we had) | original | 79% | 22% | 3.6% | 0.44 | 3.6 |
+| Constrained decoding: format | original | **100%** | 22% | 2.7% | 0.36 | 4.8 |
+| Constrained decoding: format + simple rules | original | 100% | 37% | 3.6% | 0.46 | 4.9 |
+| ... + repair loop (show violations, 3 tries) | original | 100% | 56% | 3.6% | 0.45 | 19.9 |
+| Edit the optimizer's plan, untrained | original | 0% parsed (falls back to the optimizer plan) | | | | |
+| Edit format, after training on edits | edit | 100% | 79% | 78%* | 0.66 | 3.3 |
+| Edit format + repair | edit | 100% | 91% | 88%* | 0.66 | 8.0 |
+| Format + simple rules | edit | 100% | 54% | 7.1% | 0.43 | 4.4 |
+| **Format + simple rules** | **round 1 (self-trained)** | 100% | 50% | **11.6%** | **0.51** | 4.5 |
+| Free writing | round 1 | 83% | 41% | 4.5% | 0.41 | 3.5 |
+
+\* Not a real gain: 76% of edit answers changed nothing, so they're just the optimizer's plan. Of the 27 answers that did change the plan, 3 passed, and they scored below the optimizer. The edited plan beat the optimizer's plan score on 1 of 112 samples.
+
+What we learned:
+1. **Constrained decoding** (`constrained.py`) works: 100% valid schedules, no new libraries (an mlx-lm logits processor walks the JSON skeleton and only allows legal ids). "Format" stops bookkeeping errors; "format + simple rules" also blocks storm-window work, very heavy work for new hires and too-long work streaks. Heat (the 38.0 °C forecast) can't be checked token by token, and every remaining failure is heat. The rule checker still checks every plan afterwards.
+2. **Repair loop** raises the pass rate (37% → 56%) but not the good-pass rate: the model fixes heat problems by resting people.
+3. **Edit, don't write** is safe (it can always fall back to the optimizer's verified plan) but adds nothing: the model can't find edits that improve an already-optimized plan. Not worth shipping.
+4. **Self-training (expert iteration)** became possible once constrained decoding raised the good-pass rate. Round 1: 100 training days × 8 samples (rules-constrained), 6% good; kept the best good sample on 28 days, counted 3× next to 498 replayed Claude examples (plan, ideas, explain and edit jobs, so it doesn't forget any), one pass from the edit adapter. Good pass on validation 7.1% → 11.6%, and passing plans do more work (0.43 → 0.51). We stopped after one round, as agreed.
+5. The first self-training attempt (plain sampling, original adapter) found good samples in only 3.6% of tries, and was stopped at 20 of 100 days when mlx's GPU buffer cache grew to ~11 GB and the Mac swapped. Nothing from it was used. `client.py` now caps the mlx cache at 1 GB.
+
+**Held-out days (B's 12 test days, scored once; 5 samples per day; optimizer alone: 0.69 work)**
+
+First try, no rule checker in the loop:
+
+| Planner | Valid | Pass every rule | Good pass | Work when passing | Safety violations / plan | s / plan | $ / plan |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Claude Opus 5.5 alone | 100% | 8% | **8.3%** | **0.82** | 3.1 | 21.7 | 0.052 |
+| Qwen base, free | 0% | 0% | 0% | - | 0.6 | 6.1 | 0 |
+| Original adapter, free | 43% | 17% | 0% | 0.35 | 2.0 | 7.4 | 0 |
+| Original adapter, format + simple rules | 100% | 43% | 6.7% | 0.48 | 1.2 | 3.9 | 0 |
+| Round-1 adapter, free | 58% | 28% | 1.7% | 0.37 | 2.3 | 3.3 | 0 |
+| **Round-1 adapter, format + simple rules** | 100% | **57%** | 5.0% | 0.50 | 0.9 | 4.0 | 0 |
+| **Round-1 adapter, + repair loop** | 100% | **68%** | **8.3%** | 0.50 | 0.7 | 14.1 | 0 |
+
+Full planner (rule checker in the loop, 1 run per day, same solver settings):
+
+| Planner | Safety violations | Work done | Heat spread | Plan score | LLM's own schedule passed | s / plan | $ / plan |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Optimizer only | 0 | 0.68 | 31 | 0.382 | - | 12.7 | 0 |
+| Claude agent | 0 | 0.67 | 20 | 0.435 | 4 / 6 offered | 67.3 | 0.155 |
+| Agent + original adapter | 0 | 0.66 | 21 | 0.431 | 12 / 12 | 61.3 | 0 |
+| **Agent + round-1 adapter** | 0 | 0.66 | 21 | 0.429 | 8 / 12 | **49.2** | 0 |
+
+Honest read:
+- **Better, and not lazier, but not good.** On held-out days the round-1 adapter with constrained decoding passes every rule 3-4× as often as before (57-68% vs 17%), and its passing plans do more work (0.50 vs 0.35). With the repair loop it matches Claude alone on good passes (8.3%).
+- **Still far from the optimizer.** Its passing plans do 0.50 of the work; the optimizer does 0.69. Claude's rare passes do 0.82. Neither LLM should ever plan without the optimizer and the checker.
+- The validation gain in good passes (7.1% → 11.6%) didn't fully carry over to the 12 held-out days (6.7% → 5.0% without repair, 8.3% with it). 60 samples is a small sample.
+- **In the full pipeline nothing changed**: plan score 0.429 vs 0.431, within noise of Claude's 0.435, and it's the fastest (49 s). The pipeline uses free writing for the LLM's own schedule; constrained decoding isn't wired into it.
+
+**Are the explanations factually right? (no LLM judge; `explain_check.py`)** Every number, clock time and worker name in the crew-lead bullets has to be backed by the facts the model was given or by the day itself.
+
+| Days | Model | Answers | Claims checked | Unsupported |
+| --- | --- | --- | --- | --- |
+| Validation (same facts for both, never trained on) | Claude Opus 5.5 | 28 | 108 | **0** |
+| Validation | Original adapter | 28 | 86 | **0** |
+| Held-out (full facts saved) | Round-1 adapter | 12 | 33 | **0** (1 flag, a false positive: "not at 100%") |
+| Held-out (only the final plan's facts saved) | Claude Opus 5.5 | 12 | 54 | 12, nearly all numbers about the alternative plans, which this check can't see |
+
+- Headline: on the same facts, the local model's explanations are as factually clean as Claude's.
+- The free-text `notes` the model writes next to a schedule (without facts) are NOT reliable: the few percentages in them were wrong (for example "about 93%" for a plan doing 71%). Redline should show the code-written facts line, not those notes.
+- One wording issue for Redline: an explanation called a worker "his" (a pronoun guessed from a name). Add "refer to workers by name or as they" to the explain prompt (B's `archon.explain`).
+
+**Adapters** (all in `ml/checkpoints/local_planner/`, none overwritten): `adapter` (original), `adapter_edit` (edit format), `adapter_st1` (round 1, recommended). Pick one with `LOCAL_PLANNER_ADAPTER`.
+
+**Cost of round 2: $0.** GPU time ~6 h, CPU at most 3 processes.
+
 ## Files
 
 | File | What it does |
@@ -88,7 +164,13 @@ This is Aiden's call (it changes B's default). B owns the switch; the change is 
 | `train.py` | Waits for the main ML session, builds the dataset, runs `mlx_lm lora` |
 | `client.py` | `LocalLLM`: same interface as B's `LLM`, $0, no tool use |
 | `evaluate.py` | Held-out comparison (both tables above) |
-| `test_local_planner.py` | 8 pytest tests |
+| `constrained.py` | Constrained decoding (legal schedule JSON only), mlx-lm logits processor |
+| `edits.py` | Edit format: prompt, applying edits, edit training targets, optimizer plans per day |
+| `variants.py` | Validation (and the one held-out) runner for every variant, incl. the repair loop |
+| `self_train.py` | Expert iteration: sample, rule-check, keep good plans, retrain |
+| `train_v2.py` | Retrain on the edit format with replay of all jobs |
+| `explain_check.py` | Fact check of the crew-lead explanations |
+| `test_local_planner.py` | 14 pytest tests |
 | `data/` | Cost log, eval results (`eval/`), `teacher_runs.tar.gz` (all 263 runs), `sft.tar.gz` (training set) |
 
 ## How to run it
@@ -119,7 +201,22 @@ From the repo root after merging. Default paths: `data/local_planner/`, `ml/chec
    ```bash
    .venv/bin/python -u -m ml.local_planner.evaluate --only pipeline --models finetuned,base
    ```
-6. Run the tests:
+6. Round 2 (all $0). Validation check of any adapter and decoding:
+   ```bash
+   .venv/bin/python -u -m ml.local_planner.variants --adapter adapter_st1 --modes free,rules,rules+repair
+   ```
+   Retrain on the edit format, then one self-training round:
+   ```bash
+   .venv/bin/python -u -m ml.local_planner.train_v2
+   ```
+   ```bash
+   .venv/bin/python -u -m ml.local_planner.self_train --round 1 --start adapter_edit --decode rules --replay data/local_planner/sft_adapter_edit
+   ```
+   Explanation fact check on the validation days:
+   ```bash
+   .venv/bin/python -u -m ml.local_planner.explain_check --adapter adapter_st1
+   ```
+7. Run the tests:
    ```bash
    .venv/bin/python -m pytest ml/local_planner -q
    ```
@@ -140,4 +237,4 @@ The teacher (`python -m ml.local_planner.teacher`) is done. Running it again spe
 
 ## For the pitch
 
-A 1.7B model running on the laptop, trained on $22 of Claude's verified answers, plans as well as Claude inside our rule-checked pipeline. It costs $0 per plan and works offline, and workers' health data never leaves the site. On its own, without the checker, it's no safer than Claude, and neither is safe. The checker is the product, not the model. These are planning-model numbers on synthetic days, not real people.
+A 1.7B model running on Redline's laptop, trained on $22 of Claude's verified answers, plans as well as Claude inside our rule-checked pipeline, and its explanations are as factually clean as Claude's on the same facts. It costs $0 per plan and works offline, and workers' health data never leaves the site. On its own, without the checker, it's no safer than Claude, and neither is safe. The checker is the product, not the model. These are planning-model numbers on synthetic days, not real people.

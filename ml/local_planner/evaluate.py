@@ -146,7 +146,12 @@ def pipeline(model: str, scenarios: list[Scenario]) -> list[dict]:
                      "direct_given": direct is not None, "direct_ok": bool(direct and direct.check and direct.check.ok),
                      "direct_valid": bool(direct and direct.check and len(direct.check.violations) == direct.check.n_safety),
                      "ideas": sum(1 for c in r.candidates if c.name.startswith("llm-idea:")),
-                     "summary": r.summary, "reasons": r.reasons})
+                     "summary": r.summary, "reasons": r.reasons,
+                     # the LLM's own explanation bullets (B moved them out of `reasons`, which is code facts now)
+                     "ai_notes_raw": list(getattr(r, "ai_notes_raw", []) or []),
+                     # the exact facts the explain step was given (local models only; Claude's weren't saved)
+                     "explain_facts": next((c["prompt"].split("Facts:", 1)[-1] for c in getattr(llm, "log", [])
+                                            if c["prompt"].startswith("Write 3 short plain-language")), None)})
         print(f"  pipeline  {model:9s} {sc.id:10s} ok={s['success']} throughput {s['throughput']:.2f} "
               f"source {r.plan.source} direct_ok={rows[-1]['direct_ok']} ideas={rows[-1]['ideas']} "
               f"{r.latency_s:.0f}s", flush=True)

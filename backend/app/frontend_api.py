@@ -28,6 +28,8 @@ import time
 from collections import deque
 
 from fastapi import APIRouter, HTTPException, Request, WebSocket, WebSocketDisconnect
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 from backend import config
@@ -77,6 +79,12 @@ class FrontendAdapter:
         out: list[dict] = []
         if kind == "reading":
             v = {k: ev.get(k) for k in ("worker_id", "timestamp", "hr", "skin_temp", "activity", "tilt")}
+            # Which heart rate this is. While the demo input is on for this worker, always "demo_input"
+            # (and a real heart rate from another source never shows: it's ignored then).
+            demo_on = self.hub.demo_hr.mode != "off" and self.hub.demo_hr.worker_id == wid
+            if demo_on and ev.get("source") != "demo_input":
+                v["hr"] = None
+            v["hr_source"] = "demo_input" if demo_on else (ev.get("source") if v["hr"] is not None else None)
             self.vitals.setdefault(wid, deque(maxlen=KEEP * 12)).append(v)
             out.append({"type": "vitals", "vitals": v})
         elif kind == "estimate":
@@ -119,8 +127,8 @@ class FrontendAdapter:
         elif kind == "planner_change":
             # Session B's act-on-forecast feed (upsert by id). Body numbers are dropped for crew in broadcast().
             out.append(dict(ev))
-        elif kind == "hr_link":
-            # Heart rate link status (Bluetooth searching / connected / stale / lost). No body numbers.
+        elif kind in ("hr_link", "band_link"):
+            # Heart rate link / band link status (Bluetooth searching / connected / stale / lost). No body numbers.
             out.append(dict(ev))
         elif kind == "schedule":
             out.append({"type": "schedule", "schedule": ev["schedule"]})   # no body numbers: every view
@@ -129,6 +137,10 @@ class FrontendAdapter:
         elif kind == "offset_update":
             # Not in E's contract yet: passed through as-is ({worker_id, offset_c, confidence, n_checks, ...}).
             out.append({k: v for k, v in ev.items()})
+        elif kind == "demo_heart_rate":
+            # Mode only, no heart rate values (body data): every view may get it.
+            out.append({k: ev[k] for k in ("type", "timestamp", "worker_id", "mode", "previous", "demo", "source")})
+            out.append({"type": "demo", "demo": self.demo_state()})
         elif kind in ("demo", "replay"):
             out.append({"type": "demo", "demo": self.demo_state()})
         elif kind == "band_minute" and ev.get("air_temp_c") is not None:
@@ -181,6 +193,7 @@ class FrontendAdapter:
             "worker_id": ev["worker_id"], "timestamp": ev["timestamp"],
             "core": {"mean": core, "p10": round(core - Z90 * sd, 3), "p90": round(core + Z90 * sd, 3)},
             "kalman": ev.get("kalman"), "forecast": points,
+            "hr_source": ev.get("hr_source"),        # "demo_input" = labeled demo heart rate, show it
             # Session H's model-based why-line when merged, else a plain heart-rate sentence.
             "why": ev.get("why") or self._why(ev["worker_id"]),
             "thresholds": {"warning": warning, "danger": danger, "demo": self.hub.demo},
@@ -314,6 +327,8 @@ class FrontendAdapter:
                          "step": r.plan.description if r is not None else None,
                          "started_at": r.start if r is not None else None},
             "mock": False,
+            # Labeled demo heart rate input: {mode, worker_id, demo, source, range_bpm, ramp_s}.
+            "demo_heart_rate": self.hub.demo_hr.state(),
         }
 
     def sim_time(self) -> float:
@@ -515,10 +530,15 @@ class FrontendAdapter:
             return f"{name}: man-down {kind.split('_')[1]} ({ev['by']})"
         if kind == "sos":
             return f"{name}: SOS pressed"
+        if kind == "band_link" and ev["state"] in ("connected", "lost"):
+            return f"{name}: {ev['message']}"
         if kind == "hr_link" and ev["state"] in ("connected", "stale", "lost"):
             return f"{name}: Bluetooth heart rate {ev['state']}" + (f" ({ev['device']})" if ev.get("device") else "")
         if kind == "demo":
             return f"Demo thresholds {'ON' if ev['demo'] else 'off'}"
+        if kind == "demo_heart_rate":
+            return (f"{name}: demo heart rate input {ev['mode'].upper()} (labeled demo data, not a sensor)"
+                    if ev["mode"] != "off" else f"{name}: demo heart rate input off")
         if kind == "band_fall" and ev["accepted"]:
             return f"{name}: fall detected by the band ({ev['impact_g']} g impact, confirmed by {ev['confirmed_by']})"
         return None
@@ -812,6 +832,23 @@ async def clear_hazards(request: Request):
         for kind in list(kinds):
             hub.set_site_hazard(site, kind, False, source="demo button")
     return {"ok": True}
+
+
+class DemoHeartRateRequest(BaseModel):
+    mode: Literal["off", "rest", "active"]
+    worker_id: str | None = Field(default=None, min_length=1)
+
+
+@router.get("/api/demo/heart_rate")
+async def get_demo_heart_rate(request: Request):
+    """Current demo heart rate input: {mode, worker_id, demo, source, range_bpm, ramp_s}."""
+    return _a(request).hub.demo_hr.state()
+
+
+@router.post("/api/demo/heart_rate")
+async def post_demo_heart_rate(request: Request, body: DemoHeartRateRequest):
+    """Labeled demo heart rate for one worker (default WORKER_ID): rest / active / off. Bad input -> 422."""
+    return _a(request).hub.set_demo_heart_rate(body.mode, body.worker_id)
 
 
 class DemoReplay(BaseModel):
