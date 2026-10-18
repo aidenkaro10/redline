@@ -49,7 +49,9 @@ void out(const char* fmt, ...) {
   va_end(ap);
   if (n <= 0) return;
   if (n >= (int)sizeof buf) n = sizeof buf - 1;
-  Serial.write((const uint8_t*)buf, n);
+  // Only write to USB when a computer is actually listening. On a power bank or charger there's
+  // no computer, and waiting on USB writes would freeze the band.
+  if (Serial && Serial.availableForWrite() >= n) Serial.write((const uint8_t*)buf, n);
   bleQueue(buf, n);
 }
 
@@ -556,6 +558,7 @@ void bleQueue(const char*, size_t) {}
 // ============================================================ setup + loop
 void setup() {
   Serial.begin(115200);
+  Serial.setTxTimeoutMs(0);          // never wait on USB: the band must keep running with no computer attached
 
 #if defined(NEOPIXEL_POWER)
   pinMode(NEOPIXEL_POWER, OUTPUT);
