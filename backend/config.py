@@ -65,7 +65,8 @@ MANDOWN_STILL_S = 45         # tipped over + no movement this long -> check (spe
 MANDOWN_ESCALATE_S = 60      # not cancelled this long -> alert crew lead and crewmates
 # Demo only (--demo-timers): a judge can't wait 2+ minutes. Off by default; the real timers above stay the rule.
 DEMO_MANDOWN_STILL_S = 10     # demo: beep after 10 s still
-DEMO_MANDOWN_ESCALATE_S = 10  # demo: confirmed (crew lead call) 10 s later, about 20 s after the fall
+DEMO_MANDOWN_ESCALATE_S = 10  # demo: confirmed 10 s later, about 20 s after the fall
+DEMO_EMERGENCY_CANCEL_WINDOW_S = 0   # demo: the emergency call goes out the moment man-down is confirmed
 
 
 # ---------------------------------------------------------------------------

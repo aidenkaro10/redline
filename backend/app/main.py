@@ -233,9 +233,9 @@ def wire_emergency(hub: Hub, s) -> list[asyncio.Task]:
     from backend.alerts import mandown
     if getattr(s, "demo_timers", False):
         mandown.use_demo_timers(True)
-        kwargs["cancel_window_s"] = config.EMERGENCY_DEMO_CANCEL_WINDOW_S
+        kwargs["cancel_window_s"] = config.DEMO_EMERGENCY_CANCEL_WINDOW_S
         log.warning("DEMO TIMERS ON: man-down after %ss still, confirmed %ss later, emergency call %ss after that",
-                    config.DEMO_MANDOWN_STILL_S, config.DEMO_MANDOWN_ESCALATE_S, config.EMERGENCY_DEMO_CANCEL_WINDOW_S)
+                    config.DEMO_MANDOWN_STILL_S, config.DEMO_MANDOWN_ESCALATE_S, config.DEMO_EMERGENCY_CANCEL_WINDOW_S)
     manager = EscalationManager(phone=make_phone(s.emergency_phone),
                                 emit=lambda status: hub.dispatch([status.model_dump()]), **kwargs)
 
