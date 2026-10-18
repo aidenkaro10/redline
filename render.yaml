@@ -7,7 +7,7 @@ services:
     name: planit-control
     runtime: node
     plan: free
-    branch: claude/frontend-simple
+    branch: live                 # published by tools/publish_live.sh (scrubs a phone number first)
     rootDir: frontend
     buildCommand: npm ci && npm run build
     startCommand: npm start
