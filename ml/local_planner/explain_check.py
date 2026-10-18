@@ -138,8 +138,13 @@ def heldout(results_path: Path, keys: dict) -> dict:
         rows, full = [], []
         for r in raw.get(key, []):
             sc = scs[r["scenario"]]
-            bullets = "\n".join(r["reasons"][:-1])           # the last reason is the code facts line
-            rows.append({key: check(bullets, r["summary"] + "\n" + r["reasons"][-1], sc)})
+            if "ai_notes_raw" in r:                         # newer runs: LLM bullets kept apart, reasons = code facts
+                bullets = "\n".join(r["ai_notes_raw"])
+                plan_facts = r["summary"] + "\n" + "\n".join(r["reasons"])
+            else:                                           # older runs: LLM bullets + the code facts line last
+                bullets = "\n".join(r["reasons"][:-1])
+                plan_facts = r["summary"] + "\n" + r["reasons"][-1]
+            rows.append({key: check(bullets, plan_facts, sc)})
             if r.get("explain_facts"):
                 full.append({key: check(bullets, r["explain_facts"], sc)})
         out[label] = {"vs_final_plan_facts": summarize(rows, key) if rows else None,
