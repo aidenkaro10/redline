@@ -54,6 +54,8 @@ GRADE_WORKERS = 3        # CPU processes for the rule checker (session F also us
 REPLAY_IDEAS = 100       # how many of Claude's ideas / explain examples to replay each round
 REPLAY_EXPLAIN = 100
 LR = 5e-5
+DECODE = "free"          # "free", or "format"/"rules" = constrained decoding (constrained.py)
+REPLAY_DIR = None        # where the replay examples come from (default: the original Claude-taught set)
 
 
 # ---------------------------------------------------------------------------
@@ -101,9 +103,15 @@ def sample(adapter_dir: Path | None, days: list[dict], k: int, temperature: floa
         msgs = [{"role": "system", "content": LLM_SYSTEM}, {"role": "user", "content": llm_prompt(sc)}]
         ids = tok.apply_chat_template(msgs, add_generation_prompt=True, tokenize=True, enable_thinking=False,
                                       return_dict=False)
-        r = batch_generate(model, tok, [ids] * k, max_tokens=900, sampler=sampler)
+        if DECODE == "free":
+            texts = list(batch_generate(model, tok, [ids] * k, max_tokens=900, sampler=sampler).texts)
+        else:                                  # constrained decoding: legal shape/ids (+ simple rules)
+            from ml.local_planner.constrained import generate_constrained
+            res = generate_constrained(model, tok, sc, ids, k, temperature, level=DECODE)
+            texts = [json.dumps({"assignments": a or {}, "notes": parse_plan(t, "x").notes}, separators=(",", ":"))
+                     for t, a in res]
         mx.clear_cache()                       # give the GPU memory back between days
-        yield {**day, "texts": list(r.texts)}
+        yield {**day, "texts": texts}
         if (i + 1) % 10 == 0:
             print(f"    sampled {i + 1}/{len(days)} days ({time.time() - t0:.0f}s)", flush=True)
 
@@ -164,11 +172,20 @@ def stats(graded: list[dict], tol: float = WORK_TOL) -> dict:
 def build_round_dataset(kept: list[dict], days: dict, round_dir: Path, seed: int) -> dict:
     """Kept self-samples + replay of Claude's examples (from the original training set)."""
     rng = random.Random(seed)
-    claude = [json.loads(l) for l in (SFT_DIR / "train.jsonl").read_text().splitlines()]
-    plan = [e for e in claude if e["messages"][0]["content"] == LLM_SYSTEM]
-    ideas = [e for e in claude if e not in plan and e["messages"][0]["role"] == "system"]
-    explain = [e for e in claude if e not in plan and e not in ideas]
-    replay = plan + rng.sample(ideas, min(REPLAY_IDEAS, len(ideas))) + rng.sample(explain, min(REPLAY_EXPLAIN, len(explain)))
+    from ml.local_planner.edits import EDIT_SYSTEM
+    src = (REPLAY_DIR or SFT_DIR) / "train.jsonl"
+    claude, seen = [], set()
+    for line in src.read_text().splitlines():           # unique examples (the edit set has 2 copies of each)
+        if line not in seen:
+            seen.add(line)
+            claude.append(json.loads(line))
+    first = lambda e: e["messages"][0]
+    plan = [e for e in claude if first(e)["content"] == LLM_SYSTEM]
+    edits = [e for e in claude if first(e)["content"] == EDIT_SYSTEM]
+    ideas = [e for e in claude if first(e)["role"] == "system" and first(e)["content"] not in (LLM_SYSTEM, EDIT_SYSTEM)]
+    explain = [e for e in claude if first(e)["role"] != "system"]
+    replay = plan + rng.sample(ideas, min(REPLAY_IDEAS, len(ideas))) + rng.sample(explain, min(REPLAY_EXPLAIN, len(explain))) \
+        + rng.sample(edits, min(REPLAY_IDEAS, len(edits)))
     mine = []
     for k in kept:
         sc = Scenario.from_dict(days[k["scenario_id"]]["scenario"])
@@ -203,6 +220,7 @@ def retrain(start_adapter: Path, new_adapter: Path, data_dir: Path, n_examples: 
 # 5. Validation check
 # ---------------------------------------------------------------------------
 def val_check(adapter_dir: Path, out_path: Path) -> dict:
+    """Same samples per day, temperature and decoding as the variants' validation runs."""
     days = load_days("val")
     graded = sample_and_grade(adapter_dir, days, VAL_K, 0.7)
     s = stats(graded)
@@ -241,7 +259,12 @@ def main():
     ap.add_argument("--round", type=int, default=0)
     ap.add_argument("--start", default="adapter", help="adapter folder name under ml/checkpoints/local_planner")
     ap.add_argument("--check-only", action="store_true")
+    ap.add_argument("--decode", default="free", choices=["free", "format", "rules"])
+    ap.add_argument("--replay", default="", help="sft folder to replay from (default: the original set)")
     args = ap.parse_args()
+    global DECODE, REPLAY_DIR
+    DECODE = args.decode
+    REPLAY_DIR = Path(args.replay) if args.replay else None
     start = CKPT_DIR / args.start
     if args.check_only:
         val_check(start, out_dir(ST_DIR) / f"val_{args.start}.json")
