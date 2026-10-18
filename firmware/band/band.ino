@@ -324,8 +324,8 @@ bool readAccel(float& x, float& y, float& z) {
 }
 
 // ---- BME280 / BMP280 (air temperature, humidity, pressure), Bosch datasheet formulas ----
-uint16_t T1, P1; int16_t T2, T3, P2, P3, P4, P5, P6, P7, P8, P9;
-uint8_t H1, H3; int16_t H2, H4, H5; int8_t H6;
+uint16_t dig_T1, dig_P1; int16_t dig_T2, dig_T3, dig_P2, dig_P3, dig_P4, dig_P5, dig_P6, dig_P7, dig_P8, dig_P9;
+uint8_t dig_H1, dig_H3; int16_t dig_H2, dig_H4, dig_H5; int8_t dig_H6;
 uint32_t nextAirMs = 0;
 
 void setupAirSensor() {
@@ -336,17 +336,17 @@ void setupAirSensor() {
     airAddr = a; airHasHumidity = (id == 0x60);
     uint8_t c[26];
     readRegs(a, 0x88, c, 26);
-    T1 = c[1] << 8 | c[0]; T2 = c[3] << 8 | c[2]; T3 = c[5] << 8 | c[4];
-    P1 = c[7] << 8 | c[6]; P2 = c[9] << 8 | c[8]; P3 = c[11] << 8 | c[10]; P4 = c[13] << 8 | c[12];
-    P5 = c[15] << 8 | c[14]; P6 = c[17] << 8 | c[16]; P7 = c[19] << 8 | c[18]; P8 = c[21] << 8 | c[20];
-    P9 = c[23] << 8 | c[22]; H1 = c[25];
+    dig_T1 = c[1] << 8 | c[0]; dig_T2 = c[3] << 8 | c[2]; dig_T3 = c[5] << 8 | c[4];
+    dig_P1 = c[7] << 8 | c[6]; dig_P2 = c[9] << 8 | c[8]; dig_P3 = c[11] << 8 | c[10]; dig_P4 = c[13] << 8 | c[12];
+    dig_P5 = c[15] << 8 | c[14]; dig_P6 = c[17] << 8 | c[16]; dig_P7 = c[19] << 8 | c[18]; dig_P8 = c[21] << 8 | c[20];
+    dig_P9 = c[23] << 8 | c[22]; dig_H1 = c[25];
     if (airHasHumidity) {
       uint8_t h[7];
       readRegs(a, 0xE1, h, 7);
-      H2 = h[1] << 8 | h[0]; H3 = h[2];
-      H4 = (int16_t)((int8_t)h[3] << 4 | (h[4] & 0x0F));
-      H5 = (int16_t)((int8_t)h[5] << 4 | (h[4] >> 4));
-      H6 = (int8_t)h[6];
+      dig_H2 = h[1] << 8 | h[0]; dig_H3 = h[2];
+      dig_H4 = (int16_t)((int8_t)h[3] << 4 | (h[4] & 0x0F));
+      dig_H5 = (int16_t)((int8_t)h[5] << 4 | (h[4] >> 4));
+      dig_H6 = (int8_t)h[6];
       writeReg(a, 0xF2, 0x01);     // humidity x1 (must come before 0xF4)
     }
     writeReg(a, 0xF5, 0x08);       // filter x4 (steadier pressure for fall detection)
@@ -365,31 +365,31 @@ void updateAir(uint32_t now) {
   int32_t adcP = (int32_t)d[0] << 12 | d[1] << 4 | d[2] >> 4;
   int32_t adcT = (int32_t)d[3] << 12 | d[4] << 4 | d[5] >> 4;
 
-  double v1 = (adcT / 16384.0 - T1 / 1024.0) * T2;
-  double v2 = (adcT / 131072.0 - T1 / 8192.0); v2 = v2 * v2 * T3;
+  double v1 = (adcT / 16384.0 - dig_T1 / 1024.0) * dig_T2;
+  double v2 = (adcT / 131072.0 - dig_T1 / 8192.0); v2 = v2 * v2 * dig_T3;
   double tFine = v1 + v2;
   double tempC = tFine / 5120.0;
 
   v1 = tFine / 2.0 - 64000.0;
-  v2 = v1 * v1 * P6 / 32768.0;
-  v2 = v2 + v1 * P5 * 2.0;
-  v2 = v2 / 4.0 + P4 * 65536.0;
-  v1 = (P3 * v1 * v1 / 524288.0 + P2 * v1) / 524288.0;
-  v1 = (1.0 + v1 / 32768.0) * P1;
+  v2 = v1 * v1 * dig_P6 / 32768.0;
+  v2 = v2 + v1 * dig_P5 * 2.0;
+  v2 = v2 / 4.0 + dig_P4 * 65536.0;
+  v1 = (dig_P3 * v1 * v1 / 524288.0 + dig_P2 * v1) / 524288.0;
+  v1 = (1.0 + v1 / 32768.0) * dig_P1;
   if (v1 == 0) return;
   double p = 1048576.0 - adcP;
   p = (p - v2 / 4096.0) * 6250.0 / v1;
-  v1 = P9 * p * p / 2147483648.0;
-  v2 = p * P8 / 32768.0;
-  p = p + (v1 + v2 + P7) / 16.0;                    // pascals
+  v1 = dig_P9 * p * p / 2147483648.0;
+  v2 = p * dig_P8 / 32768.0;
+  p = p + (v1 + v2 + dig_P7) / 16.0;                    // pascals
 
   Serial.printf("AIRT:%.2f\n", tempC);
   if (airHasHumidity) {
     int32_t adcH = (int32_t)d[6] << 8 | d[7];
     double h = tFine - 76800.0;
-    h = (adcH - (H4 * 64.0 + H5 / 16384.0 * h)) *
-        (H2 / 65536.0 * (1.0 + H6 / 67108864.0 * h * (1.0 + H3 / 67108864.0 * h)));
-    h = h * (1.0 - H1 * h / 524288.0);
+    h = (adcH - (dig_H4 * 64.0 + dig_H5 / 16384.0 * h)) *
+        (dig_H2 / 65536.0 * (1.0 + dig_H6 / 67108864.0 * h * (1.0 + dig_H3 / 67108864.0 * h)));
+    h = h * (1.0 - dig_H1 * h / 524288.0);
     h = constrain(h, 0.0, 100.0);
     Serial.printf("HUM:%.1f\n", h);
   }

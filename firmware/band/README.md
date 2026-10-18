@@ -11,7 +11,7 @@ Set up for the Oct 18 build: Prop-Maker Wing accelerometer (auto-detected), phot
 1. Open **Arduino IDE** on the laptop that already uploaded the band's test sketches.
 2. **File → Open** → pick `band/band.ino`. (The folder must be called `band`, or the IDE complains.)
 3. **Tools → Manage Libraries** → search **Adafruit NeoPixel** → **Install**.
-4. **Tools → Board → esp32 → Adafruit Feather ESP32-S3** (2MB PSRAM or No PSRAM, whichever matches the board you used before).
+4. **Tools → Board → esp32 → Adafruit Feather ESP32-S3 2MB PSRAM** (this board has 4 MB flash; "No PSRAM" fails to upload).
 5. **Tools → USB CDC On Boot → Enabled.** Without this no serial port shows up.
 6. Plug the band in. **Tools → Port** → pick the band's port.
 7. Click **Upload** (the → arrow).
@@ -35,3 +35,10 @@ Set up for the Oct 18 build: Prop-Maker Wing accelerometer (auto-detected), phot
 2. Room temperature: hold the diode next to a real thermometer for a minute. Write down the temperature and the mV.
 3. Warm hand (or ice water): hold the diode tight in your hand with the thermometer next to it for a minute. Write down both again.
 4. Put the 4 numbers in `config.h` (`CAL_T1_C`, `CAL_MV1`, `CAL_T2_C`, `CAL_MV2`) and upload again.
+
+## Upload from the Mac (no Arduino IDE)
+
+```bash
+bash tools/flash_band.sh
+```
+It compiles and uploads with arduino-cli. Stop the Redline backend first (it holds the USB port).
