@@ -108,17 +108,18 @@ Worst trial: NOW 0.356, +20 0.263. Best single model beats the 5-model ens5 (0.2
 
 `python -m ml.final_cv` then `python -m ml.evaluate --on test --model ml/checkpoints/final_cv.pt`. 5 members (top-5 search configs), cross-fitted over the 55 non-test people (5 folds of 11), CV+ conformal calibration from out-of-fold misses of all 55. The 10 test people (20 sessions) were never used for training, early stopping, model choice or calibration. Out-of-fold p90 coverage before/after calibration: 0.85 -> 0.90 at every horizon.
 
-| On 10 unseen test people | Kalman (ECTemp) raw | Kalman + trend (best baseline) | **final_cv** |
-| --- | --- | --- | --- |
-| NOW RMSE °C (95% CI by person) | 0.398 (0.33-0.44) | 0.398 | **0.347** (0.21-0.40) |
-| +10 / +20 / +30 RMSE °C | 0.442 / 0.481 / 0.500 | 0.384 / 0.380 / 0.400 | **0.363 / 0.370 / 0.371** |
-| +20 quantile loss | 0.1582 | 0.0988 | **0.0882** |
-| p90 coverage +10/+20/+30 (want 0.90) | 0.56 / 0.52 / 0.48 | 0.94 / 0.98 / 1.00 | 0.96 / 0.95 / 0.95 |
-| 10-90 coverage (want 0.80) | 0.25 | 0.92-0.98 | 0.87-0.88 |
-| Yellow caught, lead, false alarms/hr | 12%, 29 min, 0.03 | 88%, 13.0 min, 0.23 | 88%, **16.9 min**, **0.20** |
-| Red caught, lead, false alarms/hr | 70%, 18 min, 0.26 | **100% (10/10)**, 36 min, 0.30 | 90% (9/10), 32 min, 0.46 |
+| On 10 unseen test people | Kalman (ECTemp) raw | Kalman flat + 90% range | Kalman + trend | **final_cv** |
+| --- | --- | --- | --- | --- |
+| NOW RMSE °C (95% CI by person) | 0.398 (0.33-0.44) | 0.398 | 0.398 | **0.347** (0.21-0.40) |
+| +10 / +20 / +30 RMSE °C | 0.442 / 0.481 / 0.500 | 0.439 / 0.462 / 0.465 | 0.384 / 0.380 / 0.400 | **0.363 / 0.370 / 0.371** |
+| +20 quantile loss | 0.1582 | 0.1143 | 0.0988 | **0.0882** |
+| p90 coverage +10/+20/+30 (want 0.90) | 0.56 / 0.52 / 0.48 | 0.90 / 0.92 / 0.92 | 0.94 / 0.98 / 1.00 | 0.96 / 0.95 / 0.95 |
+| 10-90 coverage (want 0.80) | 0.25 | 0.86-0.87 | 0.92-0.98 | 0.87-0.88 |
+| Yellow caught, lead, false alarms/hr | 12%, 29 min, 0.03 | 88%, 16.1 min, 0.20 | 88%, 13.0 min, 0.23 | 88%, **16.9 min**, 0.20 |
+| Red caught, lead, false alarms/hr | 70%, 18.3 min, 0.26 | 90%, 33.6 min, 0.30 | **100% (10/10)**, 36.1 min, 0.30 | 90% (9/10), 31.9 min, 0.46 |
 
 What this honestly says:
+- The flat baseline (Kalman now, assumed constant, with a 90% range from its own uncertainty) warns almost as early as ours (16.1 vs 16.9 min, same false alarm rate). Most of the early-warning benefit comes from forecasting with an honest range at all; the network adds accuracy (+20 min RMSE 0.370 vs 0.462) and slightly earlier warnings.
 - vs the plain Kalman filter (the published method): forecasts 18-26% more accurate at +10 to +30 min, NOW 13% better, and the ranges are actually right (raw Kalman's p90 covers only about half the time).
 - vs our own Kalman + trend baseline: only 3-7% better on accuracy and 11% better on quantile loss. On red alerts it caught 9 of 10 vs 10 of 10, with more false alarms. 10 episodes is a tiny sample (one episode = 10 points), but we report it as is.
 - Validation numbers (ens5 +20 error 0.230) were optimistic: those people were used to choose the model. Test error 0.370 is the number to quote.
