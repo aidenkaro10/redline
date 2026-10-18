@@ -56,7 +56,11 @@ def test_synthetic_replay_full_demo_story():
     plan = shifts.synthetic(minutes=90, fall_worker=1, fall_at_min=40, fall_for_min=5)
     hub, lines, events = run_replay(plan)
     jake = [l for w, l in lines if w == "demo-1"]
-    assert jake[:2] == ["BUZZ:HEAT_YELLOW", "BUZZ:HEAT_RED"]
+    # Jake's own heat alerts go yellow then red. Maria is confirmed down first in this shift, so
+    # his band already plays her crewmate alert (BUZZ:MANDOWN, above his own heat status).
+    levels = [e["level"] for e in events if e["type"] == "heat_alert" and e["worker_id"] == "demo-1"]
+    assert levels[:2] == ["yellow", "red"]
+    assert "BUZZ:MANDOWN" in jake
     # Jake auto-acknowledges the red alert, so no red-unacknowledged man-down for him.
     assert any(e["type"] == "heat_ack" and e["worker_id"] == "demo-1" for e in events)
     assert not any(e["type"] == "mandown_check" and e["worker_id"] == "demo-1" for e in events)

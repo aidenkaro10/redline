@@ -96,6 +96,8 @@ Crew view privacy unchanged: no vitals, estimates or heart rate values there.
 
 ### Small rules worth knowing
 
+- **Crewmate alert.** On `mandown_confirmed` or `sos` for worker X, every other worker at X's site (`crewmates`, now on `sos` events too) gets a `CREW_ALERT` condition on their band router, which plays `BUZZ:MANDOWN` (priority right after their own man-down). It clears for everyone when X's incident ends (`mandown_resolved`, `mandown_cancelled`, D's `done/cancelled`, or the crew lead resolving an SOS), and their bands fall back to their own status. A crewmate's button only silences their own band (firmware) and acknowledges their OWN red alert if they have one; it never touches X's incident. Workers at other sites are never alerted. Dashboard: a log line "Alerted N crewmates: names" (and "Crewmate alert for X cleared (...)"); the hub's `crew_alert` event is raw `/ws` only (not in E's contract). Replay's simulated workers now press the button on their own red heat alert even while their band plays a crewmate alert.
+
 - One `EmergencyCall` per incident, keyed by session D's incident id; its `mandown_id` is that worker's own incident. The single `emergency` slot (snapshot and live) always holds the call that belongs to the `mandown` on screen; when the incident on screen changes, its own call (or `null`) is sent right after it. Calls for other open incidents keep running and show when their incident is on screen. `EmergencyCall.worker_name` is an extra field.
 
 - `WorkerStatus.status_reason` says "Heart rate missing" when a worker's other readings keep coming but no heart rate arrived for 2 minutes (the Kalman then only predicts; red, man-down and SOS still take priority).

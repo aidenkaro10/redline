@@ -73,6 +73,7 @@ class Hub:
         self.subscribers: set[asyncio.Queue] = set()
         self.listeners: list[Callable[[dict], None]] = []
         self.tick_listeners: list[Callable[[], None]] = []   # run at the end of every tick (dashboard clock)
+        self.crew_alerts: dict[str, list[str]] = {}     # worker who's down -> crewmates whose bands buzz
         self.recent: deque = deque(maxlen=RECENT_KEEP)
         self.hazards: dict[str, dict[str, dict]] = {}     # site_id -> kind -> latest hazard event
         self.site_status: dict[str, dict] = {}            # site_id -> full status pushed by session C1
@@ -127,6 +128,10 @@ class Hub:
         return p
 
     def remove_worker(self, worker_id: str) -> None:
+        self.dispatch(self.end_crew_alert(worker_id))     # their incident (if any) can't go on
+        for others in self.crew_alerts.values():
+            if worker_id in others:
+                others.remove(worker_id)
         for d in (self.workers, self.pipelines, self.clocks):
             d.pop(worker_id, None)
         self.band_streams.drop(worker_id)
@@ -304,11 +309,13 @@ class Hub:
                 if not self._prerolling(ev["worker_id"]):      # history, not news: don't buzz anyone
                     self.band.send(ev["worker_id"], ev["line"])
                     self.last_sent[ev["worker_id"]] = time.monotonic()
-                if self.replay is not None:
-                    self.replay.on_band_command(ev["worker_id"], ev["pattern"], ev["timestamp"])
-            elif kind == "mandown_confirmed":
-                # Nearby crewmates = everyone else at the same site. They see it on the dashboard.
-                site = ev.get("site_id")
+            elif kind == "heat_alert" and ev["level"] == "red" and self.replay is not None:
+                # A simulated worker presses the button when THEIR red alert starts, even if their
+                # band is busy playing a crewmate's man-down alert (pressing also silences that).
+                self.replay.on_band_command(ev["worker_id"], "HEAT_RED", ev["timestamp"])
+            elif kind in ("mandown_confirmed", "sos"):
+                # Nearby crewmates = everyone else at the same site. Their bands buzz too (below).
+                site = ev.get("site_id") or self.workers.get(ev["worker_id"], {}).get("site_id")
                 ev["crewmates"] = [w for w, info in self.workers.items()
                                    if info["site_id"] == site and w != ev["worker_id"]]
             if self.db:
@@ -323,6 +330,48 @@ class Hub:
                     listener(ev)
                 except Exception as e:
                     log.warning("listener failed on %s: %s", kind, e)
+            # Crewmate alert: a confirmed man-down or an SOS buzzes everyone else at the site;
+            # it stops when that incident ends.
+            if kind in ("mandown_confirmed", "sos") and not ev.get("preroll"):
+                self.dispatch(self._crew_alert_on(ev["worker_id"], ev["crewmates"], ev["timestamp"]))
+            elif kind in ("mandown_resolved", "mandown_cancelled") or (
+                    kind == "emergency_status" and ev.get("stage") == "done" and ev.get("status") == "cancelled"):
+                self.dispatch(self.end_crew_alert(ev["worker_id"]))
+
+    # ------------------------------------------------------------------
+    # Crewmate alert: when X is down (confirmed) or presses SOS, every other band at X's site
+    # plays the man-down pattern. A crewmate's own button only silences their own beeping on the
+    # band; it never ends X's incident (that's X's pipeline) and never counts as X's "I'm OK".
+    # ------------------------------------------------------------------
+    def _crew_alert_on(self, worker_id: str, crewmates: list[str], t: float) -> list[dict]:
+        if worker_id in self.crew_alerts:
+            return []                                    # this incident already alerted the crew
+        crewmates = [w for w in crewmates if w in self.pipelines]
+        self.crew_alerts[worker_id] = crewmates
+        events = []
+        for w in crewmates:
+            events += self.pipelines[w].router.set("CREW_ALERT", True, self.now(w))
+        names = [self.workers[w]["name"] for w in crewmates]
+        return events + [{"type": "crew_alert", "timestamp": t, "worker_id": worker_id, "on": True,
+                          "worker_name": self.workers.get(worker_id, {}).get("name", worker_id),
+                          "site_id": self.workers.get(worker_id, {}).get("site_id"),
+                          "crewmates": crewmates, "names": names}]
+
+    def end_crew_alert(self, worker_id: str) -> list[dict]:
+        """X's incident ended: crewmates' bands go back to their own status (unless another incident needs them)."""
+        crewmates = self.crew_alerts.pop(worker_id, None)
+        if crewmates is None:
+            return []
+        still = {w for others in self.crew_alerts.values() for w in others}
+        events = []
+        for w in crewmates:
+            if w in self.pipelines and w not in still:
+                events += self.pipelines[w].router.set("CREW_ALERT", False, self.now(w))
+        return events + [{"type": "crew_alert", "timestamp": self.real_clock.now(), "worker_id": worker_id,
+                          "on": False, "worker_name": self.workers.get(worker_id, {}).get("name", worker_id),
+                          "site_id": self.workers.get(worker_id, {}).get("site_id"),
+                          "crewmates": crewmates, "names": [self.workers[w]["name"] for w in crewmates
+                                                            if w in self.workers]}]
 
     def _add_why(self, ev: dict) -> None:
         """

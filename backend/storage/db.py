@@ -87,7 +87,7 @@ ALERT_EVENTS = {
     "band_command": "pattern", "hazard": "kind",
     "mandown_check": "reason", "mandown_cancelled": "by", "mandown_confirmed": "reason",
     "mandown_resolved": "by", "mandown_worker_responded": "by", "sos": None,
-    "emergency_status": "status", "offset_update": "offset_c", "hr_link": "state", "demo_heart_rate": "mode",
+    "emergency_status": "status", "offset_update": "offset_c", "hr_link": "state", "demo_heart_rate": "mode", "crew_alert": "on",
     "band_fall": "confirmed_by", "band_up": "reason", "band_link": "state",
 }
 BAND_MINUTE_COLUMNS = ("activity", "movement_g", "cadence_spm", "hr_band_ppg", "hr_quality", "hr_windows",
