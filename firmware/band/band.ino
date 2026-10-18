@@ -400,6 +400,19 @@ void updateAir(uint32_t now) {
 uint16_t ppg[10];
 int ppgCount = 0;
 uint32_t nextSampleUs = 0;
+// Anti-flicker: between two 20 ms samples we read the light sensor as often as the loop allows
+// and average everything. Fast flicker (phone flashlights, LED lamps pulse hundreds of times a
+// second) averages out, while the slow heartbeat (about 1 per second) stays. Without this, flicker
+// "aliases" into a fake steady rhythm (we saw a perfect 90 bpm that wasn't a pulse).
+uint32_t ppgSum = 0;
+uint16_t ppgReads = 0;
+
+void accumulatePpg() {
+#if ENABLE_PPG
+  ppgSum += analogRead(PIN_PPG);
+  ppgReads++;
+#endif
+}
 
 void updateSamples() {
   uint32_t nowUs = micros();
@@ -408,7 +421,9 @@ void updateSamples() {
   if ((int32_t)(nowUs - nextSampleUs) > 100000) nextSampleUs = nowUs + SAMPLE_EVERY_US;  // fell far behind: resync
 
 #if ENABLE_PPG
-  ppg[ppgCount++] = analogRead(PIN_PPG);
+  accumulatePpg();                                   // at least one reading per sample
+  ppg[ppgCount++] = (uint16_t)(ppgSum / ppgReads);   // average of all reads in the last 20 ms
+  ppgSum = 0; ppgReads = 0;
   if (ppgCount == 10) {                              // one PPG line per 10 samples (200 ms)
     Serial.print("PPG:");
     for (int i = 0; i < 10; i++) { if (i) Serial.print(','); Serial.print(ppg[i]); }
@@ -474,6 +489,7 @@ void loop() {
 #if ENABLE_LIGHT
   updateSunlight(now);
 #endif
+  accumulatePpg();
   updateSamples();
   updateTemp(now);
 #if ENABLE_I2C
