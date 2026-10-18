@@ -94,7 +94,7 @@ export function planDay(dayStart: number, hours: HourWx[], people: PlanPerson[],
           if (storm(wx)) { task = "light"; label = STORM_LABEL; }
           else if (wx.hiF >= 103) task = "light";
           else if (wx.hiF >= 91) task = p.lighter ? "light" : "moderate";
-          else task = (Math.round(h * 2) + p.breakOffset) % 3 === 2 ? "moderate" : "heavy";
+          else task = h < 12 ? "heavy" : "moderate";                    // heavy while it's cool, moderate after lunch
         }
       }
       list.push({ start, task, label: label ?? LABEL[task] });

@@ -43,6 +43,8 @@ export function PlanView({ day, onDay, workerIds }: { day: "today" | "tomorrow";
   }, [day, scene]);
 
   const rows = (sched?.rows ?? []).filter((r) => workerIds.includes(r.worker_id));
+  // Only this crew's changes (plus site-wide ones like lightning)
+  const changes = (sched?.changes ?? []).filter((c) => !c.worker_id || workerIds.includes(c.worker_id));
   // Show the working part of the day only
   const first = Math.min(...rows.flatMap((r) => r.slots.filter((s) => s.task !== "off").map((s) => s.start)), Infinity);
   const last = Math.max(...rows.flatMap((r) => r.slots.filter((s) => s.task !== "off").map((s) => s.start)), -Infinity);
@@ -123,9 +125,9 @@ export function PlanView({ day, onDay, workerIds }: { day: "today" | "tomorrow";
         {day === "today" && (
           <section className="rounded-[16px] bg-surface p-5 shadow-[0_1px_2px_rgba(20,20,10,0.04)]">
             <p className="text-[15px] font-semibold">Changes today</p>
-            {sched?.changes?.length ? (
+            {changes.length ? (
               <ul className="mt-2 flex flex-col gap-2 text-[14px] leading-snug">
-                {[...sched.changes].reverse().map((c) => (
+                {[...changes].reverse().map((c) => (
                   <li key={c.at + c.text} className="flex gap-3"><span className="w-16 shrink-0 font-semibold tabular text-muted">{clock(c.at)}</span><span>{c.text}</span></li>
                 ))}
               </ul>

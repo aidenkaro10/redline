@@ -171,13 +171,23 @@ interface WorkerSim {
 }
 
 /** Fake physiology: core temp drifts toward a target set by workload and heat. */
+/** How much the weather adds to heat strain: 0 on a cool day (WBGT 18 °C or less), 1 from WBGT 30 °C. */
+function heatLoad(wbgt: number) {
+  return Math.min(1, Math.max(0, (wbgt - 18) / 12));
+}
+
 function coreTarget(intensity: number, wbgt: number) {
-  return 36.9 + 1.9 * intensity + 0.045 * (wbgt - 26);
+  // Hard work heats you a lot more in hot, humid air: full effect from WBGT 30 °C, about half at 24 °C,
+  // and on a cool morning even heavy work stays well under the warning line.
+  const heat = heatLoad(wbgt);
+  return 36.9 + (1.0 + 0.9 * heat) * intensity + 0.045 * (wbgt - 26);
 }
 const CORE_RATE = 0.06; // per minute
 
-function fakeHr(w: WorkerSim, rng: () => number) {
-  const base = w.def.restHr + 68 * w.intensity + 22 * (w.core - 37);
+function fakeHr(w: WorkerSim, rng: () => number, wbgt: number) {
+  // The heart works harder in the heat too (blood goes to the skin to cool you), so the same job
+  // means a higher heart rate on a hot afternoon than on a cool morning.
+  const base = w.def.restHr + (40 + 28 * heatLoad(wbgt)) * w.intensity + 22 * (w.core - 37);
   return base + (rng() - 0.5) * 6;
 }
 
@@ -383,7 +393,7 @@ export class MockEngine {
   /** Changes to today's plan during the day (heat alerts): who, when, what. */
   adjustments: { worker_id: string; from: number; to: number; task: TaskKind; label: string }[] = [];
   /** What changed today and why, shown under the plan ("1:12 PM · Noah: heat warning ..."). */
-  planChanges: { at: number; text: string }[] = [];
+  planChanges: { at: number; text: string; worker_id?: string }[] = [];
   /** When each site's current lightning stop-work began (so the plan only marks it from then on). */
   stopStart = new Map<string, number>();
   /** Video mode: which crew the scenes act on, and timed follow-ups (red-alert ack, second strike). */
@@ -756,7 +766,7 @@ export class MockEngine {
       if (w.collapsed) w.intensity = 0.05;
       const coreGoal = coreTarget(w.collapsed ? 0.9 : w.intensity, wbgt);
       w.core += (coreGoal - w.core) * (CORE_RATE * VITALS_EVERY_S / 60);
-      w.hr = fakeHr(w, this.rng);
+      w.hr = fakeHr(w, this.rng, wbgt);
       if (w.collapsed) w.hr = Math.max(w.hr, 112 + (this.rng() - 0.5) * 6);
       w.skin += ((33.6 + 1.2 * w.intensity + 0.35 * (w.core - 37) + (wbgt - 28) * 0.12) - w.skin) * 0.08;
       w.minuteHr.push(w.hr);
@@ -1640,7 +1650,7 @@ export class MockEngine {
       { worker_id: id, from: breakEnd, to: lightEnd, task: "light", label: "Light work only (after heat alert)" },
     );
     const first = w.def.name.split(" ")[0];
-    this.planChanges.push({ at: now, text: next === "red"
+    this.planChanges.push({ at: now, worker_id: id, text: next === "red"
       ? `${first}: heat danger. Cool-down break until ${clockText(breakEnd)}, then light work only until ${clockText(lightEnd)}.`
       : `${first}: heat warning. Break now until ${clockText(breakEnd)}, then light work until ${clockText(lightEnd)}.` });
     for (const x of this.workers.values()) if (x === w) this.emitWorker(x);
@@ -1752,7 +1762,7 @@ export class MockEngine {
         target.scriptedIntensity = 1;          // pushing hard through the hottest part of the day
         // An urgent repair is the one exception to the plan: heavy work in the heat, until the band says stop
         this.adjustments.push({ worker_id: target.def.worker_id, from: this.sim, to: this.sim + 3600, task: "heavy", label: "Heavy: urgent line repair" });
-        this.planChanges.push({ at: this.sim, text: `${target.def.name.split(" ")[0]}: urgent line repair in the heat. Redline is watching the forecast.` });
+        this.planChanges.push({ at: this.sim, worker_id: target.def.worker_id, text: `${target.def.name.split(" ")[0]}: urgent line repair in the heat. Redline is watching the forecast.` });
         this.addLog(`Replay: ${target.def.name} on an urgent repair in the afternoon heat`, "video");
       }
       this.demo.speed = 60;                   // fast enough to go yellow then red in a few seconds on camera

@@ -318,7 +318,7 @@ export interface Schedule {
   /** Built-in demo backend: which day, where the forecast came from, and what changed during the day. */
   day?: "today" | "tomorrow";
   source?: string;
-  changes?: { at: number; text: string }[];
+  changes?: { at: number; text: string; worker_id?: string }[];   // worker_id missing = the whole site
 }
 
 export interface Briefing {

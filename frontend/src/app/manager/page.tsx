@@ -57,6 +57,9 @@ export default function ManagerPage() {
     else if (scene === "heat" || scene === "lightning" || scene === "sos") setTab("crew");
   }, [scene]);
   const replay = live.demo?.source === "replay";
+  // Video mode buttons only show at /manager?video=1, so the normal dashboard stays clean
+  const [videoMode, setVideoMode] = useState(false);
+  useEffect(() => setVideoMode(new URLSearchParams(window.location.search).has("video")), []);
 
   return (
     <div className="font-app min-h-screen bg-page text-ink">
@@ -97,7 +100,7 @@ export default function ManagerPage() {
               className={`min-h-9 rounded-[8px] px-6 py-1.5 capitalize ${tab === t ? "bg-surface text-ink shadow-[0_1px_3px_rgba(0,0,0,0.12)]" : "text-ink-2"}`}>{t}</button>
           ))}
         </div>
-        {USING_MOCK && me && <VideoBar team={me.team} />}
+        {USING_MOCK && me && videoMode && <VideoBar team={me.team} />}
       </div>
 
       {tab === "plan" ? (

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Video mode: one button per scene, for recording the demo video.
+ * Video mode: one button per scene, for recording the demo video. Only shown at /manager?video=1.
  * Each button jumps the built-in demo backend to that moment of a recorded July day
  * and plays it back fast. Keys 1-5 do the same, 0 goes back to normal.
  *   1 Day before  6 PM briefing and tomorrow's plan
