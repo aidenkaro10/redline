@@ -134,6 +134,9 @@ async def lifespan(app: FastAPI):
     if db:
         app.state.frontend.restore_alerts(db.recent_alert_events())   # alert history survives a restart
     hub.add_listener(app.state.frontend.on_event)
+    # The dashboard clock rides on the hub's tick, so whatever drives the hub (the real loop, or
+    # a test's stepped clock) also sends "clock".
+    hub.tick_listeners.append(app.state.frontend.tick)
     tasks = [asyncio.create_task(_tick_forever(hub, app.state.frontend))]
 
     tasks += wire_emergency(hub, s)
@@ -232,8 +235,7 @@ async def _tick_forever(hub: Hub, frontend: FrontendAdapter):
     n = 0
     while True:
         try:
-            hub.tick()
-            frontend.tick()                  # clock + band-connected, twice a second
+            hub.tick()                       # also runs frontend.tick (clock + band-connected), twice a second
         except Exception:
             log.exception("tick failed")
         n += 1

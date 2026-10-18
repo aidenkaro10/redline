@@ -72,6 +72,7 @@ class Hub:
         self.clocks: dict[str, object] = {}
         self.subscribers: set[asyncio.Queue] = set()
         self.listeners: list[Callable[[dict], None]] = []
+        self.tick_listeners: list[Callable[[], None]] = []   # run at the end of every tick (dashboard clock)
         self.recent: deque = deque(maxlen=RECENT_KEEP)
         self.hazards: dict[str, dict[str, dict]] = {}     # site_id -> kind -> latest hazard event
         self.site_status: dict[str, dict] = {}            # site_id -> full status pushed by session C1
@@ -225,6 +226,11 @@ class Hub:
             self.dispatch(p.tick(self.clocks[wid].now()))
         self.demo_hr_tick()
         self.keep_alive()
+        for fn in self.tick_listeners:
+            try:
+                fn()
+            except Exception as e:
+                log.warning("tick listener failed: %s", e)
 
     def demo_hr_tick(self) -> None:
         """While the demo heart rate input is on: one labeled reading per second (worker's clock)."""
