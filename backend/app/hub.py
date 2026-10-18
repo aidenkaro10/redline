@@ -26,6 +26,7 @@ from typing import Callable
 
 from backend import config
 from backend.alerts.band_output import ConsoleBand, MultiBand
+from backend.app.demo_hr import DemoHeartRate
 from backend.app.pipeline import WorkerPipeline
 from backend.app.schemas import BandSample, ButtonPress, Reading
 from backend.ingest.band_stream import BandStreams
@@ -86,6 +87,8 @@ class Hub:
         # The band's fast lines (PPG, ACC) and air sensor, per worker. See backend/ingest/band_stream.py.
         self.site_air: dict[str, tuple[float, float]] = {}   # site -> (air temp °C, RH %) from the weather feed
         self.band_streams = BandStreams(site_air_of=self.site_air_of)
+        # Labeled demo heart rate input (backend/app/demo_hr.py). Off until POST /api/demo/heart_rate.
+        self.demo_hr = DemoHeartRate()
 
     # ------------------------------------------------------------------
     # Workers and sites
@@ -107,6 +110,7 @@ class Hub:
         p = WorkerPipeline(worker_id, predictor=self.predictor, demo=self.demo,
                            info=info, site=self.sites.get(site_id, {}))
         self.pipelines[worker_id] = p
+        p.demo_hr_only = self.demo_hr.mode != "off" and self.demo_hr.worker_id == worker_id
         if self.db:
             self.db.upsert_worker(info)
             saved = self.db.load_offset(worker_id)          # personal offset survives restarts
@@ -125,6 +129,8 @@ class Hub:
         for d in (self.workers, self.pipelines, self.clocks):
             d.pop(worker_id, None)
         self.band_streams.drop(worker_id)
+        if self.demo_hr.worker_id == worker_id and self.demo_hr.mode != "off":
+            self.demo_hr.set_mode("off", worker_id, self.real_clock.now())   # its worker is gone
         self.dispatch([{"type": "worker_removed", "timestamp": self.real_clock.now(), "worker_id": worker_id}])
 
     def public_info(self, worker_id: str) -> dict:
@@ -217,7 +223,41 @@ class Hub:
             if self._prerolling(wid):
                 continue        # its readings are still catching up to the clock
             self.dispatch(p.tick(self.clocks[wid].now()))
+        self.demo_hr_tick()
         self.keep_alive()
+
+    def demo_hr_tick(self) -> None:
+        """While the demo heart rate input is on: one labeled reading per second (worker's clock)."""
+        wid = self.demo_hr.worker_id
+        if self.demo_hr.mode == "off" or wid not in self.pipelines:
+            return
+        t = self.now(wid)
+        bpm = self.demo_hr.next(t)
+        if bpm is not None:
+            self.handle_input(Reading(worker_id=wid, timestamp=t, hr=bpm, source="demo_input"), source="demo_input")
+
+    def set_demo_heart_rate(self, mode: str, worker_id: str | None = None) -> dict:
+        """
+        Demo button: "rest" / "active" / "off" for one worker (default WORKER_ID, the band's worker).
+        While on, that worker's other heart rate sources are ignored. Returns the new state.
+        """
+        worker_id = worker_id or self.demo_hr.worker_id or config.WORKER_ID
+        old_mode, old_worker = self.demo_hr.mode, self.demo_hr.worker_id
+        if old_worker and old_worker != worker_id and old_worker in self.pipelines:
+            self.pipelines[old_worker].demo_hr_only = False        # moving the demo input to someone else
+            self.demo_hr.set_mode("off", old_worker, self.now(old_worker))
+        if mode != "off" and worker_id not in self.pipelines:
+            self.register_worker(worker_id)
+        t = self.now(worker_id)
+        p = self.pipelines.get(worker_id)
+        last_real = p.last_reading.get("hr") if p and p.last_reading.get("hr_source") != "demo_input" else None
+        self.demo_hr.set_mode(mode, worker_id, t, start_bpm=last_real)
+        if p is not None:
+            p.demo_hr_only = mode != "off"
+        state = self.demo_hr.state()
+        self.dispatch([{"type": "demo_heart_rate", "timestamp": t, "worker_id": worker_id, "mode": mode,
+                        "previous": old_mode, "demo": mode != "off", "source": "demo_input"}])
+        return state
 
     def keep_alive(self, now: float | None = None) -> None:
         """

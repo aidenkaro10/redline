@@ -82,6 +82,18 @@ Heart rate can also come from the watch through Pulsoid (online, tagged `watch`)
 
 `POST /spot-check` (alias `/api/spot-check`) `{worker_id, thermometer_c, timestamp?}`. The miss is the model's NOW estimate **before** any offset (the estimate nearest `timestamp`, default now on that worker's clock) minus the thermometer reading, fed to `PersonalOffset.add_check` (it rejects readings more than 1.5 °C off). `offset_c` is subtracted from the NOW estimate and every forecast percentile from then on, and the heat alert is re-checked right away. Capped at ±0.6 °C by the ML session's code; thresholds never change. Offsets are saved per worker in SQLite (`offsets`, every check in `spot_checks`) and reloaded when the worker reappears. Returns the `offset_update` event.
 
+### Demo heart rate input (labeled, for live demos without a pulse sensor)
+
+`POST /api/demo/heart_rate {mode, worker_id?}`. While `mode` isn't `off`, the server feeds that worker one heart rate per second (worker's clock) through the normal path, `source: "demo_input"`, Kalman sigma `KALMAN_SIGMA_WATCH`, and **ignores every other heart rate source for that worker**. Values: smooth random walk inside `DEMO_HR_REST_BPM` (55-70) or `DEMO_HR_ACTIVE_BPM` (130-155), switching ramps over `DEMO_HR_RAMP_S` (45 s) with ±`DEMO_HR_JITTER_BPM` jitter, never a jump. Off after every restart, never on unless the endpoint is called. Labels for the UI ("Heart rate: demo input"):
+
+- `vitals` (demo / own-worker views): `hr_source: "demo_input"` on every message for that worker while it's on (`hr` is null on a message that carried another source's ignored value).
+- `estimate`: `hr_source` = `"demo_input"` for every minute that contains demo data (truthful per minute: the minute that ended before the switch says `"watch"`). Raw hub estimates also have `hr_demo_input`.
+- `demo_heart_rate` event on `/ws/live`, every view (no body numbers): `{type, timestamp, worker_id, mode, previous, demo, source: "demo_input"}`.
+- `DemoState.demo_heart_rate` (in `demo` messages and the snapshot): `{mode, worker_id, demo, source, range_bpm, ramp_s}`.
+- A log line on every change ("Jake: demo heart rate input ACTIVE (labeled demo data, not a sensor)").
+
+Crew view privacy unchanged: no vitals, estimates or heart rate values there.
+
 ### Small rules worth knowing
 
 - One `EmergencyCall` per incident, keyed by session D's incident id; its `mandown_id` is that worker's own incident. The single `emergency` slot (snapshot and live) always holds the call that belongs to the `mandown` on screen; when the incident on screen changes, its own call (or `null`) is sent right after it. Calls for other open incidents keep running and show when their incident is on screen. `EmergencyCall.worker_name` is an extra field.
@@ -130,6 +142,7 @@ Every route is `async` (runs on the event loop, so the hub is single-threaded). 
 | POST | `/api/demo/clear-hazards` | | |
 | POST | `/api/demo/mandown` | `{worker_id}` | fakes a fall (replay workers really tip over in the data) |
 | POST | `/api/demo/sos` | `{worker_id}` | fakes an SOS |
+| GET / POST | `/api/demo/heart_rate` | POST `{mode: "off" \| "rest" \| "active", worker_id?}` (default `WORKER_ID`; bad input 422) | `{mode, worker_id, demo, source: "demo_input", range_bpm, ramp_s}` (no heart rate values) |
 
 ### Live-system controls and plug-ins
 
