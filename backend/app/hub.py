@@ -180,8 +180,14 @@ class Hub:
             if ev["type"] == "band_minute" and sample.worker_id in self.pipelines:
                 # Local air -> this worker's WBGT input only (None = no sane reading: no correction).
                 self.pipelines[sample.worker_id].set_wbgt_correction(ev["wbgt_correction_c"], ev["timestamp"])
-        if events:
-            self.dispatch(events)
+        derived = []
+        for ev in events:
+            # A real fall (accepted by the accelerometer check) latches man-down: beep after the
+            # still time, and only the button stops it.
+            if ev.get("type") == "band_fall" and ev.get("accepted") and ev.get("worker_id") in self.pipelines:
+                derived += self.pipelines[ev["worker_id"]].fall_detected(ev["timestamp"], ev.get("impact_at"))
+        if events or derived:
+            self.dispatch(events + derived)
 
     def site_air_of(self, worker_id: str) -> tuple[float, float] | None:
         """

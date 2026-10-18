@@ -185,6 +185,10 @@ class WorkerPipeline:
         """Start a man-down check from outside (e.g. demo button)."""
         return self._stamp(self._mandown(self.mandown.trigger(t, reason)))
 
+    def fall_detected(self, t: float, impact_at: float | None = None) -> list[dict]:
+        """The band's accelerometer confirmed a real fall: latch the man-down detector."""
+        return self._stamp(self._mandown(self.mandown.on_fall(t, impact_at)))
+
     def resolve_mandown(self, t: float, by: str = "crew_lead") -> list[dict]:
         return self._stamp(self._mandown(self.mandown.resolve(t, by)))
 

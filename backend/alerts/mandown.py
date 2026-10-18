@@ -53,6 +53,7 @@ class ManDownDetector:
         self.reason: str | None = None             # "fall" or "heat_red_unacknowledged"
         self.last_tilt: int | None = None
         self.last_movement_at: float | None = None
+        self.fall_latched = False                  # a real fall was detected: only the button stops it
 
     # -- inputs -------------------------------------------------------------
     def on_reading(self, t: float, tilt: int | None, activity: float | None) -> list[dict]:
@@ -64,6 +65,10 @@ class ManDownDetector:
             self.last_movement_at = t
 
         events = []
+        if self.fall_latched:
+            # After a detected fall (big jolt + band flipped), small motion and sensor wobble don't
+            # count as "the worker is fine": only the button press (or the crew lead) ends it.
+            return events + self.tick(t)
         if self.state == CHECKING and moving and self.reason != "heat_red_unacknowledged":
             # A fall check ends when the worker moves. A "red alert, no button press" check doesn't:
             # an overheating worker can still be walking. Only the button (or the crew lead) ends it.
@@ -82,6 +87,15 @@ class ManDownDetector:
         if self.state == CONFIRMED:
             return [{"type": "mandown_worker_responded", "timestamp": t, "by": "button"}]
         return []
+
+    def on_fall(self, t: float, impact_at: float | None = None) -> list[dict]:
+        """The accelerometer detected a real fall. Start the still-timer from the impact and latch:
+        the check (beep) starts still_s() later and only the button can stop it."""
+        if self.state != OK:
+            return []
+        self.fall_latched = True
+        self.still_since = impact_at if impact_at is not None else t
+        return self.tick(t)
 
     def trigger(self, t: float, reason: str) -> list[dict]:
         """Start a check now (red alert ignored, or a demo button). No-op if one is running."""
@@ -125,3 +139,4 @@ class ManDownDetector:
     def _reset(self) -> None:
         self.state = OK
         self.still_since = self.check_started = self.started_at = self.reason = None
+        self.fall_latched = False
