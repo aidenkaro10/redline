@@ -66,11 +66,14 @@ Goal: the band measures heart rate itself, so no Apple Watch is needed. The band
 | --- | --- | --- |
 | Every 200 ms | `PPG:512,515,520,518,511,507,509,514,519,516` | 10 raw `analogRead` values taken exactly 20 ms apart (50 per second), oldest first. Timer-driven (`micros()`), no `delay()`, no filtering. |
 | Every 20 ms | `ACC:0.98,0.02,0.11` | One accelerometer reading, x,y,z in g (gravity = 1.00), 2 decimals. Same 50 per second as PPG so the laptop can cancel arm movement and see fall impacts. |
+| Every 1 s | `LIGHT:2100` | Photoresistor on pin 10, 0 (dark) to 4095 (very bright): sun vs shade. |
 | Every 1 s | `AIRT:31.42` | Air temperature at the worker, °C. |
 | Every 1 s | `HUM:58.2` | Relative humidity, % (BME280 only). |
 | Every 1 s | `BARO:1012.35` | Air pressure, hPa, 2 decimals (about 0.12 hPa per meter of height: helps confirm falls). |
 
 Keep sending `TEMP`, `TILT` and `BTN` exactly as before (the laptop keeps the tilt switch as the fallback: it still catches a slow slump with no impact, and takes over again if `ACC` stops). The laptop side for these lines is built (`docs/sessions/band-sensors.md`): a `PPG` line with anything other than exactly 10 whole numbers 0-4095 is dropped whole. If the band already computes heart rate, it can also send `HR:72`; the laptop uses both.
+
+**Oct 18 build (as wired):** Prop-Maker Wing LIS3DH accelerometer (I2C 0x18), photoresistor on pin 10 (`LIGHT:`), diode on A5, button 6, buzzer 5. No tilt switch (no `TILT:` line; movement and falls come from `ACC:`), no pulse sensor (no `PPG:`; heart rate comes over Bluetooth), no air sensor. The program is `firmware/band/band.ino`; switches for each part are in `config.h`.
 
 ## 3. WiFi (optional, later)
 

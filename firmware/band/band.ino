@@ -215,6 +215,17 @@ void updateTilt(uint32_t now) {
   }
 }
 
+// ============================================================ sunlight (photoresistor)
+uint32_t nextLightMs = 0;
+
+void updateSunlight(uint32_t now) {
+  if (now < nextLightMs) return;
+  nextLightMs = now + LIGHT_EVERY_MS;
+  uint32_t sum = 0;
+  for (int i = 0; i < 16; i++) sum += analogRead(PIN_LIGHT);   // average 16 readings
+  Serial.printf("LIGHT:%u\n", (unsigned)(sum / 16));           // 0 = dark, 4095 = very bright
+}
+
 // ============================================================ skin temperature (diode)
 uint32_t nextTempMs = 0;
 
@@ -423,7 +434,9 @@ void setup() {
   setColor(0, 255, 0);
 
   pinMode(PIN_BUTTON, INPUT_PULLUP);
+#if ENABLE_TILT
   pinMode(PIN_TILT, INPUT_PULLUP);
+#endif
   pinMode(PIN_BUZZER, OUTPUT);
   analogReadResolution(12);
 
@@ -455,7 +468,12 @@ void loop() {
   uint32_t now = millis();
   readCommands(now);
   updateButton(now);
+#if ENABLE_TILT
   updateTilt(now);
+#endif
+#if ENABLE_LIGHT
+  updateSunlight(now);
+#endif
   updateSamples();
   updateTemp(now);
 #if ENABLE_I2C
