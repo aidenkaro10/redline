@@ -323,7 +323,7 @@ uint8_t readReg(uint8_t addr, uint8_t reg) { uint8_t v = 0; readRegs(addr, reg, 
 void setupAccelerometer() {
   if (i2cPresent(0x53) && readReg(0x53, 0x00) == 0xE5) {              // ADXL345
     accType = ACC_ADXL345; accAddr = 0x53;
-    writeReg(accAddr, 0x2C, 0x0A);   // 100 samples/s
+    writeReg(accAddr, 0x2C, 0x0C);   // 400 samples/s (short fall jolts last ~10 ms)
     writeReg(accAddr, 0x31, 0x0B);   // full resolution, ±16 g (falls don't max out)
     writeReg(accAddr, 0x2D, 0x08);   // measure
     out("#accelerometer: ADXL345 at 0x53\n");
@@ -332,7 +332,7 @@ void setupAccelerometer() {
   for (uint8_t a : {0x19, 0x18}) {                                     // LIS3DH / LIS3DHTR
     if (i2cPresent(a) && readReg(a, 0x0F) == 0x33) {
       accType = ACC_LIS3DH; accAddr = a;
-      writeReg(accAddr, 0x20, 0x57); // 100 samples/s, x/y/z on
+      writeReg(accAddr, 0x20, 0x77); // 400 samples/s, x/y/z on (short fall jolts last ~10 ms)
       writeReg(accAddr, 0x23, 0xA8); // block update, ±8 g, high resolution
       out("#accelerometer: LIS3DH at 0x%02X\n", a);
       return;
@@ -452,6 +452,29 @@ void updateAir(uint32_t now) {
   out("BARO:%.2f\n", p / 100.0);          // hPa
 }
 
+// ============================================================ motion: fast polling, hardest jolt per window
+// The accelerometer runs at 400 readings/s. A fall's impact spike can last only ~10 ms, so reading
+// it once every 20 ms can miss it completely. We read it about every 2.5 ms and, for each 20 ms
+// window, average the readings (steady motion and stillness stay accurate) and remember the
+// hardest one. If that hardest reading is a real jolt (over 1.5 g), we send it instead of the average.
+float accPeakX = 0, accPeakY = 0, accPeakZ = 0, accPeakMag2 = -1;
+float accSumX = 0, accSumY = 0, accSumZ = 0;
+uint16_t accCount = 0;
+uint32_t nextAccPollUs = 0;
+const float JOLT_G2 = 1.5f * 1.5f;
+
+void pollAccel() {
+  if (accType == ACC_NONE) return;
+  uint32_t nowUs = micros();
+  if ((int32_t)(nowUs - nextAccPollUs) < 0) return;
+  nextAccPollUs = nowUs + 2500;
+  float x, y, z;
+  if (!readAccel(x, y, z)) return;
+  float m2 = x * x + y * y + z * z;
+  if (m2 > accPeakMag2) { accPeakX = x; accPeakY = y; accPeakZ = z; accPeakMag2 = m2; }
+  accSumX += x; accSumY += y; accSumZ += z; accCount++;
+}
+
 // ============================================================ pulse + motion, 50 per second
 uint16_t ppg[10];
 int ppgCount = 0;
@@ -487,8 +510,12 @@ void updateSamples() {
   }
 #endif
 
-  float x, y, z;
-  if (accType != ACC_NONE && readAccel(x, y, z)) out("ACC:%.2f,%.2f,%.2f\n", x, y, z);
+  pollAccel();                                       // make sure this window has at least one reading
+  if (accCount > 0) {
+    if (accPeakMag2 > JOLT_G2) out("ACC:%.2f,%.2f,%.2f\n", accPeakX, accPeakY, accPeakZ);   // a jolt: keep it
+    else out("ACC:%.2f,%.2f,%.2f\n", accSumX / accCount, accSumY / accCount, accSumZ / accCount);
+    accPeakMag2 = -1; accSumX = accSumY = accSumZ = 0; accCount = 0;   // start the next window
+  }
 }
 
 // ============================================================ Bluetooth LE link
@@ -613,6 +640,7 @@ void loop() {
   updateSunlight(now);
 #endif
   accumulatePpg();
+  pollAccel();
   updateSamples();
   updateTemp(now);
 #if ENABLE_I2C
