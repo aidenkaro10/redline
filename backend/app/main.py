@@ -3,7 +3,8 @@ The live server: one Python process, FastAPI + background tasks.
 
 Run (from the repo root):
     python -m backend.app.main --source replay --speed 10        # demo, no hardware
-    python -m backend.app.main --source live                     # real band (USB/WiFi) + Pulsoid
+    python -m backend.app.main --source live                     # real band (Bluetooth, else USB; WiFi) + heart rate
+    python -m backend.app.main --source live --band usb          # band on the USB cable instead of Bluetooth
 then open http://localhost:8000
 
 What it serves (full list with payloads: docs/interfaces/live-system.md):
@@ -58,7 +59,13 @@ def parse_args(argv=None) -> argparse.Namespace:
     ap.add_argument("--demo", action="store_true", help="start with demo thresholds (37.3 / 37.5 °C)")
     ap.add_argument("--no-forecaster", action="store_true", help="Kalman-only alerts")
     ap.add_argument("--checkpoint", default=None, help="forecaster file (default: final_cv.pt, then ens5.pt, then v1.pt)")
-    ap.add_argument("--serial", default=config.SERIAL_PORT, help="band USB serial port (live)")
+    ap.add_argument("--band", choices=["auto", "ble", "usb"], default="auto",
+                    help="how the band talks to the laptop (live): ble = Bluetooth LE, usb = serial cable, "
+                         "auto = Bluetooth unless --serial is given (USB from SERIAL_PORT if Bluetooth can't start)")
+    ap.add_argument("--band-device", default=config.BLE_BAND_DEVICE,
+                    help=f"Bluetooth band: part of its name or its address (default: BLE_BAND_DEVICE, "
+                         f"else {config.BLE_BAND_NAME!r})")
+    ap.add_argument("--serial", default=None, help="band USB serial port (live; default SERIAL_PORT). '' = no USB")
     ap.add_argument("--udp-port", type=int, default=config.UDP_PORT, help="band WiFi UDP port (live)")
     ap.add_argument("--no-pulsoid", action="store_true", help="live mode without the Pulsoid heart rate client")
     ap.add_argument("--no-ble", dest="ble", action="store_false", help="live mode without Bluetooth heart rate")
@@ -240,8 +247,32 @@ async def _tick_forever(hub: Hub, frontend: FrontendAdapter):
         await asyncio.sleep(TICK_S)
 
 
+def band_links(s) -> tuple[bool, str]:
+    """
+    (use Bluetooth?, USB serial port or "") for the band, from --band / --serial:
+      ble   Bluetooth only
+      usb   the USB cable only (--serial, else SERIAL_PORT)
+      auto  Bluetooth, unless --serial was given (then USB only)
+    If Bluetooth can't run here (tests, PLANIT_BLE=off, bleak missing), the USB port is the fallback.
+    WiFi (UDP) is always listening as well.
+    """
+    from backend.ingest import ble_band
+    port = s.serial if s.serial is not None else config.SERIAL_PORT
+    wants_ble = s.band == "ble" or (s.band == "auto" and s.serial is None)
+    if not wants_ble:
+        return False, port
+    if not ble_band.safe_to_scan():
+        log.info("Bluetooth band off (test suite or PLANIT_BLE=off)%s", f": using USB {port}" if port else "")
+        return False, port
+    if not ble_band.available():
+        log.warning("bleak not installed: no Bluetooth band (pip install -r requirements.txt)%s",
+                    f". Using USB {port}" if port else "")
+        return False, port
+    return True, ""
+
+
 async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]:
-    """USB serial (if a port is set), WiFi UDP listener, Pulsoid heart rate (if a token is set)."""
+    """Band over Bluetooth or USB (band_links), WiFi UDP listener, heart rate (Bluetooth, Pulsoid)."""
     from backend.ingest import pulsoid_client, serial_reader, udp_listener
 
     tasks = []
@@ -249,13 +280,22 @@ async def _start_live_inputs(hub: Hub, band: MultiBand, s) -> list[asyncio.Task]
     band.add(udp_band)
     await udp_listener.start(hub, udp_band, port=s.udp_port, worker_id=config.WORKER_ID)
     log.info("Listening for the band on UDP port %d", s.udp_port)
-    if s.serial:
+    use_ble, serial_port = band_links(s)
+    if use_ble:
+        # In a helper process, like Bluetooth heart rate: a macOS refusal kills the helper, not the server.
+        from backend.ingest import ble_band
+        helper = ble_band.BleBandHelper(hub, config.WORKER_ID, wanted=s.band_device or None)
+        band.add(helper.output)                          # BUZZ commands go back over the band's RX
+        tasks.append(asyncio.create_task(helper.run()))
+        log.info("Looking for the band over Bluetooth (%r). macOS asks for Bluetooth permission the first time.",
+                 s.band_device or config.BLE_BAND_NAME)
+    if serial_port:
         try:
-            serial_band = serial_reader.start(hub, s.serial, worker_id=config.WORKER_ID)
+            serial_band = serial_reader.start(hub, serial_port, worker_id=config.WORKER_ID)
             band.add(serial_band)
-            log.info("Reading the band on %s at %d baud", s.serial, config.SERIAL_BAUD)
+            log.info("Reading the band on %s at %d baud", serial_port, config.SERIAL_BAUD)
         except Exception as e:
-            log.warning("Serial port %s not available (%s). Continuing without USB.", s.serial, e)
+            log.warning("Serial port %s not available (%s). Continuing without USB.", serial_port, e)
     # Heart rate. Bluetooth first (no internet needed); Pulsoid as an optional online second source.
     # When both are on, the Kalman fuses them (step_fused) and keeps going if one drops.
     ble_on = False

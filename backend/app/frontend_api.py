@@ -119,8 +119,8 @@ class FrontendAdapter:
         elif kind == "planner_change":
             # Session B's act-on-forecast feed (upsert by id). Body numbers are dropped for crew in broadcast().
             out.append(dict(ev))
-        elif kind == "hr_link":
-            # Heart rate link status (Bluetooth searching / connected / stale / lost). No body numbers.
+        elif kind in ("hr_link", "band_link"):
+            # Heart rate link / band link status (Bluetooth searching / connected / stale / lost). No body numbers.
             out.append(dict(ev))
         elif kind == "schedule":
             out.append({"type": "schedule", "schedule": ev["schedule"]})   # no body numbers: every view
@@ -515,6 +515,8 @@ class FrontendAdapter:
             return f"{name}: man-down {kind.split('_')[1]} ({ev['by']})"
         if kind == "sos":
             return f"{name}: SOS pressed"
+        if kind == "band_link" and ev["state"] in ("connected", "lost"):
+            return f"{name}: {ev['message']}"
         if kind == "hr_link" and ev["state"] in ("connected", "stale", "lost"):
             return f"{name}: Bluetooth heart rate {ev['state']}" + (f" ({ev['device']})" if ev.get("device") else "")
         if kind == "demo":
