@@ -235,8 +235,8 @@ BLE_HR_DEVICE = os.getenv("BLE_HR_DEVICE", "")   # part of the device name, or i
 BLE_HR_STALE_S = 15          # connected but no heart rate this long -> "stale" status event
 # Labeled demo heart rate input (POST /api/demo/heart_rate), for live demos with no pulse sensor.
 # Never on unless someone presses the demo button; off again after every restart.
-DEMO_HR_REST_BPM = (55, 70)      # "rest" mode stays inside this range
-DEMO_HR_ACTIVE_BPM = (130, 155)  # "active" mode stays inside this range
+DEMO_HR_REST_BPM = (65, 75)      # "rest" mode stays inside this range (resting, about 70)
+DEMO_HR_ACTIVE_BPM = (105, 115)  # "active" mode stays inside this range (running in place, about 110)
 DEMO_HR_RAMP_S = 45              # time to move between the ranges (climbs gradually, never jumps)
 DEMO_HR_JITTER_BPM = 2           # small second-to-second wiggle, ± bpm
 

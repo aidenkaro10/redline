@@ -7,8 +7,8 @@ normal reading path, tagged source "demo_input", and that worker's other heart r
 are ignored so the values don't fight. Every message about that heart rate says "demo_input".
 
 The values are a smooth random walk inside the mode's range (backend/config.py):
-  rest   DEMO_HR_REST_BPM    (55-70)
-  active DEMO_HR_ACTIVE_BPM  (130-155)
+  rest   DEMO_HR_REST_BPM    (65-75, centered on 70)
+  active DEMO_HR_ACTIVE_BPM  (105-115, centered on 110)
 Switching modes ramps from the current value to the new range over DEMO_HR_RAMP_S (45 s),
 so rest -> active climbs gradually and never jumps. Small jitter: ±DEMO_HR_JITTER_BPM.
 
@@ -22,7 +22,8 @@ from backend import config
 MODES = ("off", "rest", "active")
 RANGES = {"rest": config.DEMO_HR_REST_BPM, "active": config.DEMO_HR_ACTIVE_BPM}
 EVERY_S = 1.0                     # one reading per second
-DRIFT_BPM = 0.8                   # how far the slow middle of the walk can move per second
+DRIFT_BPM = 0.5                   # how far the slow middle of the walk can move per second
+PULL_BACK = 0.1                   # per second, how strongly the walk is pulled back to the range's middle
 
 
 class DemoHeartRate:
@@ -48,7 +49,7 @@ class DemoHeartRate:
         lo, hi = RANGES[mode]
         frm = self.value if self.mode != "off" and self.value is not None else (
             start_bpm if start_bpm is not None else sum(config.DEMO_HR_REST_BPM) / 2)
-        to = self.rng.uniform(lo + 0.3 * (hi - lo), hi - 0.3 * (hi - lo))      # land in the middle part
+        to = (lo + hi) / 2                                                      # land on the middle (70 / 110)
         self.mode, self.worker_id = mode, worker_id
         self.ramp = (frm, to, t)
         self.center = to
@@ -71,10 +72,11 @@ class DemoHeartRate:
             low, high = min(frm, to), max(frm, to)
             value = min(max(value, low - config.DEMO_HR_JITTER_BPM), high + config.DEMO_HR_JITTER_BPM)
         else:
-            # In range: the middle drifts slowly (pulled back from the edges), plus jitter.
-            margin = config.DEMO_HR_JITTER_BPM + 1
-            self.center += self.rng.gauss(0, DRIFT_BPM) * dt ** 0.5
-            self.center = min(max(self.center, lo + margin), hi - margin)
+            # In range: a random walk centered on the range's middle (pulled back toward it), plus
+            # jitter, then clamped so the value is ALWAYS inside the range.
+            mid = (lo + hi) / 2
+            self.center += -PULL_BACK * (self.center - mid) * dt + self.rng.gauss(0, DRIFT_BPM) * dt ** 0.5
+            self.center = min(max(self.center, lo), hi)
             value = min(max(self.center + jitter, lo), hi)
         self.value = value
         return round(value, 1)

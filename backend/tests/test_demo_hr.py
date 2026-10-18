@@ -91,3 +91,14 @@ def test_hub_injects_labeled_readings_and_ignores_other_sources():
         clock.t += 1
         hub.tick()
     assert len([e for e in events if e["type"] == "reading" and e.get("source") == "demo_input"]) == n
+
+
+def test_walk_is_centered_on_70_and_110_and_always_inside_the_range():
+    for mode, (lo, hi), mid in (("rest", REST, 70), ("active", ACTIVE, 110)):
+        assert (lo + hi) / 2 == mid
+        for seed in range(5):
+            gen = DemoHeartRate(random.Random(seed))
+            gen.set_mode(mode, "w1", 0.0, start_bpm=mid)
+            vals = [v for t, v in run(gen, 0, 1800) if t >= RAMP]
+            assert all(lo <= v <= hi for v in vals)                    # clamped after jitter, every value
+            assert abs(sum(vals) / len(vals) - mid) < 1.5               # centered on the middle

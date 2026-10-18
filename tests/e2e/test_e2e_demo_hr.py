@@ -34,7 +34,7 @@ def test_demo_heart_rate_end_to_end(live_app):
         assert len(rest) >= 170                                            # one per second
         hrs = [e["hr"] for e in rest]                                      # ramps down from Jake's real HR...
         assert max(abs(y - x) for x, y in zip(hrs, hrs[1:])) < 6           # ...without jumps...
-        assert all(REST[0] <= v <= REST[1] for v in hrs[RAMP + 2:])         # ...then stays in 55-70
+        assert all(REST[0] <= v <= REST[1] for v in hrs[RAMP + 2:])         # ...then stays in 65-75
 
         # Jake's replay heart rate (~95-175) is ignored while the demo input is on.
         p = app.hub.pipelines["demo-1"]
@@ -42,7 +42,7 @@ def test_demo_heart_rate_end_to_end(live_app):
         assert est and all(e["hr_sources"] == ["demo_input"] and e["hr_source"] == "demo_input" for e in est)
         assert all(REST[0] <= e["hr"] <= REST[1] for e in est)
 
-        # Rest -> active climbs over ~45 s, never jumps, then stays in 130-155.
+        # Rest -> active climbs over ~45 s, never jumps, then stays in 105-115.
         app.client.post("/api/demo/heart_rate", json={"mode": "active", "worker_id": "demo-1"})
         start = len(app.events)
         app.step(3 * 60)
