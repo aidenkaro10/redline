@@ -185,8 +185,8 @@ export function Hero({ night, setNight, onIntroDone, onSignup }: {
           <Logo />
         </a>
         <nav className="ml-auto flex items-center gap-4 whitespace-nowrap text-sm md:gap-6">
-          <a href="/worker" className="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">Worker app</a>
-          <a href="/signin" className="opacity-70 transition-opacity hover:opacity-100">Sign in</a>
+          <a href="/worker" className="hidden opacity-70 transition-opacity hover:opacity-100 md:inline">For workers</a>
+          <a href="/signin" className="opacity-70 transition-opacity hover:opacity-100"><span className="hidden md:inline">Crew lead </span>Sign in</a>
           <button onClick={() => setNight(!night)} aria-label={night ? "Day" : "Night"}
             className={`hidden h-9 w-9 place-items-center rounded-full border backdrop-blur sm:grid ${dark ? "border-white/20 bg-white/10" : "border-black/10 bg-white/50"}`}>
             {night ? "☀" : "☾"}

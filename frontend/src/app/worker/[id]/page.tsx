@@ -28,7 +28,7 @@ import { fmtClock, fmtCountdown } from "@/components/ui";
 import type { Hazard, HazardKind, HazardLevel, Status } from "@/lib/contract";
 import { HAZARD_LABEL } from "@/lib/contract";
 import { callForIncident } from "@/lib/emergency";
-import { apiPost, useLive, useSimNow } from "@/lib/live";
+import { USING_MOCK, apiPost, useLive, useSimNow } from "@/lib/live";
 import { createHold } from "@/lib/hold";
 import { secondsUntil } from "@/lib/normalize";
 import { shortSiteName, useSites } from "@/lib/crew";
@@ -182,7 +182,8 @@ function WorkerPhone() {
       <div className="relative px-4 pb-6">
         <SectionHeader title="Right now" />
         <div className="flex flex-col gap-2.5">
-          <Card icon={<Icon.thermo />} label="Core Temp" color={HUE.core} meta={last ? fmtClock(last.timestamp) : undefined}
+          {/* No wristband is connected to the hosted demo, so these readings are simulated. Say so. */}
+          <Card icon={<Icon.thermo />} label="Core Temp" color={HUE.core} meta={USING_MOCK ? "Simulated" : last ? fmtClock(last.timestamp) : undefined}
             onClick={() => setSheet("core")} viz={<Spark past={past} future={future} color={HUE.core} lo={Math.min(...past, ...future) - 0.35} hi={Math.max(...past, ...future) + 0.35} />}>
             {last ? <Value unit="°C">{last.core.mean.toFixed(1)}</Value> : <Value>--</Value>}
             <Sub tone={statusHue}>
@@ -212,6 +213,9 @@ function WorkerPhone() {
           )}
         </div>
 
+        <SectionHeader title="Location" />
+        <LocationShare workerId={id} />
+
         <SectionHeader title="Log" />
         <div className="divide-y divide-line overflow-hidden rounded-[16px] bg-surface">
           <ListRow icon={<Icon.thermo />} color={HUE.core} onClick={() => setSheet("spot")}>Add a thermometer reading</ListRow>
@@ -226,6 +230,7 @@ function WorkerPhone() {
       {/* Details, only when asked for */}
       <Sheet open={sheet === "core"} onClose={() => setSheet(null)} title="Core Temperature">
         <div className="flex flex-col gap-4 pb-2">
+          {USING_MOCK && <p className="rounded-[16px] bg-surface px-4 py-3 text-[14px] text-ink-2">These readings are simulated. Wear the Redline band to see your real heart rate and core temperature.</p>}
           <div className="rounded-[16px] bg-surface px-2 pb-3 pt-3">
             <CoreChart estimates={est} now={now} height={210} />
             <div className="px-2"><WhyLine why={last?.why} /></div>
@@ -262,6 +267,78 @@ function LevelBars({ level, color }: { level: HazardLevel; color: string }) {
           style={{ height: `${25 * i}%`, background: i <= n ? color : "color-mix(in srgb, currentColor 12%, transparent)" }} />
       ))}
     </span>
+  );
+}
+
+/**
+ * "Share my location with my crew lead": an on/off switch. While on, the phone sends its GPS
+ * position about every 30 seconds (or when it moves 25 m), so the crew lead sees a pin on the map
+ * and an SOS goes out with the real spot. Off by default; remembered on this phone.
+ */
+function LocationShare({ workerId }: { workerId: string }) {
+  const key = `share_location:${workerId}`;
+  const [on, setOn] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const watch = useRef<number | null>(null);
+  const lastSent = useRef<{ at: number; lat: number; lon: number } | null>(null);
+
+  const stopWatch = () => { if (watch.current !== null) navigator.geolocation.clearWatch(watch.current); watch.current = null; };
+
+  const start = () => {
+    if (!("geolocation" in navigator)) { setNote("This browser can't share location."); return; }
+    stopWatch();
+    setNote("Finding you…");
+    watch.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        const prev = lastSent.current, t = Date.now();
+        const moved = prev ? Math.hypot((lat - prev.lat) * 111_000, (lon - prev.lon) * 96_000) : Infinity;
+        if (prev && t - prev.at < 30_000 && moved < 25) return;        // don't flood the server
+        lastSent.current = { at: t, lat, lon };
+        void apiPost(`/workers/${workerId}/location`, { lat, lon, accuracy_m: accuracy });
+        setNote(`Sharing · accurate to about ${Math.round(accuracy)} m`);
+      },
+      (err) => {
+        setNote(err.code === err.PERMISSION_DENIED ? "Location is blocked. Allow it for this site in your browser settings." : "Can't get your location right now. Still trying.");
+        if (err.code === err.PERMISSION_DENIED) { setOn(false); stopWatch(); try { localStorage.removeItem(key); } catch { /* ignore */ } }
+      },
+      { enableHighAccuracy: true, maximumAge: 15_000, timeout: 30_000 },
+    );
+  };
+
+  // Pick up where this phone left off
+  useEffect(() => {
+    let saved = false;
+    try { saved = localStorage.getItem(key) === "1"; } catch { /* ignore */ }
+    if (saved) { setOn(true); start(); }
+    return stopWatch;
+  }, [workerId]);   // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggle = () => {
+    if (on) {
+      setOn(false); stopWatch(); lastSent.current = null; setNote(null);
+      try { localStorage.removeItem(key); } catch { /* ignore */ }
+      void apiPost(`/workers/${workerId}/location`, { stop: true });
+    } else {
+      setOn(true); start();
+      try { localStorage.setItem(key, "1"); } catch { /* ignore */ }
+    }
+  };
+
+  return (
+    <div className="overflow-hidden rounded-[16px] bg-surface">
+      <button onClick={toggle} role="switch" aria-checked={on} className="flex min-h-12 w-full items-center gap-3 px-4 py-3 text-left">
+        <span className="h-[18px] w-[18px] shrink-0 text-[#007aff]"><Icon.pin /></span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[17px]">Share my location</span>
+          <span className="block text-[13px] leading-snug text-muted">{note ?? "Only your crew lead sees it. Turn off any time."}</span>
+        </span>
+        {/* iOS-style switch */}
+        <span className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-200 ${on ? "bg-[#34c759]" : "bg-black/15 dark:bg-white/20"}`} aria-hidden>
+          <span className={`absolute top-[2px] h-[27px] w-[27px] rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.2)] transition-transform duration-200 ${on ? "translate-x-[22px]" : "translate-x-[2px]"}`} />
+        </span>
+      </button>
+    </div>
   );
 }
 

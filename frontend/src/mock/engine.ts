@@ -24,7 +24,7 @@ import { CALL_FAILED_TEXT, isFinalStage } from "../lib/emergency.ts";
 import { SITE_BY_ID, SITES } from "../lib/sites.ts";
 import { SCENARIO, SCENARIO_END_MIN, scenarioReactions } from "./scenario.ts";
 import { DEMO_TEAM, FRIENDS_TEAM, friendNames, ownerName } from "./teams.ts";
-import { fetchSighting, fetchWeather, type Sighting, type SiteWeather } from "./realdata.ts";
+import { alertsForSite, fetchFloridaAlerts, fetchSighting, fetchWeather, type NwsAlert, type Sighting, type SiteWeather } from "./realdata.ts";
 
 // ---------------------------------------------------------------------------
 // Numbers mirrored from backend/config.py (the backend is the source of truth;
@@ -331,6 +331,8 @@ export interface EngineOptions {
   baseDate?: number;
   /** How the emergency call is sent. See MockEngine.emergencyFormat. */
   emergencyFormat?: EmergencyFormat;
+  /** Run on the real clock (the hosted site). Off = a fixed 1 PM start (tests, scripted replay). */
+  realTime?: boolean;
 }
 
 /**
@@ -373,21 +375,35 @@ export class MockEngine {
   emergencyFormat: EmergencyFormat;
   /** Demo switch: the next emergency call fails instead of connecting (tests the "Call 911 yourself" screen). */
   failNextCall = false;
+  /** On the real clock? (see EngineOptions.realTime) */
+  realTime = false;
+  /** Phone locations workers chose to share with their crew lead (kept across demo resets). */
+  locations = new Map<string, { lat: number; lon: number; accuracy_m: number | null; at: number }>();
   /** Real outside data (Open-Meteo weather for every site, iNaturalist wildlife at crew sites). */
-  live: { weather: Record<string, SiteWeather>; sightings: Record<string, Sighting | null>; weatherAt: number; wildlifeAt: number } =
-    { weather: {}, sightings: {}, weatherAt: 0, wildlifeAt: 0 };
+  live: { weather: Record<string, SiteWeather>; sightings: Record<string, Sighting | null>; alerts: NwsAlert[] | null; weatherAt: number; wildlifeAt: number } =
+    { weather: {}, sightings: {}, alerts: null, weatherAt: 0, wildlifeAt: 0 };
   liveTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(opts: EngineOptions = {}) {
     this.wallNow = opts.wallNow ?? (() => Date.now() / 1000);
     this.baseDate = opts.baseDate ?? Date.now();
     this.emergencyFormat = opts.emergencyFormat ?? "call";
+    this.realTime = !!opts.realTime;
     this.demo = {
       source: "live", speed: 1, demo_threshold: false,
       thresholds: { warning: CFG.HEAT_WARNING_C, danger: CFG.HEAT_DANGER_C },
       scenario: { running: false, step: null, started_at: null }, mock: true,
     };
-    this.reset(todayAt(13, 0, this.baseDate));
+    this.reset(this.realTime ? Math.floor(this.wallNow()) : todayAt(13, 0, this.baseDate));
+  }
+
+  /** Back to the real clock after a replay (hosted site only). */
+  backToRealTime() {
+    if (!this.realTime) return;
+    this.demo = { ...this.demo, source: "live", speed: 1 };
+    this.reset(Math.floor(this.wallNow()));
+    this.resendSnapshots();
+    this.emitDemo();
   }
 
   // ---- lifecycle ---------------------------------------------------------
@@ -416,6 +432,9 @@ export class MockEngine {
       jobs.push(fetchWeather(SITES)
         .then((w) => { Object.assign(this.live.weather, w); })
         .catch((e) => { this.live.weatherAt = now - 13 * 60_000; console.warn("live weather failed, retrying in 2 min:", String(e)); }));
+      jobs.push(fetchFloridaAlerts()
+        .then((a) => { this.live.alerts = a; })
+        .catch((e) => console.warn("NWS alerts failed (keeping the last ones):", String(e))));
     }
     if (now - this.live.wildlifeAt >= 60 * 60_000) {
       this.live.wildlifeAt = now;
@@ -480,6 +499,57 @@ export class MockEngine {
         data_mode: "live",
       };
     }
+    // National Weather Service alerts for this site: flood, fire weather, heat, storms (real, live)
+    if (this.live.alerts) {
+      const t = Math.round(Date.now() / 1000);
+      const site = SITE_BY_ID[siteId];
+      const here = alertsForSite(this.live.alerts, site);
+      const until = (a: NwsAlert) => a.ends ? ` until ${new Date(a.ends).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })}` : "";
+      const pick = (re: RegExp) => here.filter((a) => re.test(a.event)).sort((a, b) => Number(/Warning/.test(b.event)) - Number(/Warning/.test(a.event)))[0];
+      const flood = pick(/Flood/), fire = pick(/Red Flag|Fire/), heat = pick(/Heat/), storm = pick(/Thunderstorm|Tornado/);
+      const src = "NWS alerts (live)";
+      sim.hazards.flood = flood
+        ? { kind: "flood", level: /Warning/.test(flood.event) ? "high" : "moderate", headline: `${flood.event}${until(flood)}`, detail: "Avoid low roads and flooded areas. Never drive through water.", source: src, updated_at: t, stop_work: false, band_pattern: /Warning/.test(flood.event) ? "FLOOD_FIRE" : null }
+        : noneHazard("flood", t, "No flood alerts", src);
+      sim.hazards.fire = fire
+        ? { kind: "fire", level: /Warning/.test(fire.event) ? "high" : "moderate", headline: `${fire.event}${until(fire)}`, detail: "Fires can spread fast today. No hot work outdoors.", source: src, updated_at: t, stop_work: false, band_pattern: /Warning/.test(fire.event) ? "FLOOD_FIRE" : null }
+        : noneHazard("fire", t, "No fire weather alerts", src);
+      if (heat) sim.hazards.heat = { ...sim.hazards.heat, level: /Warning|Extreme/.test(heat.event) ? "extreme" : "high", detail: `NWS ${heat.event}${until(heat)}. ${sim.hazards.heat.detail}` };
+      const strikes = sim.hazards.lightning.lightning?.strikes.length ?? 0;
+      if (storm && !sim.hazards.lightning.stop_work && strikes === 0) {
+        sim.hazards.lightning = { ...sim.hazards.lightning, level: "high", headline: `${storm.event}${until(storm)}`, detail: "Get inside a building or truck when you hear thunder.", source: src, updated_at: t };
+      } else if (!storm && strikes === 0 && !sim.hazards.lightning.stop_work) {
+        sim.hazards.lightning = { ...sim.hazards.lightning, level: "none", headline: "No storm warnings", source: src, updated_at: t };
+      }
+      // Tomorrow's index: flood and fire parts from the real alerts
+      const floodIdx = flood ? (/Warning/.test(flood.event) ? 2.5 : 1.2) : 0.2;
+      const fireIdx = fire ? (/Warning/.test(fire.event) ? 3 : 1.5) : 0.1;
+      const old = sim.hazardIndex;
+      const others = old.top_reasons.filter((r) => r.hazard !== "flood" && r.hazard !== "fire");
+      const extra: HazardIndex["top_reasons"] = [
+        ...(flood ? [{ hazard: "flood" as const, feature: "nws_flood", value: 1, points: round(floodIdx * 0.6, 1), text: `${flood.event} (NWS)` }] : []),
+        ...(fire ? [{ hazard: "fire" as const, feature: "nws_fire", value: 1, points: round(fireIdx * 0.6, 1), text: `${fire.event} (NWS)` }] : []),
+      ];
+      const heatPart = old.hazards.heat?.index ?? 0, stormPart = old.hazards.storm?.index ?? 0, trop = old.hazards.tropical?.index ?? 0.1;
+      const index = round(clamp(0.6 + heatPart * 0.85 + stormPart * 0.5 + floodIdx * 0.6 + fireIdx * 0.6 + trop * 0.3, 0.3, 9.8), 1);
+      sim.index = index;
+      sim.hazardIndex = {
+        ...old, index, band: index < 2 ? "low" : index < 4 ? "moderate" : index < 6 ? "high" : "extreme",
+        hazards: { ...old.hazards, flood: indexPart(floodIdx), fire: indexPart(fireIdx) },
+        top_reasons: [...others, ...extra].sort((a, b) => b.points - a.points).slice(0, 3),
+      };
+      sim.drivers = sim.hazardIndex.top_reasons.map((r) => r.text);
+    }
+    // Topsoil moisture (Open-Meteo, live)
+    if (w && w.soilMoisture !== null) {
+      const sm = w.soilMoisture, pct = Math.round(sm * 100);
+      sim.hazards.soil = {
+        kind: "soil", level: sm >= 0.4 ? "moderate" : sm >= 0.33 ? "low" : "none",
+        headline: `Topsoil ${pct}% water by volume`,
+        detail: sm >= 0.4 ? "Soaked ground. Check footing for bucket trucks and outriggers." : sm >= 0.33 ? "Damp ground. Watch soft spots near ditches." : "Ground is firm enough for heavy equipment.",
+        source: "Open-Meteo soil moisture (live)", updated_at: w.at, stop_work: false, band_pattern: null,
+      };
+    }
     if (siteId in this.live.sightings) {
       const t = Math.round(Date.now() / 1000);
       const s = this.live.sightings[siteId];
@@ -533,7 +603,6 @@ export class MockEngine {
         lastBand: "BUZZ:OFF", heatAlertId: null, rawEstimate: core,
       });
     }
-    if (this.reports.length === 0) this.seedReports(t);
     for (const s of SITES) this.applyLive(s.id);     // keep real weather/wildlife across resets
     // Warm up quietly (no events sent).
     const quiet = this.subs;
@@ -623,7 +692,7 @@ export class MockEngine {
     if (this.siteStopWork(w.def.site_id, t)) return "stop_work";
     const d = new Date(t * 1000);
     const halfHour = d.getHours() * 2 + (d.getMinutes() >= 30 ? 1 : 0);
-    if (halfHour < 14 || halfHour >= 34) return "off";                // 7:00 to 17:00
+    if (halfHour < 12 || halfHour >= 40) return "off";                // shift 6:00 to 20:00
     if (halfHour === 24) return "break";                               // lunch 12:00
     const afternoon = halfHour >= 25 && halfHour < 32;                 // 12:30 to 16:00: break every 1.5 h
     if (afternoon && (halfHour + w.def.breakOffset) % 3 === 0) return "break";
@@ -856,7 +925,9 @@ export class MockEngine {
       const isBreak = tk === "break" || tk === "stop_work";
       if (onBreak ? !isBreak : isBreak) { breakAt = t; break; }
     }
-    let reason = "Normal. No danger predicted in the next 30 min.";
+    const offShift = task === "off";
+    if (offShift) breakAt = null;                 // no "next break in 14 h" overnight
+    let reason = offShift ? "Off shift. No danger predicted in the next 30 min." : "Normal. No danger predicted in the next 30 min.";
     if (this.mandown?.worker_id === id && this.mandown.reason === "sos") reason = "SOS pressed. Emergency escalation in progress.";
     else if (w.collapsed && this.mandown) reason = "Man-down check in progress.";
     else if (w.status === "red") reason = mtd === 0 ? "In the danger zone now. Cool down." : "Forecast to reach danger within 10 min.";
@@ -866,7 +937,8 @@ export class MockEngine {
       minutes_to_danger: w.status === "green" ? null : mtd, status_reason: reason,
       hazard: top?.kind ?? null,
       alert_acknowledged: heat?.kind === "HEAT_RED" ? heat.acknowledged_at !== null : null,
-      on_break: onBreak, break_at: breakAt, band_connected: true, updated_at: this.sim,
+      on_break: onBreak, break_at: breakAt, band_connected: true, updated_at: this.sim, off_shift: offShift,
+      location: this.locations.get(id),
     };
   }
 
@@ -969,12 +1041,37 @@ export class MockEngine {
 
   pendingReason: ManDown["reason"] = "fall";
 
+  /** Where to send help: the phone's shared location if it's fresh (30 min), else the site. */
+  whereIs(w: WorkerSim) {
+    const loc = this.locations.get(w.def.worker_id);
+    if (loc && this.sim - loc.at < 30 * 60) return { lat: loc.lat, lon: loc.lon };
+    const site = SITE_BY_ID[w.def.site_id];
+    return { lat: site.lat + 0.0012, lon: site.lon - 0.0008 };
+  }
+
+  /** A worker's phone shares (or stops sharing) its location. */
+  setLocation(workerId: string, body: Record<string, unknown>) {
+    const w = this.workers.get(workerId);
+    if (!w) return { status: 404, json: { ok: false, error: "unknown worker" } };
+    if (body.stop) {
+      this.locations.delete(workerId);
+    } else {
+      const lat = Number(body.lat), lon = Number(body.lon), acc = Number(body.accuracy_m);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) {
+        return { status: 400, json: { ok: false, error: "lat and lon must be numbers" } };
+      }
+      this.locations.set(workerId, { lat, lon, accuracy_m: Number.isFinite(acc) ? Math.round(acc) : null, at: this.sim });
+    }
+    this.emit({ type: "worker_status", worker: this.workerStatus(w) });
+    return { status: 200, json: { ok: true } };
+  }
+
   startManDownCheck(w: WorkerSim, reason: ManDown["reason"]) {
     const site = SITE_BY_ID[w.def.site_id];
     const last = w.estimates[w.estimates.length - 1];
     this.mandown = {
       id: `md-${this.nextId++}`, worker_id: w.def.worker_id, worker_name: w.def.name,
-      site_id: site.id, site_name: site.name, lat: site.lat + 0.0012, lon: site.lon - 0.0008,
+      site_id: site.id, site_name: site.name, ...this.whereIs(w),
       fell_at: w.stillSince ?? this.sim, check_started_at: this.sim,
       confirm_at: this.sim + DEMO_TIMINGS.MANDOWN_ESCALATE_S, confirmed_at: null, stage: "checking", reason,
       last_vitals: { core_temp: last ? last.core.mean : null, hr: Math.round(w.hr), at: this.sim },
@@ -1040,7 +1137,7 @@ export class MockEngine {
     const busy = !!this.mandown;
     const press: SosPress = {
       worker_id: workerId, worker_name: w.def.name, site_id: site.id, site_name: site.name,
-      lat: site.lat + 0.0012, lon: site.lon - 0.0008, pressed_at: this.sim, source, escalated: !busy,
+      ...this.whereIs(w), pressed_at: this.sim, source, escalated: !busy,
     };
     this.emit({ type: "sos", sos: press });
     if (busy) {
@@ -1377,6 +1474,7 @@ export class MockEngine {
     if (w) w.scriptedIntensity = null;
     this.addLog("Scripted demo stopped", "demo");
     this.emitDemo();
+    this.backToRealTime();
   }
 
   runScenario() {
@@ -1543,6 +1641,7 @@ export class MockEngine {
       }
       if (a === "workers" && c === "button") return ok(this.buttonPress(b));
       if (a === "workers" && c === "sos") return ok(this.sos(b, "phone"));
+      if (a === "workers" && c === "location") return this.setLocation(b, body);
       if (a === "spot-check" && !b) {
         const r = this.spotCheck(String(body.worker_id ?? ""), Number(body.thermometer_c));
         return { status: r.ok ? 200 : 400, json: r };
@@ -1576,6 +1675,7 @@ export class MockEngine {
           if (this.demo.source === "live") this.demo.speed = 1;
           this.addLog(`Data source: ${this.demo.source}${this.demo.source === "replay" ? ` at ${this.demo.speed}x` : ""}`, "demo button");
           this.emitDemo();
+          if (this.demo.source === "live") this.backToRealTime();
           return ok(this.demo);
         }
         if (b === "threshold") {

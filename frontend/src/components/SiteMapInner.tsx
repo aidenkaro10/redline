@@ -9,6 +9,8 @@
  * - Crew photo reports: small camera pins.
  * - Wildlife sightings (iNaturalist): an amber pin at the spot it was seen, with a line to the
  *   site. Blurred (approximate) sightings get a dashed outline and say so.
+ * - Crew members who share their phone's location: a round pin with their initials, colored by
+ *   status. The first time people appear, the map zooms to them.
  */
 
 import "leaflet/dist/leaflet.css";
@@ -26,7 +28,19 @@ const FLORIDA: L.LatLngBoundsExpression = [[24.5, -87.6], [31.0, -80.0]];
 // Needs internet. Without it the dots still show on a plain background.
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 
+export interface MapPerson {
+  id: string;
+  name: string;
+  status: "green" | "yellow" | "red";
+  lat: number;
+  lon: number;
+  minutesAgo: number;
+}
+
+const PERSON_COLOR = { green: "#34c759", yellow: "#ff9500", red: "#ff3b30" } as const;
+
 export interface SiteMapProps {
+  people?: MapPerson[];
   sites: Site[];
   statuses: Record<string, SiteStatus>;
   reports: PhotoReport[];
@@ -36,7 +50,8 @@ export interface SiteMapProps {
   focus?: string | null;          // site to zoom to (changes trigger a fly-to)
 }
 
-export default function SiteMapInner({ sites, statuses, reports, selected, onSelect, dark, focus }: SiteMapProps) {
+export default function SiteMapInner({ sites, statuses, reports, selected, onSelect, dark, focus, people = [] }: SiteMapProps) {
+  const fittedPeople = useRef(false);
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const layer = useRef<L.LayerGroup | null>(null);
@@ -65,7 +80,8 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
       if (!moved.current) m.fitBounds(FLORIDA);
     });
     ro.observe(el.current);
-    return () => { ro.disconnect(); m.remove(); map.current = null; };
+    // A new map starts un-zoomed (React can mount this twice in development)
+    return () => { ro.disconnect(); m.remove(); map.current = null; fittedPeople.current = false; moved.current = false; };
   }, []);
 
   // Zoom to a site when asked.
@@ -164,7 +180,26 @@ export default function SiteMapInner({ sites, statuses, reports, selected, onSel
         { direction: "top", offset: [0, -8] },
       ).addTo(g);
     }
-  }, [sites, statuses, reports, selected, dark]);
+    // Crew members sharing their location
+    for (const p of people) {
+      const initials = p.name.split(" ").map((x) => x[0]).slice(0, 2).join("").toUpperCase();
+      L.marker([p.lat, p.lon], {
+        zIndexOffset: 1000,
+        icon: L.divIcon({
+          className: "", iconSize: [30, 30], iconAnchor: [15, 15],
+          html: `<div style="width:30px;height:30px;border-radius:50%;background:${PERSON_COLOR[p.status]};border:2.5px solid ${dark ? "#1a1a19" : "#fff"};display:grid;place-items:center;color:#fff;font:700 11px/1 system-ui,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.35)">${escapeHtml(initials)}</div>`,
+        }),
+      }).bindTooltip(`<b>${escapeHtml(p.name)}</b><br/>${p.minutesAgo < 1 ? "Just now" : `${p.minutesAgo} min ago`}`, { direction: "top", offset: [0, -14] }).addTo(g);
+    }
+  }, [sites, statuses, reports, selected, dark, people]);
+
+  // The first time anyone shares their location, zoom to the crew.
+  useEffect(() => {
+    if (!map.current || fittedPeople.current || people.length === 0) return;
+    fittedPeople.current = true;
+    moved.current = true;
+    map.current.fitBounds(L.latLngBounds(people.map((p) => [p.lat, p.lon] as [number, number])).pad(0.4), { maxZoom: 15 });
+  }, [people]);
 
   return <div ref={el} className="h-full w-full" />;
 }

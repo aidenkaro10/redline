@@ -25,7 +25,7 @@ import { STATUS_TEXT, StatusBadge, alertTone, fmtClock, fmtCountdown, indexColor
 import { shortSiteName, siteMeta, useCrew, useSites } from "@/lib/crew";
 import { dangerText } from "@/lib/format";
 import { rankSites } from "@/lib/ranking";
-import { useLive, useSimNow } from "@/lib/live";
+import { USING_MOCK, useLive, useSimNow } from "@/lib/live";
 import { secondsUntil } from "@/lib/normalize";
 
 const STATUS_ORDER: Record<Status, number> = { red: 0, yellow: 1, green: 2 };
@@ -134,7 +134,7 @@ function CrewSummary({ workers, siteName, now }: { workers: WorkerStatus[]; site
         {attention
           ? <Value unit={attention === 1 ? "needs attention" : "need attention"} tone={workers.some((w) => w.status === "red") ? "var(--danger-ink)" : "var(--warn-ink)"}>{attention}</Value>
           : <Value unit="all OK">{workers.length}</Value>}
-        <span className="mt-1.5 block truncate text-[15px] text-muted">{workers.length} on shift{siteName ? ` at ${siteName}` : ""}</span>
+        <span className="mt-1.5 block truncate text-[15px] text-muted">{workers.length} on shift{siteName ? ` at ${siteName}` : ""}{USING_MOCK ? " · simulated readings" : ""}</span>
       </Card>
     </div>
   );
@@ -142,12 +142,15 @@ function CrewSummary({ workers, siteName, now }: { workers: WorkerStatus[]; site
 
 /** Someone who's fine: one line, name and what they're doing, "OK" on the right. */
 function OkRow({ w, onOpen }: { w: WorkerStatus; onOpen: () => void }) {
-  const reason = w.on_break ? (w.hazard === "LIGHTNING" ? "Stopped for lightning" : "On break") : "Working";
+  const reason = w.off_shift ? "Off shift" : w.on_break ? (w.hazard === "LIGHTNING" ? "Stopped for lightning" : "On break") : "Working";
   return (
     <li data-status={w.status}>
       <button onClick={onOpen} className="flex min-h-[56px] w-full items-center gap-3 px-4 py-2.5 text-left active:bg-surface-2">
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[17px] font-semibold">{w.name}</span>
+          <span className="flex items-center gap-1.5">
+            <span className="truncate text-[17px] font-semibold">{w.name}</span>
+            {w.location && <span className="h-3.5 w-3.5 shrink-0 text-accent" title="Sharing location"><Icon.pin /></span>}
+          </span>
           <span className="block truncate text-[15px] text-muted">{reason}</span>
         </span>
         <span className="flex items-center gap-1 text-[15px] font-semibold" style={{ color: HUE.ok }}>
@@ -204,13 +207,21 @@ function WorkerDetails({ w, now, down }: { w: WorkerStatus; now: number; down: "
           {w.minutes_to_danger === null ? "No danger in 30 min" : w.minutes_to_danger === 0 ? "In danger now" : `Danger in ${w.minutes_to_danger} min`}
         </p>
         <p className="mt-1 text-[17px] text-ink-2">{w.status_reason}</p>
+        {USING_MOCK && <p className="mt-1 text-[13px] text-muted">Status comes from simulated readings until this person wears a Redline band.</p>}
       </div>
 
       <Group>
         <Row label="Alert"><span className={w.hazard ? alertTone(w.hazard) : "font-normal text-muted"}>{w.hazard ? ALERT_LABEL[w.hazard] : "None"}</span></Row>
         {w.alert_acknowledged !== null && <Row label="Acknowledged">{w.alert_acknowledged ? "Yes" : <span className="text-danger-ink">Not yet</span>}</Row>}
         {breakIn !== null && <Row label={w.on_break ? "Back to work" : "Next break"}><span className="tabular">in {Math.max(0, Math.round(breakIn / 60))} min</span></Row>}
-        <Row label="Band">{w.band_connected ? "Connected" : <span className="text-warn-ink">Not connected</span>}</Row>
+        <Row label="Band">{USING_MOCK ? <span className="font-normal text-muted">Simulated</span> : w.band_connected ? "Connected" : <span className="text-warn-ink">Not connected</span>}</Row>
+        <Row label="Location">
+          {w.location ? (
+            <a href={`https://maps.google.com/?q=${w.location.lat},${w.location.lon}`} target="_blank" rel="noopener noreferrer" className="text-accent">
+              {site ? `${milesFrom(site, w.location)} mi from ${shortSiteName(site.name)}` : "Open in Maps"} · {ago(now - w.location.at)}
+            </a>
+          ) : <span className="font-normal text-muted">Not shared</span>}
+        </Row>
       </Group>
 
       <Group>
@@ -238,6 +249,13 @@ export function SitesPanel({ layout = "phone" }: { layout?: "phone" | "laptop" }
 
   // Ranked by tomorrow's index, highest first; no index yet = last. Worker alerts show as flags.
   const ranked = useMemo(() => (sites ? rankSites(sites, live.sites) : []), [sites, live.sites]);
+  // Crew members who chose to share their phone's location, as map pins
+  const now = useSimNow(15000);
+  const minute = Math.floor(now / 60);
+  const people = useMemo(() => crew.workers.filter((w) => w.location).map((w) => ({
+    id: w.worker_id, name: w.name, status: w.status, lat: w.location!.lat, lon: w.location!.lon,
+    minutesAgo: Math.max(0, Math.round(minute - w.location!.at / 60)),
+  })), [crew.workers, minute]);
 
   // A stop-work or incident at a crew site: open that site right away.
   const alarm = crew.siteIds.find((id) => live.sites[id]?.worker_flag === "mandown" || live.sites[id]?.worker_flag === "sos" || live.sites[id]?.hazards.some((h) => h.stop_work)) ?? null;
@@ -263,7 +281,7 @@ export function SitesPanel({ layout = "phone" }: { layout?: "phone" | "laptop" }
 
       {(laptop || view === "map") && (
         <div className={`overflow-hidden rounded-[16px] ${laptop ? "h-[42vh] min-h-[300px]" : "mt-4 h-[62vh] min-h-[320px]"}`}>
-          {sites && <SiteMap sites={sites} statuses={live.sites} reports={live.reports} selected={selected} onSelect={pick} dark={dark} focus={focus} />}
+          {sites && <SiteMap sites={sites} statuses={live.sites} reports={live.reports} selected={selected} onSelect={pick} dark={dark} focus={focus} people={people} />}
         </div>
       )}
       {(laptop || view === "list") && (
@@ -327,4 +345,17 @@ function SiteRow({ site: s, status: st, rank, mine, onPick }: { site: Site; stat
       </button>
     </li>
   );
+}
+
+/** Miles from a site to a point, one decimal. */
+function milesFrom(site: { lat: number; lon: number }, p: { lat: number; lon: number }) {
+  const r = (d: number) => (d * Math.PI) / 180;
+  const a = Math.sin(r(p.lat - site.lat) / 2) ** 2 + Math.cos(r(site.lat)) * Math.cos(r(p.lat)) * Math.sin(r(p.lon - site.lon) / 2) ** 2;
+  return (3958.8 * 2 * Math.asin(Math.sqrt(a))).toFixed(1);
+}
+
+/** "just now", "4 min ago", "2 h ago" */
+function ago(seconds: number) {
+  const m = Math.round(seconds / 60);
+  return m < 1 ? "just now" : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`;
 }

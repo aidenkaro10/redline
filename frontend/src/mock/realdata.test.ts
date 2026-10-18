@@ -24,3 +24,17 @@ test("realdata: miles between two points", () => {
   assert.ok(d > 8 && d < 10, `got ${d}`);
   assert.equal(milesBetween(29.7, -82.3, 29.7, -82.3), 0);
 });
+
+test("realdata: NWS alerts match a site by drawn area or by county name", async () => {
+  const { alertsForSite } = await import("./realdata.ts");
+  const box = (lat: number, lon: number): [number, number][] => [[lon - 0.1, lat - 0.1], [lon + 0.1, lat - 0.1], [lon + 0.1, lat + 0.1], [lon - 0.1, lat + 0.1], [lon - 0.1, lat - 0.1]];
+  const deerhaven = { lat: 29.7585, lon: -82.3889, county: "Alachua" };
+  const alerts = [
+    { event: "Flood Warning", headline: "", severity: "Severe", ends: null, areaDesc: "Somewhere", polygons: [box(29.76, -82.39)] },        // drawn over the site
+    { event: "Red Flag Warning", headline: "", severity: "Severe", ends: null, areaDesc: "Alachua, FL; Marion, FL", polygons: null },     // by county
+    { event: "Heat Advisory", headline: "", severity: "Moderate", ends: null, areaDesc: "Inland Volusia", polygons: null },                // other county
+    { event: "Wind Advisory", headline: "", severity: "Minor", ends: null, areaDesc: "Far away", polygons: [box(27, -81)] },              // drawn elsewhere
+  ];
+  assert.deepEqual(alertsForSite(alerts, deerhaven).map((a) => a.event), ["Flood Warning", "Red Flag Warning"]);
+  assert.deepEqual(alertsForSite(alerts, { lat: 29.0, lon: -81.3, county: "Volusia" }).map((a) => a.event), ["Heat Advisory"]);
+});

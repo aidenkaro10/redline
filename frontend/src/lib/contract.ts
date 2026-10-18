@@ -128,6 +128,10 @@ export interface WorkerStatus {
   break_at: number | null;
   band_connected: boolean;
   updated_at: number;
+  /** Outside working hours (built-in demo backend). */
+  off_shift?: boolean;
+  /** Where this worker's phone last was, if they chose to share it with their crew lead. */
+  location?: { lat: number; lon: number; accuracy_m: number | null; at: number };
 }
 
 /** One raw reading. Only sent to the worker's own view and the demo view. */

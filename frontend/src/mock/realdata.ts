@@ -4,6 +4,8 @@
  *   Open-Meteo   current temperature + humidity for every site, and the hourly forecast for
  *                today and tomorrow (heat index peaks, thunderstorm chance). One request per
  *                50 sites, refreshed every 15 minutes.
+ *   NWS alerts   active watches/warnings for Florida (api.weather.gov), one request every 15 min,
+ *                matched to each site by the alert's map area, or its county name.
  *   iNaturalist  research-grade sightings of dangerous animals (alligators, venomous snakes)
  *                near the crew sites in the last 30 days, with the real map point.
  *
@@ -23,6 +25,7 @@ export interface SiteWeather {
   hiMaxTomorrowF: number;
   stormChanceTomorrow: number;   // % chance of rain tomorrow (max hourly)
   thunderTomorrow: boolean;      // a thunderstorm weather code in tomorrow's forecast
+  soilMoisture: number | null;   // topsoil water content now, m³/m³ (0 = dry, ~0.45 = soaked)
   at: number;                 // Unix seconds of the reading
 }
 
@@ -80,7 +83,7 @@ const round1 = (x: number) => Math.round(x * 10) / 10;
 type OpenMeteo = {
   utc_offset_seconds: number;
   current: { time: string; temperature_2m: number; relative_humidity_2m: number; wind_speed_10m: number };
-  hourly: { time: string[]; temperature_2m: number[]; relative_humidity_2m: number[]; precipitation_probability: (number | null)[]; weather_code: (number | null)[] };
+  hourly: { time: string[]; temperature_2m: number[]; relative_humidity_2m: number[]; precipitation_probability: (number | null)[]; weather_code: (number | null)[]; soil_moisture_0_to_1cm?: (number | null)[] };
 };
 
 /** Weather for many sites, keyed by site id. Sites that fail are simply missing. */
@@ -92,7 +95,7 @@ export async function fetchWeather(sites: { id: string; lat: number; lon: number
       latitude: batch.map((s) => s.lat.toFixed(4)).join(","),
       longitude: batch.map((s) => s.lon.toFixed(4)).join(","),
       current: "temperature_2m,relative_humidity_2m,wind_speed_10m",
-      hourly: "temperature_2m,relative_humidity_2m,precipitation_probability,weather_code",
+      hourly: "temperature_2m,relative_humidity_2m,precipitation_probability,weather_code,soil_moisture_0_to_1cm",
       forecast_days: "2", temperature_unit: "fahrenheit", wind_speed_unit: "mph", timezone: "America/New_York",
     });
     const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
@@ -107,6 +110,8 @@ export async function fetchWeather(sites: { id: string; lat: number; lon: number
       const today = his.slice(0, 24), tomorrow = his.slice(24, 48);
       const rainTomorrow = d.hourly.precipitation_probability.slice(24, 48).map((p) => p ?? 0);
       const codesTomorrow = d.hourly.weather_code.slice(24, 48).map((x) => x ?? 0);
+      const hourNow = d.hourly.time.indexOf(c.time.slice(0, 13) + ":00");
+      const soil = hourNow >= 0 ? d.hourly.soil_moisture_0_to_1cm?.[hourNow] ?? null : null;
       out[s.id] = {
         tempF: round1(c.temperature_2m), rh: Math.round(c.relative_humidity_2m), windMph: round1(c.wind_speed_10m),
         hiNowF: Math.round(heatIndexF(c.temperature_2m, c.relative_humidity_2m)),
@@ -114,6 +119,7 @@ export async function fetchWeather(sites: { id: string; lat: number; lon: number
         hiMaxTodayF: Math.round(Math.max(...today)), hiMaxTomorrowF: Math.round(Math.max(...tomorrow)),
         stormChanceTomorrow: Math.round(Math.max(0, ...rainTomorrow)),
         thunderTomorrow: codesTomorrow.some((x) => x >= 95),
+        soilMoisture: soil,
         at: Math.round(Date.parse(c.time + ":00Z") / 1000 - (d.utc_offset_seconds ?? 0)) || Math.round(Date.now() / 1000),
       };
     });
@@ -157,4 +163,56 @@ export async function fetchSighting(site: { lat: number; lon: number }, now = Da
     });
   const exact = hits.filter((h) => !h.approximate).sort((a, b) => a.miles - b.miles)[0];
   return exact ?? hits[0] ?? null;
+}
+
+// ---------------------------------------------------------------------------
+// National Weather Service alerts
+// ---------------------------------------------------------------------------
+
+export interface NwsAlert {
+  event: string;              // "Flood Warning", "Red Flag Warning", "Heat Advisory" ...
+  headline: string;
+  severity: string;           // Extreme / Severe / Moderate / Minor / Unknown
+  ends: string | null;        // ISO time
+  areaDesc: string;           // "Alachua, FL; Columbia, FL"
+  polygons: [number, number][][] | null;   // rings of [lon, lat], when the alert has a drawn area
+}
+
+type NwsFeature = {
+  geometry: { type: "Polygon"; coordinates: [number, number][][] } | { type: "MultiPolygon"; coordinates: [number, number][][][] } | null;
+  properties: { event: string; headline: string | null; severity: string; ends: string | null; expires: string | null; areaDesc: string };
+};
+
+/** Every active alert in Florida (one request). */
+export async function fetchFloridaAlerts(): Promise<NwsAlert[]> {
+  const res = await fetch("https://api.weather.gov/alerts/active?area=FL", {
+    signal: AbortSignal.timeout(15000),
+    headers: { "User-Agent": "Redline heat-safety demo (SwampHacks)", Accept: "application/geo+json" },
+  });
+  if (!res.ok) throw new Error(`NWS ${res.status}`);
+  const json = await res.json() as { features: NwsFeature[] };
+  return (json.features ?? []).map((f) => ({
+    event: f.properties.event, headline: f.properties.headline ?? f.properties.event, severity: f.properties.severity,
+    ends: f.properties.ends ?? f.properties.expires, areaDesc: f.properties.areaDesc ?? "",
+    polygons: !f.geometry ? null : f.geometry.type === "Polygon" ? f.geometry.coordinates : f.geometry.coordinates.flat(),
+  }));
+}
+
+/** Is (lat, lon) inside this ring of [lon, lat] points? (ray casting) */
+function inRing(lat: number, lon: number, ring: [number, number][]) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if ((yi > lat) !== (yj > lat) && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+/** The alerts that cover a site: inside the alert's drawn area, or its county is named in the alert. */
+export function alertsForSite(alerts: NwsAlert[], site: { lat: number; lon: number; county?: string }): NwsAlert[] {
+  const county = (site.county ?? "").toLowerCase();
+  return alerts.filter((a) => a.polygons
+    ? a.polygons.some((ring) => inRing(site.lat, site.lon, ring))
+    // Zone names look like "Alachua, FL" or "Inland Volusia", so match the county as a whole word
+    : !!county && new RegExp(`(^|[^a-z])${county.replace(/[^a-z]/g, ".")}([^a-z]|$)`).test(a.areaDesc.toLowerCase()));
 }

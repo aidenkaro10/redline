@@ -90,7 +90,10 @@ export default function SignInPage() {
           className="w-full rounded-full border border-black/10 bg-white/60 px-5 py-3 text-[15px] font-semibold transition-colors hover:bg-white">
           Use the demo crew
         </button>
-        <p className="mt-6 text-center text-[12px] text-[#8a8174]">Preview: your email just labels the dashboard and stays in this browser.</p>
+        <p className="mt-6 text-center text-[13px] text-[#5d564d]">
+          On a crew? <a href="/worker" className="font-semibold text-[#1d1b19] underline underline-offset-2">Open the worker app</a> on your phone.
+        </p>
+        <p className="mt-3 text-center text-[12px] text-[#8a8174]">For crew leads. Your email just labels the dashboard and stays in this browser.</p>
       </div>
     </main>
   );

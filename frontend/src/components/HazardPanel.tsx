@@ -107,10 +107,12 @@ const INDEX_HAZARDS: { key: IndexHazard; label: string }[] = [
 
 /** Session C2's 0-10 index for tomorrow: per-hazard bars vs a usual day, and the top reasons. */
 function IndexBreakdown({ hi }: { hi: HazardIndex }) {
+  // "A usual day here" is only real in session C2's archive mode (climatology from past years).
+  const realClimo = hi.data_mode === "archive";
   return (
     <details className="rounded-lg border border-line px-3 py-2 text-xs">
       <summary className="cursor-pointer font-semibold">
-        Tomorrow: <span className="capitalize">{hi.band}</span> ({hi.index.toFixed(1)}/10) · a usual day here scores {hi.climatology_index.toFixed(1)}
+        Tomorrow: <span className="capitalize">{hi.band}</span> ({hi.index.toFixed(1)}/10){realClimo && <> · a usual day here scores {hi.climatology_index.toFixed(1)}</>}
         {hi.data_mode === "mock" && <span className="ml-1.5 rounded bg-warn-bg px-1 py-px text-[10px] font-bold text-warn-ink">MOCK</span>}
       </summary>
       <ul className="mt-2 space-y-1">
@@ -119,16 +121,16 @@ function IndexBreakdown({ hi }: { hi: HazardIndex }) {
           return (
             <li key={h.key} className="flex items-center gap-2">
               <span className="w-14 shrink-0 text-ink-2">{h.label}</span>
-              <span className="relative h-2 flex-1 rounded-full bg-surface-2" title={`${part.index.toFixed(1)} (usual day ${part.climatology_index.toFixed(1)})`}>
+              <span className="relative h-2 flex-1 rounded-full bg-surface-2" title={realClimo ? `${part.index.toFixed(1)} (usual day ${part.climatology_index.toFixed(1)})` : part.index.toFixed(1)}>
                 <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${part.index * 10}%`, background: indexColor(part.index) }} />
-                <span className="absolute -top-0.5 h-3 w-0.5 bg-ink-2" style={{ left: `${part.climatology_index * 10}%` }} aria-label="usual day" />
+                {realClimo && <span className="absolute -top-0.5 h-3 w-0.5 bg-ink-2" style={{ left: `${part.climatology_index * 10}%` }} aria-label="usual day" />}
               </span>
               <span className="w-7 text-right tabular">{part.index.toFixed(1)}</span>
             </li>
           );
         })}
       </ul>
-      <p className="mt-1 text-[10px] text-muted">Bars: tomorrow. Tick: a usual day this month.</p>
+      <p className="mt-1 text-[10px] text-muted">{realClimo ? "Bars: tomorrow. Tick: a usual day this month." : "Bars: tomorrow, 0-10."}</p>
       {hi.top_reasons.length > 0 && (
         <ul className="mt-2 space-y-0.5 text-ink-2">
           {hi.top_reasons.map((r) => <li key={r.feature}>{r.text} <span className="text-muted tabular">(+{r.points.toFixed(1)})</span></li>)}
