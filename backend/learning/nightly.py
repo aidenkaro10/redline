@@ -101,15 +101,23 @@ def apply_profiles(scenario, profiles: dict):
     return sc
 
 
+def hindcast(plan_sc, plan, weather) -> dict:
+    """The plain planning model re-run on the weather that ACTUALLY happened (no personal offsets).
+    Comparing people to this, not to the forecast-day plan, keeps a hot day from being blamed on the crew."""
+    sc = replace(plan_sc, weather=weather, crew=[replace(w, core_offset_c=0.0) for w in plan_sc.crew])
+    return PHSHeatModel().simulate(sc, [plan])[0]
+
+
 def learn_profiles(profiles: dict, plan_sc, plan, planned_trace, actual, rng) -> list[dict]:
-    """Spot checks at every break (and shift end) + per-intensity excess heating. Returns what was learned."""
+    """Spot checks at every break (and shift end) + per-intensity excess heating. Returns what was learned.
+    planned_trace must be the HINDCAST (model on the actual weather, no offsets), see hindcast()."""
     sm = plan_sc.slot_min
     notes = []
     for w in plan_sc.crew:
         if w.available == [] or _key(w) not in profiles:
             continue
         p = profiles[_key(w)]
-        base_p50 = planned_trace[w.id][:, 1] - w.core_offset_c       # the plain model, before this profile
+        base_p50 = planned_trace[w.id][:, 1]                         # the plain model on the real weather
         row = plan.assignments[w.id]
         check_minutes = [k * sm + sm // 2 for k, a in enumerate(row) if a == REST and k > 0] + [len(base_p50) - 1]
         for m in check_minutes[:6]:
@@ -311,11 +319,13 @@ def run_nightly(days: list, gate_days: list, llm=None, verbose: bool = True, see
         aw = actual_weather(day, 200 + d)
         weather_misses.append(float(np.mean([a.tdb - f.tdb for a, f in zip(aw, day.weather)])))
         # 2a. LEARN: profiles
-        entry["profiles"] = learn_profiles(profiles, pending["plan_sc"], pending["plan"], pending["trace"], actual, rng)
+        hc = hindcast(pending["plan_sc"], pending["plan"], aw)
+        entry["profiles"] = learn_profiles(profiles, pending["plan_sc"], pending["plan"], hc, actual, rng)
         # 2b. ACE: reflect on the real day, curate, gate each update alone (on profile-aware gate days)
         s = to_settings(genome)
         gdays = [apply_profiles(g, profiles) for g in gate_days]
-        facts = find_facts(pending["plan_sc"], pending["plan"], pending["trace"], actual, out)
+        facts = find_facts(pending["plan_sc"], pending["plan"], hc, actual, out)
+        entry["weather_miss_c"] = round(weather_misses[-1], 2)
         if llm is not None:
             llm.purpose = "nightly:ace"
         refl = reflect(llm, f"day {d}", facts)
