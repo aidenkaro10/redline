@@ -133,7 +133,10 @@ def synthetic(minutes: int = 120, fall_worker: int | None = 1, fall_at_min: floa
     """A built-in fake shift: the main worker's heart rate climbs, crewmates stay easy."""
     t = np.arange(minutes)
     rng = np.random.default_rng(0)
-    shapes = [95 + 80 * np.clip(t / 60, 0, 1)]                     # main: 95 -> 175 bpm over an hour
+    # Main worker: 95 -> 180 bpm over 20 min, then hard work. With the Kalman rule he goes yellow at
+    # ~25 min and red at ~36 min, BEFORE the default crewmate fall at 40 min (same story as the real
+    # demo shift: he overheats, then Maria falls, and her alert buzzes his band too).
+    shapes = [95 + 85 * np.clip(t / 20, 0, 1)]
     shapes += [100 + 8 * np.sin(t / 9 + i) for i in range(n_crew)]  # crew: steady ~100 bpm
     workers, items = [], []
     for i, hr in enumerate(shapes):
