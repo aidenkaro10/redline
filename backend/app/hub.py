@@ -182,9 +182,10 @@ class Hub:
                 self.pipelines[sample.worker_id].set_wbgt_correction(ev["wbgt_correction_c"], ev["timestamp"])
         derived = []
         for ev in events:
-            # A real fall (accepted by the accelerometer check) latches man-down: beep after the
+            # A real fall with a jolt (accepted by the accelerometer check; not a slow tip-over) latches man-down: beep after the
             # still time, and only the button stops it.
-            if ev.get("type") == "band_fall" and ev.get("accepted") and ev.get("worker_id") in self.pipelines:
+            if (ev.get("type") == "band_fall" and ev.get("accepted") and ev.get("trigger") != "tipped"
+                    and ev.get("worker_id") in self.pipelines):
                 derived += self.pipelines[ev["worker_id"]].fall_detected(ev["timestamp"], ev.get("impact_at"))
         if events or derived:
             self.dispatch(events + derived)
