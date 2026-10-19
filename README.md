@@ -9,6 +9,9 @@
 - Runs an offline AI planner with no internet (Qwen3-1.7B fine-tuned with LoRA on Claude's examples).
 - The band is wireless (Bluetooth LE) and the emergency call is an AI voice agent (ElevenLabs + Twilio) that never calls 911 in the demo.
 
+<img width="768" height="1024" alt="image" src="https://github.com/user-attachments/assets/7d025d2b-88bf-4539-9a7a-40671b147e97" />
+
+
 **Rule behind everything:** AI predicts and suggests. Plain code makes every safety decision.
 
 ## Read more
